@@ -20,17 +20,27 @@
 ```sh
 bun run wiki:generated
 bun run wiki:lint
+bun run wiki:doctor
 bun run wiki:impact -- --base origin/main --enforce
 bun run typecheck
 bun run test
 bun run wiki:review-bundle -- --base origin/main --metadata /path/to/pr-body.md
 ```
 
-Fill the PR metadata block before creating the bundle. `WIKI_PR_BODY` may provide the same block when a file is inconvenient. A separate fresh-context agent session reads the review bundle and returns `PASS` or `NEEDS_RECONCILE`; attach its evidence to the PR.
+Fill the PR metadata block, including the structured `fresh_context` status mirror, before creating the bundle. `WIKI_PR_BODY` may provide the same block when a file is inconvenient.
+
+A separate context-isolated session or reviewer—not the authoring session—reads the bundle and primary sources, then creates the version 1 report described by `REPORT.md`. Publish it through the trusted PR review/comment channel, mirror its verdict/HEAD/bundle/reviewer/evidence into the PR body's `fresh_context` block, and validate it:
+
+```sh
+bun run wiki:review-check -- --base origin/main --metadata /path/to/pr-body.md \
+  --report /path/to/report.json --reviewer-actor <authenticated-actor> --pr-author <author>
+```
+
+The report must be PASS with evidence and must bind the current full HEAD, merge-base, and bundle digest. `NEEDS_RECONCILE` means fix → new bundle → new review. Any new commit or semantic PR metadata change makes the old PASS stale. If a separate reviewer/report is unavailable, leave the PR Draft and ask the user for the reviewer or permission; do not report completion or mark it Ready.
 
 ## Enforcement layers
 
 - pre-commit: staged wiki structure/link/source/generated validation only.
 - pre-push: direct `main` push prevention.
-- CI: code tests, wiki structure, generated freshness, and blocking impact enforcement, plus a weekly full audit.
+- CI: code tests, wiki structure/doctor, generated freshness, blocking impact enforcement, and the `wiki-fresh-context` attestation check, plus a weekly full audit. Drafts may carry a failing/pending Fresh-context check; Ready/merge must not.
 - protected `main`: the durable remote boundary; see [proposal/protected-main](./proposals/protected-main.md) until it is active. Local hooks and CI can be bypassed and are not a security boundary. Details in [operations/enforcement](./operations/enforcement.md).

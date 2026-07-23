@@ -620,26 +620,119 @@ export function validateState(view: RepoView, pages: WikiPage[]): StateAudit {
 
 export function allLintFindings(view: RepoView, checkGenerated = true): { pages: WikiPage[]; findings: Finding[] } {
   const loaded = loadWikiPages(view);
-  const findings = [...loaded.findings, ...validatePages(view, loaded.pages), ...validateMarkdownLinks(view), ...validateCoverage(view, loaded.pages)];
+  const findings = [...loaded.findings, ...validatePages(view, loaded.pages), ...validateMarkdownLinks(view), ...validateCoverage(view, loaded.pages), ...validateIntegrationSeams(view)];
   if (checkGenerated) findings.push(...compareGenerated(view, generatedCoreFiles(loaded.pages, readConfig(view).name)));
   return { pages: loaded.pages, findings };
 }
 
-export type WikiConfig = { version: 1; name: string; highRisk: string[] };
+export type FreshContextMode = "advisory" | "required";
+export type FreshContextTrustPolicy = {
+  allowedReviewers: string[];
+  requireDifferentActor: boolean;
+  requireAuthenticatedActor: boolean;
+};
+export type FreshContextPolicy = {
+  mode: FreshContextMode;
+  requiredVerdict: "PASS";
+  evidenceRequired: boolean;
+  trust: FreshContextTrustPolicy;
+};
+export type WikiConfig = {
+  version: 1;
+  name: string;
+  highRisk: string[];
+  freshContext?: FreshContextPolicy;
+};
+
+export function parseFreshContextPolicy(value: unknown): FreshContextPolicy | undefined {
+  if (value == null || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const policy = value as Record<string, unknown>;
+  const trust = policy.trust;
+  if (policy.mode !== "advisory" && policy.mode !== "required") return undefined;
+  if (policy.requiredVerdict !== "PASS" || typeof policy.evidenceRequired !== "boolean") return undefined;
+  if (trust == null || typeof trust !== "object" || Array.isArray(trust)) return undefined;
+  const trustValue = trust as Record<string, unknown>;
+  if (!stringArray(trustValue.allowedReviewers) || trustValue.allowedReviewers.length === 0 || typeof trustValue.requireDifferentActor !== "boolean" || typeof trustValue.requireAuthenticatedActor !== "boolean") return undefined;
+  return {
+    mode: policy.mode,
+    requiredVerdict: "PASS",
+    evidenceRequired: policy.evidenceRequired,
+    trust: {
+      allowedReviewers: [...trustValue.allowedReviewers].sort((a, b) => a.localeCompare(b)),
+      requireDifferentActor: trustValue.requireDifferentActor,
+      requireAuthenticatedActor: trustValue.requireAuthenticatedActor,
+    },
+  };
+}
 
 export function readConfig(view: RepoView): WikiConfig {
   const fallback: WikiConfig = { version: 1, name: "Project", highRisk: [] };
   if (!view.exists(".wiki/config.json")) return fallback;
   try {
-    const raw = JSON.parse(view.read(".wiki/config.json")) as Partial<WikiConfig>;
+    const raw = JSON.parse(view.read(".wiki/config.json")) as Record<string, unknown>;
+    const freshContext = parseFreshContextPolicy(raw.freshContext);
     return {
       version: 1,
       name: typeof raw.name === "string" && raw.name.length > 0 ? raw.name : "Project",
       highRisk: Array.isArray(raw.highRisk) ? raw.highRisk.filter((item): item is string => typeof item === "string" && item.length > 0) : [],
+      ...(freshContext ? { freshContext } : {}),
     };
   } catch {
     return fallback;
   }
+}
+
+export function validateIntegrationSeams(view: RepoView): Finding[] {
+  const findings: Finding[] = [];
+  let configRaw: Record<string, unknown> | undefined;
+  if (!view.exists(".wiki/config.json")) {
+    findings.push({ code: "fresh-context-config-missing", message: ".wiki/config.json must declare an explicit freshContext policy", path: ".wiki/config.json", severity: "error" });
+  } else {
+    try {
+      const parsed = JSON.parse(view.read(".wiki/config.json")) as unknown;
+      if (parsed != null && typeof parsed === "object" && !Array.isArray(parsed)) configRaw = parsed as Record<string, unknown>;
+      else throw new Error("config must be a JSON object");
+    } catch (error) {
+      findings.push({ code: "fresh-context-config-invalid", message: error instanceof Error ? error.message : String(error), path: ".wiki/config.json", severity: "error" });
+    }
+    if (configRaw && configRaw.freshContext == null) {
+      findings.push({ code: "fresh-context-config-missing", message: ".wiki/config.json must declare an explicit freshContext policy; missing policy never falls back silently to advisory", path: ".wiki/config.json", severity: "error" });
+    } else if (configRaw && !parseFreshContextPolicy(configRaw.freshContext)) {
+      findings.push({ code: "fresh-context-config-invalid", message: "freshContext requires mode, requiredVerdict: PASS, evidenceRequired, and a complete trust policy", path: ".wiki/config.json", severity: "error" });
+    }
+  }
+
+  const agents = view.exists("AGENTS.md") ? view.read("AGENTS.md") : "";
+  if (!agents.includes("wiki-ssot:fresh-context-guardrail")) {
+    findings.push({ code: "fresh-context-agents-marker-missing", message: "root AGENTS.md must contain the wiki-ssot:fresh-context-guardrail integration marker", path: "AGENTS.md", severity: "error" });
+  }
+
+  const templatePath = ".github/pull_request_template.md";
+  const template = view.exists(templatePath) ? view.read(templatePath) : "";
+  if (!["fresh_context:", "verdict:", "reviewed_head_sha:", "bundle_digest:", "reviewer:", "evidence:"].every((token) => template.includes(token))) {
+    findings.push({ code: "fresh-context-template-missing", message: "PR template must include the structured fresh_context metadata contract", path: templatePath, severity: "error" });
+  }
+
+  const packagePath = "package.json";
+  let scripts: Record<string, unknown> = {};
+  if (view.exists(packagePath)) {
+    try {
+      const parsed = JSON.parse(view.read(packagePath)) as { scripts?: Record<string, unknown> };
+      scripts = parsed.scripts ?? {};
+    } catch {
+      // The ordinary package/tooling checks report malformed package.json.
+    }
+  }
+  if (typeof scripts["wiki:review-check"] !== "string" || typeof scripts["wiki:doctor"] !== "string") {
+    findings.push({ code: "fresh-context-command-missing", message: "package.json must expose wiki:review-check and wiki:doctor", path: packagePath, severity: "error" });
+  }
+
+  const workflowPath = ".github/workflows/checks.yml";
+  const workflow = view.exists(workflowPath) ? view.read(workflowPath) : "";
+  if (!["pull_request:", "wiki-fresh-context:", "github-attestation.ts", "review-check", "policy-file", "edited", "synchronize"].every((token) => workflow.includes(token))) {
+    findings.push({ code: "fresh-context-workflow-missing", message: "checks workflow must expose the stable wiki-fresh-context job and required PR activity triggers", path: workflowPath, severity: "error" });
+  }
+  return findings;
 }
 
 export function isHighRisk(config: WikiConfig, path: string): boolean {
@@ -725,6 +818,13 @@ export type PrMetadata = {
   affected_pages?: string[];
   affected_invariants?: string[];
   touched_conflicts?: { id: string; action: "resolve" | "retain" | "introduce"; reason?: string }[];
+  fresh_context?: {
+    verdict: "PENDING" | "PASS" | "NEEDS_RECONCILE";
+    reviewed_head_sha: string;
+    bundle_digest: string;
+    reviewer: string;
+    evidence: string[];
+  };
 };
 
 export function parsePrMetadata(raw?: string): PrMetadata | undefined {
@@ -775,6 +875,28 @@ export function validatePrMetadata(raw?: string, required = false): { metadata?:
       else seen.add(touch.id);
       if (typeof touch.action !== "string" || !CONFLICT_ACTIONS.has(touch.action)) findings.push({ code: "metadata-conflict-action", message: `invalid conflict action: ${String(touch.action)}`, severity: "error" });
       if (touch.action === "retain" && (typeof touch.reason !== "string" || touch.reason.trim().length < 20)) findings.push({ code: "metadata-conflict-retain-reason", message: `retaining ${String(touch.id)} requires a 20+ character reason`, severity: "error" });
+    }
+  }
+  if (value.fresh_context == null) {
+    if (required) findings.push({ code: "metadata-fresh-context-missing", message: "PR metadata requires the structured fresh_context block even when the template is bypassed", severity: "error" });
+  } else if (typeof value.fresh_context !== "object" || Array.isArray(value.fresh_context)) {
+    findings.push({ code: "metadata-fresh-context-shape", message: "fresh_context must be a mapping", severity: "error" });
+  } else {
+    const fresh = value.fresh_context as Record<string, unknown>;
+    if (!["PENDING", "PASS", "NEEDS_RECONCILE"].includes(String(fresh.verdict))) findings.push({ code: "metadata-fresh-context-verdict", message: "fresh_context.verdict must be PENDING, PASS, or NEEDS_RECONCILE", severity: "error" });
+    for (const field of ["reviewed_head_sha", "bundle_digest", "reviewer"] as const) {
+      if (typeof fresh[field] !== "string") findings.push({ code: "metadata-fresh-context-shape", message: `fresh_context.${field} must be a string`, severity: "error" });
+    }
+    if (!Array.isArray(fresh.evidence) || !fresh.evidence.every((item) => typeof item === "string")) findings.push({ code: "metadata-fresh-context-shape", message: "fresh_context.evidence must be a string array", severity: "error" });
+    if (fresh.verdict === "PASS" || fresh.verdict === "NEEDS_RECONCILE") {
+      if (typeof fresh.reviewed_head_sha !== "string" || !/^[0-9a-f]{40}$/.test(fresh.reviewed_head_sha)
+        || typeof fresh.bundle_digest !== "string" || !/^[0-9a-f]{64}$/.test(fresh.bundle_digest)
+        || typeof fresh.reviewer !== "string" || fresh.reviewer.trim().length === 0) {
+        findings.push({ code: "metadata-fresh-context-binding", message: "completed fresh_context status requires exact reviewed_head_sha, bundle_digest, and reviewer", severity: "error" });
+      }
+      if (!Array.isArray(fresh.evidence) || fresh.evidence.length === 0 || fresh.evidence.some((item) => typeof item !== "string" || item.trim().length === 0)) {
+        findings.push({ code: "metadata-fresh-context-evidence", message: "completed fresh_context status requires non-empty evidence", severity: "error" });
+      }
     }
   }
   return findings.length > 0 ? { findings } : { metadata: value as PrMetadata, findings };
@@ -977,40 +1099,294 @@ export function auditReport(view: RepoView, pages: WikiPage[], extraGenerated: R
   };
 }
 
-export function makeReviewBundle(view: RepoView, pages: WikiPage[], report: ImpactReport, output?: string, metadata?: PrMetadata): string {
-  const directory = output ? resolve(view.root, output) : mkdtempSync(join(tmpdir(), "wiki-review-"));
-  Bun.spawnSync(["mkdir", "-p", join(directory, "pages")]);
-  Bun.spawnSync(["mkdir", "-p", join(directory, "invariants")]);
-  Bun.spawnSync(["mkdir", "-p", join(directory, "conflicts")]);
-  const patch = git(view.root, ["diff", `${report.base}...HEAD`], true);
-  writeFileSync(join(directory, "diff.patch"), patch);
-  writeFileSync(join(directory, "impact.json"), jsonStable(report));
-  writeFileSync(join(directory, "pr-metadata.json"), jsonStable(metadata ?? null));
-  for (const id of report.affectedPages) {
+export type ReviewManifest = {
+  version: 1;
+  base_ref: string;
+  merge_base_sha: string;
+  head_sha: string;
+  pr_metadata_digest: string;
+  impact_report_digest: string;
+  diff_digest: string;
+  affected_page_ids: string[];
+  affected_invariant_ids: string[];
+  affected_conflict_ids: string[];
+  file_digests: Record<string, string>;
+  bundle_digest: string;
+};
+
+export type FreshContextVerdict = "PENDING" | "PASS" | "NEEDS_RECONCILE";
+export type FreshContextReport = {
+  version: 1;
+  verdict: FreshContextVerdict;
+  reviewed_head_sha: string;
+  merge_base_sha: string;
+  bundle_digest: string;
+  reviewer: string;
+  evidence: string[];
+  summary?: string;
+  findings?: string[];
+};
+export type FreshContextCheckResult = {
+  ok: boolean;
+  mode: FreshContextMode;
+  report?: FreshContextReport;
+  findings: Finding[];
+};
+export type ReviewCheckResult = FreshContextCheckResult & {
+  manifest: ReviewManifest;
+  impact: ImpactReport;
+};
+
+function canonicalPrMetadata(metadata?: PrMetadata): unknown {
+  if (!metadata) return null;
+  return {
+    change_type: metadata.change_type,
+    semantic_change: metadata.semantic_change,
+    wiki_action: metadata.wiki_action,
+    affected_pages: [...(metadata.affected_pages ?? [])].sort((a, b) => a.localeCompare(b)),
+    affected_invariants: [...(metadata.affected_invariants ?? [])].sort((a, b) => a.localeCompare(b)),
+    touched_conflicts: [...(metadata.touched_conflicts ?? [])]
+      .map((touch) => ({ id: touch.id, action: touch.action, ...(touch.reason == null ? {} : { reason: touch.reason.trim() }) }))
+      .sort((a, b) => a.id.localeCompare(b.id) || a.action.localeCompare(b.action)),
+  };
+}
+
+function canonicalImpactReport(report: ImpactReport): ImpactReport {
+  const lexical = (a: string, b: string) => a.localeCompare(b);
+  return {
+    ...report,
+    changedFiles: [...report.changedFiles].sort(lexical),
+    affectedPages: [...report.affectedPages].sort(lexical),
+    affectedConflicts: [...report.affectedConflicts].sort((a, b) => a.id.localeCompare(b.id)),
+    removedCurrentPages: [...report.removedCurrentPages].sort((a, b) => a.id.localeCompare(b.id)),
+    stalePages: [...report.stalePages].sort(lexical),
+    highRiskStalePages: [...report.highRiskStalePages].sort(lexical),
+    advisoryStalePages: [...report.advisoryStalePages].sort(lexical),
+    unmappedHighRisk: [...report.unmappedHighRisk].sort(lexical),
+    findings: [...report.findings].sort((a, b) => a.code.localeCompare(b.code) || (a.path ?? "").localeCompare(b.path ?? "") || a.message.localeCompare(b.message)),
+  };
+}
+
+function reviewBundleFiles(view: RepoView, pages: WikiPage[], report: ImpactReport, metadata?: PrMetadata): Record<string, string> {
+  const files: Record<string, string> = {};
+  files["diff.patch"] = git(view.root, ["diff", "--binary", "--full-index", "--no-color", "--no-ext-diff", `${report.mergeBase}..HEAD`], true);
+  files["impact.json"] = jsonStable(canonicalImpactReport(report));
+  files["pr-metadata.json"] = jsonStable(canonicalPrMetadata(metadata));
+  for (const id of [...report.affectedPages].sort((a, b) => a.localeCompare(b))) {
     const page = pages.find((item) => item.data.id === id);
-    if (page) writeFileSync(join(directory, "pages", `${id.replaceAll("/", "_")}.md`), page.raw);
+    if (page) files[`pages/${id.replaceAll("/", "_")}.md`] = page.raw;
   }
-  for (const removed of report.removedCurrentPages) {
+  for (const removed of [...report.removedCurrentPages].sort((a, b) => a.id.localeCompare(b.id))) {
     const baseRaw = git(view.root, ["show", `${report.mergeBase}:${removed.path}`], true);
-    if (baseRaw) writeFileSync(join(directory, "pages", `removed_${removed.id.replaceAll("/", "_")}.md`), baseRaw);
+    if (baseRaw) files[`pages/removed_${removed.id.replaceAll("/", "_")}.md`] = baseRaw;
   }
   const invariants = currentPages(pages).filter((page) => page.data.kind === "invariant");
-  for (const page of invariants) writeFileSync(join(directory, "invariants", `${page.data.id.replaceAll("/", "_")}.md`), page.raw);
-  for (const conflict of report.affectedConflicts) {
+  for (const page of invariants) files[`invariants/${page.data.id.replaceAll("/", "_")}.md`] = page.raw;
+  for (const conflict of [...report.affectedConflicts].sort((a, b) => a.id.localeCompare(b.id))) {
     const page = pages.find((item) => item.data.kind === "conflict" && item.data.conflict_id === conflict.id);
-    if (page) writeFileSync(join(directory, "conflicts", `${conflict.id}.md`), page.raw);
+    if (page) files[`conflicts/${conflict.id}.md`] = page.raw;
     else {
       const baseRaw = git(view.root, ["show", `${report.mergeBase}:${conflict.path}`], true);
-      if (baseRaw) writeFileSync(join(directory, "conflicts", `${conflict.id}.md`), baseRaw);
+      if (baseRaw) files[`conflicts/${conflict.id}.md`] = baseRaw;
     }
   }
-  const affectedSources = Object.fromEntries(report.affectedPages.map((id) => {
+  const affectedSources = Object.fromEntries([...report.affectedPages].sort((a, b) => a.localeCompare(b)).map((id) => {
     const page = pages.find((item) => item.data.id === id);
     return [id, page?.data.sources ?? []];
   }));
-  writeFileSync(join(directory, "sources.json"), jsonStable({ affectedPages: affectedSources, affectedConflicts: report.affectedConflicts, removedCurrentPages: report.removedCurrentPages, invariants: invariants.map((page) => page.data.id) }));
-  writeFileSync(join(directory, "PROMPT.md"), `# Fresh-context wiki reconciliation\n\nRead \`impact.json\`, \`pr-metadata.json\`, \`diff.patch\`, \`pages/**\`, \`invariants/**\`, \`conflicts/**\`, and \`sources.json\`. Inspect the referenced repository primary sources directly. Verify current behavior, intent, invariants, conflict actions, acceptance criteria, and sources independently. Do not trust the author summary. A conflict declared \`resolve\` must have all acceptance criteria supported by source/test evidence; \`retain\` must not weaken current invariants. Return exactly one verdict line, then evidence:\n\n- \`PASS\` when code, tests, metadata, wiki, and conflict lifecycle agree.\n- \`NEEDS_RECONCILE\` when anything is stale, unsupported, ambiguous, or violates an invariant or conflict resolution contract.\n`);
+  files["sources.json"] = jsonStable({
+    affectedPages: affectedSources,
+    affectedConflicts: [...report.affectedConflicts].sort((a, b) => a.id.localeCompare(b.id)),
+    removedCurrentPages: [...report.removedCurrentPages].sort((a, b) => a.id.localeCompare(b.id)),
+    invariants: invariants.map((page) => page.data.id),
+  });
+  files["PROMPT.md"] = `# Fresh-context wiki reconciliation
+
+Read \`manifest.json\`, \`impact.json\`, \`pr-metadata.json\`, \`diff.patch\`, \`pages/**\`, \`invariants/**\`, \`conflicts/**\`, and \`sources.json\`. Inspect the referenced repository primary sources directly. Verify current behavior, intent, invariants, conflict actions, acceptance criteria, and sources independently. Do not trust the author summary and do not resolve an open decision conflict without an explicit owner decision.
+
+Return a structured report that follows \`REPORT.md\`:
+
+- \`PASS\` only when code, tests, metadata, wiki, and conflict lifecycle agree.
+- \`NEEDS_RECONCILE\` when anything is stale, unsupported, ambiguous, or violates an invariant or conflict resolution contract.
+`;
+  files["REPORT.md"] = `# Fresh-context report contract
+
+Create a JSON report from \`REPORT.example.json\`. Copy the exact \`head_sha\`, \`merge_base_sha\`, and \`bundle_digest\` from \`manifest.json\`. Set \`reviewer\` to the authenticated actor that will publish the attestation. Evidence must identify the files, tests, invariants, or conflict criteria actually checked; PASS without evidence is invalid.
+
+Publish the report through the repository's trusted attestation channel. A report in the author's editable PR body is only a status mirror and is not proof of independent review.
+`;
+  files["REPORT.example.json"] = jsonStable({
+    version: 1,
+    verdict: "PASS",
+    reviewed_head_sha: "<copy manifest.head_sha>",
+    merge_base_sha: "<copy manifest.merge_base_sha>",
+    bundle_digest: "<copy manifest.bundle_digest>",
+    reviewer: "<authenticated reviewer actor>",
+    evidence: ["Describe the primary sources, tests, invariants, and conflicts inspected."],
+    summary: "Explain why the current implementation and wiki agree.",
+  });
+  return Object.fromEntries(Object.entries(files).sort(([a], [b]) => a.localeCompare(b)));
+}
+
+export function buildReviewManifest(view: RepoView, pages: WikiPage[], report: ImpactReport, metadata?: PrMetadata): ReviewManifest {
+  const files = reviewBundleFiles(view, pages, report, metadata);
+  const fileDigests = Object.fromEntries(Object.entries(files).map(([path, content]) => [path, hashContent(content)]).sort(([a], [b]) => a.localeCompare(b)));
+  const affectedInvariantIds = new Set(metadata?.affected_invariants ?? []);
+  for (const id of report.affectedPages) {
+    if (pages.find((page) => page.data.id === id)?.data.kind === "invariant") affectedInvariantIds.add(id);
+  }
+  for (const conflict of report.affectedConflicts) for (const id of conflict.affectedInvariants) affectedInvariantIds.add(id);
+  const core = {
+    version: 1 as const,
+    base_ref: report.base.trim().replaceAll("\\", "/"),
+    merge_base_sha: report.mergeBase,
+    head_sha: git(view.root, ["rev-parse", "--verify", "HEAD^{commit}"]).trim(),
+    pr_metadata_digest: hashContent(jsonStable(canonicalPrMetadata(metadata))),
+    impact_report_digest: hashContent(files["impact.json"]),
+    diff_digest: hashContent(files["diff.patch"]),
+    affected_page_ids: [...report.affectedPages].sort((a, b) => a.localeCompare(b)),
+    affected_invariant_ids: [...affectedInvariantIds].sort((a, b) => a.localeCompare(b)),
+    affected_conflict_ids: report.affectedConflicts.map((conflict) => conflict.id).sort((a, b) => a.localeCompare(b)),
+    file_digests: fileDigests,
+  };
+  return { ...core, bundle_digest: hashContent(jsonStable(core)) };
+}
+
+export function makeReviewBundle(view: RepoView, pages: WikiPage[], report: ImpactReport, output?: string, metadata?: PrMetadata): string {
+  const directory = output ? resolve(view.root, output) : mkdtempSync(join(tmpdir(), "wiki-review-"));
+  const files = { ...reviewBundleFiles(view, pages, report, metadata), "manifest.json": jsonStable(buildReviewManifest(view, pages, report, metadata)) };
+  for (const [path, content] of Object.entries(files).sort(([a], [b]) => a.localeCompare(b))) {
+    Bun.spawnSync(["mkdir", "-p", dirname(join(directory, path))]);
+    writeFileSync(join(directory, path), content);
+  }
   return directory;
+}
+
+function normalizedActor(value: string): string {
+  return value.trim().replace(/^@/, "").toLowerCase();
+}
+
+export function validateFreshContextAttestation(input: {
+  policy: FreshContextPolicy;
+  manifest: ReviewManifest;
+  report?: unknown;
+  reviewerActor?: string;
+  prAuthor?: string;
+}): FreshContextCheckResult {
+  const severity: Finding["severity"] = input.policy.mode === "required" ? "error" : "warning";
+  const finding = (code: string, message: string): Finding => ({ code, message, severity });
+  if (input.report == null) {
+    const findings = [finding("fresh-context-missing", "no fresh-context report was supplied")];
+    return { ok: input.policy.mode === "advisory", mode: input.policy.mode, findings };
+  }
+  if (typeof input.report !== "object" || Array.isArray(input.report)) {
+    const findings = [finding("fresh-context-malformed", "fresh-context report must be a mapping")];
+    return { ok: input.policy.mode === "advisory", mode: input.policy.mode, findings };
+  }
+  const raw = input.report as Record<string, unknown>;
+  const verdicts = new Set(["PENDING", "PASS", "NEEDS_RECONCILE"]);
+  const sha40 = /^[0-9a-f]{40}$/;
+  const sha256 = /^[0-9a-f]{64}$/;
+  const hasSummary = typeof raw.summary === "string" && raw.summary.trim().length > 0;
+  const hasFindings = stringArray(raw.findings) && raw.findings.length > 0;
+  const structurallyValid = raw.version === 1
+    && typeof raw.verdict === "string" && verdicts.has(raw.verdict)
+    && typeof raw.reviewed_head_sha === "string" && sha40.test(raw.reviewed_head_sha)
+    && typeof raw.merge_base_sha === "string" && sha40.test(raw.merge_base_sha)
+    && typeof raw.bundle_digest === "string" && sha256.test(raw.bundle_digest)
+    && typeof raw.reviewer === "string" && raw.reviewer.trim().length > 0
+    && Array.isArray(raw.evidence) && raw.evidence.every((item) => typeof item === "string")
+    && (hasSummary || hasFindings);
+  if (!structurallyValid) {
+    const findings = [finding("fresh-context-malformed", "report requires version 1, a known verdict, exact SHA/digest fields, reviewer, evidence[], and summary or findings")];
+    return { ok: input.policy.mode === "advisory", mode: input.policy.mode, findings };
+  }
+  const report = raw as FreshContextReport;
+  const findings: Finding[] = [];
+  if (report.verdict !== input.policy.requiredVerdict) findings.push(finding("fresh-context-not-pass", `required verdict is ${input.policy.requiredVerdict}, received ${report.verdict}`));
+  if (input.policy.evidenceRequired && (report.evidence.length === 0 || report.evidence.some((item) => item.trim().length === 0))) findings.push(finding("fresh-context-evidence-missing", "PASS requires at least one non-empty evidence entry"));
+  if (report.reviewed_head_sha !== input.manifest.head_sha) findings.push(finding("fresh-context-head-stale", `reviewed HEAD ${report.reviewed_head_sha} does not match current HEAD ${input.manifest.head_sha}`));
+  if (report.merge_base_sha !== input.manifest.merge_base_sha) findings.push(finding("fresh-context-base-stale", `reviewed merge-base ${report.merge_base_sha} does not match current merge-base ${input.manifest.merge_base_sha}`));
+  if (report.bundle_digest !== input.manifest.bundle_digest) findings.push(finding("fresh-context-bundle-stale", `reviewed bundle ${report.bundle_digest} does not match current bundle ${input.manifest.bundle_digest}`));
+
+  const reviewer = normalizedActor(input.reviewerActor ?? report.reviewer);
+  const declaredReviewer = normalizedActor(report.reviewer);
+  const allowed = input.policy.trust.allowedReviewers.map(normalizedActor);
+  const trustFailures: string[] = [];
+  if (input.policy.trust.requireAuthenticatedActor && !input.reviewerActor?.trim()) trustFailures.push("authenticated reviewer actor is required");
+  if (input.reviewerActor && reviewer !== declaredReviewer) trustFailures.push("report reviewer does not match the authenticated attestation actor");
+  if (!allowed.includes("*") && !allowed.includes(reviewer)) trustFailures.push(`reviewer ${reviewer} is not in allowedReviewers`);
+  if (input.policy.trust.requireDifferentActor) {
+    if (!input.prAuthor?.trim()) trustFailures.push("PR author identity is required by the trust policy");
+    else if (reviewer === normalizedActor(input.prAuthor)) trustFailures.push("reviewer must differ from the PR author");
+  }
+  if (trustFailures.length > 0) findings.push(finding("fresh-context-reviewer-untrusted", trustFailures.join("; ")));
+  return {
+    ok: input.policy.mode === "advisory" || !findings.some((item) => item.severity === "error"),
+    mode: input.policy.mode,
+    report,
+    findings,
+  };
+}
+
+export function parseFreshContextReport(raw: string): { report?: unknown; findings: Finding[] } {
+  try {
+    const report = parseYaml(raw) as unknown;
+    return { report, findings: [] };
+  } catch (error) {
+    return {
+      findings: [{
+        code: "fresh-context-malformed",
+        message: error instanceof Error ? error.message : String(error),
+        severity: "error",
+      }],
+    };
+  }
+}
+
+export function reviewCheck(view: RepoView, pages: WikiPage[], options: {
+  base?: string;
+  metadata?: PrMetadata;
+  report?: unknown;
+  reviewerActor?: string;
+  prAuthor?: string;
+  policy?: FreshContextPolicy;
+}): ReviewCheckResult {
+  const impact = impactReport(view, pages, { base: options.base, metadata: options.metadata });
+  const manifest = buildReviewManifest(view, pages, impact, options.metadata);
+  const policy = options.policy ?? readConfig(view).freshContext;
+  if (!policy) {
+    return {
+      ok: false,
+      mode: "required",
+      manifest,
+      impact,
+      findings: [{
+        code: "fresh-context-config-missing",
+        message: "an explicit valid freshContext policy is required; missing configuration does not fall back to advisory",
+        path: ".wiki/config.json",
+        severity: "error",
+      }],
+    };
+  }
+  const checked = validateFreshContextAttestation({
+    policy,
+    manifest,
+    report: options.report,
+    reviewerActor: options.reviewerActor,
+    prAuthor: options.prAuthor,
+  });
+  const severity: Finding["severity"] = policy.mode === "required" ? "error" : "warning";
+  const mirror = options.metadata?.fresh_context;
+  if (mirror && checked.report) {
+    if (mirror.verdict !== checked.report.verdict) checked.findings.push({ code: "fresh-context-not-pass", message: `PR metadata fresh_context verdict ${mirror.verdict} does not mirror attested verdict ${checked.report.verdict}`, severity });
+    if (mirror.reviewed_head_sha !== checked.report.reviewed_head_sha) checked.findings.push({ code: "fresh-context-head-stale", message: "PR metadata fresh_context reviewed_head_sha does not mirror the attested HEAD", severity });
+    if (mirror.bundle_digest !== checked.report.bundle_digest) checked.findings.push({ code: "fresh-context-bundle-stale", message: "PR metadata fresh_context bundle_digest does not mirror the attested bundle", severity });
+    if (normalizedActor(mirror.reviewer) !== normalizedActor(checked.report.reviewer)) checked.findings.push({ code: "fresh-context-reviewer-untrusted", message: "PR metadata fresh_context reviewer does not mirror the authenticated attestation reviewer", severity });
+    if (jsonStable(mirror.evidence) !== jsonStable(checked.report.evidence)) checked.findings.push({ code: "fresh-context-evidence-missing", message: "PR metadata fresh_context evidence does not mirror the attested evidence", severity });
+  }
+  checked.ok = policy.mode === "advisory" || !checked.findings.some((item) => item.severity === "error");
+  return { ...checked, manifest, impact };
 }
 
 export function recursiveFiles(path: string): string[] {

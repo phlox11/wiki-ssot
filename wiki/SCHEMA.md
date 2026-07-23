@@ -65,7 +65,7 @@ Open files require `status: conflicted`; resolved files require `status: archive
 
 ## Machine config (`.wiki/`)
 
-- `.wiki/config.json` — `{ "version": 1, "name": "...", "highRisk": ["glob", ...] }`. `name` titles the generated index. A changed file matching a `highRisk` glob makes its affected pages *high-risk* stale. Both risk levels block a merge; the label sharpens review focus and the audit summary.
+- `.wiki/config.json` — version/name/`highRisk` plus an explicit `freshContext` policy. `freshContext` requires `mode: advisory | required`, `requiredVerdict: PASS`, `evidenceRequired`, and `trust.allowedReviewers` / `requireDifferentActor` / `requireAuthenticatedActor`. Missing or malformed Fresh-context config is an integration error, not implicit advisory mode. `name` titles the generated index. A changed file matching a `highRisk` glob makes its affected pages *high-risk* stale. Both risk levels block; the label sharpens review focus.
 - `.wiki/coverage.json` — `{ "version": 1, "include": ["glob", ...], "exclusions": [{ "glob": "...", "reason": "20+ chars" }] }`. Every included file must map to a current page's `sources`, or carry a reasoned exclusion.
 - `.wiki/state.json` — generated verification ledger of per-page source hashes. Update with `bun run wiki:verify`.
 - `.wiki/source-map.json`, `.wiki/conflict-map.json` — generated reverse indexes; never hand-edit.

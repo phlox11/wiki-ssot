@@ -29,13 +29,29 @@ Add the `wiki:*`, `typecheck`, `test`, and `prepare` scripts and the `devDepende
 bun install
 ```
 
-## 2. Configure the two seams
+## 2. Configure the policy and project seams
 
-`.wiki/config.json` — your wiki's name and the files whose changes deserve the sharpest review:
+`.wiki/config.json` — your wiki's name, high-risk files, and explicit Fresh-context policy. Missing or malformed `freshContext` does not silently fall back to advisory:
 
 ```json
-{ "version": 1, "name": "your-repo", "highRisk": ["src/contracts/**", "src/db/**", "migrations/**"] }
+{
+  "version": 1,
+  "name": "your-repo",
+  "highRisk": ["src/contracts/**", "src/db/**", "migrations/**"],
+  "freshContext": {
+    "mode": "required",
+    "requiredVerdict": "PASS",
+    "evidenceRequired": true,
+    "trust": {
+      "allowedReviewers": ["*"],
+      "requireDifferentActor": true,
+      "requireAuthenticatedActor": true
+    }
+  }
+}
 ```
+
+`["*"]` means any authenticated GitHub actor other than the PR author; replace it with explicit reviewer/service logins when your organization has a narrower trust boundary. Use `advisory` only as a deliberate migration state, and record when it will become `required`.
 
 `.wiki/coverage.json` — the code areas that must always map to a page (start narrow, widen later):
 
@@ -64,6 +80,7 @@ For always-current generated pages (route tables, schema lists), implement `scri
 bun run wiki:generated                 # write index, maps, inventories
 bun run wiki:verify                    # record source hashes for all current pages
 bun run wiki:lint                      # must pass
+bun run wiki:doctor                    # integration seams must be present
 bun run wiki:audit                     # must pass (no stale pages)
 bun run typecheck && bun run test
 ```
@@ -73,11 +90,26 @@ Commit the wiki, `.wiki/`, and generated files together.
 ## 6. Turn on the rails
 
 - Hooks activate on `bun install` (via the `prepare` script). Confirm a bad staged page blocks a commit.
-- CI: the workflows in `.github/workflows/` run the four blocking jobs on every PR.
-- Remote boundary: configure GitHub branch protection on `main` (see `wiki/proposals/protected-main.md`). This is what actually stops direct pushes and the cross-PR merge race.
+- Keep the root `AGENTS.md` marker `wiki-ssot:fresh-context-guardrail`, structured PR `fresh_context` block, `wiki:review-check`/`wiki:doctor` scripts, and stable `wiki-fresh-context` workflow job. `wiki:doctor` detects accidental omission when adoption rewrites these files.
+- CI: the workflows in `.github/workflows/` run code, structure/doctor, generated, impact, and Fresh-context checks. The Fresh-context job uses trusted base code/policy and never executes PR-head code. Because the `pull_request` workflow definition is still part of the PR test-merge tree, protect `.github/workflows/checks.yml` with a ruleset-required workflow or CODEOWNERS plus required owner review.
+- Remote boundary (required human step): configure GitHub branch protection/rulesets on `main`, require `code-check`, `wiki-structure`, `wiki-generated`, `wiki-impact`, and `wiki-fresh-context`, require the branch to be current, and disallow direct pushes. Branch protection cannot be guaranteed by local files or the CLI; without it, the jobs are not a merge guardrail.
 
-## 7. Maintain
+## 7. Establish the reviewer channel
 
-Every change follows `wiki/WORKFLOW.md`: search → read sources → change code + page + tests together → regenerate → `wiki:impact --enforce` → PR with the metadata block → attach a fresh-context `PASS`/`NEEDS_RECONCILE`.
+1. Create the Draft PR with the structured metadata block; `fresh_context.verdict` starts as `PENDING`.
+2. Generate the bundle for the exact PR HEAD and metadata.
+3. Give the bundle and primary-source access to a separate context-isolated session or reviewer.
+4. Publish its JSON report in a GitHub PR review (preferred) or comment after this marker:
+
+   ```html
+   <!-- wiki-ssot:fresh-context-attestation -->
+   ```
+
+   Follow it with a fenced `json` or `yaml` report. The report's `reviewer` must match the authenticated GitHub actor. The author-editable PR body cannot substitute for this envelope.
+5. Mirror the attested verdict, HEAD, bundle digest, reviewer, and evidence into the PR body's `fresh_context` block. This author-editable mirror is checked against—but never substitutes for—the authenticated envelope. Its PR-body edit reruns the trusted job. Drafts may remain pending/red, but Ready/merge requires a current PASS.
+
+## 8. Maintain
+
+Every change follows `wiki/WORKFLOW.md`: search → read sources → change code + page + tests together → regenerate → `wiki:impact --enforce` → PR metadata → bundle → independent report → `wiki:review-check`. `NEEDS_RECONCILE` or a new commit requires a new bundle and report.
 
 See the [command reference](commands.md) and the [design](design.md).

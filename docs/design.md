@@ -1,6 +1,6 @@
 # Design
 
-wiki-ssot exists to stop one expensive failure mode and a secondary one, using only deterministic machinery in the blocking path.
+wiki-ssot exists to stop one expensive failure mode and a secondary one. Repository checks remain deterministic, and semantic reconciliation is supplied by an external reasoning reviewer whose attestation is deterministically verified before merge.
 
 ## The problem
 
@@ -45,13 +45,15 @@ Enforcement is only real if it fires on events that always happen:
 
 1. **Session start** — every agent auto-reads `AGENTS.md`: the entrypoint, the workflow, the commands, the invariants. (Compliance rail.)
 2. **Local commit** — a pre-commit hook runs the cheap structural lint on staged files; a pre-push hook blocks direct pushes to `main`. Bypassable feedback.
-3. **Pull request / CI** — the full structural, generated-freshness, and impact checks block the merge; a weekly job re-audits everything.
+3. **Pull request / CI** — the full structural, generated-freshness, impact, integration-seam, and Fresh-context attestation checks block the merge; a weekly job re-audits everything.
 
 ## What blocks a merge (all deterministic)
 
 - **Structure** (`wiki:lint`): frontmatter and required fields, duplicate IDs, broken internal links, missing source paths, orphaned/empty globs, coverage, and generated-file freshness.
 - **Generated freshness** (`wiki:generated --check`): the index, current-status, conflicts index, reverse maps, and any code-derived inventories must match a clean regeneration.
 - **Impact** (`wiki:impact --enforce`): from the PR diff, compute affected pages and conflicts, then block on — a changed source whose page is stale or unverified; an unmapped high-risk source; a current page silently dropped; PR metadata that omits an affected page or conflict; an invalid conflict transition; or `wiki_action: none` on a code change.
+- **Integration seams** (`wiki:doctor`): required Fresh-context config, root `AGENTS.md` marker, PR metadata template, CLI commands, and the stable GitHub workflow job must all remain installed.
+- **Fresh-context attestation** (`wiki:review-check`): recompute the bundle manifest from the current base/HEAD/metadata, then reject a missing, malformed, non-PASS, stale, empty-evidence, or untrusted report.
 
 The distinction between *high-risk* and *low-risk* stale no longer decides pass/fail — both block. It sharpens where a human looks first.
 
@@ -65,7 +67,19 @@ A missing or ambiguous decision is not permission to invent behavior; it is a **
 
 ## Why no LLM in the blocking path
 
-A non-deterministic gate that is sometimes wrong trains people to ignore it, and then it protects nothing. Every blocking check here is a pure function of tracked files. The one thing only a reasoning model can do — read a diff and judge whether the wiki still *reads* coherently across pages — is provided as a **fresh-context reconcile pass** (`wiki:review-bundle` → a `PASS` / `NEEDS_RECONCILE` verdict) and is **advisory**: attach it to the PR, do not auto-block on it. Escalating it to a required, LLM-in-CI gate is left as a deliberate per-project choice, because an LLM-as-gate is itself a new source of flakiness.
+CI does not need to invoke an LLM, depend on one vendor, or turn model availability into an implicit repository secret. `wiki:review-bundle` deterministically produces a manifest bound to the full PR HEAD, merge-base, canonical semantic PR metadata, canonical impact report, diff, affected pages/invariants/conflicts, and path-sorted bundle file hashes. A context-isolated reasoning reviewer reads that bundle and primary sources outside the blocking job, then publishes a structured `PASS` or `NEEDS_RECONCILE` report.
+
+The blocking `wiki-fresh-context` job performs no semantic inference. It recomputes the manifest and validates the external attestation's schema, verdict, evidence, exact SHA/digests, authenticated actor, allowlist, and author-separation policy. This reliably prevents omission, reuse after a new commit or metadata change, a PASS for the wrong base, empty evidence, and an author-editable PR-body string masquerading as independent review.
+
+That does **not** prove the reviewer really had no prior context, reasoned well, or inspected every claimed source. Context isolation and reviewer quality remain inside the selected reviewer/orchestrator trust boundary. The default GitHub reference policy is therefore accurately an **attestation presence guard**, not cryptographic proof of independent cognition.
+
+LLM or reviewer failures are explicit rather than hidden: `NEEDS_RECONCILE` requires a fix, new bundle, and new review; malformed or unavailable output leaves the required check failed. Draft PRs may remain open with a pending/failing Fresh-context check, but Ready/merge requires PASS for the current HEAD. Projects that deliberately choose `advisory` mode receive warning findings and a zero exit status; missing config never silently becomes advisory.
+
+## GitHub reference trust boundary
+
+The GitHub reference job runs on `pull_request` so GitHub associates the required check with the PR test-merge commit. It explicitly checks out the base implementation and trust policy, fetches the PR HEAD into a detached worktree, and treats every head file as data. It never imports scripts, installs dependencies, or runs commands from the PR head. The external report is selected from GitHub PR reviews/comments and its `reviewer` must match the authenticated envelope actor; the PR body's `fresh_context` block is only a required status mirror. After publication, mirroring the report into that block triggers the required `edited` activity and re-runs the check.
+
+This still has a bootstrap boundary. The engine and trust policy are pinned to the base, but the `pull_request` workflow definition is part of the PR test-merge tree and can itself be edited. Removing the required job leaves branch protection waiting, but a malicious step rewrite can counterfeit success unless the repository additionally protects this workflow—for example with a ruleset-required workflow or CODEOWNERS plus required owner review. The first PR that installs this guard is likewise not protected by a check that does not yet exist on the base. Branch protection must require `wiki-fresh-context` alongside the existing checks. Without those repository settings, a green job is evidence, not a complete trust boundary.
 
 ## What it is not
 

@@ -2,7 +2,19 @@
   "version": 1,
   "name": "wiki-ssot",
   "highRisk": [
+    ".github/workflows/checks.yml",
     "scripts/wiki/core.ts",
-    "scripts/wiki/cli.ts"
-  ]
+    "scripts/wiki/cli.ts",
+    "scripts/wiki/github-attestation.ts"
+  ],
+  "freshContext": {
+    "mode": "required",
+    "requiredVerdict": "PASS",
+    "evidenceRequired": true,
+    "trust": {
+      "allowedReviewers": ["*"],
+      "requireDifferentActor": true,
+      "requireAuthenticatedActor": true
+    }
+  }
 }

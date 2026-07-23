@@ -21,10 +21,24 @@ Keep `scripts/wiki/`, `.wiki/config.json`, `.wiki/coverage.json`, `.husky/`, `.g
 `.wiki/config.json`:
 
 ```json
-{ "version": 1, "name": "your-project", "highRisk": [] }
+{
+  "version": 1,
+  "name": "your-project",
+  "highRisk": [],
+  "freshContext": {
+    "mode": "required",
+    "requiredVerdict": "PASS",
+    "evidenceRequired": true,
+    "trust": {
+      "allowedReviewers": ["*"],
+      "requireDifferentActor": true,
+      "requireAuthenticatedActor": true
+    }
+  }
+}
 ```
 
-Start `highRisk` empty and add globs as you introduce contracts, schema, and routes. Start `.wiki/coverage.json` with an empty `include`; the coverage gate is a no-op until you add patterns.
+Start `highRisk` empty and add globs as you introduce contracts, schema, and routes. Start `.wiki/coverage.json` with an empty `include`; the coverage gate is a no-op until you add patterns. Narrow `allowedReviewers` to explicit reviewer/service logins when available. Missing Fresh-context policy is an integration error, never an implicit advisory mode.
 
 ## 3. Write the first pages as you write the first code
 
@@ -32,13 +46,15 @@ An empty wiki is valid and passes every gate. Then, with each feature:
 
 1. Create the code and its `wiki/<group>/<name>.md` page in the **same PR**, with `sources` pointing at the new files.
 2. Add the new code area to `coverage.json` `include`, and mark high-risk paths in `config.json`.
-3. Run `bun run wiki:generated && bun run wiki:verify && bun run wiki:lint`.
+3. Run `bun run wiki:generated && bun run wiki:verify && bun run wiki:lint && bun run wiki:doctor`.
 4. Record real product invariants as `kind: invariant` pages early — they are what conflicts and reviews check against.
 
 Because the wiki grows *with* the code, each page is verified by the same PR that creates the behavior — no big-bang backfill, and no drift to catch up on later.
 
 ## 4. Turn on the rails and maintain
 
-Same as an existing repo — hooks on install, CI on PRs, branch protection on `main` (`wiki/proposals/protected-main.md`), and the loop in `wiki/WORKFLOW.md`.
+Same as an existing repo — preserve the `wiki-ssot:fresh-context-guardrail` AGENTS marker and structured PR metadata, use a separate reviewer to publish the marked report through a GitHub PR review/comment, and keep the trusted `wiki-fresh-context` job installed. Drafts may remain pending, but every Ready/merge candidate needs PASS for its exact current HEAD and bundle digest.
+
+As a final human step, enable branch protection/rulesets on `main` and require `code-check`, `wiki-structure`, `wiki-generated`, `wiki-impact`, and `wiki-fresh-context`, with branches up to date before merge. Protect `.github/workflows/checks.yml` with a ruleset-required workflow or CODEOWNERS plus required owner review. The repository cannot make these settings true through tracked files alone; without them, CI is not a complete merge guardrail.
 
 See the [command reference](commands.md) and the [design](design.md). For a code-first bootstrap of an established codebase instead, see [adopt-existing-repo.md](adopt-existing-repo.md).
