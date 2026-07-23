@@ -4,15 +4,15 @@
       "sources": {
         "scripts/wiki/cli.ts": "bc08b55f486e7a8ebd8c065f179a7a0cc338c2931737cc7d1b2be7b17024f386",
         "scripts/wiki/core.ts": "9df9987b8960818f8f1e26f2c6cc2aa69b96f9da622ce84b9944fb49020f53cd",
-        "scripts/wiki/fresh-context.test.ts": "50a0211ac823970d494a69fcdb0bca5ddd12c691ed07b1b4636f3cc92b1db376",
-        "scripts/wiki/github-attestation.ts": "0329ba08dfab1261f856a297bb873205afd77ff82656e6a13869b7edd0ef7071",
+        "scripts/wiki/fresh-context.test.ts": "8b895fd12a6753a2b416bd4ee48dc40c66d4c27a65b58de4220b5382aabae1a6",
+        "scripts/wiki/github-attestation.ts": "4254611364618a199ff1285b2dc89d8cc1bd4329ca480b9ebb91142b43b51897",
         "scripts/wiki/inventories.example.ts": "3c173f3382105416947b30020f8004b02e5667acdcff47c2057757207daa9447",
         "scripts/wiki/inventories.ts": "f8a608159394b661149eb69236a4fef8ab5c90be5acafb5fa14fedff3e74101f",
         "scripts/wiki/wiki.test.ts": "f2cb47a81f94507388794a6ff1227cf4ff602af044dfa14b2f273bfa9dbd45bf"
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "Trusted working-directory selection is an execution hardening detail; the provider-neutral CLI contract is unchanged."
+        "reason": "Fail-closed GitHub envelope ordering and structural seam parsing refine only the provider adapter."
       }
     },
     "operations/enforcement": {
@@ -27,10 +27,11 @@
         "package.json": "2c62a87ff77089f8caeee7e7a052fb64e26cd69128ec9f1b7b42a3f54b5e0da7",
         "scripts/wiki/cli.ts": "bc08b55f486e7a8ebd8c065f179a7a0cc338c2931737cc7d1b2be7b17024f386",
         "scripts/wiki/core.ts": "9df9987b8960818f8f1e26f2c6cc2aa69b96f9da622ce84b9944fb49020f53cd",
-        "scripts/wiki/github-attestation.ts": "0329ba08dfab1261f856a297bb873205afd77ff82656e6a13869b7edd0ef7071"
+        "scripts/wiki/github-attestation.ts": "4254611364618a199ff1285b2dc89d8cc1bd4329ca480b9ebb91142b43b51897"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "Actorless and same-second envelope handling now enforce the existing authenticated newest-report contract."
       }
     },
     "product/invariants": {

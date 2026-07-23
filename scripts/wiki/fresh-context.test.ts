@@ -471,6 +471,71 @@ describe("fresh-context integration contracts", () => {
     expect(codes(checked)).toContain("fresh-context-malformed");
   });
 
+  test("orders an edited review by its update time when GitHub supplies one", () => {
+    const selected = selectGitHubAttestation([], [[{
+      id: 3,
+      body: `${GITHUB_ATTESTATION_MARKER}\n\`\`\`json\n{not valid json\n\`\`\``,
+      user: { login: "edited-reviewer" },
+      submitted_at: "2026-07-22T00:00:00Z",
+      updated_at: "2026-07-24T00:00:00Z",
+      state: "COMMENTED",
+    }, {
+      id: 4,
+      body: `${GITHUB_ATTESTATION_MARKER}\n\`\`\`json\n{"version":1,"verdict":"PASS"}\n\`\`\``,
+      user: { login: "newer-submission" },
+      submitted_at: "2026-07-23T00:00:00Z",
+      state: "APPROVED",
+    }]]);
+    expect(selected).toMatchObject({
+      actor: "edited-reviewer",
+      sourceId: "3",
+      report: "marked attestation contains malformed JSON or YAML",
+    });
+  });
+
+  test("preserves the latest marked envelope when its authenticated actor is missing", () => {
+    const selected = selectGitHubAttestation([{
+      id: 5,
+      body: `${GITHUB_ATTESTATION_MARKER}\n\`\`\`json\n{"version":1,"verdict":"PASS"}\n\`\`\``,
+      user: { login: "older-reviewer" },
+      updated_at: "2026-07-23T00:00:00Z",
+    }, {
+      id: 6,
+      body: `${GITHUB_ATTESTATION_MARKER}\n\`\`\`json\n{"version":1,"verdict":"PASS"}\n\`\`\``,
+      user: null,
+      updated_at: "2026-07-24T00:00:00Z",
+    }], []);
+    expect(selected).toMatchObject({ actor: "", sourceId: "6" });
+    const manifest = manifestFor(tempReviewRepo());
+    const checked = validateFreshContextAttestation({
+      policy: policy(),
+      manifest,
+      report: reportFor(manifest),
+      reviewerActor: selected?.actor,
+      prAuthor: "author",
+    });
+    expect(codes(checked)).toContain("fresh-context-reviewer-untrusted");
+  });
+
+  test("orders equal-second GitHub envelopes by numeric ID", () => {
+    const selected = selectGitHubAttestation([{
+      id: 9,
+      body: `${GITHUB_ATTESTATION_MARKER}\n\`\`\`json\n{"version":1,"verdict":"PASS"}\n\`\`\``,
+      user: { login: "older-reviewer" },
+      updated_at: "2026-07-24T00:00:00Z",
+    }, {
+      id: 10,
+      body: `${GITHUB_ATTESTATION_MARKER}\n\`\`\`json\n{not valid json\n\`\`\``,
+      user: { login: "latest-reviewer" },
+      updated_at: "2026-07-24T00:00:00Z",
+    }], []);
+    expect(selected).toMatchObject({
+      actor: "latest-reviewer",
+      sourceId: "10",
+      report: "marked attestation contains malformed JSON or YAML",
+    });
+  });
+
   test("requires the structured PR-body block even when the template is bypassed", () => {
     const body = `\`\`\`yaml
 change_type: feature
@@ -520,5 +585,28 @@ touched_conflicts: []
     expect(workflow).toContain('--root "${REVIEW_ROOT}"');
     expect(workflow).not.toContain('cd "${REVIEW_ROOT}"');
     expect(workflow).not.toContain("pull_request_target:");
+  });
+
+  test("GitHub seam validation rejects token-shaped text outside the required job", () => {
+    const fakeWorkflow = `name: fake
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'wiki-fresh-context github-attestation.ts review-check policy-file working-directory trusted --root'
+`;
+    const view = {
+      root: "/memory",
+      mode: "working" as const,
+      listFiles: () => [".github/pull_request_template.md", ".github/workflows/checks.yml"],
+      exists: (path: string) => [".github/pull_request_template.md", ".github/workflows/checks.yml"].includes(path),
+      read: (path: string) => path.endsWith("pull_request_template.md")
+        ? "fresh_context: verdict: reviewed_head_sha: bundle_digest: reviewer: evidence:"
+        : fakeWorkflow,
+    };
+    expect(validateGitHubIntegrationSeams(view).map((finding) => finding.code)).toContain("fresh-context-workflow-missing");
   });
 });

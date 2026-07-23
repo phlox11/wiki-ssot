@@ -48,7 +48,7 @@ export function selectGitHubAttestation(commentsInput: unknown, reviewsInput: un
   for (const raw of flattenApiPages(commentsInput) as GitHubComment[]) {
     const parsed = reportFromBody(raw.body);
     const actor = typeof raw.user?.login === "string" ? raw.user.login : "";
-    if (!parsed || !actor) continue;
+    if (!parsed) continue;
     candidates.push({
       actor,
       source: "issue_comment",
@@ -61,16 +61,18 @@ export function selectGitHubAttestation(commentsInput: unknown, reviewsInput: un
     if (String(raw.state ?? "").toUpperCase() === "DISMISSED") continue;
     const parsed = reportFromBody(raw.body);
     const actor = typeof raw.user?.login === "string" ? raw.user.login : "";
-    if (!parsed || !actor) continue;
+    if (!parsed) continue;
     candidates.push({
       actor,
       source: "pull_request_review",
       sourceId: String(raw.id ?? ""),
-      observedAt: String(raw.submitted_at ?? raw.updated_at ?? raw.created_at ?? ""),
+      observedAt: String(raw.updated_at ?? raw.submitted_at ?? raw.created_at ?? ""),
       report: parsed.report,
     });
   }
-  return candidates.sort((a, b) => a.observedAt.localeCompare(b.observedAt) || a.sourceId.localeCompare(b.sourceId)).at(-1);
+  return candidates.sort((a, b) => a.observedAt.localeCompare(b.observedAt)
+    || a.sourceId.localeCompare(b.sourceId, "en", { numeric: true })
+    || a.source.localeCompare(b.source)).at(-1);
 }
 
 export function validateGitHubIntegrationSeams(view: RepoView): Finding[] {
@@ -83,7 +85,43 @@ export function validateGitHubIntegrationSeams(view: RepoView): Finding[] {
 
   const workflowPath = ".github/workflows/checks.yml";
   const workflow = view.exists(workflowPath) ? view.read(workflowPath) : "";
-  if (!["pull_request:", "wiki-fresh-context:", "github-attestation.ts", "review-check", "policy-file", "edited", "synchronize"].every((token) => workflow.includes(token))) {
+  let workflowValid = false;
+  try {
+    const parsed = parseYaml(workflow) as unknown;
+    if (parsed != null && typeof parsed === "object" && !Array.isArray(parsed)) {
+      const root = parsed as Record<string, unknown>;
+      const triggers = root.on;
+      const pullRequest = triggers != null && typeof triggers === "object" && !Array.isArray(triggers)
+        ? (triggers as Record<string, unknown>).pull_request
+        : undefined;
+      const activityTypes = pullRequest != null && typeof pullRequest === "object" && !Array.isArray(pullRequest)
+        ? (pullRequest as Record<string, unknown>).types
+        : undefined;
+      const requiredActivities = ["opened", "synchronize", "reopened", "edited", "ready_for_review"];
+      const jobs = root.jobs;
+      const freshContextJob = jobs != null && typeof jobs === "object" && !Array.isArray(jobs)
+        ? (jobs as Record<string, unknown>)["wiki-fresh-context"]
+        : undefined;
+      const jobText = freshContextJob == null ? "" : JSON.stringify(freshContextJob);
+      workflowValid = Array.isArray(activityTypes)
+        && requiredActivities.every((event) => activityTypes.includes(event))
+        && freshContextJob != null
+        && typeof freshContextJob === "object"
+        && !Array.isArray(freshContextJob)
+        && [
+          '"name":"wiki-fresh-context"',
+          "github-attestation.ts",
+          "review-check",
+          "policy-file",
+          '"working-directory":"trusted"',
+          "--root",
+        ].every((token) => jobText.includes(token))
+        && !jobText.includes('cd \\"${REVIEW_ROOT}\\"');
+    }
+  } catch {
+    workflowValid = false;
+  }
+  if (!workflowValid) {
     findings.push({ code: "fresh-context-workflow-missing", message: "checks workflow must expose the stable wiki-fresh-context job and required PR activity triggers", path: workflowPath, severity: "error" });
   }
   return findings;
