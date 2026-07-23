@@ -231,6 +231,17 @@ describe("fresh-context report validation", () => {
       },
     }));
     expect(inert).toBeUndefined();
+
+    const whitespaceOnly = parseFreshContextPolicy(policy({
+      requiredWhen: {
+        kind: "risk-based",
+        changedFileGlobs: [" "],
+        affectedInvariants: false,
+        affectedConflicts: false,
+        removedCurrentPages: false,
+      },
+    }));
+    expect(whitespaceOnly).toBeUndefined();
   });
 
   test("requires reports only when the trusted risk selector matches", () => {

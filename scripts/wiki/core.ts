@@ -671,6 +671,7 @@ export function parseFreshContextPolicy(value: unknown): FreshContextPolicy | un
       requiredWhen = { kind: "all" };
     } else if (required.kind === "risk-based") {
       if (!stringArray(required.changedFileGlobs)
+        || required.changedFileGlobs.some((pattern) => pattern.trim().length === 0)
         || typeof required.affectedInvariants !== "boolean"
         || typeof required.affectedConflicts !== "boolean"
         || typeof required.removedCurrentPages !== "boolean") return undefined;

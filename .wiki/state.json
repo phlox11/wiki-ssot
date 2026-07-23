@@ -3,15 +3,16 @@
     "architecture/engine": {
       "sources": {
         "scripts/wiki/cli.ts": "f75c5c28f7bec306eda4daa9e9a3a38824c9fb2048f392301fcfeb0f024e0286",
-        "scripts/wiki/core.ts": "4dd8e50849e50fe4206804a948738188c3f5b3658424536e420db22cb91b5af0",
-        "scripts/wiki/fresh-context.test.ts": "0a07dcab8d91702fb268ad586468e1b754671265cb1bb94067a4b16e7b080f94",
+        "scripts/wiki/core.ts": "91ade2e55abf9856adb2ba5a1d991f177a16afa3a1529bdce673f3108ef16f24",
+        "scripts/wiki/fresh-context.test.ts": "31323add0e3255c43be2838d7957ee22cb2c9ad38f95276fee962d4ac8dddbeb",
         "scripts/wiki/github-attestation.ts": "4897bdc063a6d73045056c04dfb4245c20ecfc22b7f71b9c62d42ecc3e0b45f2",
         "scripts/wiki/inventories.example.ts": "3c173f3382105416947b30020f8004b02e5667acdcff47c2057757207daa9447",
         "scripts/wiki/inventories.ts": "f8a608159394b661149eb69236a4fef8ab5c90be5acafb5fa14fedff3e74101f",
         "scripts/wiki/wiki.test.ts": "f2cb47a81f94507388794a6ff1227cf4ff602af044dfa14b2f273bfa9dbd45bf"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "Rejecting blank risk globs aligns implementation with the existing current contract."
       }
     },
     "operations/enforcement": {
@@ -25,19 +26,21 @@
         "AGENTS.md": "1a8fe7037da5884790be66b2d7c1749bde16336ab6e26a649adaf17529f65ada",
         "package.json": "2c62a87ff77089f8caeee7e7a052fb64e26cd69128ec9f1b7b42a3f54b5e0da7",
         "scripts/wiki/cli.ts": "f75c5c28f7bec306eda4daa9e9a3a38824c9fb2048f392301fcfeb0f024e0286",
-        "scripts/wiki/core.ts": "4dd8e50849e50fe4206804a948738188c3f5b3658424536e420db22cb91b5af0",
+        "scripts/wiki/core.ts": "91ade2e55abf9856adb2ba5a1d991f177a16afa3a1529bdce673f3108ef16f24",
         "scripts/wiki/github-attestation.ts": "4897bdc063a6d73045056c04dfb4245c20ecfc22b7f71b9c62d42ecc3e0b45f2"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "Rejecting blank risk globs aligns implementation with the existing current contract."
       }
     },
     "product/invariants": {
       "sources": {
-        "scripts/wiki/core.ts": "4dd8e50849e50fe4206804a948738188c3f5b3658424536e420db22cb91b5af0"
+        "scripts/wiki/core.ts": "91ade2e55abf9856adb2ba5a1d991f177a16afa3a1529bdce673f3108ef16f24"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "Rejecting blank risk globs aligns implementation with the existing current contract."
       }
     },
     "product/scope": {
