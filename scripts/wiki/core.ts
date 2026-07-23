@@ -717,8 +717,8 @@ export function validateIntegrationSeams(view: RepoView): Finding[] {
       // The ordinary package/tooling checks report malformed package.json.
     }
   }
-  if (typeof scripts["wiki:review-check"] !== "string" || typeof scripts["wiki:doctor"] !== "string") {
-    findings.push({ code: "fresh-context-command-missing", message: "package.json must expose wiki:review-check and wiki:doctor", path: packagePath, severity: "error" });
+  if (scripts["wiki:review-check"] !== "bun scripts/wiki/cli.ts review-check" || scripts["wiki:doctor"] !== "bun scripts/wiki/cli.ts doctor") {
+    findings.push({ code: "fresh-context-command-missing", message: "package.json must expose the canonical wiki:review-check and wiki:doctor CLI entrypoints", path: packagePath, severity: "error" });
   }
 
   return findings;

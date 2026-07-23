@@ -102,21 +102,47 @@ export function validateGitHubIntegrationSeams(view: RepoView): Finding[] {
       const freshContextJob = jobs != null && typeof jobs === "object" && !Array.isArray(jobs)
         ? (jobs as Record<string, unknown>)["wiki-fresh-context"]
         : undefined;
-      const jobText = freshContextJob == null ? "" : JSON.stringify(freshContextJob);
+      const job = freshContextJob != null && typeof freshContextJob === "object" && !Array.isArray(freshContextJob)
+        ? freshContextJob as Record<string, unknown>
+        : undefined;
+      const steps = Array.isArray(job?.steps)
+        ? job.steps.filter((step): step is Record<string, unknown> => step != null && typeof step === "object" && !Array.isArray(step))
+        : [];
+      const stepNamed = (name: string) => steps.find((step) => step.name === name);
+      const checkout = steps.find((step) => step.uses === "actions/checkout@v4");
+      const checkoutWith = checkout?.with != null && typeof checkout.with === "object" && !Array.isArray(checkout.with)
+        ? checkout.with as Record<string, unknown>
+        : undefined;
+      const materialize = stepNamed("Materialize PR head as data without executing it");
+      const readAttestations = stepNamed("Read authenticated GitHub attestations");
+      const validate = stepNamed("Deterministically validate Fresh-context attestation");
+      const executableLines = (step: Record<string, unknown> | undefined) => typeof step?.run === "string"
+        ? step.run.split("\n").map((line) => line.trim()).filter((line) => line.length > 0 && !line.startsWith("#"))
+        : [];
+      const materializeLines = executableLines(materialize);
+      const attestationLines = executableLines(readAttestations);
+      const validationLines = executableLines(validate);
+      const includesLine = (lines: string[], value: string) => lines.includes(value);
       workflowValid = Array.isArray(activityTypes)
         && requiredActivities.every((event) => activityTypes.includes(event))
-        && freshContextJob != null
-        && typeof freshContextJob === "object"
-        && !Array.isArray(freshContextJob)
-        && [
-          '"name":"wiki-fresh-context"',
-          "github-attestation.ts",
-          "review-check",
-          "policy-file",
-          '"working-directory":"trusted"',
-          "--root",
-        ].every((token) => jobText.includes(token))
-        && !jobText.includes('cd \\"${REVIEW_ROOT}\\"');
+        && job?.name === "wiki-fresh-context"
+        && checkoutWith?.ref === "${{ github.event.pull_request.base.sha }}"
+        && checkoutWith?.path === "trusted"
+        && includesLine(materializeLines, 'git -C trusted worktree add --detach "${RUNNER_TEMP}/wiki-pr-head" "${HEAD_SHA}"')
+        && includesLine(materializeLines, 'echo "REVIEW_ROOT=${RUNNER_TEMP}/wiki-pr-head" >> "$GITHUB_ENV"')
+        && includesLine(attestationLines, 'gh api --paginate --slurp "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" > "${RUNNER_TEMP}/issue-comments.json"')
+        && includesLine(attestationLines, 'gh api --paginate --slurp "repos/${REPOSITORY}/pulls/${PR_NUMBER}/reviews?per_page=100" > "${RUNNER_TEMP}/pull-request-reviews.json"')
+        && includesLine(attestationLines, 'bun "${TRUSTED_ROOT}/scripts/wiki/github-attestation.ts" \\')
+        && includesLine(attestationLines, '--comments "${RUNNER_TEMP}/issue-comments.json" \\')
+        && includesLine(attestationLines, '--reviews "${RUNNER_TEMP}/pull-request-reviews.json" \\')
+        && includesLine(attestationLines, '--actor-output "${RUNNER_TEMP}/fresh-context-actor.txt" \\')
+        && validate?.["working-directory"] === "trusted"
+        && includesLine(validationLines, "bun scripts/wiki/cli.ts review-check \\")
+        && includesLine(validationLines, '--root "${REVIEW_ROOT}" \\')
+        && includesLine(validationLines, '--policy-file "${TRUSTED_ROOT}/.wiki/config.json" \\')
+        && includesLine(validationLines, '--reviewer-actor "${WIKI_REVIEWER_ACTOR}" \\')
+        && includesLine(validationLines, '--pr-author "${PR_AUTHOR}" \\')
+        && !validationLines.some((line) => /^cd\s/.test(line));
     }
   } catch {
     workflowValid = false;

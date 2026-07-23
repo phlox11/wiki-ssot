@@ -573,6 +573,26 @@ touched_conflicts: []
     ]));
   });
 
+  test("core seam validation rejects inert package script placeholders", () => {
+    const view = {
+      root: "/memory",
+      mode: "working" as const,
+      listFiles: () => [".wiki/config.json", "AGENTS.md", "package.json"],
+      exists: (path: string) => [".wiki/config.json", "AGENTS.md", "package.json"].includes(path),
+      read: (path: string) => ({
+        ".wiki/config.json": jsonStable({
+          version: 1,
+          name: "x",
+          highRisk: [],
+          freshContext: policy(),
+        }),
+        "AGENTS.md": "wiki-ssot:fresh-context-guardrail",
+        "package.json": jsonStable({ scripts: { "wiki:review-check": "true", "wiki:doctor": "true" } }),
+      })[path] ?? "",
+    };
+    expect(validateIntegrationSeams(view).map((finding) => finding.code)).toContain("fresh-context-command-missing");
+  });
+
   test("GitHub reference workflow listens for edited and synchronize", () => {
     const workflow = readFileSync(join(process.cwd(), ".github/workflows/checks.yml"), "utf8");
     expect(workflow).toContain("wiki-fresh-context:");
@@ -593,10 +613,15 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, edited, ready_for_review]
 jobs:
-  placeholder:
+  wiki-fresh-context:
+    name: wiki-fresh-context
     runs-on: ubuntu-latest
+    env:
+      bait: github-attestation.ts review-check policy-file --root
     steps:
-      - run: echo 'wiki-fresh-context github-attestation.ts review-check policy-file working-directory trusted --root'
+      - name: no-op
+        working-directory: trusted
+        run: "true"
 `;
     const view = {
       root: "/memory",
