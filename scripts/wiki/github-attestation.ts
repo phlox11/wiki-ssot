@@ -99,11 +99,11 @@ export function validateGitHubIntegrationSeams(view: RepoView): Finding[] {
         : undefined;
       const requiredActivities = ["opened", "synchronize", "reopened", "edited", "ready_for_review", "converted_to_draft"];
       const jobs = root.jobs;
-      const freshContextJob = jobs != null && typeof jobs === "object" && !Array.isArray(jobs)
-        ? (jobs as Record<string, unknown>)["wiki-fresh-context"]
+      const reviewAttestationJob = jobs != null && typeof jobs === "object" && !Array.isArray(jobs)
+        ? (jobs as Record<string, unknown>)["wiki-review-attestation"]
         : undefined;
-      const job = freshContextJob != null && typeof freshContextJob === "object" && !Array.isArray(freshContextJob)
-        ? freshContextJob as Record<string, unknown>
+      const job = reviewAttestationJob != null && typeof reviewAttestationJob === "object" && !Array.isArray(reviewAttestationJob)
+        ? reviewAttestationJob as Record<string, unknown>
         : undefined;
       const steps = Array.isArray(job?.steps)
         ? job.steps.filter((step): step is Record<string, unknown> => step != null && typeof step === "object" && !Array.isArray(step))
@@ -125,7 +125,7 @@ export function validateGitHubIntegrationSeams(view: RepoView): Finding[] {
       const includesLine = (lines: string[], value: string) => lines.includes(value);
       workflowValid = Array.isArray(activityTypes)
         && requiredActivities.every((event) => activityTypes.includes(event))
-        && job?.name === "wiki-fresh-context"
+        && job?.name === "wiki-review-attestation"
         && job?.if === "github.event_name == 'pull_request' && github.event.pull_request.draft == false"
         && checkoutWith?.ref === "${{ github.event.pull_request.base.sha }}"
         && checkoutWith?.path === "trusted"
@@ -149,7 +149,7 @@ export function validateGitHubIntegrationSeams(view: RepoView): Finding[] {
     workflowValid = false;
   }
   if (!workflowValid) {
-    findings.push({ code: "fresh-context-workflow-missing", message: "checks workflow must expose the stable wiki-fresh-context job and required PR activity triggers", path: workflowPath, severity: "error" });
+    findings.push({ code: "fresh-context-workflow-missing", message: "checks workflow must expose the stable wiki-review-attestation job and required PR activity triggers", path: workflowPath, severity: "error" });
   }
   return findings;
 }

@@ -4,8 +4,8 @@
       "sources": {
         "scripts/wiki/cli.ts": "3c1904caee217d12708308ed469a8d34de4d6885fcb375e4f5ee964c2f65a942",
         "scripts/wiki/core.ts": "34f047ae4ab2436620a4f4d79cfd85bddd17b8b3622aab3b2785cbc22d4ce70c",
-        "scripts/wiki/fresh-context.test.ts": "712a8a9a7d7d2673b239c3e6eda51d32e7284b8584f347c78604c67f07ac16fa",
-        "scripts/wiki/github-attestation.ts": "ec3a78941c67c5f365b958a9b4adcc687831f7d2ca3d52897f5d5be198bdf6d2",
+        "scripts/wiki/fresh-context.test.ts": "c5fd68bb97fdc312c9915d77cf9ddae9a2516a9a28e080de5795430bac639da1",
+        "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c",
         "scripts/wiki/inventories.example.ts": "3c173f3382105416947b30020f8004b02e5667acdcff47c2057757207daa9447",
         "scripts/wiki/inventories.ts": "f8a608159394b661149eb69236a4fef8ab5c90be5acafb5fa14fedff3e74101f",
         "scripts/wiki/wiki.test.ts": "f2cb47a81f94507388794a6ff1227cf4ff602af044dfa14b2f273bfa9dbd45bf"
@@ -16,17 +16,17 @@
     },
     "operations/enforcement": {
       "sources": {
-        ".github/pull_request_template.md": "30ff2a80ffd3cb0a7bea001a934af94eba4211c571f65f4f0f03f341af63b7c1",
-        ".github/workflows/checks.yml": "39189109817abce8598bdd419603fef063603047d5c12264273795a69cd84df7",
+        ".github/pull_request_template.md": "fd1758cf285f4e6c26b004b6c6e182973506677c4ceb3854a7ee624603076244",
+        ".github/workflows/checks.yml": "53d46f240a5f4ee78327cae0d1e221ded01bd7b36b714c16121dd1256b1d92d5",
         ".github/workflows/wiki-audit.yml": "33a3bf1dcf6482a293f137a4cfc332eb8804639bd3b8d950a9244fa6fdda97f4",
         ".husky/pre-commit": "58a0e92eab02374a09bea44bb6e18f9b088e5e5180203b0b1cb8c309740ac10b",
         ".husky/pre-push": "21b38e361c58ffc03baec92b4826f3d5bb6d122b0862fce1af0cb12acdfc09d3",
         ".wiki/config.json": "1d0200763720e43d30452878e746881454e3550681e09feb0ec5d04303b67e27",
-        "AGENTS.md": "bd1d439415749e5078c2906f6d9b1704de913ca49e516b9fb897008d4bf15273",
+        "AGENTS.md": "d6f59b32e5971ad2a8ac6a3e9da70fa5c5b833f4a3bcb28f4afa56521f8bf39a",
         "package.json": "77610bd26e1060ac01550e9eeeed17930b88bdf7bc960a21f3274da2233f2c2b",
         "scripts/wiki/cli.ts": "3c1904caee217d12708308ed469a8d34de4d6885fcb375e4f5ee964c2f65a942",
         "scripts/wiki/core.ts": "34f047ae4ab2436620a4f4d79cfd85bddd17b8b3622aab3b2785cbc22d4ce70c",
-        "scripts/wiki/github-attestation.ts": "ec3a78941c67c5f365b958a9b4adcc687831f7d2ca3d52897f5d5be198bdf6d2"
+        "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c"
       },
       "verification": {
         "kind": "updated"
@@ -42,7 +42,7 @@
     },
     "product/scope": {
       "sources": {
-        "docs/design.md": "ab3ec259fff99f12afadfb31954d42c9b7acf4cf53dfcf198d4b5fc018ae77fc",
+        "docs/design.md": "899820d9815c7b773779cb041c61035e1bdab2eab786485e8b256a8944f8ec11",
         "README.md": "0948c018c6534c0818caab0623704b4f5e72fcd0a6a6661cd38c5ecc7f9999ad"
       },
       "verification": {

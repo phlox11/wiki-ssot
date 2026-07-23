@@ -60,8 +60,10 @@ Because the wiki grows *with* the code, each page is verified by the same PR tha
 
 ## 4. Turn on the rails and maintain
 
-Same as an existing repo — preserve the `wiki-ssot:fresh-context-guardrail` AGENTS marker and structured PR metadata, run `wiki:review-preflight` before publication, reconcile required bundles through a separate review context, then attach the locally-passed report to a Draft before marking it Ready. Keep the trusted Ready-only `wiki-fresh-context` job installed. Every Ready/merge candidate needs either `required: false` or PASS for its exact current HEAD and bundle digest.
+Same as an existing repo — preserve the `wiki-ssot:fresh-context-guardrail` AGENTS marker and structured PR metadata, run `wiki:review-preflight` before publication, reconcile required bundles through a separate review context, then attach the locally-passed report to a Draft before marking it Ready. Keep the trusted Ready-only `wiki-review-attestation` job installed. Every Ready/merge candidate needs either `required: false` or PASS for its exact current HEAD and bundle digest.
 
-As a final human step, enable branch protection/rulesets on `main` and require `code-check`, `wiki-structure`, `wiki-generated`, `wiki-impact`, and `wiki-fresh-context`, with branches up to date before merge. Protect `.github/workflows/checks.yml` with a ruleset-required workflow or CODEOWNERS plus required owner review. The repository cannot make these settings true through tracked files alone; without them, CI is not a complete merge guardrail.
+As a final human step, enable branch protection/rulesets on `main` and require `code-check`, `wiki-structure`, `wiki-generated`, `wiki-impact`, and `wiki-review-attestation`, with branches up to date before merge. Protect `.github/workflows/checks.yml` with a ruleset-required workflow or CODEOWNERS plus required owner review. The repository cannot make these settings true through tracked files alone; without them, CI is not a complete merge guardrail.
+
+If an installed required check is renamed later, migrate it without a protection gap: let the new context succeed while the old remains required, add the new context, verify strict mode and all unrelated contexts, then remove the old context and verify the final protection/merge state.
 
 See the [command reference](commands.md) and the [design](design.md). For a code-first bootstrap of an established codebase instead, see [adopt-existing-repo.md](adopt-existing-repo.md).

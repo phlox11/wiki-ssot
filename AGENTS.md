@@ -26,7 +26,7 @@ These rules apply to every coding agent and every task in this repository. They 
    - Validate the returned report locally with `bun run wiki:review-preflight -- --base origin/main --metadata <pr-body.md> --report <report.json> --reviewer-actor <publisher> --pr-author <author> --json`.
    - `NEEDS_RECONCILE` is not permission for an unknown or speculative edit. The report must identify the exact discrepancy, controlling authority, required code/wiki/test change, and acceptance criteria. The authoring agent fixes those findings, reruns deterministic checks, and generates a new bundle for the new HEAD.
    - Do not open the PR until preflight returns `status: pass` or `status: not-required`. If intent is ambiguous, open a conflict or request the owner decision instead of repeating speculative fix/review loops.
-8. For a required report, open the PR as Draft only after local PASS, publish that exact report through the trusted PR review/comment channel, mirror it into `fresh_context`, then mark the PR Ready. Draft PRs skip the blocking Fresh-context job; Ready PRs must validate the current exact HEAD and bundle digest.
+8. For a required report, open the PR as Draft only after local PASS, publish that exact report through the trusted PR review/comment channel, mirror it into `fresh_context`, then mark the PR Ready. Draft PRs skip the blocking `wiki-review-attestation` check; Ready PRs must validate the current exact HEAD and bundle digest.
    - Any new commit or semantic PR metadata change invalidates the old PASS and requires preflight again.
    - If the code-agent environment cannot create an isolated reviewer and no external reviewer is available, stop before opening the PR and ask for the missing review capability.
 

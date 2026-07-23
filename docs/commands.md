@@ -58,7 +58,7 @@ bun run wiki:review-preflight -- --base origin/main --metadata pr-body.md \
 
 Preflight returns `not-required`, `review-required`, `needs-reconcile`, or `pass`. A required `NEEDS_RECONCILE` report must identify the exact discrepancy, controlling authority, required code/wiki/test change, and acceptance criteria; the authoring agent fixes it before opening the PR and reruns preflight on the new HEAD. The report contract remains JSON/YAML version 1 with exact bindings, reviewer, evidence, and summary or findings.
 
-After local PASS, open a Draft PR, publish the report, mirror its verdict/HEAD/bundle/reviewer/evidence into PR metadata, and mark the PR Ready. Drafts skip `wiki-fresh-context`; Ready PRs validate the authenticated envelope and mirror. A valid low-risk result needs no report. Omitting `requiredWhen` preserves all-PR review.
+After local PASS, open a Draft PR, publish the report, mirror its verdict/HEAD/bundle/reviewer/evidence into PR metadata, and mark the PR Ready. Drafts skip `wiki-review-attestation`; Ready PRs validate the authenticated envelope and mirror. A valid low-risk result needs no report. Omitting `requiredWhen` preserves all-PR review.
 
 `trust.requireDifferentActor` controls GitHub identity separation, not context isolation. Set it to `false` for a solo maintainer: when review is required, the authoring session still cannot create its own PASS, but the PR author's authenticated account may publish a report created by a separate review session. Set it to `true` only when a distinct reviewer account or bot is operational.
 

@@ -86,7 +86,7 @@ function metadata(overrides: Partial<PrMetadata> = {}): PrMetadata {
 }
 
 function tempReviewRepo(): string {
-  const root = mkdtempSync(join(tmpdir(), "wiki-fresh-context-"));
+  const root = mkdtempSync(join(tmpdir(), "wiki-review-attestation-"));
   temporary.push(root);
   run(root, ["git", "init", "-q"]);
   run(root, ["git", "config", "user.name", "Wiki Test"]);
@@ -835,8 +835,8 @@ touched_conflicts: []
 
   test("GitHub reference workflow skips Drafts and validates Ready PRs", () => {
     const workflow = readFileSync(join(process.cwd(), ".github/workflows/checks.yml"), "utf8");
-    expect(workflow).toContain("wiki-fresh-context:");
-    expect(workflow).toContain("name: wiki-fresh-context");
+    expect(workflow).toContain("wiki-review-attestation:");
+    expect(workflow).toContain("name: wiki-review-attestation");
     expect(workflow).toContain("edited");
     expect(workflow).toContain("synchronize");
     expect(workflow).toContain("converted_to_draft");
@@ -855,8 +855,8 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, edited, ready_for_review]
 jobs:
-  wiki-fresh-context:
-    name: wiki-fresh-context
+  wiki-review-attestation:
+    name: wiki-review-attestation
     runs-on: ubuntu-latest
     env:
       bait: github-attestation.ts review-check policy-file --root

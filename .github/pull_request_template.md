@@ -19,7 +19,7 @@ fresh_context:
   evidence: []
 ```
 
-`fresh_context` is a machine-validated status mirror. Run `wiki:review-preflight` before opening this PR. For a required report, open as Draft only after local PASS, publish it through the trusted PR review/comment channel using `<!-- wiki-ssot:fresh-context-attestation -->`, update this mirror, then mark the PR Ready. Drafts skip the blocking Fresh-context job.
+`fresh_context` is a machine-validated status mirror. Run `wiki:review-preflight` before opening this PR. For a required report, open as Draft only after local PASS, publish it through the trusted PR review/comment channel using `<!-- wiki-ssot:fresh-context-attestation -->`, update this mirror, then mark the PR Ready. Drafts skip the blocking `wiki-review-attestation` check.
 
 ## Verification
 
@@ -29,4 +29,4 @@ fresh_context:
 - [ ] Generated files refreshed (`bun run wiki:generated`)
 - [ ] Relevant typecheck/tests pass
 - [ ] Pre-PR `wiki:review-preflight` returned `pass` or `not-required`
-- [ ] `wiki-fresh-context` records `required: false` or validates PASS for the current PR HEAD and bundle digest
+- [ ] `wiki-review-attestation` records `required: false` or validates PASS for the current PR HEAD and bundle digest
