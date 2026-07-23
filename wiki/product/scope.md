@@ -20,7 +20,7 @@ wiki-ssot turns a repository's development knowledge into a small set of `status
 
 - A page schema and frontmatter contract (`wiki/SCHEMA.md`).
 - Deterministic CLI checks: structure lint, generated-file freshness, code→page impact, source staleness, coverage, and a conflict lifecycle.
-- Deterministic risk classification and review manifests plus a provider-neutral structured Fresh-context report/trust contract.
+- A pre-PR command that deterministically classifies risk, prepares an independent-review bundle, and validates the returned structured Fresh-context report before publication.
 - Explicit solo and team trust policies: separate review context is always procedural, while distinct GitHub actors are optional and machine-enforced only when configured.
 - Enforcement rails: an agent entrypoint (`AGENTS.md`), local git hooks, CI jobs, and machine-checked downstream integration seams.
 - Two adoption paths: bootstrap a wiki into an existing repository, or grow one from an empty repository.
@@ -30,5 +30,5 @@ wiki-ssot turns a repository's development knowledge into a small set of `status
 - Rendering or hosting a documentation website.
 - Replacing the wiki with an auto-generated API reference.
 - Deciding product questions on the agent's behalf: an ambiguous decision is a conflict, not an invention.
-- Running or hosting a particular LLM/reviewer in core or CI. Semantic verdict generation is external; core only verifies the attestation.
+- Running or hosting a particular LLM/reviewer in core or CI. The invoking code agent supplies a context-isolated reviewer or sub-agent; core prepares and validates its artifact.
 - Claiming cryptographic proof that a reviewer had a genuinely fresh context. The selected reviewer/orchestrator defines that trust boundary.

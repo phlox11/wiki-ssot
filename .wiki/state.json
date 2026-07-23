@@ -2,51 +2,48 @@
   "pages": {
     "architecture/engine": {
       "sources": {
-        "scripts/wiki/cli.ts": "f75c5c28f7bec306eda4daa9e9a3a38824c9fb2048f392301fcfeb0f024e0286",
-        "scripts/wiki/core.ts": "91ade2e55abf9856adb2ba5a1d991f177a16afa3a1529bdce673f3108ef16f24",
-        "scripts/wiki/fresh-context.test.ts": "31323add0e3255c43be2838d7957ee22cb2c9ad38f95276fee962d4ac8dddbeb",
-        "scripts/wiki/github-attestation.ts": "4897bdc063a6d73045056c04dfb4245c20ecfc22b7f71b9c62d42ecc3e0b45f2",
+        "scripts/wiki/cli.ts": "3c1904caee217d12708308ed469a8d34de4d6885fcb375e4f5ee964c2f65a942",
+        "scripts/wiki/core.ts": "34f047ae4ab2436620a4f4d79cfd85bddd17b8b3622aab3b2785cbc22d4ce70c",
+        "scripts/wiki/fresh-context.test.ts": "712a8a9a7d7d2673b239c3e6eda51d32e7284b8584f347c78604c67f07ac16fa",
+        "scripts/wiki/github-attestation.ts": "ec3a78941c67c5f365b958a9b4adcc687831f7d2ca3d52897f5d5be198bdf6d2",
         "scripts/wiki/inventories.example.ts": "3c173f3382105416947b30020f8004b02e5667acdcff47c2057757207daa9447",
         "scripts/wiki/inventories.ts": "f8a608159394b661149eb69236a4fef8ab5c90be5acafb5fa14fedff3e74101f",
         "scripts/wiki/wiki.test.ts": "f2cb47a81f94507388794a6ff1227cf4ff602af044dfa14b2f273bfa9dbd45bf"
       },
       "verification": {
-        "kind": "unchanged",
-        "reason": "Rejecting blank risk globs aligns implementation with the existing current contract."
+        "kind": "updated"
       }
     },
     "operations/enforcement": {
       "sources": {
-        ".github/pull_request_template.md": "a0a0f0e72d15effae5f4168644fa3ebe700c8d9f5963b7ec3e4f8b5932b6b2b4",
-        ".github/workflows/checks.yml": "4b51b9cde09ee41d015101895aa70f57e8695f61f9aa3fa5b546952369d513d6",
+        ".github/pull_request_template.md": "30ff2a80ffd3cb0a7bea001a934af94eba4211c571f65f4f0f03f341af63b7c1",
+        ".github/workflows/checks.yml": "39189109817abce8598bdd419603fef063603047d5c12264273795a69cd84df7",
         ".github/workflows/wiki-audit.yml": "33a3bf1dcf6482a293f137a4cfc332eb8804639bd3b8d950a9244fa6fdda97f4",
         ".husky/pre-commit": "58a0e92eab02374a09bea44bb6e18f9b088e5e5180203b0b1cb8c309740ac10b",
         ".husky/pre-push": "21b38e361c58ffc03baec92b4826f3d5bb6d122b0862fce1af0cb12acdfc09d3",
         ".wiki/config.json": "1d0200763720e43d30452878e746881454e3550681e09feb0ec5d04303b67e27",
-        "AGENTS.md": "1a8fe7037da5884790be66b2d7c1749bde16336ab6e26a649adaf17529f65ada",
-        "package.json": "2c62a87ff77089f8caeee7e7a052fb64e26cd69128ec9f1b7b42a3f54b5e0da7",
-        "scripts/wiki/cli.ts": "f75c5c28f7bec306eda4daa9e9a3a38824c9fb2048f392301fcfeb0f024e0286",
-        "scripts/wiki/core.ts": "91ade2e55abf9856adb2ba5a1d991f177a16afa3a1529bdce673f3108ef16f24",
-        "scripts/wiki/github-attestation.ts": "4897bdc063a6d73045056c04dfb4245c20ecfc22b7f71b9c62d42ecc3e0b45f2"
+        "AGENTS.md": "bd1d439415749e5078c2906f6d9b1704de913ca49e516b9fb897008d4bf15273",
+        "package.json": "77610bd26e1060ac01550e9eeeed17930b88bdf7bc960a21f3274da2233f2c2b",
+        "scripts/wiki/cli.ts": "3c1904caee217d12708308ed469a8d34de4d6885fcb375e4f5ee964c2f65a942",
+        "scripts/wiki/core.ts": "34f047ae4ab2436620a4f4d79cfd85bddd17b8b3622aab3b2785cbc22d4ce70c",
+        "scripts/wiki/github-attestation.ts": "ec3a78941c67c5f365b958a9b4adcc687831f7d2ca3d52897f5d5be198bdf6d2"
       },
       "verification": {
-        "kind": "unchanged",
-        "reason": "Rejecting blank risk globs aligns implementation with the existing current contract."
+        "kind": "updated"
       }
     },
     "product/invariants": {
       "sources": {
-        "scripts/wiki/core.ts": "91ade2e55abf9856adb2ba5a1d991f177a16afa3a1529bdce673f3108ef16f24"
+        "scripts/wiki/core.ts": "34f047ae4ab2436620a4f4d79cfd85bddd17b8b3622aab3b2785cbc22d4ce70c"
       },
       "verification": {
-        "kind": "unchanged",
-        "reason": "Rejecting blank risk globs aligns implementation with the existing current contract."
+        "kind": "updated"
       }
     },
     "product/scope": {
       "sources": {
-        "docs/design.md": "d77dd868558c7e2835ce8518da5fee3a3e3714f667a571c2f386e25efe60eafc",
-        "README.md": "5b956ddeadbef9826d802ce4897caa850372362ac93a48baf9e1723c46b34867"
+        "docs/design.md": "ab3ec259fff99f12afadfb31954d42c9b7acf4cf53dfcf198d4b5fc018ae77fc",
+        "README.md": "0948c018c6534c0818caab0623704b4f5e72fcd0a6a6661cd38c5ecc7f9999ad"
       },
       "verification": {
         "kind": "updated"

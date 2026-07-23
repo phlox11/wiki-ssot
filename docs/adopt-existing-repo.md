@@ -97,26 +97,26 @@ Commit the wiki, `.wiki/`, and generated files together.
 ## 6. Turn on the rails
 
 - Hooks activate on `bun install` (via the `prepare` script). Confirm a bad staged page blocks a commit.
-- Keep the root `AGENTS.md` marker `wiki-ssot:fresh-context-guardrail`, structured PR `fresh_context` block, `wiki:review-check`/`wiki:doctor` scripts, and stable `wiki-fresh-context` workflow job. `wiki:doctor` detects accidental omission when adoption rewrites these files.
-- CI: the workflows in `.github/workflows/` run code, structure/doctor, generated, impact, and Fresh-context checks. The Fresh-context job uses trusted base code/policy and never executes PR-head code. Because the `pull_request` workflow definition is still part of the PR test-merge tree, protect `.github/workflows/checks.yml` with a ruleset-required workflow or CODEOWNERS plus required owner review.
+- Keep the root `AGENTS.md` marker `wiki-ssot:fresh-context-guardrail`, structured PR `fresh_context` block, `wiki:review-preflight`/`wiki:review-check`/`wiki:doctor` scripts, and stable `wiki-fresh-context` workflow job. `wiki:doctor` detects accidental omission when adoption rewrites these files.
+- CI: the workflows in `.github/workflows/` run code, structure/doctor, generated, impact, and Ready-only Fresh-context checks. The Fresh-context job skips Drafts, uses trusted base code/policy, and never executes PR-head code. Because the `pull_request` workflow definition is still part of the PR test-merge tree, protect `.github/workflows/checks.yml` with a ruleset-required workflow or CODEOWNERS plus required owner review.
 - Remote boundary (required human step): configure GitHub branch protection/rulesets on `main`, require `code-check`, `wiki-structure`, `wiki-generated`, `wiki-impact`, and `wiki-fresh-context`, require the branch to be current, and disallow direct pushes. Branch protection cannot be guaranteed by local files or the CLI; without it, the jobs are not a merge guardrail.
 
 ## 7. Establish the reviewer channel
 
-1. Create the Draft PR with the structured metadata block; `fresh_context.verdict` starts as `PENDING`.
-2. Run `wiki:review-check --json` for the exact base and metadata. If it reports `required: false`, no report is needed.
-3. When required, generate the bundle and give it plus primary-source access to a separate context-isolated session or reviewer.
-4. Publish its JSON report in a GitHub PR review (preferred) or comment after this marker:
+1. Before opening a PR, create the prospective structured metadata block with `fresh_context.verdict: PENDING`.
+2. Run `wiki:review-preflight --json` for the exact base and metadata. `not-required` needs no report; `review-required` emits the exact bundle.
+3. Give a required bundle plus primary-source access to a context-isolated reviewer or context-free sub-agent. Reconcile actionable findings locally and rerun preflight until `pass`.
+4. After local PASS, open a Draft and publish its JSON report in a GitHub PR review (preferred) or comment after this marker:
 
    ```html
    <!-- wiki-ssot:fresh-context-attestation -->
    ```
 
    Follow it with a fenced `json` or `yaml` report. The report's `reviewer` must match the authenticated GitHub actor. With `requireDifferentActor: false`, that publisher may be the PR author, but the report must still come from the separate review session. The author-editable PR body cannot substitute for this envelope.
-5. Mirror a required attested verdict, HEAD, bundle digest, reviewer, and evidence into the PR body's `fresh_context` block. This author-editable mirror is checked against—but never substitutes for—the authenticated envelope. Its PR-body edit reruns the trusted job. Ready/merge requires either `required: false` or a current PASS.
+5. Mirror the required attested verdict, HEAD, bundle digest, reviewer, and evidence into the PR body's `fresh_context` block, then mark the Draft Ready. This author-editable mirror is checked against—but never substitutes for—the authenticated envelope. Drafts skip the expected attestation failure; Ready/merge requires either `required: false` or a current PASS.
 
 ## 8. Maintain
 
-Every change follows `wiki/WORKFLOW.md`: search → read sources → change code + page + tests together → regenerate → `wiki:impact --enforce` → PR metadata → `wiki:review-check` risk decision → bundle and independent report when required. `NEEDS_RECONCILE` or a new commit requires a new bundle and report for applicable changes.
+Every change follows `wiki/WORKFLOW.md`: search → read sources → change code + page + tests together → regenerate → `wiki:impact --enforce` → prospective PR metadata → preflight bundle and independent reconciliation when required → PR publication. `NEEDS_RECONCILE` or a new commit stays local and requires a new bundle/report before the PR is opened or updated.
 
 See the [command reference](commands.md) and the [design](design.md).

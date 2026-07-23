@@ -97,7 +97,7 @@ export function validateGitHubIntegrationSeams(view: RepoView): Finding[] {
       const activityTypes = pullRequest != null && typeof pullRequest === "object" && !Array.isArray(pullRequest)
         ? (pullRequest as Record<string, unknown>).types
         : undefined;
-      const requiredActivities = ["opened", "synchronize", "reopened", "edited", "ready_for_review"];
+      const requiredActivities = ["opened", "synchronize", "reopened", "edited", "ready_for_review", "converted_to_draft"];
       const jobs = root.jobs;
       const freshContextJob = jobs != null && typeof jobs === "object" && !Array.isArray(jobs)
         ? (jobs as Record<string, unknown>)["wiki-fresh-context"]
@@ -126,6 +126,7 @@ export function validateGitHubIntegrationSeams(view: RepoView): Finding[] {
       workflowValid = Array.isArray(activityTypes)
         && requiredActivities.every((event) => activityTypes.includes(event))
         && job?.name === "wiki-fresh-context"
+        && job?.if === "github.event_name == 'pull_request' && github.event.pull_request.draft == false"
         && checkoutWith?.ref === "${{ github.event.pull_request.base.sha }}"
         && checkoutWith?.path === "trusted"
         && includesLine(materializeLines, 'git -C trusted worktree add --detach "${RUNNER_TEMP}/wiki-pr-head" "${HEAD_SHA}"')

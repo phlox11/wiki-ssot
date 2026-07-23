@@ -7,7 +7,7 @@ Coding agents increasingly do the work in a repository, each starting from a bla
 1. **Primary failure:** an agent that *cannot find the code or constraint it should have accounted for*, so it edits blind — repeating a fixed mistake or breaking an intent it never saw.
 2. **Secondary failure:** two individually-correct pull requests merge into a wiki that now contradicts itself.
 
-wiki-ssot fixes both with deterministic repository gates plus a risk-scoped Fresh-context attestation guard, wired onto the events that always happen: session start, commit, and pull request. CI does not have to run an LLM: trusted base policy selects changes that need external reasoning review, while the blocking job deterministically validates the resulting verdict's target SHA, bundle digest, evidence, and authenticated actor.
+wiki-ssot fixes both with deterministic repository gates plus pre-PR, risk-scoped Fresh-context reconciliation. Before opening a PR, the authoring code agent gives a deterministic bundle to a context-isolated reviewer or sub-agent and reconciles any concrete code/wiki mismatch. CI does not run an LLM; it only validates the already-produced verdict's target SHA, bundle digest, evidence, and authenticated actor when the PR becomes Ready.
 
 It is derived from Andrej Karpathy's [LLM wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) `source → wiki → schema` idea, hardened into an enforcement system.
 
@@ -17,7 +17,7 @@ It is derived from Andrej Karpathy's [LLM wiki](https://gist.github.com/karpathy
 - Each page's frontmatter lists its **`sources`** (real paths / globs). The engine builds a reverse index and **hashes those sources**. When a source changes, its page goes *stale* and must be updated or explicitly verified — in the same PR.
 - A **coverage** gate ensures every major code file maps to some page, so there is no "unfindable" code.
 - When intent is unclear or code and wiki disagree, you open a **conflict** — a first-class, machine-tracked record with acceptance criteria — instead of guessing.
-- When trusted risk policy requires semantic Fresh-context review, its verdict comes from a separate reviewer. The required `wiki-fresh-context` job passes low-risk changes without a report and rejects missing, non-PASS, stale, malformed, empty-evidence, or untrusted reports for applicable changes.
+- `wiki:review-preflight` decides whether independent reconciliation is required before a PR exists, prepares the exact bundle, and validates the separate review context's report. Draft PRs do not emit an expected Fresh-context failure; applicable Ready PRs reject missing, non-PASS, stale, malformed, empty-evidence, or untrusted reports.
 
 Full rationale: [docs/design.md](docs/design.md).
 
@@ -75,7 +75,7 @@ Two seams make it yours; everything else is generic:
 - **`.wiki/config.json`** — your wiki's `name`, stale-page `highRisk` globs, and explicit Fresh-context mode/scope/evidence/reviewer trust policy.
 - **`scripts/wiki/inventories.ts`** — optional. Teach the engine to emit deterministic `wiki/_generated/**` pages from your stack (see `inventories.example.ts`).
 
-Omit `freshContext.requiredWhen` to require review for every PR. A `risk-based` selector can instead require it for trusted changed-file globs, affected invariants/conflicts, and current-page removals. For a solo-maintainer repository, set `trust.requireDifferentActor` to `false`: whenever review is required, the report must still come from a separate context-isolated session and be published by an authenticated actor, but that actor may be the PR author. Teams with a provisioned reviewer account or bot can set it to `true` to make distinct GitHub identities a blocking requirement.
+Omit `freshContext.requiredWhen` to require review for every PR. A `risk-based` selector can instead require it for trusted changed-file globs, affected invariants/conflicts, and current-page removals. For a solo-maintainer repository, set `trust.requireDifferentActor` to `false`: before opening the PR, the authoring agent must still use a separate context-isolated reviewer or sub-agent, but the authenticated publisher may be the PR author. Teams with a provisioned reviewer account or bot can set it to `true` to make distinct GitHub identities a blocking requirement.
 
 ## License
 

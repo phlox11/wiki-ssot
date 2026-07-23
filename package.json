@@ -20,6 +20,7 @@
     "wiki:context": "bun scripts/wiki/cli.ts context",
     "wiki:impact": "bun scripts/wiki/cli.ts impact",
     "wiki:verify": "bun scripts/wiki/cli.ts verify",
+    "wiki:review-preflight": "bun scripts/wiki/cli.ts review-preflight",
     "wiki:review-bundle": "bun scripts/wiki/cli.ts review-bundle",
     "wiki:review-check": "bun scripts/wiki/cli.ts review-check",
     "wiki:doctor": "bun scripts/wiki/cli.ts doctor",

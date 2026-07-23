@@ -757,8 +757,10 @@ export function validateIntegrationSeams(view: RepoView): Finding[] {
       // The ordinary package/tooling checks report malformed package.json.
     }
   }
-  if (scripts["wiki:review-check"] !== "bun scripts/wiki/cli.ts review-check" || scripts["wiki:doctor"] !== "bun scripts/wiki/cli.ts doctor") {
-    findings.push({ code: "fresh-context-command-missing", message: "package.json must expose the canonical wiki:review-check and wiki:doctor CLI entrypoints", path: packagePath, severity: "error" });
+  if (scripts["wiki:review-preflight"] !== "bun scripts/wiki/cli.ts review-preflight"
+    || scripts["wiki:review-check"] !== "bun scripts/wiki/cli.ts review-check"
+    || scripts["wiki:doctor"] !== "bun scripts/wiki/cli.ts doctor") {
+    findings.push({ code: "fresh-context-command-missing", message: "package.json must expose the canonical wiki:review-preflight, wiki:review-check, and wiki:doctor CLI entrypoints", path: packagePath, severity: "error" });
   }
 
   return findings;
@@ -1301,9 +1303,22 @@ Publish the report through the repository's trusted attestation channel. A repor
 export function buildReviewManifest(view: RepoView, pages: WikiPage[], report: ImpactReport, metadata?: PrMetadata): ReviewManifest {
   const files = reviewBundleFiles(view, pages, report, metadata);
   const fileDigests = Object.fromEntries(Object.entries(files).map(([path, content]) => [path, hashContent(content)]).sort(([a], [b]) => a.localeCompare(b)));
+  const baseInvariantIds = new Set(git(view.root, ["ls-tree", "-r", "--name-only", report.mergeBase, "--", "wiki"], true)
+    .split("\n")
+    .filter(isContentPage)
+    .flatMap((path) => {
+      const raw = git(view.root, ["show", `${report.mergeBase}:${path}`], true);
+      if (!raw) return [];
+      try {
+        const page = parseWikiPage(path, raw);
+        return page.data.status === "current" && page.data.kind === "invariant" ? [page.data.id] : [];
+      } catch {
+        return [];
+      }
+    }));
   const affectedInvariantIds = new Set(metadata?.affected_invariants ?? []);
   for (const id of report.affectedPages) {
-    if (pages.find((page) => page.data.id === id)?.data.kind === "invariant") affectedInvariantIds.add(id);
+    if (baseInvariantIds.has(id) || pages.find((page) => page.data.id === id)?.data.kind === "invariant") affectedInvariantIds.add(id);
   }
   for (const conflict of report.affectedConflicts) for (const id of conflict.affectedInvariants) affectedInvariantIds.add(id);
   const core = {

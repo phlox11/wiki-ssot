@@ -11,6 +11,7 @@ All commands are `bun run wiki:<name>`; each maps to `bun scripts/wiki/cli.ts <n
 | `wiki:search -- "<terms>"` | Keyword search across pages. | — |
 | `wiki:context -- "<terms>"` | The pages + open conflicts + sources an agent should read for a task. Also `-- --conflict C-NNN` or `-- --base <ref>`. | — |
 | `wiki:conflicts` | List open conflicts. `-- C-NNN` prints one resolution contract; `-- --all` includes resolved. | — |
+| `wiki:review-preflight -- --base <ref> --metadata <file> [--output <dir>] [--report <file>]` | Before opening a PR, classify risk, prepare the exact independent-review bundle, or validate the returned report while the PR mirror is still pending. | pre-PR |
 | `wiki:review-bundle -- --base <ref> --metadata <file>` | Write a deterministic bundle with `manifest.json`, reviewer instructions, and a report example. | review input |
 | `wiki:review-check -- --base <ref> --metadata <file> [--report <file>]` | Evaluate trusted risk policy and return `required`/reasons. When required, recompute the current manifest and validate report schema, PASS, evidence, SHA/digests, and reviewer trust. | CI (`required` mode) |
 | `wiki:doctor` | Validate required downstream seams: explicit config, AGENTS marker, PR template, commands, and GitHub job/events. | pre-commit + CI |
@@ -46,16 +47,18 @@ bun run wiki:verify -- --page architecture/api --unchanged "internal refactor on
 Fresh-context review:
 
 ```sh
-# First determine whether trusted policy requires a report.
-bun run wiki:review-check -- --base origin/main --metadata pr-body.md --json
-# When required is true:
-bun run wiki:review-bundle -- --base origin/main --metadata pr-body.md --output review-bundle
-# A separate context-isolated reviewer creates report.json from the bundle.
-bun run wiki:review-check -- --base origin/main --metadata pr-body.md \
+# Commit the complete candidate first. Before a PR exists, classify and prepare
+# the exact bundle when required; uncommitted candidate files are rejected.
+bun run wiki:review-preflight -- --base origin/main --metadata pr-body.md \
+  --output review-bundle --json
+# Give the bundle to a context-isolated reviewer/sub-agent, then validate its report.
+bun run wiki:review-preflight -- --base origin/main --metadata pr-body.md \
   --report report.json --reviewer-actor reviewer-login --pr-author author-login --json
 ```
 
-The report contract is JSON/YAML version 1 with `verdict`, `reviewed_head_sha`, `merge_base_sha`, `bundle_digest`, `reviewer`, non-empty `evidence`, and `summary` or `findings`. Mirror its verdict/HEAD/bundle/reviewer/evidence into PR metadata after publication; the check compares the mirror with the authenticated report but never treats the mirror as proof. Required mode uses stable errors including `fresh-context-missing`, `fresh-context-malformed`, `fresh-context-not-pass`, `fresh-context-head-stale`, `fresh-context-base-stale`, `fresh-context-bundle-stale`, `fresh-context-evidence-missing`, and `fresh-context-reviewer-untrusted`. A valid low-risk result has `required: false`, no report, and a zero exit status. Omitting `requiredWhen` from policy preserves all-PR behavior.
+Preflight returns `not-required`, `review-required`, `needs-reconcile`, or `pass`. A required `NEEDS_RECONCILE` report must identify the exact discrepancy, controlling authority, required code/wiki/test change, and acceptance criteria; the authoring agent fixes it before opening the PR and reruns preflight on the new HEAD. The report contract remains JSON/YAML version 1 with exact bindings, reviewer, evidence, and summary or findings.
+
+After local PASS, open a Draft PR, publish the report, mirror its verdict/HEAD/bundle/reviewer/evidence into PR metadata, and mark the PR Ready. Drafts skip `wiki-fresh-context`; Ready PRs validate the authenticated envelope and mirror. A valid low-risk result needs no report. Omitting `requiredWhen` preserves all-PR review.
 
 `trust.requireDifferentActor` controls GitHub identity separation, not context isolation. Set it to `false` for a solo maintainer: when review is required, the authoring session still cannot create its own PASS, but the PR author's authenticated account may publish a report created by a separate review session. Set it to `true` only when a distinct reviewer account or bot is operational.
 
