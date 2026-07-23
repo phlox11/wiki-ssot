@@ -20,7 +20,7 @@ wiki-ssot turns a repository's development knowledge into a small set of `status
 
 - A page schema and frontmatter contract (`wiki/SCHEMA.md`).
 - Deterministic CLI checks: structure lint, generated-file freshness, code→page impact, source staleness, coverage, and a conflict lifecycle.
-- Deterministic review manifests and a provider-neutral structured Fresh-context report/trust contract.
+- Deterministic risk classification and review manifests plus a provider-neutral structured Fresh-context report/trust contract.
 - Explicit solo and team trust policies: separate review context is always procedural, while distinct GitHub actors are optional and machine-enforced only when configured.
 - Enforcement rails: an agent entrypoint (`AGENTS.md`), local git hooks, CI jobs, and machine-checked downstream integration seams.
 - Two adoption paths: bootstrap a wiki into an existing repository, or grow one from an empty repository.

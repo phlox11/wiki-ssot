@@ -329,7 +329,8 @@ async function main() {
     if (json) emit(result, true);
     else {
       printFindings(result.findings);
-      if (result.ok) console.log(`fresh-context review check passed (${result.mode})`);
+      if (result.ok && result.required) console.log(`fresh-context review check passed (${result.mode})`);
+      else if (result.ok) console.log("fresh-context review is not required for this change");
     }
     process.exitCode = result.ok ? 0 : 1;
     return;

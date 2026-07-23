@@ -42,6 +42,13 @@ bun install
     "mode": "required",
     "requiredVerdict": "PASS",
     "evidenceRequired": true,
+    "requiredWhen": {
+      "kind": "risk-based",
+      "changedFileGlobs": [".github/workflows/**", ".wiki/config.json", "AGENTS.md", "scripts/wiki/**"],
+      "affectedInvariants": true,
+      "affectedConflicts": true,
+      "removedCurrentPages": true
+    },
     "trust": {
       "allowedReviewers": ["*"],
       "requireDifferentActor": false,
@@ -51,7 +58,7 @@ bun install
 }
 ```
 
-`["*"]` means any authenticated GitHub actor allowed by the remaining trust policy. The solo-maintainer default above permits the PR author to publish a report created by a separate context-isolated session; it does not let the authoring session review itself. Set `requireDifferentActor: true` only after a second reviewer account or bot can publish the report, otherwise every solo-authored PR will be intentionally unmergeable. Replace `["*"]` with explicit reviewer/service logins when your organization has a narrower trust boundary. Use `advisory` only as a deliberate migration state, and record when it will become `required`.
+The `risk-based` selector requires review for matching trust-boundary files, affected invariants/conflicts, and current-page removals. Add project security, schema, and migration globs; omit `requiredWhen` to retain all-PR review. `["*"]` means any authenticated GitHub actor allowed by the remaining trust policy. The solo-maintainer default above permits the PR author to publish a required report created by a separate context-isolated session; it does not let the authoring session review itself. Set `requireDifferentActor: true` only after a second reviewer account or bot can publish the report, otherwise every applicable solo-authored PR will be intentionally unmergeable. Replace `["*"]` with explicit reviewer/service logins when your organization has a narrower trust boundary. Use `advisory` only as a deliberate migration state, and record when it will become `required`.
 
 `.wiki/coverage.json` — the code areas that must always map to a page (start narrow, widen later):
 
@@ -97,8 +104,8 @@ Commit the wiki, `.wiki/`, and generated files together.
 ## 7. Establish the reviewer channel
 
 1. Create the Draft PR with the structured metadata block; `fresh_context.verdict` starts as `PENDING`.
-2. Generate the bundle for the exact PR HEAD and metadata.
-3. Give the bundle and primary-source access to a separate context-isolated session or reviewer.
+2. Run `wiki:review-check --json` for the exact base and metadata. If it reports `required: false`, no report is needed.
+3. When required, generate the bundle and give it plus primary-source access to a separate context-isolated session or reviewer.
 4. Publish its JSON report in a GitHub PR review (preferred) or comment after this marker:
 
    ```html
@@ -106,10 +113,10 @@ Commit the wiki, `.wiki/`, and generated files together.
    ```
 
    Follow it with a fenced `json` or `yaml` report. The report's `reviewer` must match the authenticated GitHub actor. With `requireDifferentActor: false`, that publisher may be the PR author, but the report must still come from the separate review session. The author-editable PR body cannot substitute for this envelope.
-5. Mirror the attested verdict, HEAD, bundle digest, reviewer, and evidence into the PR body's `fresh_context` block. This author-editable mirror is checked against—but never substitutes for—the authenticated envelope. Its PR-body edit reruns the trusted job. Drafts may remain pending/red, but Ready/merge requires a current PASS.
+5. Mirror a required attested verdict, HEAD, bundle digest, reviewer, and evidence into the PR body's `fresh_context` block. This author-editable mirror is checked against—but never substitutes for—the authenticated envelope. Its PR-body edit reruns the trusted job. Ready/merge requires either `required: false` or a current PASS.
 
 ## 8. Maintain
 
-Every change follows `wiki/WORKFLOW.md`: search → read sources → change code + page + tests together → regenerate → `wiki:impact --enforce` → PR metadata → bundle → independent report → `wiki:review-check`. `NEEDS_RECONCILE` or a new commit requires a new bundle and report.
+Every change follows `wiki/WORKFLOW.md`: search → read sources → change code + page + tests together → regenerate → `wiki:impact --enforce` → PR metadata → `wiki:review-check` risk decision → bundle and independent report when required. `NEEDS_RECONCILE` or a new commit requires a new bundle and report for applicable changes.
 
 See the [command reference](commands.md) and the [design](design.md).

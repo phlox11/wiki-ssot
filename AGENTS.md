@@ -19,11 +19,11 @@ These rules apply to every coding agent and every task in this repository. They 
 4. Change wiki, code, and tests in the same PR when behavior or intent changes. If semantics do not change, run `bun run wiki:verify -- --page <id> --unchanged "<20+ character reason>"`.
 5. Regenerate deterministic artifacts with `bun run wiki:generated`, then run `bun run wiki:lint`, `bun run wiki:impact -- --base origin/main --enforce`, `bun run typecheck`, and the relevant tests.
 6. Fill the parseable YAML metadata block in the PR template, including `touched_conflicts`. Implementation-source changes may not use `wiki_action: none`.
-7. Create a fresh-context review bundle with `bun run wiki:review-bundle -- --base origin/main --metadata <pr-body.md>`, then obtain and validate an independent report with `bun run wiki:review-check -- --base origin/main --metadata <pr-body.md> --report <report.json> --reviewer-actor <actor> --pr-author <author>`.
-   - The authoring session must never mark its own work `PASS`. Use a separate context-isolated session or a separate reviewer.
-   - A Draft PR may exist while the report is pending, but do not mark it Ready or merge it until the `wiki-fresh-context` check passes for the current full HEAD SHA and bundle digest.
+7. Run `bun run wiki:review-check -- --base origin/main --metadata <pr-body.md> --json` to evaluate the trusted Fresh-context policy. If it reports `required: true`, create a bundle with `bun run wiki:review-bundle -- --base origin/main --metadata <pr-body.md>`, then obtain and validate an independent report with `bun run wiki:review-check -- --base origin/main --metadata <pr-body.md> --report <report.json> --reviewer-actor <actor> --pr-author <author>`.
+   - The authoring session must never mark its own work `PASS`. When review is required, use a separate context-isolated session or a separate reviewer.
+   - A Draft PR may exist while a required report is pending, but do not mark it Ready or merge it until the `wiki-fresh-context` check either records `required: false` from the trusted risk selector or validates PASS for the current full HEAD SHA and bundle digest.
    - `NEEDS_RECONCILE` means fix the discrepancy, generate a new bundle, and obtain a new report. Any new commit invalidates the old PASS.
-   - If an independent report cannot be produced or attached through the trusted channel, stop and ask the user for an external reviewer or the necessary permission. Do not report the task complete.
+   - If a required independent report cannot be produced or attached through the trusted channel, stop and ask the user for an external reviewer or the necessary permission. Do not report the task complete.
 
 ## Editing rules
 

@@ -19,7 +19,7 @@ fresh_context:
   evidence: []
 ```
 
-`fresh_context` is a machine-validated status mirror. It is not an independent attestation: a reviewer must publish the structured report through the trusted PR review/comment channel using `<!-- wiki-ssot:fresh-context-attestation -->`.
+`fresh_context` is a machine-validated status mirror. When trusted policy reports `required: true`, a reviewer must publish the structured report through the trusted PR review/comment channel using `<!-- wiki-ssot:fresh-context-attestation -->`; the mirror is not an independent attestation.
 
 ## Verification
 
@@ -28,4 +28,4 @@ fresh_context:
 - [ ] `bun run wiki:impact -- --base origin/main` reviewed
 - [ ] Generated files refreshed (`bun run wiki:generated`)
 - [ ] Relevant typecheck/tests pass
-- [ ] `wiki-fresh-context` passes for the current PR HEAD and bundle digest
+- [ ] `wiki-fresh-context` records `required: false` or validates PASS for the current PR HEAD and bundle digest

@@ -1,6 +1,6 @@
 # Design
 
-wiki-ssot exists to stop one expensive failure mode and a secondary one. Repository checks remain deterministic, and semantic reconciliation is supplied by an external reasoning reviewer whose attestation is deterministically verified before merge.
+wiki-ssot exists to stop one expensive failure mode and a secondary one. Repository checks remain deterministic, and trusted base policy identifies changes where semantic reconciliation is supplied by an external reasoning reviewer whose attestation is deterministically verified before merge.
 
 ## The problem
 
@@ -45,7 +45,7 @@ Enforcement is only real if it fires on events that always happen:
 
 1. **Session start** — every agent auto-reads `AGENTS.md`: the entrypoint, the workflow, the commands, the invariants. (Compliance rail.)
 2. **Local commit** — a pre-commit hook runs the cheap structural lint on staged files; a pre-push hook blocks direct pushes to `main`. Bypassable feedback.
-3. **Pull request / CI** — the full structural, generated-freshness, impact, integration-seam, and Fresh-context attestation checks block the merge; a weekly job re-audits everything.
+3. **Pull request / CI** — the full structural, generated-freshness, impact, integration-seam, and Fresh-context policy checks block the merge; risk-selected changes additionally require an attestation, and a weekly job re-audits everything.
 
 ## What blocks a merge (all deterministic)
 
@@ -53,7 +53,7 @@ Enforcement is only real if it fires on events that always happen:
 - **Generated freshness** (`wiki:generated --check`): the index, current-status, conflicts index, reverse maps, and any code-derived inventories must match a clean regeneration.
 - **Impact** (`wiki:impact --enforce`): from the PR diff, compute affected pages and conflicts, then block on — a changed source whose page is stale or unverified; an unmapped high-risk source; a current page silently dropped; PR metadata that omits an affected page or conflict; an invalid conflict transition; or `wiki_action: none` on a code change.
 - **Integration seams** (`wiki:doctor`): provider-neutral core checks require the Fresh-context config, root `AGENTS.md` marker, and CLI commands; the GitHub adapter separately checks the PR metadata template and stable workflow job. The composed command requires every selected seam to remain installed.
-- **Fresh-context attestation** (`wiki:review-check`): recompute the bundle manifest from the current base/HEAD/metadata, then reject a missing, malformed, non-PASS, stale, empty-evidence, or untrusted report.
+- **Fresh-context policy and attestation** (`wiki:review-check`): use trusted policy and the actual impact/manifest to return `required` plus reasons. Low-risk changes pass without a report. Applicable changes recompute the bundle manifest from the current base/HEAD/metadata, then reject a missing, malformed, non-PASS, stale, empty-evidence, or untrusted report.
 
 The distinction between *high-risk* and *low-risk* stale no longer decides pass/fail — both block. It sharpens where a human looks first.
 
@@ -67,15 +67,15 @@ A missing or ambiguous decision is not permission to invent behavior; it is a **
 
 ## Why no LLM in the blocking path
 
-CI does not need to invoke an LLM, depend on one vendor, or turn model availability into an implicit repository secret. `wiki:review-bundle` deterministically produces a manifest bound to the full PR HEAD, merge-base, canonical semantic PR metadata, canonical impact report, diff, affected pages/invariants/conflicts, and path-sorted bundle file hashes. A context-isolated reasoning reviewer reads that bundle and primary sources outside the blocking job, then publishes a structured `PASS` or `NEEDS_RECONCILE` report.
+CI does not need to invoke an LLM, depend on one vendor, or turn model availability into an implicit repository secret. Trusted base policy first classifies the actual changed paths, affected invariants/conflicts, and current-page removals. When review applies, `wiki:review-bundle` deterministically produces a manifest bound to the full PR HEAD, merge-base, canonical semantic PR metadata, canonical impact report, diff, affected pages/invariants/conflicts, and path-sorted bundle file hashes. A context-isolated reasoning reviewer reads that bundle and primary sources outside the blocking job, then publishes a structured `PASS` or `NEEDS_RECONCILE` report.
 
-The blocking `wiki-fresh-context` job performs no semantic inference. It recomputes the manifest and validates the external attestation's schema, verdict, evidence, exact SHA/digests, authenticated actor, allowlist, and—when enabled—author-separation policy. This reliably prevents omission, reuse after a new commit or metadata change, a PASS for the wrong base, empty evidence, and an author-editable PR-body string masquerading as the authenticated report.
+The blocking `wiki-fresh-context` job performs no semantic inference. Its risk selector is deterministic and executes from trusted base code/policy rather than author labels alone. For applicable changes it recomputes the manifest and validates the external attestation's schema, verdict, evidence, exact SHA/digests, authenticated actor, allowlist, and—when enabled—author-separation policy. This reliably prevents omission, reuse after a new commit or metadata change, a PASS for the wrong base, empty evidence, and an author-editable PR-body string masquerading as the authenticated report. Risk-based mode deliberately does not provide the same semantic-review coverage for non-selected changes.
 
 That does **not** prove the reviewer really had no prior context, reasoned well, or inspected every claimed source. Context isolation and reviewer quality remain inside the selected reviewer/orchestrator trust boundary. The default GitHub reference policy is therefore accurately an **attestation presence guard**, not cryptographic proof of independent cognition.
 
-Actor separation is a deployment choice. A solo repository uses `requireDifferentActor: false`: a separate context-isolated session creates the report, while the PR author's authenticated GitHub account may publish it. CI can verify the publisher and bindings, but not the session separation. A team can set `requireDifferentActor: true` after provisioning a second reviewer account or bot; enabling it without that channel intentionally makes solo PRs unmergeable.
+Actor separation is a deployment choice. When review applies, a solo repository uses `requireDifferentActor: false`: a separate context-isolated session creates the report, while the PR author's authenticated GitHub account may publish it. CI can verify the publisher and bindings, but not the session separation. A team can set `requireDifferentActor: true` after provisioning a second reviewer account or bot; enabling it without that channel intentionally makes applicable solo PRs unmergeable.
 
-LLM or reviewer failures are explicit rather than hidden: `NEEDS_RECONCILE` requires a fix, new bundle, and new review; malformed or unavailable output leaves the required check failed. Draft PRs may remain open with a pending/failing Fresh-context check, but Ready/merge requires PASS for the current HEAD. Projects that deliberately choose `advisory` mode receive warning findings and a zero exit status; missing config never silently becomes advisory.
+LLM or reviewer failures are explicit rather than hidden: `NEEDS_RECONCILE` requires a fix, new bundle, and new review; malformed or unavailable output leaves an applicable required check failed. Draft PRs may remain open with a pending/failing Fresh-context check, but Ready/merge requires either `required: false` or PASS for the current HEAD. Projects that deliberately choose `advisory` mode receive warning findings and a zero exit status; missing config never silently becomes advisory. Existing configurations that omit `requiredWhen` retain all-PR review.
 
 ## GitHub reference trust boundary
 

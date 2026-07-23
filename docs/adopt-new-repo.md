@@ -29,6 +29,13 @@ Keep `scripts/wiki/`, `.wiki/config.json`, `.wiki/coverage.json`, `.husky/`, `.g
     "mode": "required",
     "requiredVerdict": "PASS",
     "evidenceRequired": true,
+    "requiredWhen": {
+      "kind": "risk-based",
+      "changedFileGlobs": [".github/workflows/**", ".wiki/config.json", "AGENTS.md", "scripts/wiki/**"],
+      "affectedInvariants": true,
+      "affectedConflicts": true,
+      "removedCurrentPages": true
+    },
     "trust": {
       "allowedReviewers": ["*"],
       "requireDifferentActor": false,
@@ -38,7 +45,7 @@ Keep `scripts/wiki/`, `.wiki/config.json`, `.wiki/coverage.json`, `.husky/`, `.g
 }
 ```
 
-Start `highRisk` empty and add globs as you introduce contracts, schema, and routes. Start `.wiki/coverage.json` with an empty `include`; the coverage gate is a no-op until you add patterns. The default is solo-maintainer compatible: a separate review session is still required, while its authenticated publisher may be the PR author. Set `requireDifferentActor: true` only when another reviewer account or bot is ready; otherwise the repository will deliberately block every solo-authored PR. Narrow `allowedReviewers` to explicit reviewer/service logins when available. Missing Fresh-context policy is an integration error, never an implicit advisory mode.
+Start top-level `highRisk` empty and add stale-page globs as you introduce contracts, schema, and routes. Extend `requiredWhen.changedFileGlobs` with project security, schema, and migration paths; omit `requiredWhen` if every PR should receive Fresh-context review. Start `.wiki/coverage.json` with an empty `include`; the coverage gate is a no-op until you add patterns. The default is solo-maintainer compatible: applicable changes require a separate review session, while its authenticated publisher may be the PR author. Set `requireDifferentActor: true` only when another reviewer account or bot is ready; otherwise the repository will deliberately block every applicable solo-authored PR. Narrow `allowedReviewers` to explicit reviewer/service logins when available. Missing Fresh-context policy is an integration error, never an implicit advisory mode.
 
 ## 3. Write the first pages as you write the first code
 
@@ -53,7 +60,7 @@ Because the wiki grows *with* the code, each page is verified by the same PR tha
 
 ## 4. Turn on the rails and maintain
 
-Same as an existing repo — preserve the `wiki-ssot:fresh-context-guardrail` AGENTS marker and structured PR metadata, use a separate reviewer to publish the marked report through a GitHub PR review/comment, and keep the trusted `wiki-fresh-context` job installed. Drafts may remain pending, but every Ready/merge candidate needs PASS for its exact current HEAD and bundle digest.
+Same as an existing repo — preserve the `wiki-ssot:fresh-context-guardrail` AGENTS marker and structured PR metadata, evaluate the trusted risk policy, use a separate reviewer to publish the marked report through a GitHub PR review/comment when required, and keep the trusted `wiki-fresh-context` job installed. Every Ready/merge candidate needs either `required: false` or PASS for its exact current HEAD and bundle digest.
 
 As a final human step, enable branch protection/rulesets on `main` and require `code-check`, `wiki-structure`, `wiki-generated`, `wiki-impact`, and `wiki-fresh-context`, with branches up to date before merge. Protect `.github/workflows/checks.yml` with a ruleset-required workflow or CODEOWNERS plus required owner review. The repository cannot make these settings true through tracked files alone; without them, CI is not a complete merge guardrail.
 

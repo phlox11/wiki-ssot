@@ -5,11 +5,14 @@ import { tmpdir } from "node:os";
 import {
   buildReviewManifest,
   createRepoView,
+  evaluateFreshContextRequirement,
   hashContent,
   impactReport,
   jsonStable,
   loadWikiPages,
   makeReviewBundle,
+  parseFreshContextPolicy,
+  reviewCheck,
   validateFreshContextAttestation,
   validateIntegrationSeams,
   validatePrMetadata,
@@ -214,6 +217,108 @@ resolution:
 });
 
 describe("fresh-context report validation", () => {
+  test("keeps existing policies all-PR by default and rejects inert risk selectors", () => {
+    const existing = parseFreshContextPolicy(policy());
+    expect(existing?.requiredWhen).toBeUndefined();
+
+    const inert = parseFreshContextPolicy(policy({
+      requiredWhen: {
+        kind: "risk-based",
+        changedFileGlobs: [],
+        affectedInvariants: false,
+        affectedConflicts: false,
+        removedCurrentPages: false,
+      },
+    }));
+    expect(inert).toBeUndefined();
+  });
+
+  test("requires reports only when the trusted risk selector matches", () => {
+    const root = tempReviewRepo();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const lowRiskPolicy = policy({
+      requiredWhen: {
+        kind: "risk-based",
+        changedFileGlobs: ["scripts/wiki/**"],
+        affectedInvariants: true,
+        affectedConflicts: true,
+        removedCurrentPages: true,
+      },
+    });
+    const lowRisk = reviewCheck(view, pages, {
+      base: "HEAD~1",
+      metadata: metadata(),
+      policy: lowRiskPolicy,
+    });
+    expect(lowRisk).toMatchObject({ ok: true, required: false, requirementReasons: [], findings: [] });
+
+    const highRiskPolicy = policy({
+      requiredWhen: {
+        kind: "risk-based",
+        changedFileGlobs: ["source.ts"],
+        affectedInvariants: true,
+        affectedConflicts: true,
+        removedCurrentPages: true,
+      },
+    });
+    const highRisk = reviewCheck(view, pages, {
+      base: "HEAD~1",
+      metadata: metadata(),
+      policy: highRiskPolicy,
+    });
+    expect(highRisk.ok).toBe(false);
+    expect(highRisk.required).toBe(true);
+    expect(highRisk.requirementReasons).toContain("changed file matches source.ts: source.ts");
+    expect(highRisk.findings.map((finding) => finding.code)).toContain("fresh-context-missing");
+  });
+
+  test("risk classification uses affected invariants from the manifest", () => {
+    const root = tempReviewRepo();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const impact = impactReport(view, pages, { base: "HEAD~1", metadata: metadata({ affected_invariants: ["product/invariants"] }) });
+    const manifest = buildReviewManifest(view, pages, impact, metadata({ affected_invariants: ["product/invariants"] }));
+    const invariant = evaluateFreshContextRequirement(policy({
+      requiredWhen: {
+        kind: "risk-based",
+        changedFileGlobs: [],
+        affectedInvariants: true,
+        affectedConflicts: false,
+        removedCurrentPages: false,
+      },
+    }), manifest, impact);
+    expect(invariant).toEqual({ applies: true, reasons: ["affected invariants: product/invariants"] });
+  });
+
+  test("risk classification covers conflicts and removed current pages", () => {
+    const root = tempReviewRepo();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const impact = impactReport(view, pages, { base: "HEAD~1", metadata: metadata() });
+    const manifest = buildReviewManifest(view, pages, impact, metadata());
+    const selector = policy({
+      requiredWhen: {
+        kind: "risk-based",
+        changedFileGlobs: [],
+        affectedInvariants: false,
+        affectedConflicts: true,
+        removedCurrentPages: true,
+      },
+    });
+    const conflict = evaluateFreshContextRequirement(selector, {
+      ...manifest,
+      affected_conflict_ids: ["C-900"],
+    }, impact);
+    expect(conflict.reasons).toEqual(["affected conflicts: C-900"]);
+
+    const removal = evaluateFreshContextRequirement(selector, manifest, {
+      ...impact,
+      removedCurrentPages: [{ id: "product/removed", path: "wiki/product/removed.md" }],
+    });
+    expect(removal.reasons).toEqual(["removed or demoted current pages: product/removed"]);
+  });
+
   test("fails required mode when the report is missing or malformed", () => {
     const manifest = manifestFor(tempReviewRepo());
     expect(codes(validateFreshContextAttestation({ policy: policy(), manifest }))).toContain("fresh-context-missing");
