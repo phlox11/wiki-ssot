@@ -75,6 +75,8 @@ Two seams make it yours; everything else is generic:
 - **`.wiki/config.json`** — your wiki's `name`, `highRisk` globs, and explicit Fresh-context mode/evidence/reviewer trust policy.
 - **`scripts/wiki/inventories.ts`** — optional. Teach the engine to emit deterministic `wiki/_generated/**` pages from your stack (see `inventories.example.ts`).
 
+For a solo-maintainer repository, set `trust.requireDifferentActor` to `false`: the report must still come from a separate context-isolated review session and be published by an authenticated actor, but that actor may be the PR author. Teams with a provisioned reviewer account or bot can set it to `true` to make distinct GitHub identities a blocking requirement.
+
 ## License
 
 [MIT](LICENSE).

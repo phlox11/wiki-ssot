@@ -294,6 +294,19 @@ describe("fresh-context report validation", () => {
     }))).toContain("fresh-context-reviewer-untrusted");
   });
 
+  test("allows an authenticated PR author when actor separation is explicitly disabled", () => {
+    const manifest = manifestFor(tempReviewRepo());
+    const result = validateFreshContextAttestation({
+      policy: policy({ trust: { allowedReviewers: ["*"], requireDifferentActor: false, requireAuthenticatedActor: true } }),
+      manifest,
+      report: reportFor(manifest, { reviewer: "solo-author" }),
+      reviewerActor: "solo-author",
+      prAuthor: "solo-author",
+    });
+    expect(result.ok).toBe(true);
+    expect(result.findings).toEqual([]);
+  });
+
   test("reports stale PASS after a new commit", () => {
     const root = tempReviewRepo();
     const previous = manifestFor(root);

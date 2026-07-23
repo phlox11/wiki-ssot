@@ -31,14 +31,14 @@ Keep `scripts/wiki/`, `.wiki/config.json`, `.wiki/coverage.json`, `.husky/`, `.g
     "evidenceRequired": true,
     "trust": {
       "allowedReviewers": ["*"],
-      "requireDifferentActor": true,
+      "requireDifferentActor": false,
       "requireAuthenticatedActor": true
     }
   }
 }
 ```
 
-Start `highRisk` empty and add globs as you introduce contracts, schema, and routes. Start `.wiki/coverage.json` with an empty `include`; the coverage gate is a no-op until you add patterns. Narrow `allowedReviewers` to explicit reviewer/service logins when available. Missing Fresh-context policy is an integration error, never an implicit advisory mode.
+Start `highRisk` empty and add globs as you introduce contracts, schema, and routes. Start `.wiki/coverage.json` with an empty `include`; the coverage gate is a no-op until you add patterns. The default is solo-maintainer compatible: a separate review session is still required, while its authenticated publisher may be the PR author. Set `requireDifferentActor: true` only when another reviewer account or bot is ready; otherwise the repository will deliberately block every solo-authored PR. Narrow `allowedReviewers` to explicit reviewer/service logins when available. Missing Fresh-context policy is an integration error, never an implicit advisory mode.
 
 ## 3. Write the first pages as you write the first code
 
