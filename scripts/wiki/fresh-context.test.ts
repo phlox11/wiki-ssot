@@ -382,6 +382,44 @@ fresh_context:
     expect(stale.exitCode).toBe(1);
     expect(JSON.parse(stale.stdout.toString()).findings.map((finding: { code: string }) => finding.code)).toContain("fresh-context-head-stale");
   });
+
+  test("review-check reads an untrusted root without loading its Bun preloads", () => {
+    const root = tempReviewRepo();
+    const preloadMarker = join(root, "preload-ran");
+    put(root, "bunfig.toml", 'preload = ["./malicious-preload.ts"]\n');
+    put(root, "malicious-preload.ts", `await Bun.write(${JSON.stringify(preloadMarker)}, "executed");\n`);
+    const manifest = manifestFor(root);
+    const attestation = reportFor(manifest);
+    put(root, "pr-body.md", `\`\`\`yaml
+change_type: feature
+semantic_change: true
+wiki_action: update
+affected_pages: [product/test]
+affected_invariants: []
+touched_conflicts: []
+fresh_context:
+  verdict: PASS
+  reviewed_head_sha: "${attestation.reviewed_head_sha}"
+  bundle_digest: "${attestation.bundle_digest}"
+  reviewer: "${attestation.reviewer}"
+  evidence: ${JSON.stringify(attestation.evidence)}
+\`\`\`
+`);
+    put(root, "report.json", jsonStable(attestation));
+    const cli = join(process.cwd(), "scripts/wiki/cli.ts");
+    const result = Bun.spawnSync([
+      process.execPath, cli, "review-check",
+      "--root", root,
+      "--base", "HEAD~1",
+      "--metadata", join(root, "pr-body.md"),
+      "--report", join(root, "report.json"),
+      "--reviewer-actor", "trusted-reviewer",
+      "--pr-author", "author",
+      "--json",
+    ], { cwd: process.cwd(), stdout: "pipe", stderr: "pipe" });
+    expect(result.exitCode).toBe(0);
+    expect(existsSync(preloadMarker)).toBe(false);
+  });
 });
 
 describe("fresh-context integration contracts", () => {
@@ -478,6 +516,9 @@ touched_conflicts: []
     expect(workflow).toContain("synchronize");
     expect(workflow).toContain("ref: ${{ github.event.pull_request.base.sha }}");
     expect(workflow).toContain("--policy-file");
+    expect(workflow).toContain("working-directory: trusted");
+    expect(workflow).toContain('--root "${REVIEW_ROOT}"');
+    expect(workflow).not.toContain('cd "${REVIEW_ROOT}"');
     expect(workflow).not.toContain("pull_request_target:");
   });
 });

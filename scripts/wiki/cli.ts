@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 import {
   UsageError,
   allLintFindings,
@@ -83,7 +84,7 @@ async function main() {
   const command = parsed.positional.shift() ?? usage();
   const json = has(parsed, "json");
   const staged = has(parsed, "staged");
-  const view = createRepoView(process.cwd(), staged);
+  const view = createRepoView(resolve(one(parsed, "root") ?? process.cwd()), staged);
   const loaded = loadWikiPages(view);
 
   if (command === "lint") {

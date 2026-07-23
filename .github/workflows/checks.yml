@@ -132,11 +132,12 @@ jobs:
           fi
           echo "WIKI_REVIEWER_ACTOR=${reviewer_actor}" >> "$GITHUB_ENV"
       - name: Deterministically validate Fresh-context attestation
+        working-directory: trusted
         shell: bash
         run: |
           set -o pipefail
-          cd "${REVIEW_ROOT}"
-          bun "${TRUSTED_ROOT}/scripts/wiki/cli.ts" review-check \
+          bun scripts/wiki/cli.ts review-check \
+            --root "${REVIEW_ROOT}" \
             --base "origin/${BASE_REF_NAME}" \
             --metadata "${PR_BODY_PATH}" \
             --report "${REPORT_PATH}" \
