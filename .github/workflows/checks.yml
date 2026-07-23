@@ -1,0 +1,70 @@
+name: checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  code-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: HUSKY=0 bun install --frozen-lockfile
+      - run: bun run typecheck
+      - run: bun run test
+
+  wiki-structure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: HUSKY=0 bun install --frozen-lockfile
+      - run: bun run wiki:lint
+
+  wiki-generated:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: HUSKY=0 bun install --frozen-lockfile
+      - run: bun run wiki:generated -- --check
+
+  wiki-impact:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    env:
+      WIKI_PR_BODY: ${{ github.event.pull_request.body }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: HUSKY=0 bun install --frozen-lockfile
+      - name: Enforce wiki impact and conflict protocol
+        shell: bash
+        run: |
+          set -o pipefail
+          bun run wiki:impact -- --base origin/${{ github.base_ref }} --enforce --json | tee wiki-impact.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wiki-impact
+          path: wiki-impact.json

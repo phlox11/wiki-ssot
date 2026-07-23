@@ -1,0 +1,33 @@
+{
+  "name": "wiki-ssot",
+  "version": "0.1.0",
+  "description": "A living, enforced Single Source of Truth wiki that coding agents maintain alongside code.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "bun": ">=1.1.0"
+  },
+  "scripts": {
+    "prepare": "husky",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test scripts/wiki",
+    "wiki:inventory": "bun scripts/wiki/cli.ts inventory",
+    "wiki:index": "bun scripts/wiki/cli.ts index",
+    "wiki:generated": "bun scripts/wiki/cli.ts generated",
+    "wiki:lint": "bun scripts/wiki/cli.ts lint",
+    "wiki:search": "bun scripts/wiki/cli.ts search",
+    "wiki:conflicts": "bun scripts/wiki/cli.ts conflicts",
+    "wiki:context": "bun scripts/wiki/cli.ts context",
+    "wiki:impact": "bun scripts/wiki/cli.ts impact",
+    "wiki:verify": "bun scripts/wiki/cli.ts verify",
+    "wiki:review-bundle": "bun scripts/wiki/cli.ts review-bundle",
+    "wiki:check": "bun scripts/wiki/cli.ts check",
+    "wiki:audit": "bun scripts/wiki/cli.ts audit"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.14",
+    "husky": "^9.1.7",
+    "typescript": "^5.7.2",
+    "yaml": "^2.9.0"
+  }
+}

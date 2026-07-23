@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "name": "wiki-ssot",
+  "highRisk": [
+    "scripts/wiki/core.ts",
+    "scripts/wiki/cli.ts"
+  ]
+}

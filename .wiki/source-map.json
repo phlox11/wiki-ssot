@@ -1,0 +1,35 @@
+{
+  "exact": {
+    ".github/workflows/checks.yml": [
+      "operations/enforcement"
+    ],
+    ".github/workflows/wiki-audit.yml": [
+      "operations/enforcement"
+    ],
+    ".husky/pre-commit": [
+      "operations/enforcement"
+    ],
+    ".husky/pre-push": [
+      "operations/enforcement"
+    ],
+    "docs/design.md": [
+      "product/scope"
+    ],
+    "README.md": [
+      "product/scope"
+    ],
+    "scripts/wiki/core.ts": [
+      "operations/enforcement",
+      "product/invariants"
+    ]
+  },
+  "globs": [
+    {
+      "glob": "scripts/wiki/*.ts",
+      "pages": [
+        "architecture/engine"
+      ]
+    }
+  ],
+  "version": 1
+}
