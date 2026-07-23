@@ -13,7 +13,7 @@
     "evidenceRequired": true,
     "trust": {
       "allowedReviewers": ["*"],
-      "requireDifferentActor": true,
+      "requireDifferentActor": false,
       "requireAuthenticatedActor": true
     }
   }

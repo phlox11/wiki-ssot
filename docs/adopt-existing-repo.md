@@ -44,14 +44,14 @@ bun install
     "evidenceRequired": true,
     "trust": {
       "allowedReviewers": ["*"],
-      "requireDifferentActor": true,
+      "requireDifferentActor": false,
       "requireAuthenticatedActor": true
     }
   }
 }
 ```
 
-`["*"]` means any authenticated GitHub actor other than the PR author; replace it with explicit reviewer/service logins when your organization has a narrower trust boundary. Use `advisory` only as a deliberate migration state, and record when it will become `required`.
+`["*"]` means any authenticated GitHub actor allowed by the remaining trust policy. The solo-maintainer default above permits the PR author to publish a report created by a separate context-isolated session; it does not let the authoring session review itself. Set `requireDifferentActor: true` only after a second reviewer account or bot can publish the report, otherwise every solo-authored PR will be intentionally unmergeable. Replace `["*"]` with explicit reviewer/service logins when your organization has a narrower trust boundary. Use `advisory` only as a deliberate migration state, and record when it will become `required`.
 
 `.wiki/coverage.json` — the code areas that must always map to a page (start narrow, widen later):
 
@@ -105,7 +105,7 @@ Commit the wiki, `.wiki/`, and generated files together.
    <!-- wiki-ssot:fresh-context-attestation -->
    ```
 
-   Follow it with a fenced `json` or `yaml` report. The report's `reviewer` must match the authenticated GitHub actor. The author-editable PR body cannot substitute for this envelope.
+   Follow it with a fenced `json` or `yaml` report. The report's `reviewer` must match the authenticated GitHub actor. With `requireDifferentActor: false`, that publisher may be the PR author, but the report must still come from the separate review session. The author-editable PR body cannot substitute for this envelope.
 5. Mirror the attested verdict, HEAD, bundle digest, reviewer, and evidence into the PR body's `fresh_context` block. This author-editable mirror is checked against—but never substitutes for—the authenticated envelope. Its PR-body edit reruns the trusted job. Drafts may remain pending/red, but Ready/merge requires a current PASS.
 
 ## 8. Maintain

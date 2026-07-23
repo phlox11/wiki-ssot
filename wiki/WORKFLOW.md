@@ -38,6 +38,8 @@ bun run wiki:review-check -- --base origin/main --metadata /path/to/pr-body.md \
 
 The report must be PASS with evidence and must bind the current full HEAD, merge-base, and bundle digest. `NEEDS_RECONCILE` means fix → new bundle → new review. Any new commit or semantic PR metadata change makes the old PASS stale. If a separate reviewer/report is unavailable, leave the PR Draft and ask the user for the reviewer or permission; do not report completion or mark it Ready.
 
+`requireDifferentActor: false` permits a solo maintainer's authenticated GitHub account to publish the separate session's report; it does not permit the authoring session to invent its own PASS. `true` additionally requires the publisher to differ from the PR author and must only be enabled after a second account or bot is available.
+
 ## Enforcement layers
 
 - pre-commit: staged wiki structure/link/source/generated validation only.

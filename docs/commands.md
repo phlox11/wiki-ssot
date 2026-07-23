@@ -54,6 +54,8 @@ bun run wiki:review-check -- --base origin/main --metadata pr-body.md \
 
 The report contract is JSON/YAML version 1 with `verdict`, `reviewed_head_sha`, `merge_base_sha`, `bundle_digest`, `reviewer`, non-empty `evidence`, and `summary` or `findings`. Mirror its verdict/HEAD/bundle/reviewer/evidence into PR metadata after publication; the check compares the mirror with the authenticated report but never treats the mirror as proof. Required mode uses stable errors including `fresh-context-missing`, `fresh-context-malformed`, `fresh-context-not-pass`, `fresh-context-head-stale`, `fresh-context-base-stale`, `fresh-context-bundle-stale`, `fresh-context-evidence-missing`, and `fresh-context-reviewer-untrusted`.
 
+`trust.requireDifferentActor` controls GitHub identity separation, not context isolation. Set it to `false` for a solo maintainer: the authoring session still cannot create its own PASS, but the PR author's authenticated account may publish a report created by a separate review session. Set it to `true` only when a distinct reviewer account or bot is operational.
+
 `fresh_context` in the PR body is required and parsed even when an author bypasses the template, but it is only a status mirror. GitHub enforcement reads the authoritative report and actor from a PR review/comment envelope. Add `--json` to read/check commands for machine-readable output.
 
 CI passes the PR body through the `WIKI_PR_BODY` environment variable, so the impact job validates the metadata block from the pull-request description. Locally, pass `--metadata <file>` instead.
