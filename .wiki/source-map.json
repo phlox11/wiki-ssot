@@ -1,5 +1,8 @@
 {
   "exact": {
+    ".github/pull_request_template.md": [
+      "operations/enforcement"
+    ],
     ".github/workflows/checks.yml": [
       "operations/enforcement"
     ],
@@ -12,15 +15,30 @@
     ".husky/pre-push": [
       "operations/enforcement"
     ],
+    ".wiki/config.json": [
+      "operations/enforcement"
+    ],
+    "AGENTS.md": [
+      "operations/enforcement"
+    ],
     "docs/design.md": [
       "product/scope"
+    ],
+    "package.json": [
+      "operations/enforcement"
     ],
     "README.md": [
       "product/scope"
     ],
+    "scripts/wiki/cli.ts": [
+      "operations/enforcement"
+    ],
     "scripts/wiki/core.ts": [
       "operations/enforcement",
       "product/invariants"
+    ],
+    "scripts/wiki/github-attestation.ts": [
+      "operations/enforcement"
     ]
   },
   "globs": [

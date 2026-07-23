@@ -315,7 +315,7 @@ describe("verification state", () => {
     expect(JSON.parse(readFileSync(join(bundle, "pr-metadata.json"), "utf8"))).toEqual(metadata);
     expect(readFileSync(join(bundle, "diff.patch"), "utf8")).toContain("contract = 'v2'");
 
-    put(root, "pr-body.md", `\`\`\`yaml\nchange_type: feature\nsemantic_change: true\nwiki_action: update\naffected_pages: [architecture/contracts]\naffected_invariants: []\ntouched_conflicts: []\n\`\`\`\n`);
+    put(root, "pr-body.md", `\`\`\`yaml\nchange_type: feature\nsemantic_change: true\nwiki_action: update\naffected_pages: [architecture/contracts]\naffected_invariants: []\ntouched_conflicts: []\nfresh_context:\n  verdict: PENDING\n  reviewed_head_sha: ""\n  bundle_digest: ""\n  reviewer: ""\n  evidence: []\n\`\`\`\n`);
     const cliPath = join(process.cwd(), "scripts/wiki/cli.ts");
     run(root, [process.execPath, cliPath, "review-bundle", "--base", "HEAD~1", "--metadata", "pr-body.md", "--output", "review-cli", "--json"]);
     expect(JSON.parse(readFileSync(join(root, "review-cli/pr-metadata.json"), "utf8"))).toEqual(metadata);
@@ -356,10 +356,10 @@ describe("verification state", () => {
     expect(incomplete.findings.map((item) => item.code)).toContain("conflict-resolution-incomplete");
 
     const cliPath = join(process.cwd(), "scripts/wiki/cli.ts");
-    put(root, "missing-conflict.md", "```yaml\nchange_type: refactor\nsemantic_change: false\nwiki_action: verify\naffected_pages: [features/example]\naffected_invariants: []\ntouched_conflicts: []\n```\n");
+    put(root, "missing-conflict.md", "```yaml\nchange_type: refactor\nsemantic_change: false\nwiki_action: verify\naffected_pages: [features/example]\naffected_invariants: []\ntouched_conflicts: []\nfresh_context:\n  verdict: PENDING\n  reviewed_head_sha: \"\"\n  bundle_digest: \"\"\n  reviewer: \"\"\n  evidence: []\n```\n");
     const blocked = Bun.spawnSync([process.execPath, cliPath, "impact", "--base", "HEAD~1", "--metadata", "missing-conflict.md", "--enforce-conflicts", "--json"], { cwd: root, stdout: "pipe", stderr: "pipe" });
     expect(blocked.exitCode).toBe(1);
-    put(root, "retained-conflict.md", "```yaml\nchange_type: refactor\nsemantic_change: false\nwiki_action: verify\naffected_pages: [features/example]\naffected_invariants: []\ntouched_conflicts:\n  - id: C-900\n    action: retain\n    reason: The parser changed but the unresolved policy is unchanged.\n```\n");
+    put(root, "retained-conflict.md", "```yaml\nchange_type: refactor\nsemantic_change: false\nwiki_action: verify\naffected_pages: [features/example]\naffected_invariants: []\ntouched_conflicts:\n  - id: C-900\n    action: retain\n    reason: The parser changed but the unresolved policy is unchanged.\nfresh_context:\n  verdict: PENDING\n  reviewed_head_sha: \"\"\n  bundle_digest: \"\"\n  reviewer: \"\"\n  evidence: []\n```\n");
     const allowed = Bun.spawnSync([process.execPath, cliPath, "impact", "--base", "HEAD~1", "--metadata", "retained-conflict.md", "--enforce-conflicts", "--json"], { cwd: root, stdout: "pipe", stderr: "pipe" });
     expect(allowed.exitCode).toBe(0);
 

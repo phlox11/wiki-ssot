@@ -2,43 +2,55 @@
   "pages": {
     "architecture/engine": {
       "sources": {
-        "scripts/wiki/cli.ts": "f8022fe01b15ca80d95008f5b099e00cce80fceb93d4071eb51e3e7fac8078b5",
-        "scripts/wiki/core.ts": "63380beb10ed72ec751332a05f048356a7088f5c2b0d0f7d8610d15f44cdea14",
+        "scripts/wiki/cli.ts": "bc08b55f486e7a8ebd8c065f179a7a0cc338c2931737cc7d1b2be7b17024f386",
+        "scripts/wiki/core.ts": "de42ea68ffa9e7ab8f95597130ffcd15443bc956ba1543a1f2425f006000c8f4",
+        "scripts/wiki/fresh-context.test.ts": "cc6d7664f2ead913ff0e25e3d60dcbe9f1474a5e9a169ab8e4c81e3d4c70f1cf",
+        "scripts/wiki/github-attestation.ts": "4897bdc063a6d73045056c04dfb4245c20ecfc22b7f71b9c62d42ecc3e0b45f2",
         "scripts/wiki/inventories.example.ts": "3c173f3382105416947b30020f8004b02e5667acdcff47c2057757207daa9447",
         "scripts/wiki/inventories.ts": "f8a608159394b661149eb69236a4fef8ab5c90be5acafb5fa14fedff3e74101f",
-        "scripts/wiki/wiki.test.ts": "ab1a8ea3c9b6dc8aba49fb461631e9cc66390afc128840c757aa3f08aad4a369"
+        "scripts/wiki/wiki.test.ts": "f2cb47a81f94507388794a6ff1227cf4ff602af044dfa14b2f273bfa9dbd45bf"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "Doctor now validates canonical command entrypoints and concrete provider steps without changing engine architecture."
       }
     },
     "operations/enforcement": {
       "sources": {
-        ".github/workflows/checks.yml": "618152853df6e2433e5f04576efa92680c1c4b9edd3d8eef48fd1431c5a3d1d8",
+        ".github/pull_request_template.md": "926fa5f4f7eb96cf0a36834a6c8d785c23dee80f770b497ae52562102ddc2df5",
+        ".github/workflows/checks.yml": "4b51b9cde09ee41d015101895aa70f57e8695f61f9aa3fa5b546952369d513d6",
         ".github/workflows/wiki-audit.yml": "33a3bf1dcf6482a293f137a4cfc332eb8804639bd3b8d950a9244fa6fdda97f4",
         ".husky/pre-commit": "58a0e92eab02374a09bea44bb6e18f9b088e5e5180203b0b1cb8c309740ac10b",
         ".husky/pre-push": "21b38e361c58ffc03baec92b4826f3d5bb6d122b0862fce1af0cb12acdfc09d3",
-        "scripts/wiki/core.ts": "63380beb10ed72ec751332a05f048356a7088f5c2b0d0f7d8610d15f44cdea14"
+        ".wiki/config.json": "d3476631c3266c2460b9d949f30d4d2191a1723e6eaa7a193a6bbe705952b922",
+        "AGENTS.md": "74ea69973e9ebe002155835b7eb010f4d9dbdd577e025fee0aac7e6d57e03ab2",
+        "package.json": "2c62a87ff77089f8caeee7e7a052fb64e26cd69128ec9f1b7b42a3f54b5e0da7",
+        "scripts/wiki/cli.ts": "bc08b55f486e7a8ebd8c065f179a7a0cc338c2931737cc7d1b2be7b17024f386",
+        "scripts/wiki/core.ts": "de42ea68ffa9e7ab8f95597130ffcd15443bc956ba1543a1f2425f006000c8f4",
+        "scripts/wiki/github-attestation.ts": "4897bdc063a6d73045056c04dfb4245c20ecfc22b7f71b9c62d42ecc3e0b45f2"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "Structural seam checks now reject inert placeholders while preserving the documented enforcement contract."
       }
     },
     "product/invariants": {
       "sources": {
-        "scripts/wiki/core.ts": "63380beb10ed72ec751332a05f048356a7088f5c2b0d0f7d8610d15f44cdea14"
+        "scripts/wiki/core.ts": "de42ea68ffa9e7ab8f95597130ffcd15443bc956ba1543a1f2425f006000c8f4"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "Tighter downstream seam validation enforces rather than changes the deterministic enforcement invariant."
       }
     },
     "product/scope": {
       "sources": {
-        "docs/design.md": "56f83b3c6c4bcb0dc8604aa0162c64dcd6aedd5e37ea15d6ceec73d42b22a31f",
-        "README.md": "6c33ec20286174e76f8251b9f29d64d11a9ad10e653a6da5ab87b1eb6575c4f2"
+        "docs/design.md": "a1ceea5cd613976860e5275e15a41529237b94d1dfca5b5a9ea41aeabc62018b",
+        "README.md": "5c8148fa4930f9b4d6231dc1f1c536af648496bb236ffcab8dae165a616e2111"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "The GitHub trust-boundary clarification does not change the toolkit product scope."
       }
     }
   },

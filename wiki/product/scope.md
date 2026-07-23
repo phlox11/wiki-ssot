@@ -1,6 +1,6 @@
 ---
 id: product/scope
-summary: wiki-ssot is a portable, enforced single-source-of-truth wiki toolkit for repositories maintained by coding agents; it is not a documentation site generator or a hosted service.
+summary: wiki-ssot is a portable enforced SSOT toolkit with provider-neutral Fresh-context attestation validation; it is not a documentation site, hosted reviewer, or decision-maker.
 kind: product
 status: current
 authority: normative
@@ -20,7 +20,8 @@ wiki-ssot turns a repository's development knowledge into a small set of `status
 
 - A page schema and frontmatter contract (`wiki/SCHEMA.md`).
 - Deterministic CLI checks: structure lint, generated-file freshness, code→page impact, source staleness, coverage, and a conflict lifecycle.
-- Enforcement rails: an agent entrypoint (`AGENTS.md`), local git hooks, and CI jobs.
+- Deterministic review manifests and a provider-neutral structured Fresh-context report/trust contract.
+- Enforcement rails: an agent entrypoint (`AGENTS.md`), local git hooks, CI jobs, and machine-checked downstream integration seams.
 - Two adoption paths: bootstrap a wiki into an existing repository, or grow one from an empty repository.
 
 ## Not in scope
@@ -28,4 +29,5 @@ wiki-ssot turns a repository's development knowledge into a small set of `status
 - Rendering or hosting a documentation website.
 - Replacing the wiki with an auto-generated API reference.
 - Deciding product questions on the agent's behalf: an ambiguous decision is a conflict, not an invention.
-- Any non-deterministic (LLM) judgement as a blocking gate; the fresh-context reconcile pass is advisory.
+- Running or hosting a particular LLM/reviewer in core or CI. Semantic verdict generation is external; core only verifies the attestation.
+- Claiming cryptographic proof that a reviewer had a genuinely fresh context. The selected reviewer/orchestrator defines that trust boundary.

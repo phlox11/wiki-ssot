@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 import {
   UsageError,
   allLintFindings,
@@ -14,12 +15,17 @@ import {
   loadWikiPages,
   makeReviewBundle,
   openConflicts,
+  parseFreshContextReport,
+  parseFreshContextPolicy,
   readConfig,
+  reviewCheck,
+  validateIntegrationSeams,
   validatePrMetadata,
   verifyState,
   writeGenerated,
   type Finding,
 } from "./core";
+import { validateGitHubIntegrationSeams } from "./github-attestation";
 import { generateInventories } from "./inventories";
 
 type ParsedArgs = { positional: string[]; flags: Map<string, string[]> };
@@ -70,7 +76,7 @@ function emit(value: unknown, json: boolean) {
 }
 
 function usage(): never {
-  throw new UsageError("usage: bun scripts/wiki/cli.ts <lint|inventory|index|generated|search|conflicts|context|impact|verify|review-bundle|check|audit> [options]");
+  throw new UsageError("usage: bun scripts/wiki/cli.ts <lint|inventory|index|generated|search|conflicts|context|impact|verify|review-bundle|review-check|doctor|check|audit> [options]");
 }
 
 async function main() {
@@ -78,7 +84,7 @@ async function main() {
   const command = parsed.positional.shift() ?? usage();
   const json = has(parsed, "json");
   const staged = has(parsed, "staged");
-  const view = createRepoView(process.cwd(), staged);
+  const view = createRepoView(resolve(one(parsed, "root") ?? process.cwd()), staged);
   const loaded = loadWikiPages(view);
 
   if (command === "lint") {
@@ -89,6 +95,18 @@ async function main() {
       if (result.findings.length === 0) console.log(`wiki lint passed (${view.mode})`);
     }
     process.exitCode = result.findings.some((item) => item.severity === "error") ? 1 : 0;
+    return;
+  }
+
+  if (command === "doctor") {
+    const findings = [...validateIntegrationSeams(view), ...validateGitHubIntegrationSeams(view)];
+    const ok = !findings.some((item) => item.severity === "error");
+    if (json) emit({ ok, findings }, true);
+    else {
+      printFindings(findings);
+      if (ok) console.log("wiki integration doctor passed");
+    }
+    process.exitCode = ok ? 0 : 1;
     return;
   }
 
@@ -264,7 +282,56 @@ async function main() {
     const report = impactReport(view, loaded.pages, { base: one(parsed, "base"), metadata: validated.metadata });
     report.findings.unshift(...validated.findings);
     const directory = makeReviewBundle(view, loaded.pages, report, one(parsed, "output"), validated.metadata);
-    emit(json ? { directory, verdicts: ["PASS", "NEEDS_RECONCILE"] } : directory, json);
+    const manifest = JSON.parse(readFileSync(`${directory}/manifest.json`, "utf8"));
+    emit(json ? { directory, manifest, verdicts: ["PASS", "NEEDS_RECONCILE"] } : directory, json);
+    return;
+  }
+
+  if (command === "review-check") {
+    if (staged) throw new UsageError("review-check requires a working repository");
+    const metadataPath = one(parsed, "metadata");
+    const metadataRaw = metadataPath ? readFileSync(metadataPath, "utf8") : process.env.WIKI_PR_BODY;
+    const validated = validatePrMetadata(metadataRaw, true);
+    if (validated.findings.some((item) => item.severity === "error")) {
+      if (json) emit({ ok: false, findings: validated.findings }, true);
+      else printFindings(validated.findings);
+      process.exitCode = 1;
+      return;
+    }
+    const reportPath = one(parsed, "report");
+    const reportRaw = reportPath && existsSync(reportPath) ? readFileSync(reportPath, "utf8") : undefined;
+    const parsedReport = reportRaw == null ? undefined : (parseFreshContextReport(reportRaw).report ?? reportRaw);
+    const policyPath = one(parsed, "policy-file");
+    let policy;
+    if (policyPath) {
+      try {
+        const raw = JSON.parse(readFileSync(policyPath, "utf8")) as { freshContext?: unknown };
+        policy = parseFreshContextPolicy(raw.freshContext);
+      } catch {
+        policy = undefined;
+      }
+      if (!policy) {
+        const findings: Finding[] = [{ code: "fresh-context-config-invalid", message: "trusted policy file does not contain a valid freshContext policy", path: policyPath, severity: "error" }];
+        if (json) emit({ ok: false, findings }, true);
+        else printFindings(findings);
+        process.exitCode = 1;
+        return;
+      }
+    }
+    const result = reviewCheck(view, loaded.pages, {
+      base: one(parsed, "base"),
+      metadata: validated.metadata,
+      report: parsedReport,
+      reviewerActor: one(parsed, "reviewer-actor") ?? process.env.WIKI_REVIEWER_ACTOR,
+      prAuthor: one(parsed, "pr-author") ?? process.env.WIKI_PR_AUTHOR,
+      policy,
+    });
+    if (json) emit(result, true);
+    else {
+      printFindings(result.findings);
+      if (result.ok) console.log(`fresh-context review check passed (${result.mode})`);
+    }
+    process.exitCode = result.ok ? 0 : 1;
     return;
   }
 
