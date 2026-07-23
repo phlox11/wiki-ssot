@@ -19,7 +19,7 @@ import {
   type PrMetadata,
   type ReviewManifest,
 } from "./core";
-import { GITHUB_ATTESTATION_MARKER, selectGitHubAttestation } from "./github-attestation";
+import { GITHUB_ATTESTATION_MARKER, selectGitHubAttestation, validateGitHubIntegrationSeams } from "./github-attestation";
 
 const temporary: string[] = [];
 
@@ -405,6 +405,34 @@ describe("fresh-context integration contracts", () => {
     });
   });
 
+  test("does not fall back to an older PASS when the latest marked envelope is malformed", () => {
+    const selected = selectGitHubAttestation([{
+      id: 1,
+      body: `${GITHUB_ATTESTATION_MARKER}\n\`\`\`json\n{"version":1,"verdict":"PASS"}\n\`\`\``,
+      user: { login: "older-reviewer" },
+      updated_at: "2026-07-23T00:00:00Z",
+    }, {
+      id: 2,
+      body: `${GITHUB_ATTESTATION_MARKER}\n\`\`\`json\n{not valid json\n\`\`\``,
+      user: { login: "latest-reviewer" },
+      updated_at: "2026-07-24T00:00:00Z",
+    }], []);
+    expect(selected).toMatchObject({
+      actor: "latest-reviewer",
+      sourceId: "2",
+      report: "marked attestation contains malformed JSON or YAML",
+    });
+    const manifest = manifestFor(tempReviewRepo());
+    const checked = validateFreshContextAttestation({
+      policy: policy(),
+      manifest,
+      report: selected?.report,
+      reviewerActor: selected?.actor,
+      prAuthor: "author",
+    });
+    expect(codes(checked)).toContain("fresh-context-malformed");
+  });
+
   test("requires the structured PR-body block even when the template is bypassed", () => {
     const body = `\`\`\`yaml
 change_type: feature
@@ -429,7 +457,10 @@ touched_conflicts: []
         "package.json": jsonStable({ scripts: {} }),
       })[path] ?? "",
     };
-    const found = validateIntegrationSeams(view).map((finding) => finding.code);
+    const found = [
+      ...validateIntegrationSeams(view),
+      ...validateGitHubIntegrationSeams(view),
+    ].map((finding) => finding.code);
     expect(found).toEqual(expect.arrayContaining([
       "fresh-context-config-missing",
       "fresh-context-agents-marker-missing",

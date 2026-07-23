@@ -52,7 +52,7 @@ Enforcement is only real if it fires on events that always happen:
 - **Structure** (`wiki:lint`): frontmatter and required fields, duplicate IDs, broken internal links, missing source paths, orphaned/empty globs, coverage, and generated-file freshness.
 - **Generated freshness** (`wiki:generated --check`): the index, current-status, conflicts index, reverse maps, and any code-derived inventories must match a clean regeneration.
 - **Impact** (`wiki:impact --enforce`): from the PR diff, compute affected pages and conflicts, then block on — a changed source whose page is stale or unverified; an unmapped high-risk source; a current page silently dropped; PR metadata that omits an affected page or conflict; an invalid conflict transition; or `wiki_action: none` on a code change.
-- **Integration seams** (`wiki:doctor`): required Fresh-context config, root `AGENTS.md` marker, PR metadata template, CLI commands, and the stable GitHub workflow job must all remain installed.
+- **Integration seams** (`wiki:doctor`): provider-neutral core checks require the Fresh-context config, root `AGENTS.md` marker, and CLI commands; the GitHub adapter separately checks the PR metadata template and stable workflow job. The composed command requires every selected seam to remain installed.
 - **Fresh-context attestation** (`wiki:review-check`): recompute the bundle manifest from the current base/HEAD/metadata, then reject a missing, malformed, non-PASS, stale, empty-evidence, or untrusted report.
 
 The distinction between *high-risk* and *low-risk* stale no longer decides pass/fail — both block. It sharpens where a human looks first.

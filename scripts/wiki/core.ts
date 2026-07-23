@@ -707,12 +707,6 @@ export function validateIntegrationSeams(view: RepoView): Finding[] {
     findings.push({ code: "fresh-context-agents-marker-missing", message: "root AGENTS.md must contain the wiki-ssot:fresh-context-guardrail integration marker", path: "AGENTS.md", severity: "error" });
   }
 
-  const templatePath = ".github/pull_request_template.md";
-  const template = view.exists(templatePath) ? view.read(templatePath) : "";
-  if (!["fresh_context:", "verdict:", "reviewed_head_sha:", "bundle_digest:", "reviewer:", "evidence:"].every((token) => template.includes(token))) {
-    findings.push({ code: "fresh-context-template-missing", message: "PR template must include the structured fresh_context metadata contract", path: templatePath, severity: "error" });
-  }
-
   const packagePath = "package.json";
   let scripts: Record<string, unknown> = {};
   if (view.exists(packagePath)) {
@@ -727,11 +721,6 @@ export function validateIntegrationSeams(view: RepoView): Finding[] {
     findings.push({ code: "fresh-context-command-missing", message: "package.json must expose wiki:review-check and wiki:doctor", path: packagePath, severity: "error" });
   }
 
-  const workflowPath = ".github/workflows/checks.yml";
-  const workflow = view.exists(workflowPath) ? view.read(workflowPath) : "";
-  if (!["pull_request:", "wiki-fresh-context:", "github-attestation.ts", "review-check", "policy-file", "edited", "synchronize"].every((token) => workflow.includes(token))) {
-    findings.push({ code: "fresh-context-workflow-missing", message: "checks workflow must expose the stable wiki-fresh-context job and required PR activity triggers", path: workflowPath, severity: "error" });
-  }
   return findings;
 }
 

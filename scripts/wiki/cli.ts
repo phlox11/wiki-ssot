@@ -24,6 +24,7 @@ import {
   writeGenerated,
   type Finding,
 } from "./core";
+import { validateGitHubIntegrationSeams } from "./github-attestation";
 import { generateInventories } from "./inventories";
 
 type ParsedArgs = { positional: string[]; flags: Map<string, string[]> };
@@ -97,7 +98,7 @@ async function main() {
   }
 
   if (command === "doctor") {
-    const findings = validateIntegrationSeams(view);
+    const findings = [...validateIntegrationSeams(view), ...validateGitHubIntegrationSeams(view)];
     const ok = !findings.some((item) => item.severity === "error");
     if (json) emit({ ok, findings }, true);
     else {

@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import { readFileSync, writeFileSync } from "node:fs";
 import { parse as parseYaml } from "yaml";
+import type { Finding, RepoView } from "./core";
 
 export const GITHUB_ATTESTATION_MARKER = "<!-- wiki-ssot:fresh-context-attestation -->";
 
@@ -29,46 +30,63 @@ function flattenApiPages(value: unknown): Record<string, unknown>[] {
   return value.flat(Infinity).filter((item): item is Record<string, unknown> => item != null && typeof item === "object" && !Array.isArray(item));
 }
 
-function reportFromBody(body: unknown): unknown | undefined {
+function reportFromBody(body: unknown): { report: unknown } | undefined {
   if (typeof body !== "string" || !body.includes(GITHUB_ATTESTATION_MARKER)) return undefined;
   const afterMarker = body.slice(body.indexOf(GITHUB_ATTESTATION_MARKER) + GITHUB_ATTESTATION_MARKER.length);
   const fenced = afterMarker.match(/```(?:json|ya?ml)\s*\n([\s\S]*?)```/i);
-  if (!fenced) return undefined;
+  if (!fenced) return { report: "marked attestation is missing a fenced JSON or YAML report" };
   try {
-    return parseYaml(fenced[1]) as unknown;
+    const report = parseYaml(fenced[1]) as unknown;
+    return { report: report ?? "marked attestation report is empty" };
   } catch {
-    return undefined;
+    return { report: "marked attestation contains malformed JSON or YAML" };
   }
 }
 
 export function selectGitHubAttestation(commentsInput: unknown, reviewsInput: unknown): GitHubAttestationEnvelope | undefined {
   const candidates: GitHubAttestationEnvelope[] = [];
   for (const raw of flattenApiPages(commentsInput) as GitHubComment[]) {
-    const report = reportFromBody(raw.body);
+    const parsed = reportFromBody(raw.body);
     const actor = typeof raw.user?.login === "string" ? raw.user.login : "";
-    if (report == null || !actor) continue;
+    if (!parsed || !actor) continue;
     candidates.push({
       actor,
       source: "issue_comment",
       sourceId: String(raw.id ?? ""),
       observedAt: String(raw.updated_at ?? raw.created_at ?? ""),
-      report,
+      report: parsed.report,
     });
   }
   for (const raw of flattenApiPages(reviewsInput) as GitHubReview[]) {
     if (String(raw.state ?? "").toUpperCase() === "DISMISSED") continue;
-    const report = reportFromBody(raw.body);
+    const parsed = reportFromBody(raw.body);
     const actor = typeof raw.user?.login === "string" ? raw.user.login : "";
-    if (report == null || !actor) continue;
+    if (!parsed || !actor) continue;
     candidates.push({
       actor,
       source: "pull_request_review",
       sourceId: String(raw.id ?? ""),
       observedAt: String(raw.submitted_at ?? raw.updated_at ?? raw.created_at ?? ""),
-      report,
+      report: parsed.report,
     });
   }
   return candidates.sort((a, b) => a.observedAt.localeCompare(b.observedAt) || a.sourceId.localeCompare(b.sourceId)).at(-1);
+}
+
+export function validateGitHubIntegrationSeams(view: RepoView): Finding[] {
+  const findings: Finding[] = [];
+  const templatePath = ".github/pull_request_template.md";
+  const template = view.exists(templatePath) ? view.read(templatePath) : "";
+  if (!["fresh_context:", "verdict:", "reviewed_head_sha:", "bundle_digest:", "reviewer:", "evidence:"].every((token) => template.includes(token))) {
+    findings.push({ code: "fresh-context-template-missing", message: "PR template must include the structured fresh_context metadata contract", path: templatePath, severity: "error" });
+  }
+
+  const workflowPath = ".github/workflows/checks.yml";
+  const workflow = view.exists(workflowPath) ? view.read(workflowPath) : "";
+  if (!["pull_request:", "wiki-fresh-context:", "github-attestation.ts", "review-check", "policy-file", "edited", "synchronize"].every((token) => workflow.includes(token))) {
+    findings.push({ code: "fresh-context-workflow-missing", message: "checks workflow must expose the stable wiki-fresh-context job and required PR activity triggers", path: workflowPath, severity: "error" });
+  }
+  return findings;
 }
 
 type Args = { comments?: string; reviews?: string; output?: string; actorOutput?: string; envelopeOutput?: string };
