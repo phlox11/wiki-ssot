@@ -5,11 +5,14 @@ import { tmpdir } from "node:os";
 import {
   buildReviewManifest,
   createRepoView,
+  evaluateFreshContextRequirement,
   hashContent,
   impactReport,
   jsonStable,
   loadWikiPages,
   makeReviewBundle,
+  parseFreshContextPolicy,
+  reviewCheck,
   validateFreshContextAttestation,
   validateIntegrationSeams,
   validatePrMetadata,
@@ -52,11 +55,11 @@ function policy(overrides: Partial<FreshContextPolicy> = {}): FreshContextPolicy
   };
 }
 
-function page(source = "source.ts", body = "The current contract is version two."): string {
+function page(source = "source.ts", body = "The current contract is version two.", kind = "product"): string {
   return `---
 id: product/test
 summary: Test contract.
-kind: product
+kind: ${kind}
 status: current
 authority: observed
 owners: ["@owner"]
@@ -83,7 +86,7 @@ function metadata(overrides: Partial<PrMetadata> = {}): PrMetadata {
 }
 
 function tempReviewRepo(): string {
-  const root = mkdtempSync(join(tmpdir(), "wiki-fresh-context-"));
+  const root = mkdtempSync(join(tmpdir(), "wiki-review-attestation-"));
   temporary.push(root);
   run(root, ["git", "init", "-q"]);
   run(root, ["git", "config", "user.name", "Wiki Test"]);
@@ -148,6 +151,9 @@ describe("fresh-context review manifest", () => {
     const one = makeReviewBundle(createRepoView(root), loadWikiPages(createRepoView(root)).pages, impactReport(createRepoView(root), loadWikiPages(createRepoView(root)).pages, { base: "HEAD~1", metadata: metadata() }), "bundle-one", metadata());
     const two = makeReviewBundle(createRepoView(root), loadWikiPages(createRepoView(root)).pages, impactReport(createRepoView(root), loadWikiPages(createRepoView(root)).pages, { base: "HEAD~1", metadata: metadata() }), "bundle-two", metadata());
     expect(readFileSync(join(one, "manifest.json"), "utf8")).toBe(readFileSync(join(two, "manifest.json"), "utf8"));
+    expect(hashContent(readFileSync(join(one, "PROMPT.md"), "utf8"))).toBe("ceb19d904042371872e44a4f58aeafa4ad605fe11da1bf83b5cda68efc14f873");
+    expect(hashContent(readFileSync(join(one, "REPORT.md"), "utf8"))).toBe("9045a464dd4f630a126d339451eff96f56f4cfdc433274de7c31a2e38a4fb4d7");
+    expect(JSON.parse(readFileSync(join(one, "impact.json"), "utf8")).affectedInvariants).toBeUndefined();
     expect(existsSync(join(one, "REPORT.example.json"))).toBe(true);
     expect(existsSync(join(one, "REPORT.md"))).toBe(true);
   });
@@ -214,6 +220,151 @@ resolution:
 });
 
 describe("fresh-context report validation", () => {
+  test("keeps existing policies all-PR by default and rejects inert risk selectors", () => {
+    const existing = parseFreshContextPolicy(policy());
+    expect(existing?.requiredWhen).toBeUndefined();
+
+    const inert = parseFreshContextPolicy(policy({
+      requiredWhen: {
+        kind: "risk-based",
+        changedFileGlobs: [],
+        affectedInvariants: false,
+        affectedConflicts: false,
+        removedCurrentPages: false,
+      },
+    }));
+    expect(inert).toBeUndefined();
+
+    const whitespaceOnly = parseFreshContextPolicy(policy({
+      requiredWhen: {
+        kind: "risk-based",
+        changedFileGlobs: [" "],
+        affectedInvariants: false,
+        affectedConflicts: false,
+        removedCurrentPages: false,
+      },
+    }));
+    expect(whitespaceOnly).toBeUndefined();
+  });
+
+  test("requires reports only when the trusted risk selector matches", () => {
+    const root = tempReviewRepo();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const lowRiskPolicy = policy({
+      requiredWhen: {
+        kind: "risk-based",
+        changedFileGlobs: ["scripts/wiki/**"],
+        affectedInvariants: true,
+        affectedConflicts: true,
+        removedCurrentPages: true,
+      },
+    });
+    const lowRisk = reviewCheck(view, pages, {
+      base: "HEAD~1",
+      metadata: metadata(),
+      policy: lowRiskPolicy,
+    });
+    expect(lowRisk).toMatchObject({ ok: true, required: false, requirementReasons: [], findings: [] });
+
+    const highRiskPolicy = policy({
+      requiredWhen: {
+        kind: "risk-based",
+        changedFileGlobs: ["source.ts"],
+        affectedInvariants: true,
+        affectedConflicts: true,
+        removedCurrentPages: true,
+      },
+    });
+    const highRisk = reviewCheck(view, pages, {
+      base: "HEAD~1",
+      metadata: metadata(),
+      policy: highRiskPolicy,
+    });
+    expect(highRisk.ok).toBe(false);
+    expect(highRisk.required).toBe(true);
+    expect(highRisk.requirementReasons).toContain("changed file matches source.ts: source.ts");
+    expect(highRisk.findings.map((finding) => finding.code)).toContain("fresh-context-missing");
+  });
+
+  test("risk classification uses affected invariants from the manifest", () => {
+    const root = tempReviewRepo();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const impact = impactReport(view, pages, { base: "HEAD~1", metadata: metadata({ affected_invariants: ["product/invariants"] }) });
+    const manifest = buildReviewManifest(view, pages, impact, metadata({ affected_invariants: ["product/invariants"] }));
+    const invariant = evaluateFreshContextRequirement(policy({
+      requiredWhen: {
+        kind: "risk-based",
+        changedFileGlobs: [],
+        affectedInvariants: true,
+        affectedConflicts: false,
+        removedCurrentPages: false,
+      },
+    }), manifest, impact);
+    expect(invariant).toEqual({ applies: true, reasons: ["affected invariants: product/invariants"] });
+  });
+
+  test("preserves a merge-base invariant when its kind is demoted in the head", () => {
+    const root = tempReviewRepo();
+    put(root, "wiki/product/test.md", page("source.ts", "The current contract remains version two.", "invariant"));
+    run(root, ["git", "add", "."]);
+    run(root, ["git", "commit", "-qm", "make page an invariant"]);
+    put(root, "wiki/product/test.md", page("source.ts", "The current contract remains version two.", "product"));
+    run(root, ["git", "add", "."]);
+    run(root, ["git", "commit", "-qm", "demote invariant kind"]);
+
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const result = reviewCheck(view, pages, {
+      base: "HEAD~1",
+      metadata: metadata({ change_type: "editorial", affected_invariants: [] }),
+      policy: policy({
+        requiredWhen: {
+          kind: "risk-based",
+          changedFileGlobs: [],
+          affectedInvariants: true,
+          affectedConflicts: false,
+          removedCurrentPages: false,
+        },
+      }),
+    });
+    expect(result.manifest.affected_invariant_ids).toEqual(["product/test"]);
+    expect(result).toMatchObject({
+      ok: false,
+      required: true,
+      requirementReasons: ["affected invariants: product/test"],
+    });
+  });
+
+  test("risk classification covers conflicts and removed current pages", () => {
+    const root = tempReviewRepo();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const impact = impactReport(view, pages, { base: "HEAD~1", metadata: metadata() });
+    const manifest = buildReviewManifest(view, pages, impact, metadata());
+    const selector = policy({
+      requiredWhen: {
+        kind: "risk-based",
+        changedFileGlobs: [],
+        affectedInvariants: false,
+        affectedConflicts: true,
+        removedCurrentPages: true,
+      },
+    });
+    const conflict = evaluateFreshContextRequirement(selector, {
+      ...manifest,
+      affected_conflict_ids: ["C-900"],
+    }, impact);
+    expect(conflict.reasons).toEqual(["affected conflicts: C-900"]);
+
+    const removal = evaluateFreshContextRequirement(selector, manifest, {
+      ...impact,
+      removedCurrentPages: [{ id: "product/removed", path: "wiki/product/removed.md" }],
+    });
+    expect(removal.reasons).toEqual(["removed or demoted current pages: product/removed"]);
+  });
+
   test("fails required mode when the report is missing or malformed", () => {
     const manifest = manifestFor(tempReviewRepo());
     expect(codes(validateFreshContextAttestation({ policy: policy(), manifest }))).toContain("fresh-context-missing");
@@ -394,6 +545,82 @@ fresh_context:
     ], { cwd: root, stdout: "pipe", stderr: "pipe" });
     expect(stale.exitCode).toBe(1);
     expect(JSON.parse(stale.stdout.toString()).findings.map((finding: { code: string }) => finding.code)).toContain("fresh-context-head-stale");
+  });
+
+  test("review-preflight prepares a bundle before PR creation and validates PASS without a populated mirror", () => {
+    const root = tempReviewRepo();
+    put(root, "pr-body.md", `\`\`\`yaml
+change_type: feature
+semantic_change: true
+wiki_action: update
+affected_pages: [product/test]
+affected_invariants: []
+touched_conflicts: []
+fresh_context:
+  verdict: PENDING
+  reviewed_head_sha: ""
+  bundle_digest: ""
+  reviewer: ""
+  evidence: []
+\`\`\`
+`);
+    const cli = join(process.cwd(), "scripts/wiki/cli.ts");
+    const prepared = Bun.spawnSync([
+      process.execPath, cli, "review-preflight",
+      "--base", "HEAD~1",
+      "--metadata", "pr-body.md",
+      "--output", "preflight-bundle",
+      "--json",
+    ], { cwd: root, stdout: "pipe", stderr: "pipe" });
+    expect(prepared.exitCode).toBe(0);
+    const preparation = JSON.parse(prepared.stdout.toString());
+    expect(preparation).toMatchObject({ ok: true, ready: false, status: "review-required" });
+    expect(existsSync(join(root, "preflight-bundle", "manifest.json"))).toBe(true);
+
+    const manifest = JSON.parse(readFileSync(join(root, "preflight-bundle", "manifest.json"), "utf8")) as ReviewManifest;
+    put(root, "preflight-report.json", jsonStable(reportFor(manifest)));
+    const validated = Bun.spawnSync([
+      process.execPath, cli, "review-preflight",
+      "--base", "HEAD~1",
+      "--metadata", "pr-body.md",
+      "--report", "preflight-report.json",
+      "--output", "preflight-bundle",
+      "--reviewer-actor", "trusted-reviewer",
+      "--pr-author", "author",
+      "--json",
+    ], { cwd: root, stdout: "pipe", stderr: "pipe" });
+    expect(validated.exitCode).toBe(0);
+    expect(JSON.parse(validated.stdout.toString())).toMatchObject({ ok: true, ready: true, status: "pass" });
+  });
+
+  test("review-preflight rejects an uncommitted candidate", () => {
+    const root = tempReviewRepo();
+    put(root, "pr-body.md", jsonStable({
+      ...metadata(),
+      fresh_context: {
+        verdict: "PENDING",
+        reviewed_head_sha: "",
+        bundle_digest: "",
+        reviewer: "",
+        evidence: [],
+      },
+    }));
+    put(root, "source.ts", "export const contract = 'uncommitted';\n");
+    const cli = join(process.cwd(), "scripts/wiki/cli.ts");
+    const result = Bun.spawnSync([
+      process.execPath, cli, "review-preflight",
+      "--base", "HEAD~1",
+      "--metadata", "pr-body.md",
+      "--output", "preflight-bundle",
+      "--json",
+    ], { cwd: root, stdout: "pipe", stderr: "pipe" });
+    expect(result.exitCode).toBe(1);
+    expect(JSON.parse(result.stdout.toString())).toMatchObject({
+      ok: false,
+      ready: false,
+      status: "invalid-candidate",
+      findings: [{ code: "fresh-context-preflight-dirty", path: "source.ts" }],
+    });
   });
 
   test("review-check reads an untrusted root without loading its Bun preloads", () => {
@@ -606,12 +833,14 @@ touched_conflicts: []
     expect(validateIntegrationSeams(view).map((finding) => finding.code)).toContain("fresh-context-command-missing");
   });
 
-  test("GitHub reference workflow listens for edited and synchronize", () => {
+  test("GitHub reference workflow skips Drafts and validates Ready PRs", () => {
     const workflow = readFileSync(join(process.cwd(), ".github/workflows/checks.yml"), "utf8");
-    expect(workflow).toContain("wiki-fresh-context:");
-    expect(workflow).toContain("name: wiki-fresh-context");
+    expect(workflow).toContain("wiki-review-attestation:");
+    expect(workflow).toContain("name: wiki-review-attestation");
     expect(workflow).toContain("edited");
     expect(workflow).toContain("synchronize");
+    expect(workflow).toContain("converted_to_draft");
+    expect(workflow).toContain("github.event.pull_request.draft == false");
     expect(workflow).toContain("ref: ${{ github.event.pull_request.base.sha }}");
     expect(workflow).toContain("--policy-file");
     expect(workflow).toContain("working-directory: trusted");
@@ -626,8 +855,8 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, edited, ready_for_review]
 jobs:
-  wiki-fresh-context:
-    name: wiki-fresh-context
+  wiki-review-attestation:
+    name: wiki-review-attestation
     runs-on: ubuntu-latest
     env:
       bait: github-attestation.ts review-check policy-file --root

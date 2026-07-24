@@ -10,7 +10,7 @@ Pages with `status: current` are the single source of truth for current developm
 
 ## operations
 
-- [operations/enforcement](./operations/enforcement.md) — Three rails enforce the wiki — agent workflow, local hooks, and blocking CI including a trusted Fresh-context attestation check, with branch protection as the durable merge boundary.
+- [operations/enforcement](./operations/enforcement.md) — Three rails enforce the wiki — agent workflow, local hooks, and blocking CI including the trusted wiki-review-attestation check, with branch protection as the durable merge boundary.
 
 ## product
 

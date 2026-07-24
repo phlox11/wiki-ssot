@@ -11,6 +11,26 @@
     "mode": "required",
     "requiredVerdict": "PASS",
     "evidenceRequired": true,
+    "requiredWhen": {
+      "kind": "risk-based",
+      "changedFileGlobs": [
+        ".github/pull_request_template.md",
+        ".github/workflows/checks.yml",
+        ".wiki/config.json",
+        "AGENTS.md",
+        "package.json",
+        "scripts/wiki/cli.ts",
+        "scripts/wiki/core.ts",
+        "scripts/wiki/github-attestation.ts",
+        "wiki/SCHEMA.md",
+        "wiki/WORKFLOW.md",
+        "wiki/operations/enforcement.md",
+        "wiki/product/invariants.md"
+      ],
+      "affectedInvariants": true,
+      "affectedConflicts": true,
+      "removedCurrentPages": true
+    },
     "trust": {
       "allowedReviewers": ["*"],
       "requireDifferentActor": false,

@@ -2,7 +2,7 @@ name: checks
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, edited, ready_for_review]
+    types: [opened, synchronize, reopened, edited, ready_for_review, converted_to_draft]
   push:
     branches: [main]
 
@@ -73,9 +73,9 @@ jobs:
           name: wiki-impact
           path: wiki-impact.json
 
-  wiki-fresh-context:
-    name: wiki-fresh-context
-    if: github.event_name == 'pull_request'
+  wiki-review-attestation:
+    name: wiki-review-attestation
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     env:
       BASE_REF_NAME: ${{ github.event.pull_request.base.ref }}
@@ -102,14 +102,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git -C trusted fetch --no-tags origin "pull/${PR_NUMBER}/head:refs/remotes/origin/wiki-fresh-context-head"
+          git -C trusted fetch --no-tags origin "pull/${PR_NUMBER}/head:refs/remotes/origin/wiki-review-attestation-head"
           git -C trusted fetch --no-tags origin "${BASE_REF_NAME}:refs/remotes/origin/${BASE_REF_NAME}"
           git -C trusted worktree add --detach "${RUNNER_TEMP}/wiki-pr-head" "${HEAD_SHA}"
           echo "TRUSTED_ROOT=${GITHUB_WORKSPACE}/trusted" >> "$GITHUB_ENV"
           echo "REVIEW_ROOT=${RUNNER_TEMP}/wiki-pr-head" >> "$GITHUB_ENV"
           echo "PR_BODY_PATH=${RUNNER_TEMP}/pr-body.md" >> "$GITHUB_ENV"
           echo "REPORT_PATH=${RUNNER_TEMP}/fresh-context-report.json" >> "$GITHUB_ENV"
-          echo "RESULT_PATH=${RUNNER_TEMP}/wiki-fresh-context.json" >> "$GITHUB_ENV"
+          echo "RESULT_PATH=${RUNNER_TEMP}/wiki-review-attestation.json" >> "$GITHUB_ENV"
       - name: Read PR metadata from the trusted event payload
         shell: bash
         run: |
@@ -149,8 +149,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: wiki-fresh-context
+          name: wiki-review-attestation
           path: |
-            ${{ runner.temp }}/wiki-fresh-context.json
+            ${{ runner.temp }}/wiki-review-attestation.json
             ${{ runner.temp }}/fresh-context-envelope.json
           if-no-files-found: warn

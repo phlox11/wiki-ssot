@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { isAbsolute, relative, resolve } from "node:path";
 import {
   UsageError,
   allLintFindings,
@@ -24,6 +24,7 @@ import {
   verifyState,
   writeGenerated,
   type Finding,
+  type PrMetadata,
 } from "./core";
 import { validateGitHubIntegrationSeams } from "./github-attestation";
 import { generateInventories } from "./inventories";
@@ -76,7 +77,7 @@ function emit(value: unknown, json: boolean) {
 }
 
 function usage(): never {
-  throw new UsageError("usage: bun scripts/wiki/cli.ts <lint|inventory|index|generated|search|conflicts|context|impact|verify|review-bundle|review-check|doctor|check|audit> [options]");
+  throw new UsageError("usage: bun scripts/wiki/cli.ts <lint|inventory|index|generated|search|conflicts|context|impact|verify|review-preflight|review-bundle|review-check|doctor|check|audit> [options]");
 }
 
 async function main() {
@@ -268,6 +269,161 @@ async function main() {
     return;
   }
 
+  if (command === "review-preflight") {
+    if (staged) throw new UsageError("review-preflight requires a working repository");
+    const metadataPath = one(parsed, "metadata");
+    const reportPath = one(parsed, "report");
+    const outputPath = one(parsed, "output");
+    const allowedFiles = new Set([metadataPath, reportPath].filter((path): path is string => path != null).map((path) => resolve(view.root, path)));
+    const allowedOutput = outputPath ? resolve(view.root, outputPath) : undefined;
+    const isAllowedLocalArtifact = (path: string) => {
+      const absolute = resolve(view.root, path);
+      if (allowedFiles.has(absolute)) return true;
+      if (!allowedOutput) return false;
+      const nested = relative(allowedOutput, absolute);
+      return nested === "" || (!nested.startsWith("..") && !isAbsolute(nested));
+    };
+    const gitPaths = (command: string[]) => {
+      const result = Bun.spawnSync(["git", ...command], { cwd: view.root, stdout: "pipe", stderr: "pipe" });
+      if (result.exitCode !== 0) throw new UsageError(result.stderr.toString().trim() || `git ${command.join(" ")} failed`);
+      return result.stdout.toString().split("\0").filter(Boolean);
+    };
+    const dirtyPaths = [...new Set([
+      ...gitPaths(["diff", "--name-only", "-z", "HEAD"]),
+      ...gitPaths(["ls-files", "--others", "--exclude-standard", "-z"]),
+    ].filter((path) => !isAllowedLocalArtifact(path)))].sort((a, b) => a.localeCompare(b));
+    if (dirtyPaths.length > 0) {
+      const findings: Finding[] = dirtyPaths.map((path) => ({
+        code: "fresh-context-preflight-dirty",
+        message: "preflight requires a committed candidate HEAD; commit this change before generating the review bundle",
+        path,
+        severity: "error",
+      }));
+      const result = { ok: false, ready: false, status: "invalid-candidate", findings };
+      if (json) emit(result, true);
+      else printFindings(findings);
+      process.exitCode = 1;
+      return;
+    }
+    const metadataRaw = metadataPath ? readFileSync(metadataPath, "utf8") : process.env.WIKI_PR_BODY;
+    const validated = validatePrMetadata(metadataRaw, true);
+    if (validated.findings.some((item) => item.severity === "error")) {
+      const result = { ok: false, ready: false, status: "invalid-metadata", findings: validated.findings };
+      if (json) emit(result, true);
+      else printFindings(validated.findings);
+      process.exitCode = 1;
+      return;
+    }
+
+    // The PR-body fresh_context block is only a publication mirror. Preflight
+    // validates the independent report before that mirror is populated.
+    const semanticMetadata: PrMetadata = { ...validated.metadata };
+    delete semanticMetadata.fresh_context;
+
+    const policyPath = one(parsed, "policy-file");
+    let policy;
+    if (policyPath) {
+      try {
+        const raw = JSON.parse(readFileSync(policyPath, "utf8")) as { freshContext?: unknown };
+        policy = parseFreshContextPolicy(raw.freshContext);
+      } catch {
+        policy = undefined;
+      }
+      if (!policy) {
+        const findings: Finding[] = [{ code: "fresh-context-config-invalid", message: "trusted policy file does not contain a valid freshContext policy", path: policyPath, severity: "error" }];
+        const result = { ok: false, ready: false, status: "invalid-policy", findings };
+        if (json) emit(result, true);
+        else printFindings(findings);
+        process.exitCode = 1;
+        return;
+      }
+    }
+
+    const reportRaw = reportPath && existsSync(reportPath) ? readFileSync(reportPath, "utf8") : undefined;
+    const parsedReportResult = reportRaw == null ? undefined : parseFreshContextReport(reportRaw);
+    const parsedReport = parsedReportResult?.report;
+    const declaredReviewer = parsedReport != null && typeof parsedReport === "object" && !Array.isArray(parsedReport)
+      && typeof (parsedReport as Record<string, unknown>).reviewer === "string"
+      ? String((parsedReport as Record<string, unknown>).reviewer)
+      : undefined;
+    const result = reviewCheck(view, loaded.pages, {
+      base: one(parsed, "base"),
+      metadata: semanticMetadata,
+      report: parsedReport ?? reportRaw,
+      reviewerActor: one(parsed, "reviewer-actor") ?? declaredReviewer,
+      prAuthor: one(parsed, "pr-author") ?? process.env.WIKI_PR_AUTHOR,
+      policy,
+    });
+    const impactErrors = result.impact.findings.filter((finding) => finding.severity === "error");
+    if (impactErrors.length > 0) {
+      const output = { ok: false, ready: false, status: "invalid-impact", findings: impactErrors, impact: result.impact, manifest: result.manifest };
+      if (json) emit(output, true);
+      else printFindings(impactErrors);
+      process.exitCode = 1;
+      return;
+    }
+    if (!result.required) {
+      const output = {
+        ok: true,
+        ready: true,
+        status: "not-required",
+        requirementReasons: result.requirementReasons,
+        impact: result.impact,
+        manifest: result.manifest,
+      };
+      emit(json ? output : "preflight ready: Fresh-context review is not required", json);
+      return;
+    }
+    if (reportRaw == null) {
+      const directory = makeReviewBundle(view, loaded.pages, result.impact, outputPath, semanticMetadata);
+      const output = {
+        ok: true,
+        ready: false,
+        status: "review-required",
+        directory,
+        manifest: result.manifest,
+        requirementReasons: result.requirementReasons,
+        nextAction: "Give this bundle to a context-isolated reviewer. Fix every NEEDS_RECONCILE discrepancy before opening a PR, then rerun review-preflight with the new bundle/report.",
+      };
+      emit(json ? output : `preflight review required\nbundle: ${directory}`, json);
+      return;
+    }
+    if (result.ok) {
+      const output = {
+        ok: true,
+        ready: true,
+        status: "pass",
+        report: result.report,
+        manifest: result.manifest,
+        requirementReasons: result.requirementReasons,
+      };
+      emit(json ? output : "preflight ready: independent Fresh-context report passed", json);
+      return;
+    }
+    const reportVerdict = parsedReport != null && typeof parsedReport === "object" && !Array.isArray(parsedReport)
+      ? (parsedReport as Record<string, unknown>).verdict
+      : undefined;
+    const status = reportVerdict === "NEEDS_RECONCILE" ? "needs-reconcile" : "invalid-report";
+    const output = {
+      ok: false,
+      ready: false,
+      status,
+      report: result.report ?? parsedReport,
+      findings: result.findings,
+      manifest: result.manifest,
+      nextAction: status === "needs-reconcile"
+        ? "Fix the report's concrete discrepancies and acceptance criteria, rerun deterministic checks, then generate a new bundle for the new HEAD."
+        : "Replace the malformed, stale, or untrusted report with one produced from the current bundle.",
+    };
+    if (json) emit(output, true);
+    else {
+      printFindings(result.findings);
+      console.error(output.nextAction);
+    }
+    process.exitCode = 1;
+    return;
+  }
+
   if (command === "review-bundle") {
     if (staged) throw new UsageError("review-bundle requires a working repository");
     const metadataPath = one(parsed, "metadata");
@@ -329,7 +485,8 @@ async function main() {
     if (json) emit(result, true);
     else {
       printFindings(result.findings);
-      if (result.ok) console.log(`fresh-context review check passed (${result.mode})`);
+      if (result.ok && result.required) console.log(`fresh-context review check passed (${result.mode})`);
+      else if (result.ok) console.log("fresh-context review is not required for this change");
     }
     process.exitCode = result.ok ? 0 : 1;
     return;

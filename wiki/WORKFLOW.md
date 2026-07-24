@@ -24,25 +24,28 @@ bun run wiki:doctor
 bun run wiki:impact -- --base origin/main --enforce
 bun run typecheck
 bun run test
-bun run wiki:review-bundle -- --base origin/main --metadata /path/to/pr-body.md
+bun run wiki:review-preflight -- --base origin/main \
+  --metadata /path/to/pr-body.md --output /path/to/review-bundle --json
 ```
 
-Fill the PR metadata block, including the structured `fresh_context` status mirror, before creating the bundle. `WIKI_PR_BODY` may provide the same block when a file is inconvenient.
+Commit the complete candidate first so the review binds an exact HEAD. Fill a prospective PR metadata block, including the structured `fresh_context` status mirror, before preflight; keep metadata and bundle artifacts outside the repository or pass them explicitly. Any other uncommitted or untracked candidate file makes preflight fail instead of silently reviewing an incomplete HEAD. No PR needs to exist yet. `WIKI_PR_BODY` may provide the same block when a file is inconvenient. `status: not-required` means the trusted policy selected no independent semantic review.
 
-A separate context-isolated session or reviewer—not the authoring session—reads the bundle and primary sources, then creates the version 1 report described by `REPORT.md`. Publish it through the trusted PR review/comment channel, mirror its verdict/HEAD/bundle/reviewer/evidence into the PR body's `fresh_context` block, and validate it:
+`status: review-required` includes a deterministic bundle. The authoring agent gives it to a context-isolated reviewer or context-free review sub-agent—not to its own authoring context. The reviewer reads the bundle and primary sources and performs narrow SSOT reconciliation: code, tests, current wiki, metadata, invariants, and conflicts must make the same semantic claims. It returns the version 1 report described by `REPORT.md`.
 
 ```sh
-bun run wiki:review-check -- --base origin/main --metadata /path/to/pr-body.md \
+bun run wiki:review-preflight -- --base origin/main --metadata /path/to/pr-body.md \
   --report /path/to/report.json --reviewer-actor <authenticated-actor> --pr-author <author>
 ```
 
-The report must be PASS with evidence and must bind the current full HEAD, merge-base, and bundle digest. `NEEDS_RECONCILE` means fix → new bundle → new review. Any new commit or semantic PR metadata change makes the old PASS stale. If a separate reviewer/report is unavailable, leave the PR Draft and ask the user for the reviewer or permission; do not report completion or mark it Ready.
+Do not open the PR until preflight returns `status: pass` or `status: not-required`. `NEEDS_RECONCILE` must provide an exact discrepancy, controlling authority, required change, and objective acceptance criteria. The authoring agent fixes those findings, reruns the deterministic checks, and generates a new bundle for the new HEAD. If intent is ambiguous, create a conflict or obtain an owner decision rather than making speculative edits.
 
-`requireDifferentActor: false` permits a solo maintainer's authenticated GitHub account to publish the separate session's report; it does not permit the authoring session to invent its own PASS. `true` additionally requires the publisher to differ from the PR author and must only be enabled after a second account or bot is available.
+After a local required PASS, open a Draft PR, publish that exact report through the trusted review/comment channel, mirror its verdict/HEAD/bundle/reviewer/evidence into the PR body, and then mark it Ready. The blocking `wiki-review-attestation` job skips Drafts and runs when the PR becomes Ready; this avoids an expected failing check while the attestation is being attached. Its name reflects its narrow role: it validates the precomputed proof and does not perform Fresh-context review in CI. Any new commit or semantic metadata change invalidates the report and sends the candidate back through preflight.
+
+`requireDifferentActor: false` permits a solo maintainer's authenticated GitHub account to publish a separate review context's report; it does not permit the authoring context to invent its own PASS. `true` additionally requires the publisher to differ from the PR author and must only be enabled after a second account or bot is available. If the code-agent environment cannot create an isolated reviewer and no external reviewer is available, stop before opening the PR and ask for that capability.
 
 ## Enforcement layers
 
 - pre-commit: staged wiki structure/link/source/generated validation only.
 - pre-push: direct `main` push prevention.
-- CI: code tests, wiki structure/doctor, generated freshness, blocking impact enforcement, and the `wiki-fresh-context` attestation check, plus a weekly full audit. Drafts may carry a failing/pending Fresh-context check; Ready/merge must not.
+- CI: code tests, wiki structure/doctor, generated freshness, blocking impact enforcement, and the Ready-only `wiki-review-attestation` policy/attestation check, plus a weekly full audit. Drafts do not emit an expected Fresh-context failure; Ready/merge requires a trusted non-required classification or a current PASS.
 - protected `main`: the durable remote boundary; see [proposal/protected-main](./proposals/protected-main.md) until it is active. Local hooks and CI can be bypassed and are not a security boundary. Details in [operations/enforcement](./operations/enforcement.md).

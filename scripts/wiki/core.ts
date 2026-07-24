@@ -631,11 +631,21 @@ export type FreshContextTrustPolicy = {
   requireDifferentActor: boolean;
   requireAuthenticatedActor: boolean;
 };
+export type FreshContextRequiredWhen =
+  | { kind: "all" }
+  | {
+    kind: "risk-based";
+    changedFileGlobs: string[];
+    affectedInvariants: boolean;
+    affectedConflicts: boolean;
+    removedCurrentPages: boolean;
+  };
 export type FreshContextPolicy = {
   mode: FreshContextMode;
   requiredVerdict: "PASS";
   evidenceRequired: boolean;
   trust: FreshContextTrustPolicy;
+  requiredWhen?: FreshContextRequiredWhen;
 };
 export type WikiConfig = {
   version: 1;
@@ -653,6 +663,35 @@ export function parseFreshContextPolicy(value: unknown): FreshContextPolicy | un
   if (trust == null || typeof trust !== "object" || Array.isArray(trust)) return undefined;
   const trustValue = trust as Record<string, unknown>;
   if (!stringArray(trustValue.allowedReviewers) || trustValue.allowedReviewers.length === 0 || typeof trustValue.requireDifferentActor !== "boolean" || typeof trustValue.requireAuthenticatedActor !== "boolean") return undefined;
+  let requiredWhen: FreshContextRequiredWhen | undefined;
+  if (policy.requiredWhen != null) {
+    if (typeof policy.requiredWhen !== "object" || Array.isArray(policy.requiredWhen)) return undefined;
+    const required = policy.requiredWhen as Record<string, unknown>;
+    if (required.kind === "all") {
+      requiredWhen = { kind: "all" };
+    } else if (required.kind === "risk-based") {
+      if (!stringArray(required.changedFileGlobs)
+        || required.changedFileGlobs.some((pattern) => pattern.trim().length === 0)
+        || typeof required.affectedInvariants !== "boolean"
+        || typeof required.affectedConflicts !== "boolean"
+        || typeof required.removedCurrentPages !== "boolean") return undefined;
+      try {
+        for (const pattern of required.changedFileGlobs) new Bun.Glob(pattern);
+      } catch {
+        return undefined;
+      }
+      if (required.changedFileGlobs.length === 0 && !required.affectedInvariants && !required.affectedConflicts && !required.removedCurrentPages) return undefined;
+      requiredWhen = {
+        kind: "risk-based",
+        changedFileGlobs: [...required.changedFileGlobs].sort((a, b) => a.localeCompare(b)),
+        affectedInvariants: required.affectedInvariants,
+        affectedConflicts: required.affectedConflicts,
+        removedCurrentPages: required.removedCurrentPages,
+      };
+    } else {
+      return undefined;
+    }
+  }
   return {
     mode: policy.mode,
     requiredVerdict: "PASS",
@@ -662,6 +701,7 @@ export function parseFreshContextPolicy(value: unknown): FreshContextPolicy | un
       requireDifferentActor: trustValue.requireDifferentActor,
       requireAuthenticatedActor: trustValue.requireAuthenticatedActor,
     },
+    ...(requiredWhen ? { requiredWhen } : {}),
   };
 }
 
@@ -698,7 +738,7 @@ export function validateIntegrationSeams(view: RepoView): Finding[] {
     if (configRaw && configRaw.freshContext == null) {
       findings.push({ code: "fresh-context-config-missing", message: ".wiki/config.json must declare an explicit freshContext policy; missing policy never falls back silently to advisory", path: ".wiki/config.json", severity: "error" });
     } else if (configRaw && !parseFreshContextPolicy(configRaw.freshContext)) {
-      findings.push({ code: "fresh-context-config-invalid", message: "freshContext requires mode, requiredVerdict: PASS, evidenceRequired, and a complete trust policy", path: ".wiki/config.json", severity: "error" });
+      findings.push({ code: "fresh-context-config-invalid", message: "freshContext requires mode, requiredVerdict: PASS, evidenceRequired, a complete trust policy, and a valid optional requiredWhen selector", path: ".wiki/config.json", severity: "error" });
     }
   }
 
@@ -717,8 +757,10 @@ export function validateIntegrationSeams(view: RepoView): Finding[] {
       // The ordinary package/tooling checks report malformed package.json.
     }
   }
-  if (scripts["wiki:review-check"] !== "bun scripts/wiki/cli.ts review-check" || scripts["wiki:doctor"] !== "bun scripts/wiki/cli.ts doctor") {
-    findings.push({ code: "fresh-context-command-missing", message: "package.json must expose the canonical wiki:review-check and wiki:doctor CLI entrypoints", path: packagePath, severity: "error" });
+  if (scripts["wiki:review-preflight"] !== "bun scripts/wiki/cli.ts review-preflight"
+    || scripts["wiki:review-check"] !== "bun scripts/wiki/cli.ts review-check"
+    || scripts["wiki:doctor"] !== "bun scripts/wiki/cli.ts doctor") {
+    findings.push({ code: "fresh-context-command-missing", message: "package.json must expose the canonical wiki:review-preflight, wiki:review-check, and wiki:doctor CLI entrypoints", path: packagePath, severity: "error" });
   }
 
   return findings;
@@ -1124,7 +1166,48 @@ export type FreshContextCheckResult = {
 export type ReviewCheckResult = FreshContextCheckResult & {
   manifest: ReviewManifest;
   impact: ImpactReport;
+  required: boolean;
+  requirementReasons: string[];
 };
+
+export type FreshContextRequirement = {
+  applies: boolean;
+  reasons: string[];
+};
+
+export function evaluateFreshContextRequirement(
+  policy: FreshContextPolicy,
+  manifest: ReviewManifest,
+  impact: ImpactReport,
+): FreshContextRequirement {
+  const requiredWhen = policy.requiredWhen ?? { kind: "all" as const };
+  if (requiredWhen.kind === "all") {
+    return { applies: true, reasons: ["policy requires Fresh-context review for every pull request"] };
+  }
+
+  const reasons = new Set<string>();
+  for (const pattern of requiredWhen.changedFileGlobs) {
+    let glob: Bun.Glob;
+    try {
+      glob = new Bun.Glob(pattern);
+    } catch {
+      return { applies: true, reasons: [`invalid trusted Fresh-context risk glob fails closed: ${pattern}`] };
+    }
+    for (const path of impact.changedFiles) {
+      if (glob.match(path)) reasons.add(`changed file matches ${pattern}: ${path}`);
+    }
+  }
+  if (requiredWhen.affectedInvariants && manifest.affected_invariant_ids.length > 0) {
+    reasons.add(`affected invariants: ${manifest.affected_invariant_ids.join(", ")}`);
+  }
+  if (requiredWhen.affectedConflicts && manifest.affected_conflict_ids.length > 0) {
+    reasons.add(`affected conflicts: ${manifest.affected_conflict_ids.join(", ")}`);
+  }
+  if (requiredWhen.removedCurrentPages && impact.removedCurrentPages.length > 0) {
+    reasons.add(`removed or demoted current pages: ${impact.removedCurrentPages.map((page) => page.id).join(", ")}`);
+  }
+  return { applies: reasons.size > 0, reasons: [...reasons].sort((a, b) => a.localeCompare(b)) };
+}
 
 function canonicalPrMetadata(metadata?: PrMetadata): unknown {
   if (!metadata) return null;
@@ -1220,9 +1303,22 @@ Publish the report through the repository's trusted attestation channel. A repor
 export function buildReviewManifest(view: RepoView, pages: WikiPage[], report: ImpactReport, metadata?: PrMetadata): ReviewManifest {
   const files = reviewBundleFiles(view, pages, report, metadata);
   const fileDigests = Object.fromEntries(Object.entries(files).map(([path, content]) => [path, hashContent(content)]).sort(([a], [b]) => a.localeCompare(b)));
+  const baseInvariantIds = new Set(git(view.root, ["ls-tree", "-r", "--name-only", report.mergeBase, "--", "wiki"], true)
+    .split("\n")
+    .filter(isContentPage)
+    .flatMap((path) => {
+      const raw = git(view.root, ["show", `${report.mergeBase}:${path}`], true);
+      if (!raw) return [];
+      try {
+        const page = parseWikiPage(path, raw);
+        return page.data.status === "current" && page.data.kind === "invariant" ? [page.data.id] : [];
+      } catch {
+        return [];
+      }
+    }));
   const affectedInvariantIds = new Set(metadata?.affected_invariants ?? []);
   for (const id of report.affectedPages) {
-    if (pages.find((page) => page.data.id === id)?.data.kind === "invariant") affectedInvariantIds.add(id);
+    if (baseInvariantIds.has(id) || pages.find((page) => page.data.id === id)?.data.kind === "invariant") affectedInvariantIds.add(id);
   }
   for (const conflict of report.affectedConflicts) for (const id of conflict.affectedInvariants) affectedInvariantIds.add(id);
   const core = {
@@ -1350,12 +1446,26 @@ export function reviewCheck(view: RepoView, pages: WikiPage[], options: {
       mode: "required",
       manifest,
       impact,
+      required: true,
+      requirementReasons: ["Fresh-context policy is missing or invalid"],
       findings: [{
         code: "fresh-context-config-missing",
         message: "an explicit valid freshContext policy is required; missing configuration does not fall back to advisory",
         path: ".wiki/config.json",
         severity: "error",
       }],
+    };
+  }
+  const requirement = evaluateFreshContextRequirement(policy, manifest, impact);
+  if (!requirement.applies) {
+    return {
+      ok: true,
+      mode: policy.mode,
+      manifest,
+      impact,
+      required: false,
+      requirementReasons: [],
+      findings: [],
     };
   }
   const checked = validateFreshContextAttestation({
@@ -1375,7 +1485,13 @@ export function reviewCheck(view: RepoView, pages: WikiPage[], options: {
     if (jsonStable(mirror.evidence) !== jsonStable(checked.report.evidence)) checked.findings.push({ code: "fresh-context-evidence-missing", message: "PR metadata fresh_context evidence does not mirror the attested evidence", severity });
   }
   checked.ok = policy.mode === "advisory" || !checked.findings.some((item) => item.severity === "error");
-  return { ...checked, manifest, impact };
+  return {
+    ...checked,
+    manifest,
+    impact,
+    required: policy.mode === "required",
+    requirementReasons: requirement.reasons,
+  };
 }
 
 export function recursiveFiles(path: string): string[] {

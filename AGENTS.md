@@ -19,11 +19,16 @@ These rules apply to every coding agent and every task in this repository. They 
 4. Change wiki, code, and tests in the same PR when behavior or intent changes. If semantics do not change, run `bun run wiki:verify -- --page <id> --unchanged "<20+ character reason>"`.
 5. Regenerate deterministic artifacts with `bun run wiki:generated`, then run `bun run wiki:lint`, `bun run wiki:impact -- --base origin/main --enforce`, `bun run typecheck`, and the relevant tests.
 6. Fill the parseable YAML metadata block in the PR template, including `touched_conflicts`. Implementation-source changes may not use `wiki_action: none`.
-7. Create a fresh-context review bundle with `bun run wiki:review-bundle -- --base origin/main --metadata <pr-body.md>`, then obtain and validate an independent report with `bun run wiki:review-check -- --base origin/main --metadata <pr-body.md> --report <report.json> --reviewer-actor <actor> --pr-author <author>`.
-   - The authoring session must never mark its own work `PASS`. Use a separate context-isolated session or a separate reviewer.
-   - A Draft PR may exist while the report is pending, but do not mark it Ready or merge it until the `wiki-fresh-context` check passes for the current full HEAD SHA and bundle digest.
-   - `NEEDS_RECONCILE` means fix the discrepancy, generate a new bundle, and obtain a new report. Any new commit invalidates the old PASS.
-   - If an independent report cannot be produced or attached through the trusted channel, stop and ask the user for an external reviewer or the necessary permission. Do not report the task complete.
+7. Commit the candidate so the review can bind an exact HEAD, then—before opening a PR—run `bun run wiki:review-preflight -- --base origin/main --metadata <pr-body.md> --output <bundle-dir> --json`. Keep metadata, report, and bundle files outside the repository or pass their paths explicitly; other uncommitted/untracked files make preflight fail.
+   - `status: not-required` means the candidate is ready for the ordinary PR flow.
+   - `status: review-required` means the authoring agent must give the emitted bundle to a context-isolated reviewer or a context-free review sub-agent. The authoring session must never mark its own work `PASS`.
+   - The reviewer performs independent SSOT reconciliation, not a general style review: code, tests, current wiki, metadata, invariants, and conflicts must make the same semantic claims.
+   - Validate the returned report locally with `bun run wiki:review-preflight -- --base origin/main --metadata <pr-body.md> --report <report.json> --reviewer-actor <publisher> --pr-author <author> --json`.
+   - `NEEDS_RECONCILE` is not permission for an unknown or speculative edit. The report must identify the exact discrepancy, controlling authority, required code/wiki/test change, and acceptance criteria. The authoring agent fixes those findings, reruns deterministic checks, and generates a new bundle for the new HEAD.
+   - Do not open the PR until preflight returns `status: pass` or `status: not-required`. If intent is ambiguous, open a conflict or request the owner decision instead of repeating speculative fix/review loops.
+8. For a required report, open the PR as Draft only after local PASS, publish that exact report through the trusted PR review/comment channel, mirror it into `fresh_context`, then mark the PR Ready. Draft PRs skip the blocking `wiki-review-attestation` check; Ready PRs must validate the current exact HEAD and bundle digest.
+   - Any new commit or semantic PR metadata change invalidates the old PASS and requires preflight again.
+   - If the code-agent environment cannot create an isolated reviewer and no external reviewer is available, stop before opening the PR and ask for the missing review capability.
 
 ## Editing rules
 

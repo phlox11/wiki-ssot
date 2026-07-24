@@ -2,32 +2,31 @@
   "pages": {
     "architecture/engine": {
       "sources": {
-        "scripts/wiki/cli.ts": "bc08b55f486e7a8ebd8c065f179a7a0cc338c2931737cc7d1b2be7b17024f386",
-        "scripts/wiki/core.ts": "de42ea68ffa9e7ab8f95597130ffcd15443bc956ba1543a1f2425f006000c8f4",
-        "scripts/wiki/fresh-context.test.ts": "2f19caf3d6e6686a26f4c7760aee4778e65f38c32cb2c2ca8d9b6cf9338785f3",
-        "scripts/wiki/github-attestation.ts": "4897bdc063a6d73045056c04dfb4245c20ecfc22b7f71b9c62d42ecc3e0b45f2",
+        "scripts/wiki/cli.ts": "3c1904caee217d12708308ed469a8d34de4d6885fcb375e4f5ee964c2f65a942",
+        "scripts/wiki/core.ts": "34f047ae4ab2436620a4f4d79cfd85bddd17b8b3622aab3b2785cbc22d4ce70c",
+        "scripts/wiki/fresh-context.test.ts": "c5fd68bb97fdc312c9915d77cf9ddae9a2516a9a28e080de5795430bac639da1",
+        "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c",
         "scripts/wiki/inventories.example.ts": "3c173f3382105416947b30020f8004b02e5667acdcff47c2057757207daa9447",
         "scripts/wiki/inventories.ts": "f8a608159394b661149eb69236a4fef8ab5c90be5acafb5fa14fedff3e74101f",
         "scripts/wiki/wiki.test.ts": "f2cb47a81f94507388794a6ff1227cf4ff602af044dfa14b2f273bfa9dbd45bf"
       },
       "verification": {
-        "kind": "unchanged",
-        "reason": "Solo actor-policy coverage adds a regression test without changing the engine architecture."
+        "kind": "updated"
       }
     },
     "operations/enforcement": {
       "sources": {
-        ".github/pull_request_template.md": "926fa5f4f7eb96cf0a36834a6c8d785c23dee80f770b497ae52562102ddc2df5",
-        ".github/workflows/checks.yml": "4b51b9cde09ee41d015101895aa70f57e8695f61f9aa3fa5b546952369d513d6",
+        ".github/pull_request_template.md": "fd1758cf285f4e6c26b004b6c6e182973506677c4ceb3854a7ee624603076244",
+        ".github/workflows/checks.yml": "53d46f240a5f4ee78327cae0d1e221ded01bd7b36b714c16121dd1256b1d92d5",
         ".github/workflows/wiki-audit.yml": "33a3bf1dcf6482a293f137a4cfc332eb8804639bd3b8d950a9244fa6fdda97f4",
         ".husky/pre-commit": "58a0e92eab02374a09bea44bb6e18f9b088e5e5180203b0b1cb8c309740ac10b",
         ".husky/pre-push": "21b38e361c58ffc03baec92b4826f3d5bb6d122b0862fce1af0cb12acdfc09d3",
-        ".wiki/config.json": "3ed0fa183fd1b31a3bd0c630ba9eb8ed14d3757ccf67c265acc982cf8edcb495",
-        "AGENTS.md": "74ea69973e9ebe002155835b7eb010f4d9dbdd577e025fee0aac7e6d57e03ab2",
-        "package.json": "2c62a87ff77089f8caeee7e7a052fb64e26cd69128ec9f1b7b42a3f54b5e0da7",
-        "scripts/wiki/cli.ts": "bc08b55f486e7a8ebd8c065f179a7a0cc338c2931737cc7d1b2be7b17024f386",
-        "scripts/wiki/core.ts": "de42ea68ffa9e7ab8f95597130ffcd15443bc956ba1543a1f2425f006000c8f4",
-        "scripts/wiki/github-attestation.ts": "4897bdc063a6d73045056c04dfb4245c20ecfc22b7f71b9c62d42ecc3e0b45f2"
+        ".wiki/config.json": "1d0200763720e43d30452878e746881454e3550681e09feb0ec5d04303b67e27",
+        "AGENTS.md": "d6f59b32e5971ad2a8ac6a3e9da70fa5c5b833f4a3bcb28f4afa56521f8bf39a",
+        "package.json": "77610bd26e1060ac01550e9eeeed17930b88bdf7bc960a21f3274da2233f2c2b",
+        "scripts/wiki/cli.ts": "3c1904caee217d12708308ed469a8d34de4d6885fcb375e4f5ee964c2f65a942",
+        "scripts/wiki/core.ts": "34f047ae4ab2436620a4f4d79cfd85bddd17b8b3622aab3b2785cbc22d4ce70c",
+        "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c"
       },
       "verification": {
         "kind": "updated"
@@ -35,7 +34,7 @@
     },
     "product/invariants": {
       "sources": {
-        "scripts/wiki/core.ts": "de42ea68ffa9e7ab8f95597130ffcd15443bc956ba1543a1f2425f006000c8f4"
+        "scripts/wiki/core.ts": "34f047ae4ab2436620a4f4d79cfd85bddd17b8b3622aab3b2785cbc22d4ce70c"
       },
       "verification": {
         "kind": "updated"
@@ -43,8 +42,8 @@
     },
     "product/scope": {
       "sources": {
-        "docs/design.md": "fd23c6b85747f99821a8bb53b3d3c9b960724f434c12ef92367006e739a976a7",
-        "README.md": "929174b5115a87eded0efba26ee2b307d3fca4576f4f203c50aa4eca13dc3de5"
+        "docs/design.md": "899820d9815c7b773779cb041c61035e1bdab2eab786485e8b256a8944f8ec11",
+        "README.md": "0948c018c6534c0818caab0623704b4f5e72fcd0a6a6661cd38c5ecc7f9999ad"
       },
       "verification": {
         "kind": "updated"
