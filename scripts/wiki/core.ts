@@ -1146,8 +1146,46 @@ export type ReviewManifest = {
 };
 
 export type FreshContextVerdict = "PENDING" | "PASS" | "NEEDS_RECONCILE";
-export type FreshContextReport = {
-  version: 1;
+
+/**
+ * A version 2 finding states what the reviewer found, which authority controls
+ * it, and what the candidate already does about it. The disposition is a
+ * reviewer observation of the reviewed tree, never an author claim: every
+ * disposition that points somewhere must name the conflict or follow-up it
+ * points at, so a finding cannot be retired by gesture.
+ */
+export type FreshContextClassification =
+  | "candidate_regression"
+  | "declared_contract_violation"
+  | "preexisting_implementation_mismatch"
+  | "decision_ambiguity"
+  | "documentation_disagreement"
+  | "unrelated_defect"
+  | "suggestion";
+export type FreshContextDisposition =
+  | "unresolved"
+  | "fixed"
+  | "conflict_introduced"
+  | "existing_conflict_linked"
+  | "followup_created"
+  | "recorded"
+  | "dismissed_with_reason";
+export type FreshContextAuthorityKind = "normative" | "observed" | "derived" | "test" | "metadata";
+export type FreshContextFinding = {
+  id: string;
+  classification: FreshContextClassification;
+  disposition: FreshContextDisposition;
+  scope_refs: string[];
+  discrepancy: string;
+  authority: { kind: FreshContextAuthorityKind; ref: string };
+  acceptance_criteria: string[];
+  evidence: string[];
+  conflict_id?: string;
+  followup_ref?: string;
+  dismissal_reason?: string;
+};
+
+type FreshContextReportBase = {
   verdict: FreshContextVerdict;
   reviewed_head_sha: string;
   merge_base_sha: string;
@@ -1155,8 +1193,10 @@ export type FreshContextReport = {
   reviewer: string;
   evidence: string[];
   summary?: string;
-  findings?: string[];
 };
+export type FreshContextReportV1 = FreshContextReportBase & { version: 1; findings?: string[] };
+export type FreshContextReportV2 = FreshContextReportBase & { version: 2; findings?: FreshContextFinding[] };
+export type FreshContextReport = FreshContextReportV1 | FreshContextReportV2;
 export type FreshContextCheckResult = {
   ok: boolean;
   mode: FreshContextMode;
@@ -1276,19 +1316,37 @@ function reviewBundleFiles(view: RepoView, pages: WikiPage[], report: ImpactRepo
 
 Read \`manifest.json\`, \`impact.json\`, \`pr-metadata.json\`, \`diff.patch\`, \`pages/**\`, \`invariants/**\`, \`conflicts/**\`, and \`sources.json\`. Inspect the referenced repository primary sources directly. Verify current behavior, intent, invariants, conflict actions, acceptance criteria, and sources independently. Do not trust the author summary and do not resolve an open decision conflict without an explicit owner decision.
 
-Return a structured report that follows \`REPORT.md\`:
+Report every discrepancy as a structured finding described by \`REPORT.md\`, and decide its disposition instead of assuming this candidate must fix it:
 
-- \`PASS\` only when code, tests, metadata, wiki, and conflict lifecycle agree.
-- \`NEEDS_RECONCILE\` when anything is stale, unsupported, ambiguous, or violates an invariant or conflict resolution contract.
+- A problem this candidate introduced, or a contract the PR itself declares, has to be fixed here.
+- A mismatch that predates the candidate, an undecidable product intent, or a documentation disagreement may instead be tracked by an open conflict this candidate introduces or already links, with acceptance criteria.
+- A real defect outside this change's semantic scope belongs in a named follow-up, not in this diff.
+
+Return the report as:
+
+- \`PASS\` only when code, tests, metadata, wiki, and conflict lifecycle agree and every remaining finding names where it is tracked.
+- \`NEEDS_RECONCILE\` when anything is stale, unsupported, ambiguous, or violates an invariant or conflict resolution contract and is not yet tracked anywhere.
+
+Scope is not permission to be exhaustive about the repository: a finding must bind to this candidate's diff, declared metadata, affected pages, invariants, or conflicts.
 `;
   files["REPORT.md"] = `# Fresh-context report contract
 
-Create a JSON report from \`REPORT.example.json\`. Copy the exact \`head_sha\`, \`merge_base_sha\`, and \`bundle_digest\` from \`manifest.json\`. Set \`reviewer\` to the authenticated actor that will publish the attestation. Evidence must identify the files, tests, invariants, or conflict criteria actually checked; PASS without evidence is invalid.
+Create a JSON report from \`REPORT.example.json\`, or \`REPORT.findings.example.json\` when there is anything to report. Copy the exact \`head_sha\`, \`merge_base_sha\`, and \`bundle_digest\` from \`manifest.json\`. Set \`reviewer\` to the authenticated actor that will publish the attestation. Evidence must identify the files, tests, invariants, or conflict criteria actually checked; PASS without evidence is invalid.
+
+Version 2 findings are structured. Each entry requires:
+
+- \`id\` — unique within the report.
+- \`classification\` — \`candidate_regression\`, \`declared_contract_violation\`, \`preexisting_implementation_mismatch\`, \`decision_ambiguity\`, \`documentation_disagreement\`, \`unrelated_defect\`, or \`suggestion\`.
+- \`disposition\` — what the reviewed tree already does about it: \`unresolved\`, \`fixed\`, \`conflict_introduced\`, \`existing_conflict_linked\`, \`followup_created\`, \`recorded\`, or \`dismissed_with_reason\`. This is your observation of the candidate, never the author's claim. \`conflict_introduced\` and \`existing_conflict_linked\` require \`conflict_id\`; \`followup_created\` requires \`followup_ref\`; \`dismissed_with_reason\` requires a 20+ character \`dismissal_reason\`.
+- \`scope_refs\` — one or more \`page:\`, \`source:\`, \`invariant:\`, \`conflict:\`, \`test:\`, or \`metadata:\` references binding the finding to this candidate.
+- \`discrepancy\`, \`authority\` (\`{kind, ref}\` naming the controlling normative/observed/derived/test/metadata source), \`evidence\`, and \`acceptance_criteria\` (objective and closable; only a \`suggestion\` may omit them).
+
+A \`version: 1\` report with free-text \`findings\` is still accepted so an in-flight review is not invalidated, but it cannot express a disposition. Prefer version 2.
 
 Publish the report through the repository's trusted attestation channel. A report in the author's editable PR body is only a status mirror and is not proof of independent review.
 `;
   files["REPORT.example.json"] = jsonStable({
-    version: 1,
+    version: 2,
     verdict: "PASS",
     reviewed_head_sha: "<copy manifest.head_sha>",
     merge_base_sha: "<copy manifest.merge_base_sha>",
@@ -1296,6 +1354,39 @@ Publish the report through the repository's trusted attestation channel. A repor
     reviewer: "<authenticated reviewer actor>",
     evidence: ["Describe the primary sources, tests, invariants, and conflicts inspected."],
     summary: "Explain why the current implementation and wiki agree.",
+  });
+  files["REPORT.findings.example.json"] = jsonStable({
+    version: 2,
+    verdict: "NEEDS_RECONCILE",
+    reviewed_head_sha: "<copy manifest.head_sha>",
+    merge_base_sha: "<copy manifest.merge_base_sha>",
+    bundle_digest: "<copy manifest.bundle_digest>",
+    reviewer: "<authenticated reviewer actor>",
+    evidence: ["<page, source, test, or conflict actually inspected>"],
+    summary: "One finding must be fixed here; the other is already tracked by an open conflict.",
+    findings: [
+      {
+        id: "FC-001",
+        classification: "candidate_regression",
+        disposition: "unresolved",
+        scope_refs: ["source:<path changed by this candidate>", "page:<affected page id>"],
+        discrepancy: "<what the candidate broke, stated against the controlling authority>",
+        authority: { kind: "normative", ref: "<wiki page or invariant that governs it>" },
+        acceptance_criteria: ["<objective, checkable condition that closes this finding>"],
+        evidence: ["<file or test that demonstrates the break>"],
+      },
+      {
+        id: "FC-002",
+        classification: "preexisting_implementation_mismatch",
+        disposition: "existing_conflict_linked",
+        conflict_id: "C-000",
+        scope_refs: ["page:<affected page id>", "conflict:C-000"],
+        discrepancy: "<mismatch that predates this candidate>",
+        authority: { kind: "normative", ref: "<wiki page that states the intended contract>" },
+        acceptance_criteria: ["<condition recorded in the conflict's resolution.acceptance>"],
+        evidence: ["<source read at the merge base showing the mismatch predates the diff>"],
+      },
+    ],
   });
   return Object.fromEntries(Object.entries(files).sort(([a], [b]) => a.localeCompare(b)));
 }
@@ -1351,6 +1442,105 @@ function normalizedActor(value: string): string {
   return value.trim().replace(/^@/, "").toLowerCase();
 }
 
+const FRESH_CONTEXT_CLASSIFICATIONS = new Set<string>([
+  "candidate_regression",
+  "declared_contract_violation",
+  "preexisting_implementation_mismatch",
+  "decision_ambiguity",
+  "documentation_disagreement",
+  "unrelated_defect",
+  "suggestion",
+]);
+const FRESH_CONTEXT_DISPOSITIONS = new Set<string>([
+  "unresolved",
+  "fixed",
+  "conflict_introduced",
+  "existing_conflict_linked",
+  "followup_created",
+  "recorded",
+  "dismissed_with_reason",
+]);
+const FRESH_CONTEXT_AUTHORITY_KINDS = new Set<string>(["normative", "observed", "derived", "test", "metadata"]);
+const FRESH_CONTEXT_SCOPE_KINDS = ["page", "source", "invariant", "conflict", "test", "metadata"] as const;
+const FRESH_CONTEXT_DISPOSITION_FIELD: Partial<Record<FreshContextDisposition, "conflict_id" | "followup_ref" | "dismissal_reason">> = {
+  conflict_introduced: "conflict_id",
+  existing_conflict_linked: "conflict_id",
+  followup_created: "followup_ref",
+  dismissed_with_reason: "dismissal_reason",
+};
+
+function nonEmptyStrings(value: unknown): value is string[] {
+  return Array.isArray(value) && value.length > 0 && value.every((item) => typeof item === "string" && item.trim().length > 0);
+}
+
+/**
+ * Shape validation for version 2 findings. It proves a finding is actionable —
+ * bound to the reviewed change, attributed to a controlling authority, closable
+ * against stated criteria, and honest about where an undone finding is tracked.
+ * Whether a disposition is *allowed* for a classification is a separate rule.
+ */
+export function validateFreshContextFindings(raw: unknown, severity: Finding["severity"]): Finding[] {
+  const findings: Finding[] = [];
+  const push = (code: string, message: string) => findings.push({ code, message, severity });
+  if (raw == null) return findings;
+  if (!Array.isArray(raw)) {
+    push("fresh-context-finding-malformed", "version 2 findings must be an array of structured findings");
+    return findings;
+  }
+  const seen = new Set<string>();
+  raw.forEach((entry, index) => {
+    const label = `finding ${index + 1}`;
+    if (entry == null || typeof entry !== "object" || Array.isArray(entry)) {
+      push("fresh-context-finding-malformed", `${label} must be a mapping`);
+      return;
+    }
+    const item = entry as Record<string, unknown>;
+    const id = typeof item.id === "string" ? item.id.trim() : "";
+    if (id.length === 0) push("fresh-context-finding-malformed", `${label} requires a non-empty id`);
+    else if (seen.has(id)) push("fresh-context-finding-malformed", `duplicate finding id: ${id}`);
+    else seen.add(id);
+    const name = id.length > 0 ? id : label;
+
+    const classification = typeof item.classification === "string" ? item.classification : undefined;
+    if (classification == null || !FRESH_CONTEXT_CLASSIFICATIONS.has(classification)) push("fresh-context-finding-malformed", `${name} requires a known classification`);
+    if (typeof item.discrepancy !== "string" || item.discrepancy.trim().length === 0) push("fresh-context-finding-malformed", `${name} requires a non-empty discrepancy`);
+    if (!nonEmptyStrings(item.evidence)) push("fresh-context-finding-malformed", `${name} requires non-empty evidence entries`);
+
+    if (!nonEmptyStrings(item.scope_refs)) {
+      push("fresh-context-finding-scope-missing", `${name} requires at least one scope_refs entry binding it to the reviewed change`);
+    } else {
+      for (const ref of item.scope_refs) {
+        const kind = ref.slice(0, ref.indexOf(":"));
+        if (!FRESH_CONTEXT_SCOPE_KINDS.includes(kind as (typeof FRESH_CONTEXT_SCOPE_KINDS)[number]) || ref.slice(kind.length + 1).trim().length === 0) {
+          push("fresh-context-finding-scope-missing", `${name} scope ref must be <${FRESH_CONTEXT_SCOPE_KINDS.join("|")}>:<ref>, received ${ref}`);
+        }
+      }
+    }
+
+    const authority = item.authority as Record<string, unknown> | undefined;
+    const authorityValid = authority != null && typeof authority === "object" && !Array.isArray(authority)
+      && typeof authority.kind === "string" && FRESH_CONTEXT_AUTHORITY_KINDS.has(authority.kind)
+      && typeof authority.ref === "string" && authority.ref.trim().length > 0;
+    if (!authorityValid) push("fresh-context-finding-authority-missing", `${name} requires authority.kind and a non-empty authority.ref naming the controlling source`);
+
+    if (classification !== "suggestion" && !nonEmptyStrings(item.acceptance_criteria)) {
+      push("fresh-context-finding-acceptance-missing", `${name} requires objective acceptance_criteria; only a suggestion may omit them`);
+    }
+
+    const disposition = typeof item.disposition === "string" ? item.disposition : undefined;
+    if (disposition == null || !FRESH_CONTEXT_DISPOSITIONS.has(disposition)) {
+      push("fresh-context-finding-malformed", `${name} requires a known disposition`);
+      return;
+    }
+    const required = FRESH_CONTEXT_DISPOSITION_FIELD[disposition as FreshContextDisposition];
+    if (required == null) return;
+    const value = item[required];
+    if (typeof value !== "string" || value.trim().length === 0) push("fresh-context-disposition-incomplete", `${name} disposition ${disposition} requires ${required}`);
+    else if (required === "dismissal_reason" && value.trim().length < 20) push("fresh-context-disposition-incomplete", `${name} dismissal_reason requires at least 20 characters`);
+  });
+  return findings;
+}
+
 export function validateFreshContextAttestation(input: {
   policy: FreshContextPolicy;
   manifest: ReviewManifest;
@@ -1373,8 +1563,11 @@ export function validateFreshContextAttestation(input: {
   const sha40 = /^[0-9a-f]{40}$/;
   const sha256 = /^[0-9a-f]{64}$/;
   const hasSummary = typeof raw.summary === "string" && raw.summary.trim().length > 0;
-  const hasFindings = stringArray(raw.findings) && raw.findings.length > 0;
-  const structurallyValid = raw.version === 1
+  const version = raw.version === 1 || raw.version === 2 ? raw.version : undefined;
+  const hasFindings = version === 2
+    ? Array.isArray(raw.findings) && raw.findings.length > 0
+    : stringArray(raw.findings) && raw.findings.length > 0;
+  const structurallyValid = version != null
     && typeof raw.verdict === "string" && verdicts.has(raw.verdict)
     && typeof raw.reviewed_head_sha === "string" && sha40.test(raw.reviewed_head_sha)
     && typeof raw.merge_base_sha === "string" && sha40.test(raw.merge_base_sha)
@@ -1383,11 +1576,12 @@ export function validateFreshContextAttestation(input: {
     && Array.isArray(raw.evidence) && raw.evidence.every((item) => typeof item === "string")
     && (hasSummary || hasFindings);
   if (!structurallyValid) {
-    const findings = [finding("fresh-context-malformed", "report requires version 1, a known verdict, exact SHA/digest fields, reviewer, evidence[], and summary or findings")];
+    const findings = [finding("fresh-context-malformed", "report requires version 1 or 2, a known verdict, exact SHA/digest fields, reviewer, evidence[], and summary or findings")];
     return { ok: input.policy.mode === "advisory", mode: input.policy.mode, findings };
   }
   const report = raw as FreshContextReport;
   const findings: Finding[] = [];
+  if (report.version === 2) findings.push(...validateFreshContextFindings(report.findings, severity));
   if (report.verdict !== input.policy.requiredVerdict) findings.push(finding("fresh-context-not-pass", `required verdict is ${input.policy.requiredVerdict}, received ${report.verdict}`));
   if (input.policy.evidenceRequired && (report.evidence.length === 0 || report.evidence.some((item) => item.trim().length === 0))) findings.push(finding("fresh-context-evidence-missing", "PASS requires at least one non-empty evidence entry"));
   if (report.reviewed_head_sha !== input.manifest.head_sha) findings.push(finding("fresh-context-head-stale", `reviewed HEAD ${report.reviewed_head_sha} does not match current HEAD ${input.manifest.head_sha}`));

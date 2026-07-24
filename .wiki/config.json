@@ -3,9 +3,7 @@
   "name": "wiki-ssot",
   "highRisk": [
     ".github/workflows/checks.yml",
-    "scripts/wiki/core.ts",
-    "scripts/wiki/cli.ts",
-    "scripts/wiki/github-attestation.ts"
+    "scripts/wiki/*.ts"
   ],
   "freshContext": {
     "mode": "required",
@@ -19,9 +17,7 @@
         ".wiki/config.json",
         "AGENTS.md",
         "package.json",
-        "scripts/wiki/cli.ts",
-        "scripts/wiki/core.ts",
-        "scripts/wiki/github-attestation.ts",
+        "scripts/wiki/*.ts",
         "wiki/SCHEMA.md",
         "wiki/WORKFLOW.md",
         "wiki/operations/enforcement.md",

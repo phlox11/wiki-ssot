@@ -106,7 +106,7 @@ Commit the wiki, `.wiki/`, and generated files together.
 
 1. Before opening a PR, create the prospective structured metadata block with `fresh_context.verdict: PENDING`.
 2. Run `wiki:review-preflight --json` for the exact base and metadata. `not-required` needs no report; `review-required` emits the exact bundle.
-3. Give a required bundle plus primary-source access to a context-isolated reviewer or context-free sub-agent. Reconcile actionable findings locally and rerun preflight until `pass`.
+3. Give a required bundle plus primary-source access to a context-isolated reviewer or context-free sub-agent. Disposition every returned finding locally — fix what this candidate broke or declared, track a pre-existing mismatch or undecidable intent in an open conflict, record a named follow-up for an out-of-scope defect — and rerun preflight until `pass`. Adoption is where this matters most: a first wiki PR touches everything, so treat "already tracked" as a normal outcome instead of trying to make the whole repository correct in one change.
 4. After local PASS, open a Draft and publish its JSON report in a GitHub PR review (preferred) or comment after this marker:
 
    ```html
