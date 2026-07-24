@@ -174,8 +174,8 @@ describe("fresh-context review manifest", () => {
     const one = makeReviewBundle(createRepoView(root), loadWikiPages(createRepoView(root)).pages, impactReport(createRepoView(root), loadWikiPages(createRepoView(root)).pages, { base: "HEAD~1", metadata: metadata() }), "bundle-one", metadata());
     const two = makeReviewBundle(createRepoView(root), loadWikiPages(createRepoView(root)).pages, impactReport(createRepoView(root), loadWikiPages(createRepoView(root)).pages, { base: "HEAD~1", metadata: metadata() }), "bundle-two", metadata());
     expect(readFileSync(join(one, "manifest.json"), "utf8")).toBe(readFileSync(join(two, "manifest.json"), "utf8"));
-    expect(hashContent(readFileSync(join(one, "PROMPT.md"), "utf8"))).toBe("bda89085aacc66992c878b92f96b4e07b6a33509cf5dcb2631b54394ac1a1a44");
-    expect(hashContent(readFileSync(join(one, "REPORT.md"), "utf8"))).toBe("39294a39ccd1488e7a376def26cc725a22bd79e0142d2133085d9b096436ebca");
+    expect(hashContent(readFileSync(join(one, "PROMPT.md"), "utf8"))).toBe("f4c502a36140ea842c53a0bb7e63cbdeac233d149bb8e0d39c982f149a130207");
+    expect(hashContent(readFileSync(join(one, "REPORT.md"), "utf8"))).toBe("48ec42ffbc0a8fd4eff969bf994f55fd0140afdeb40b9aa26ed036aaa70acde7");
     expect(JSON.parse(readFileSync(join(one, "impact.json"), "utf8")).affectedInvariants).toBeUndefined();
     expect(existsSync(join(one, "REPORT.example.json"))).toBe(true);
     expect(existsSync(join(one, "REPORT.md"))).toBe(true);
@@ -772,6 +772,23 @@ describe("fresh-context structured findings", () => {
     }))).toEqual([]);
   });
 
+  test("refuses a PASS that still carries an unresolved finding", () => {
+    const manifest = manifestFor(tempReviewRepo());
+    const check = (report: FreshContextReportV2) => codes(validateFreshContextAttestation({
+      policy: policy(),
+      manifest,
+      report,
+      reviewerActor: "trusted-reviewer",
+      prAuthor: "author",
+    }));
+    const unresolved = findingFor({ classification: "candidate_regression", disposition: "unresolved", conflict_id: undefined });
+    expect(check(reportV2For(manifest, { findings: [unresolved] }))).toEqual(["fresh-context-finding-unresolved"]);
+
+    // The same finding is exactly what NEEDS_RECONCILE exists to carry.
+    expect(check(reportV2For(manifest, { verdict: "NEEDS_RECONCILE", findings: [unresolved] })))
+      .not.toContain("fresh-context-finding-unresolved");
+  });
+
   test("rejects unknown vocabulary, incomplete prose, and duplicate finding ids", () => {
     const manifest = manifestFor(tempReviewRepo());
     const check = (findings: FreshContextFinding[]) => codes(validateFreshContextAttestation({
@@ -823,9 +840,12 @@ describe("fresh-context structured findings", () => {
     expect(prompt).not.toContain("Fix every");
 
     const contract = readFileSync(join(directory, "REPORT.md"), "utf8");
-    for (const term of ["candidate_regression", "existing_conflict_linked", "scope_refs", "acceptance_criteria"]) {
+    for (const term of ["candidate_regression", "existing_conflict_linked", "scope_refs", "acceptance_criteria", "recorded"]) {
       expect(contract).toContain(term);
     }
+    // The contract must state the boundary it enforces and the one it does not.
+    expect(contract).toContain("refuses a `PASS` that carries an `unresolved` finding");
+    expect(contract).toContain("does not decide which disposition a given classification deserves");
 
     const example = JSON.parse(readFileSync(join(directory, "REPORT.findings.example.json"), "utf8")) as FreshContextReportV2;
     expect(example.version).toBe(2);

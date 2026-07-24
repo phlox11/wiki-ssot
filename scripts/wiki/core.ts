@@ -1324,7 +1324,7 @@ Report every discrepancy as a structured finding described by \`REPORT.md\`, and
 
 Return the report as:
 
-- \`PASS\` only when code, tests, metadata, wiki, and conflict lifecycle agree and every remaining finding names where it is tracked.
+- \`PASS\` only when code, tests, metadata, wiki, and conflict lifecycle agree, and every remaining finding is either fixed, named where it is tracked, dismissed with a reason, or a \`recorded\` suggestion. A \`PASS\` may not carry an \`unresolved\` finding.
 - \`NEEDS_RECONCILE\` when anything is stale, unsupported, ambiguous, or violates an invariant or conflict resolution contract and is not yet tracked anywhere.
 
 Scope is not permission to be exhaustive about the repository: a finding must bind to this candidate's diff, declared metadata, affected pages, invariants, or conflicts.
@@ -1337,7 +1337,9 @@ Version 2 findings are structured. Each entry requires:
 
 - \`id\` — unique within the report.
 - \`classification\` — \`candidate_regression\`, \`declared_contract_violation\`, \`preexisting_implementation_mismatch\`, \`decision_ambiguity\`, \`documentation_disagreement\`, \`unrelated_defect\`, or \`suggestion\`.
-- \`disposition\` — what the reviewed tree already does about it: \`unresolved\`, \`fixed\`, \`conflict_introduced\`, \`existing_conflict_linked\`, \`followup_created\`, \`recorded\`, or \`dismissed_with_reason\`. This is your observation of the candidate, never the author's claim. \`conflict_introduced\` and \`existing_conflict_linked\` require \`conflict_id\`; \`followup_created\` requires \`followup_ref\`; \`dismissed_with_reason\` requires a 20+ character \`dismissal_reason\`.
+- \`disposition\` — what the reviewed tree already does about it: \`unresolved\` (nothing yet, so the verdict cannot be \`PASS\`), \`fixed\`, \`conflict_introduced\`, \`existing_conflict_linked\`, \`followup_created\`, \`recorded\` (noted without action; only meaningful for a \`suggestion\`, which states no contract), or \`dismissed_with_reason\`. This is your observation of the candidate, never the author's claim. \`conflict_introduced\` and \`existing_conflict_linked\` require \`conflict_id\`; \`followup_created\` requires \`followup_ref\`; \`dismissed_with_reason\` requires a 20+ character \`dismissal_reason\`.
+
+The engine checks this shape and refuses a \`PASS\` that carries an \`unresolved\` finding. It does not decide which disposition a given classification deserves — that judgement is yours, and a \`candidate_regression\` you deferred instead of fixing is a review failure the engine cannot catch for you.
 - \`scope_refs\` — one or more \`page:\`, \`source:\`, \`invariant:\`, \`conflict:\`, \`test:\`, or \`metadata:\` references binding the finding to this candidate.
 - \`discrepancy\`, \`authority\` (\`{kind, ref}\` naming the controlling normative/observed/derived/test/metadata source), \`evidence\`, and \`acceptance_criteria\` (objective and closable; only a \`suggestion\` may omit them).
 
@@ -1581,7 +1583,15 @@ export function validateFreshContextAttestation(input: {
   }
   const report = raw as FreshContextReport;
   const findings: Finding[] = [];
-  if (report.version === 2) findings.push(...validateFreshContextFindings(report.findings, severity));
+  if (report.version === 2) {
+    findings.push(...validateFreshContextFindings(report.findings, severity));
+    // A PASS states that nothing is left dangling. A finding the reviewer left
+    // `unresolved` is by definition dangling, so the two cannot coexist.
+    if (report.verdict === "PASS") {
+      const unresolved = (report.findings ?? []).filter((item) => item?.disposition === "unresolved").map((item) => item.id);
+      if (unresolved.length > 0) findings.push(finding("fresh-context-finding-unresolved", `PASS cannot carry an unresolved finding: ${unresolved.join(", ")}`));
+    }
+  }
   if (report.verdict !== input.policy.requiredVerdict) findings.push(finding("fresh-context-not-pass", `required verdict is ${input.policy.requiredVerdict}, received ${report.verdict}`));
   if (input.policy.evidenceRequired && (report.evidence.length === 0 || report.evidence.some((item) => item.trim().length === 0))) findings.push(finding("fresh-context-evidence-missing", "PASS requires at least one non-empty evidence entry"));
   if (report.reviewed_head_sha !== input.manifest.head_sha) findings.push(finding("fresh-context-head-stale", `reviewed HEAD ${report.reviewed_head_sha} does not match current HEAD ${input.manifest.head_sha}`));
