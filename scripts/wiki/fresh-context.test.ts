@@ -784,6 +784,19 @@ describe("fresh-context structured findings", () => {
     const unresolved = findingFor({ classification: "candidate_regression", disposition: "unresolved", conflict_id: undefined });
     expect(check(reportV2For(manifest, { findings: [unresolved] }))).toEqual(["fresh-context-finding-unresolved"]);
 
+    // A non-array `findings` reaches this rule too; it must be rejected, not thrown on.
+    for (const malformed of ["everything agrees", 7, { id: "FC-001" }]) {
+      const result = validateFreshContextAttestation({
+        policy: policy(),
+        manifest,
+        report: reportV2For(manifest, { findings: malformed as never }),
+        reviewerActor: "trusted-reviewer",
+        prAuthor: "author",
+      });
+      expect(result.ok).toBe(false);
+      expect(codes(result)).toContain("fresh-context-finding-malformed");
+    }
+
     // The same finding is exactly what NEEDS_RECONCILE exists to carry.
     expect(check(reportV2For(manifest, { verdict: "NEEDS_RECONCILE", findings: [unresolved] })))
       .not.toContain("fresh-context-finding-unresolved");

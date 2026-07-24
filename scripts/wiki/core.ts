@@ -1588,7 +1588,8 @@ export function validateFreshContextAttestation(input: {
     // A PASS states that nothing is left dangling. A finding the reviewer left
     // `unresolved` is by definition dangling, so the two cannot coexist.
     if (report.verdict === "PASS") {
-      const unresolved = (report.findings ?? []).filter((item) => item?.disposition === "unresolved").map((item) => item.id);
+      const entries = Array.isArray(report.findings) ? report.findings : [];
+      const unresolved = entries.filter((item) => item?.disposition === "unresolved").map((item) => item.id);
       if (unresolved.length > 0) findings.push(finding("fresh-context-finding-unresolved", `PASS cannot carry an unresolved finding: ${unresolved.join(", ")}`));
     }
   }
