@@ -18,6 +18,7 @@ import {
   validateIntegrationSeams,
   validatePrMetadata,
   verifyState,
+  type ConflictSummary,
   type FreshContextFinding,
   type FreshContextPolicy,
   type FreshContextReportV1,
@@ -161,6 +162,59 @@ function codes(result: ReturnType<typeof validateFreshContextAttestation>): stri
   return result.findings.map((finding) => finding.code);
 }
 
+function conflictFor(overrides: Partial<ConflictSummary> = {}): ConflictSummary {
+  return {
+    id: "C-001",
+    pageId: "conflict/C-001",
+    path: "wiki/conflicts/open/C-001.md",
+    summary: "The current page and the implementation disagree about the exported contract.",
+    type: "implementation",
+    severity: "medium",
+    origin: "baseline",
+    openedAt: "2026-07-24",
+    state: "open",
+    owner: ["@owner"],
+    affectedPages: ["product/test"],
+    affectedInvariants: [],
+    acceptance: ["The exported contract constant matches the current page."],
+    sources: [{ path: "source.ts" }],
+    ...overrides,
+  };
+}
+
+function conflictPage(overrides: { type?: string; origin?: string } = {}): string {
+  return `---
+id: conflict/C-001
+conflict_id: C-001
+summary: The current page and the implementation disagree about the exported contract.
+kind: conflict
+status: conflicted
+authority: observed
+owners: ["@owner"]
+conflict_type: ${overrides.type ?? "implementation"}
+severity: medium
+origin: ${overrides.origin ?? "baseline"}
+opened_at: 2026-07-24
+sources:
+  - path: source.ts
+affected_pages: [product/test]
+affected_invariants: []
+resolution:
+  state: open
+  decision: null
+  acceptance:
+    - The exported contract constant matches the current page.
+---
+
+# Contract version disagreement
+`;
+}
+
+/** Adjudicates one finding against a repository that holds `conflicts`. */
+function adjudicate(finding: FreshContextFinding, conflicts: ConflictSummary[] = [conflictFor()]): string[] {
+  return validateFreshContextFindings([finding], "error", conflicts).map((item) => item.code);
+}
+
 describe("fresh-context review manifest", () => {
   test("is byte-identical and digest-identical for the same repository state", () => {
     const root = tempReviewRepo();
@@ -174,8 +228,8 @@ describe("fresh-context review manifest", () => {
     const one = makeReviewBundle(createRepoView(root), loadWikiPages(createRepoView(root)).pages, impactReport(createRepoView(root), loadWikiPages(createRepoView(root)).pages, { base: "HEAD~1", metadata: metadata() }), "bundle-one", metadata());
     const two = makeReviewBundle(createRepoView(root), loadWikiPages(createRepoView(root)).pages, impactReport(createRepoView(root), loadWikiPages(createRepoView(root)).pages, { base: "HEAD~1", metadata: metadata() }), "bundle-two", metadata());
     expect(readFileSync(join(one, "manifest.json"), "utf8")).toBe(readFileSync(join(two, "manifest.json"), "utf8"));
-    expect(hashContent(readFileSync(join(one, "PROMPT.md"), "utf8"))).toBe("f4c502a36140ea842c53a0bb7e63cbdeac233d149bb8e0d39c982f149a130207");
-    expect(hashContent(readFileSync(join(one, "REPORT.md"), "utf8"))).toBe("48ec42ffbc0a8fd4eff969bf994f55fd0140afdeb40b9aa26ed036aaa70acde7");
+    expect(hashContent(readFileSync(join(one, "PROMPT.md"), "utf8"))).toBe("6ece212e9ce5a649749f538d764cd7073b53641d57b6935f50db956a1685f4b4");
+    expect(hashContent(readFileSync(join(one, "REPORT.md"), "utf8"))).toBe("d9cbc8595813044164a7bc9e334bfcb970e3cda46ea38c346b0b3c45bd7c3678");
     expect(JSON.parse(readFileSync(join(one, "impact.json"), "utf8")).affectedInvariants).toBeUndefined();
     expect(existsSync(join(one, "REPORT.example.json"))).toBe(true);
     expect(existsSync(join(one, "REPORT.md"))).toBe(true);
@@ -856,13 +910,102 @@ describe("fresh-context structured findings", () => {
     for (const term of ["candidate_regression", "existing_conflict_linked", "scope_refs", "acceptance_criteria", "recorded"]) {
       expect(contract).toContain(term);
     }
-    // The contract must state the boundary it enforces and the one it does not.
+    // The contract must state the boundaries it enforces, including the table
+    // the reviewer's classification/disposition pair is now measured against.
     expect(contract).toContain("refuses a `PASS` that carries an `unresolved` finding");
-    expect(contract).toContain("does not decide which disposition a given classification deserves");
+    expect(contract).toContain("adjudicates which disposition may retire which classification");
+    expect(contract).toContain("`origin: baseline`");
 
     const example = JSON.parse(readFileSync(join(directory, "REPORT.findings.example.json"), "utf8")) as FreshContextReportV2;
     expect(example.version).toBe(2);
     expect(validateFreshContextFindings(example.findings, "error")).toEqual([]);
+  });
+});
+
+describe("fresh-context disposition adjudication", () => {
+  test("closes a break this candidate caused only by fixing it", () => {
+    for (const classification of ["candidate_regression", "declared_contract_violation"] as const) {
+      for (const disposition of ["conflict_introduced", "existing_conflict_linked", "followup_created", "dismissed_with_reason", "recorded"] as const) {
+        expect(adjudicate(findingFor({
+          classification,
+          disposition,
+          conflict_id: "C-001",
+          followup_ref: "issue #17",
+          dismissal_reason: "The author explained this behaviour is intentional.",
+        }))).toContain("fresh-context-disposition-not-allowed");
+      }
+      // Fixing always closes it; leaving it unresolved stays legal but blocks PASS.
+      expect(adjudicate(findingFor({ classification, disposition: "fixed", conflict_id: undefined }))).toEqual([]);
+      expect(adjudicate(findingFor({ classification, disposition: "unresolved", conflict_id: undefined }))).toEqual([]);
+    }
+  });
+
+  test("keeps `recorded` for the suggestion that asserts no contract", () => {
+    expect(adjudicate(findingFor({ classification: "preexisting_implementation_mismatch", disposition: "recorded", conflict_id: undefined })))
+      .toContain("fresh-context-disposition-not-allowed");
+    expect(adjudicate(findingFor({ classification: "unrelated_defect", disposition: "recorded", conflict_id: undefined })))
+      .toContain("fresh-context-disposition-not-allowed");
+    expect(adjudicate(findingFor({ classification: "suggestion", disposition: "recorded", conflict_id: undefined, acceptance_criteria: [] }))).toEqual([]);
+  });
+
+  test("refuses to retire an undecided product question without a conflict", () => {
+    const decision = { classification: "decision_ambiguity" } as const;
+    expect(adjudicate(findingFor({
+      ...decision,
+      disposition: "dismissed_with_reason",
+      conflict_id: undefined,
+      dismissal_reason: "The reviewer judged the ambiguity harmless.",
+    }))).toContain("fresh-context-disposition-not-allowed");
+    expect(adjudicate(findingFor({ ...decision, disposition: "followup_created", conflict_id: undefined, followup_ref: "issue #17" })))
+      .toContain("fresh-context-disposition-not-allowed");
+    expect(adjudicate(findingFor({ ...decision, disposition: "existing_conflict_linked" }), [conflictFor({ type: "decision" })])).toEqual([]);
+  });
+
+  test("rejects a conflict pointer that resolves to nothing", () => {
+    expect(adjudicate(findingFor({ conflict_id: "C-404" }))).toEqual(["fresh-context-conflict-unknown"]);
+    expect(adjudicate(findingFor(), [])).toEqual(["fresh-context-conflict-unknown"]);
+
+    // A caller with no repository view still gets the historical shape-only check.
+    expect(validateFreshContextFindings([findingFor({ conflict_id: "C-404" })], "error")).toEqual([]);
+  });
+
+  test("requires the named conflict to make the same claim the finding makes", () => {
+    expect(adjudicate(findingFor(), [conflictFor({ type: "documentation" })])).toContain("fresh-context-conflict-mismatch");
+    expect(adjudicate(findingFor(), [conflictFor({ affectedPages: ["product/other"] })])).toContain("fresh-context-conflict-mismatch");
+    expect(adjudicate(findingFor())).toEqual([]);
+  });
+
+  test("will not let a reviewer call a problem pre-existing while the conflict says the change caused it", () => {
+    // `origin` is the author's self-report and `classification` is the
+    // reviewer's; `conflict-introduced-high-risk` only bites while they agree.
+    expect(adjudicate(findingFor(), [conflictFor({ origin: "introduced_by_change" })]))
+      .toEqual(["fresh-context-conflict-mismatch"]);
+    expect(adjudicate(findingFor({ classification: "unrelated_defect" }), [conflictFor({ origin: "introduced_by_change" })]))
+      .toContain("fresh-context-conflict-mismatch");
+    expect(adjudicate(findingFor(), [conflictFor({ origin: "baseline" })])).toEqual([]);
+  });
+
+  test("resolves conflict pointers against the open conflicts at the reviewed HEAD", () => {
+    const root = tempReviewRepo();
+    put(root, "wiki/conflicts/open/C-001.md", conflictPage());
+    run(root, ["git", "add", "."]);
+    run(root, ["git", "commit", "-qm", "record a baseline mismatch"]);
+
+    const prMetadata = metadata({ touched_conflicts: [{ id: "C-001", action: "introduce" }] });
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const manifest = buildReviewManifest(view, pages, impactReport(view, pages, { base: "HEAD~2", metadata: prMetadata }), prMetadata);
+    const check = (finding: FreshContextFinding) => codes(reviewCheck(view, pages, {
+      base: "HEAD~2",
+      metadata: prMetadata,
+      report: reportV2For(manifest, { findings: [finding] }),
+      reviewerActor: "trusted-reviewer",
+      prAuthor: "author",
+    }));
+
+    expect(check(findingFor())).toEqual([]);
+    expect(check(findingFor({ conflict_id: "C-900" }))).toEqual(["fresh-context-conflict-unknown"]);
+    expect(check(findingFor({ classification: "decision_ambiguity" }))).toEqual(["fresh-context-conflict-mismatch"]);
   });
 });
 
