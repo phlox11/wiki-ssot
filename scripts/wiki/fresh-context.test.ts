@@ -14,11 +14,14 @@ import {
   parseFreshContextPolicy,
   reviewCheck,
   validateFreshContextAttestation,
+  validateFreshContextFindings,
   validateIntegrationSeams,
   validatePrMetadata,
   verifyState,
+  type FreshContextFinding,
   type FreshContextPolicy,
-  type FreshContextReport,
+  type FreshContextReportV1,
+  type FreshContextReportV2,
   type PrMetadata,
   type ReviewManifest,
 } from "./core";
@@ -120,7 +123,7 @@ function manifestFor(root: string, prMetadata = metadata()): ReviewManifest {
   return buildReviewManifest(view, pages, impact, prMetadata);
 }
 
-function reportFor(manifest: ReviewManifest, overrides: Partial<FreshContextReport> = {}): FreshContextReport {
+function reportFor(manifest: ReviewManifest, overrides: Partial<FreshContextReportV1> = {}): FreshContextReportV1 {
   return {
     version: 1,
     verdict: "PASS",
@@ -130,6 +133,26 @@ function reportFor(manifest: ReviewManifest, overrides: Partial<FreshContextRepo
     reviewer: "trusted-reviewer",
     evidence: ["Reviewed the diff, affected page, source, invariant set, and metadata independently."],
     summary: "The implementation evidence and current wiki contract agree.",
+    ...overrides,
+  };
+}
+
+function reportV2For(manifest: ReviewManifest, overrides: Partial<FreshContextReportV2> = {}): FreshContextReportV2 {
+  const { version: _version, findings: _findings, ...base } = reportFor(manifest);
+  return { ...base, version: 2, ...overrides };
+}
+
+function findingFor(overrides: Partial<FreshContextFinding> = {}): FreshContextFinding {
+  return {
+    id: "FC-001",
+    classification: "preexisting_implementation_mismatch",
+    disposition: "existing_conflict_linked",
+    conflict_id: "C-001",
+    scope_refs: ["page:product/test", "source:source.ts"],
+    discrepancy: "The current page states version two while the implementation still exports version one.",
+    authority: { kind: "normative", ref: "wiki/product/test.md" },
+    acceptance_criteria: ["The exported contract constant matches the current page."],
+    evidence: ["source.ts"],
     ...overrides,
   };
 }
@@ -151,8 +174,8 @@ describe("fresh-context review manifest", () => {
     const one = makeReviewBundle(createRepoView(root), loadWikiPages(createRepoView(root)).pages, impactReport(createRepoView(root), loadWikiPages(createRepoView(root)).pages, { base: "HEAD~1", metadata: metadata() }), "bundle-one", metadata());
     const two = makeReviewBundle(createRepoView(root), loadWikiPages(createRepoView(root)).pages, impactReport(createRepoView(root), loadWikiPages(createRepoView(root)).pages, { base: "HEAD~1", metadata: metadata() }), "bundle-two", metadata());
     expect(readFileSync(join(one, "manifest.json"), "utf8")).toBe(readFileSync(join(two, "manifest.json"), "utf8"));
-    expect(hashContent(readFileSync(join(one, "PROMPT.md"), "utf8"))).toBe("ceb19d904042371872e44a4f58aeafa4ad605fe11da1bf83b5cda68efc14f873");
-    expect(hashContent(readFileSync(join(one, "REPORT.md"), "utf8"))).toBe("9045a464dd4f630a126d339451eff96f56f4cfdc433274de7c31a2e38a4fb4d7");
+    expect(hashContent(readFileSync(join(one, "PROMPT.md"), "utf8"))).toBe("f4c502a36140ea842c53a0bb7e63cbdeac233d149bb8e0d39c982f149a130207");
+    expect(hashContent(readFileSync(join(one, "REPORT.md"), "utf8"))).toBe("48ec42ffbc0a8fd4eff969bf994f55fd0140afdeb40b9aa26ed036aaa70acde7");
     expect(JSON.parse(readFileSync(join(one, "impact.json"), "utf8")).affectedInvariants).toBeUndefined();
     expect(existsSync(join(one, "REPORT.example.json"))).toBe(true);
     expect(existsSync(join(one, "REPORT.md"))).toBe(true);
@@ -404,7 +427,7 @@ describe("fresh-context report validation", () => {
   test("rejects stale head, merge-base, and bundle digests with stable codes", () => {
     const manifest = manifestFor(tempReviewRepo());
     const mutate = (value: string) => `${value[0] === "0" ? "1" : "0"}${value.slice(1)}`;
-    const mutations: [Partial<FreshContextReport>, string][] = [
+    const mutations: [Partial<FreshContextReportV1>, string][] = [
       [{ reviewed_head_sha: mutate(manifest.head_sha) }, "fresh-context-head-stale"],
       [{ merge_base_sha: mutate(manifest.merge_base_sha) }, "fresh-context-base-stale"],
       [{ bundle_digest: mutate(manifest.bundle_digest) }, "fresh-context-bundle-stale"],
@@ -659,6 +682,187 @@ fresh_context:
     ], { cwd: process.cwd(), stdout: "pipe", stderr: "pipe" });
     expect(result.exitCode).toBe(0);
     expect(existsSync(preloadMarker)).toBe(false);
+  });
+});
+
+describe("fresh-context structured findings", () => {
+  test("accepts a version 2 report whose findings are bound, attributed, and closable", () => {
+    const manifest = manifestFor(tempReviewRepo());
+    const result = validateFreshContextAttestation({
+      policy: policy(),
+      manifest,
+      report: reportV2For(manifest, { findings: [findingFor()] }),
+      reviewerActor: "trusted-reviewer",
+      prAuthor: "author",
+    });
+    expect(result).toMatchObject({ ok: true, findings: [] });
+  });
+
+  test("keeps accepting an in-flight version 1 report with free-text findings", () => {
+    const manifest = manifestFor(tempReviewRepo());
+    const result = validateFreshContextAttestation({
+      policy: policy(),
+      manifest,
+      report: reportFor(manifest, { summary: undefined, findings: ["The affected page and its source agree."] }),
+      reviewerActor: "trusted-reviewer",
+      prAuthor: "author",
+    });
+    expect(result).toMatchObject({ ok: true, findings: [] });
+  });
+
+  test("rejects a finding that is not bound to the reviewed change", () => {
+    const manifest = manifestFor(tempReviewRepo());
+    const check = (finding: FreshContextFinding) => codes(validateFreshContextAttestation({
+      policy: policy(),
+      manifest,
+      report: reportV2For(manifest, { findings: [finding] }),
+      reviewerActor: "trusted-reviewer",
+      prAuthor: "author",
+    }));
+    expect(check(findingFor({ scope_refs: [] }))).toContain("fresh-context-finding-scope-missing");
+    expect(check(findingFor({ scope_refs: ["source.ts"] }))).toContain("fresh-context-finding-scope-missing");
+    expect(check(findingFor({ scope_refs: ["page:"] }))).toContain("fresh-context-finding-scope-missing");
+    expect(check(findingFor({ scope_refs: ["everything:source.ts"] }))).toContain("fresh-context-finding-scope-missing");
+  });
+
+  test("requires a controlling authority and objective acceptance criteria", () => {
+    const manifest = manifestFor(tempReviewRepo());
+    const check = (finding: FreshContextFinding) => codes(validateFreshContextAttestation({
+      policy: policy(),
+      manifest,
+      report: reportV2For(manifest, { findings: [finding] }),
+      reviewerActor: "trusted-reviewer",
+      prAuthor: "author",
+    }));
+    expect(check(findingFor({ authority: undefined as never }))).toContain("fresh-context-finding-authority-missing");
+    expect(check(findingFor({ authority: { kind: "hunch" as never, ref: "wiki/product/test.md" } }))).toContain("fresh-context-finding-authority-missing");
+    expect(check(findingFor({ authority: { kind: "normative", ref: "  " } }))).toContain("fresh-context-finding-authority-missing");
+    expect(check(findingFor({ acceptance_criteria: [] }))).toContain("fresh-context-finding-acceptance-missing");
+
+    // A quality suggestion states no contract, so it closes without criteria.
+    expect(check(findingFor({
+      classification: "suggestion",
+      disposition: "recorded",
+      conflict_id: undefined,
+      acceptance_criteria: [],
+    }))).toEqual([]);
+  });
+
+  test("requires every pointing disposition to name where the finding is tracked", () => {
+    const manifest = manifestFor(tempReviewRepo());
+    const check = (finding: FreshContextFinding) => codes(validateFreshContextAttestation({
+      policy: policy(),
+      manifest,
+      report: reportV2For(manifest, { findings: [finding] }),
+      reviewerActor: "trusted-reviewer",
+      prAuthor: "author",
+    }));
+    expect(check(findingFor({ conflict_id: undefined }))).toContain("fresh-context-disposition-incomplete");
+    expect(check(findingFor({ disposition: "conflict_introduced", conflict_id: "  " }))).toContain("fresh-context-disposition-incomplete");
+    expect(check(findingFor({ disposition: "followup_created", conflict_id: undefined }))).toContain("fresh-context-disposition-incomplete");
+    expect(check(findingFor({ disposition: "dismissed_with_reason", conflict_id: undefined, dismissal_reason: "too small" }))).toContain("fresh-context-disposition-incomplete");
+
+    expect(check(findingFor({ disposition: "followup_created", conflict_id: undefined, followup_ref: "issue #17" }))).toEqual([]);
+    expect(check(findingFor({
+      classification: "suggestion",
+      disposition: "dismissed_with_reason",
+      conflict_id: undefined,
+      acceptance_criteria: [],
+      dismissal_reason: "The suggested rename conflicts with the published CLI contract.",
+    }))).toEqual([]);
+  });
+
+  test("refuses a PASS that still carries an unresolved finding", () => {
+    const manifest = manifestFor(tempReviewRepo());
+    const check = (report: FreshContextReportV2) => codes(validateFreshContextAttestation({
+      policy: policy(),
+      manifest,
+      report,
+      reviewerActor: "trusted-reviewer",
+      prAuthor: "author",
+    }));
+    const unresolved = findingFor({ classification: "candidate_regression", disposition: "unresolved", conflict_id: undefined });
+    expect(check(reportV2For(manifest, { findings: [unresolved] }))).toEqual(["fresh-context-finding-unresolved"]);
+
+    // A non-array `findings` reaches this rule too; it must be rejected, not thrown on.
+    for (const malformed of ["everything agrees", 7, { id: "FC-001" }]) {
+      const result = validateFreshContextAttestation({
+        policy: policy(),
+        manifest,
+        report: reportV2For(manifest, { findings: malformed as never }),
+        reviewerActor: "trusted-reviewer",
+        prAuthor: "author",
+      });
+      expect(result.ok).toBe(false);
+      expect(codes(result)).toContain("fresh-context-finding-malformed");
+    }
+
+    // The same finding is exactly what NEEDS_RECONCILE exists to carry.
+    expect(check(reportV2For(manifest, { verdict: "NEEDS_RECONCILE", findings: [unresolved] })))
+      .not.toContain("fresh-context-finding-unresolved");
+  });
+
+  test("rejects unknown vocabulary, incomplete prose, and duplicate finding ids", () => {
+    const manifest = manifestFor(tempReviewRepo());
+    const check = (findings: FreshContextFinding[]) => codes(validateFreshContextAttestation({
+      policy: policy(),
+      manifest,
+      report: reportV2For(manifest, { findings }),
+      reviewerActor: "trusted-reviewer",
+      prAuthor: "author",
+    }));
+    expect(check([findingFor({ classification: "nitpick" as never })])).toContain("fresh-context-finding-malformed");
+    expect(check([findingFor({ disposition: "waived" as never })])).toContain("fresh-context-finding-malformed");
+    expect(check([findingFor({ id: " " })])).toContain("fresh-context-finding-malformed");
+    expect(check([findingFor({ discrepancy: "" })])).toContain("fresh-context-finding-malformed");
+    expect(check([findingFor({ evidence: [] })])).toContain("fresh-context-finding-malformed");
+    expect(check([findingFor(), findingFor({ discrepancy: "A second, different discrepancy reported under a reused id." })])).toContain("fresh-context-finding-malformed");
+    expect(check(["FC-001" as never])).toContain("fresh-context-finding-malformed");
+  });
+
+  test("reports every structural defect of a finding in one pass", () => {
+    const manifest = manifestFor(tempReviewRepo());
+    const result = validateFreshContextAttestation({
+      policy: policy(),
+      manifest,
+      report: reportV2For(manifest, {
+        findings: [findingFor({ scope_refs: [], acceptance_criteria: [], authority: undefined as never, conflict_id: undefined })],
+      }),
+      reviewerActor: "trusted-reviewer",
+      prAuthor: "author",
+    });
+    expect(result.ok).toBe(false);
+    expect(codes(result).sort()).toEqual([
+      "fresh-context-disposition-incomplete",
+      "fresh-context-finding-acceptance-missing",
+      "fresh-context-finding-authority-missing",
+      "fresh-context-finding-scope-missing",
+    ]);
+  });
+
+  test("teaches the reviewer to disposition findings rather than fix everything", () => {
+    const root = tempReviewRepo();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const directory = makeReviewBundle(view, pages, impactReport(view, pages, { base: "HEAD~1", metadata: metadata() }), undefined, metadata());
+    temporary.push(directory);
+
+    const prompt = readFileSync(join(directory, "PROMPT.md"), "utf8");
+    expect(prompt).toContain("disposition");
+    expect(prompt).toContain("follow-up");
+    expect(prompt).not.toContain("Fix every");
+
+    const contract = readFileSync(join(directory, "REPORT.md"), "utf8");
+    for (const term of ["candidate_regression", "existing_conflict_linked", "scope_refs", "acceptance_criteria", "recorded"]) {
+      expect(contract).toContain(term);
+    }
+    // The contract must state the boundary it enforces and the one it does not.
+    expect(contract).toContain("refuses a `PASS` that carries an `unresolved` finding");
+    expect(contract).toContain("does not decide which disposition a given classification deserves");
+
+    const example = JSON.parse(readFileSync(join(directory, "REPORT.findings.example.json"), "utf8")) as FreshContextReportV2;
+    expect(example.version).toBe(2);
+    expect(validateFreshContextFindings(example.findings, "error")).toEqual([]);
   });
 });
 

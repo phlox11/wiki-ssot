@@ -383,7 +383,7 @@ async function main() {
         directory,
         manifest: result.manifest,
         requirementReasons: result.requirementReasons,
-        nextAction: "Give this bundle to a context-isolated reviewer. Fix every NEEDS_RECONCILE discrepancy before opening a PR, then rerun review-preflight with the new bundle/report.",
+        nextAction: "Give this bundle to a context-isolated reviewer. Disposition every returned finding — fix it here, track it in an open conflict, or record a named follow-up — then rerun review-preflight with the new bundle/report. Do not invent a product decision to close a finding.",
       };
       emit(json ? output : `preflight review required\nbundle: ${directory}`, json);
       return;
@@ -412,7 +412,7 @@ async function main() {
       findings: result.findings,
       manifest: result.manifest,
       nextAction: status === "needs-reconcile"
-        ? "Fix the report's concrete discrepancies and acceptance criteria, rerun deterministic checks, then generate a new bundle for the new HEAD."
+        ? "Disposition each finding against its acceptance criteria: fix what this candidate broke or declared, open or link a conflict for a pre-existing mismatch or undecided intent, and record a follow-up for an out-of-scope defect. Rerun deterministic checks, then generate a new bundle for the new HEAD."
         : "Replace the malformed, stale, or untrusted report with one produced from the current bundle.",
     };
     if (json) emit(output, true);
