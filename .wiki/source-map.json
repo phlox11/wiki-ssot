@@ -6,6 +6,9 @@
     ".github/workflows/checks.yml": [
       "operations/enforcement"
     ],
+    ".github/workflows/kit.yml": [
+      "operations/enforcement"
+    ],
     ".github/workflows/wiki-audit.yml": [
       "operations/enforcement"
     ],

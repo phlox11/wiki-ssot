@@ -1,0 +1,26 @@
+name: kit
+
+# Deliberately separate from checks.yml: that workflow is part of the kit payload
+# and runs in every adopting repository, where a kit/ directory does not exist.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  wiki-kit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: HUSKY=0 bun install --frozen-lockfile
+      - run: bun run wiki:kit -- --check

@@ -9,25 +9,24 @@ Goal: stand up an enforced SSOT wiki over a codebase that already exists, then k
 
 ## 1. Copy the kit in
 
-From this repository, copy into the root of yours:
-
-```
-scripts/wiki/          → scripts/wiki/
-.wiki/config.json      → .wiki/config.json
-.wiki/coverage.json    → .wiki/coverage.json
-.wiki/state.json       → .wiki/state.json      (start it as {"pages":{},"version":1})
-.husky/                → .husky/
-.github/workflows/     → .github/workflows/     (merge into your CI if you already have one)
-.github/pull_request_template.md
-AGENTS.md, CLAUDE.md
-wiki/SCHEMA.md, wiki/WORKFLOW.md, wiki/README.md, wiki/changelog.md
-```
-
-Add the `wiki:*`, `typecheck`, `test`, and `prepare` scripts and the `devDependencies` from this repo's `package.json` to yours, then:
+The distribution lives in [`kit/`](../kit/README.md). From a checkout of this repository:
 
 ```sh
+bun scripts/wiki/kit-sync.ts --into /path/to/your-repo --dry-run   # preview
+bun scripts/wiki/kit-sync.ts --into /path/to/your-repo
+```
+
+Then merge the scripts and dev dependencies into your `package.json` and install:
+
+```sh
+cd /path/to/your-repo
+KIT=/path/to/wiki-ssot/kit bun -e 'const pkg = await Bun.file("package.json").json().catch(() => ({})); const add = await Bun.file(`${process.env.KIT}/package.kit.json`).json(); await Bun.write("package.json", JSON.stringify({ ...pkg, ...add, scripts: { ...pkg.scripts, ...add.scripts }, devDependencies: { ...pkg.devDependencies, ...add.devDependencies } }, null, 2) + "\n")'
 bun install
 ```
+
+If your repository already has `.github/workflows/`, merge the copied jobs into your existing CI rather than keeping two workflows that install twice.
+
+The kit ships only the toolkit. This repository's own wiki pages, conflicts, and proposals are instance content and are never part of it, so there is nothing to delete afterwards. [`kit/README.md`](../kit/README.md) documents the full file list, the kit-owned/seed split, and how to take a later upgrade without losing your configuration.
 
 ## 2. Configure the policy and project seams
 

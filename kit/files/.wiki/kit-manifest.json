@@ -1,0 +1,95 @@
+{
+  "digest": "9e6edd79c53125224ecacddbbafd26a9b99cc3110bc083402c2a81744f0a569b",
+  "files": {
+    ".github/pull_request_template.md": {
+      "ownership": "kit",
+      "sha256": "fd1758cf285f4e6c26b004b6c6e182973506677c4ceb3854a7ee624603076244"
+    },
+    ".github/workflows/checks.yml": {
+      "ownership": "kit",
+      "sha256": "53d46f240a5f4ee78327cae0d1e221ded01bd7b36b714c16121dd1256b1d92d5"
+    },
+    ".github/workflows/wiki-audit.yml": {
+      "ownership": "kit",
+      "sha256": "33a3bf1dcf6482a293f137a4cfc332eb8804639bd3b8d950a9244fa6fdda97f4"
+    },
+    ".husky/pre-commit": {
+      "ownership": "kit",
+      "sha256": "58a0e92eab02374a09bea44bb6e18f9b088e5e5180203b0b1cb8c309740ac10b"
+    },
+    ".husky/pre-push": {
+      "ownership": "kit",
+      "sha256": "21b38e361c58ffc03baec92b4826f3d5bb6d122b0862fce1af0cb12acdfc09d3"
+    },
+    ".wiki/config.json": {
+      "ownership": "seed",
+      "sha256": "2e0e10b2f7fe2b84aa691432693768cf3d879cc0156e1d23b6b96c52caa869c1"
+    },
+    ".wiki/coverage.json": {
+      "ownership": "seed",
+      "sha256": "a5c460f39b33031b7c466ba7535498d24c451419eff1739d773379242077cdc6"
+    },
+    ".wiki/state.json": {
+      "ownership": "seed",
+      "sha256": "3f9f07b25b1a2dfb59bbaa631f522b58a07301f499680939b02d50500c6cc721"
+    },
+    "AGENTS.md": {
+      "ownership": "kit",
+      "sha256": "4b4eb1fb1165227ba9fd10000a9dc7b14342b6ab8ac787137ffde42271282a81"
+    },
+    "CLAUDE.md": {
+      "ownership": "seed",
+      "sha256": "3ca00cefe7f0f391fe2ad6bb078ee3064aa82f8a5ae1ec02099dfa8f4862dad9"
+    },
+    "scripts/wiki/cli.ts": {
+      "ownership": "kit",
+      "sha256": "66ff66868c150426a913579e695a60b8e54126da1821aa86dc9b615986acb738"
+    },
+    "scripts/wiki/core.ts": {
+      "ownership": "kit",
+      "sha256": "b13057d2e825fc008d838a046d86c99050d1cc3c581a5e3c278dcd4889ae5dbb"
+    },
+    "scripts/wiki/fresh-context.test.ts": {
+      "ownership": "kit",
+      "sha256": "1f09fd510b1296019eb21fc7817b654e6bfdfa3e6a968384f105cea40d7f83fd"
+    },
+    "scripts/wiki/github-attestation.ts": {
+      "ownership": "kit",
+      "sha256": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c"
+    },
+    "scripts/wiki/inventories.example.ts": {
+      "ownership": "kit",
+      "sha256": "3c173f3382105416947b30020f8004b02e5667acdcff47c2057757207daa9447"
+    },
+    "scripts/wiki/inventories.ts": {
+      "ownership": "seed",
+      "sha256": "f8a608159394b661149eb69236a4fef8ab5c90be5acafb5fa14fedff3e74101f"
+    },
+    "scripts/wiki/wiki.test.ts": {
+      "ownership": "kit",
+      "sha256": "f2cb47a81f94507388794a6ff1227cf4ff602af044dfa14b2f273bfa9dbd45bf"
+    },
+    "tsconfig.json": {
+      "ownership": "seed",
+      "sha256": "8c3d96cbfc0a838c87344481ed0e0da012fe83612883206702eef8dd9d71e07e"
+    },
+    "wiki/changelog.md": {
+      "ownership": "seed",
+      "sha256": "00f49977b9e42e717d9654d711f45bcc82d049e2e55a49a7a420991e6edcf7cc"
+    },
+    "wiki/README.md": {
+      "ownership": "kit",
+      "sha256": "1e23f13ef0d117990dedb28dd00521540d55156c2fb4f492ff0e9407f65d4082"
+    },
+    "wiki/SCHEMA.md": {
+      "ownership": "kit",
+      "sha256": "a316d480641b90a11b5192151e09be6d976a13debd2144a14c7167476fb21a22"
+    },
+    "wiki/WORKFLOW.md": {
+      "ownership": "kit",
+      "sha256": "dab003a85c2ad6c91fd5aca443b47dd117211f8389c5e3b7ba344d7cb68f5f40"
+    }
+  },
+  "kit": "wiki-ssot",
+  "version": 1
+}

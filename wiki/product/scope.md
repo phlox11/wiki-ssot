@@ -24,6 +24,7 @@ wiki-ssot turns a repository's development knowledge into a small set of `status
 - Explicit solo and team trust policies: separate review context is always procedural, while distinct GitHub actors are optional and machine-enforced only when configured.
 - Enforcement rails: an agent entrypoint (`AGENTS.md`), local git hooks, CI jobs, and machine-checked downstream integration seams.
 - Two adoption paths: bootstrap a wiki into an existing repository, or grow one from an empty repository.
+- A generated `kit/` distribution and a sync tool, so another repository can adopt the toolkit by copy and later take an upgrade without losing its own configuration. This repository's own wiki pages, conflicts, and proposals are instance content and are not part of it.
 
 ## Not in scope
 

@@ -2,12 +2,14 @@
   "pages": {
     "architecture/engine": {
       "sources": {
-        "scripts/wiki/cli.ts": "92bf9ae194f4c8b3a02ddc1d75e54154837075b41418d709b21838955562a111",
-        "scripts/wiki/core.ts": "1cd0374a81f409e1a1368eb3981c413fd83304d39591cab80d145b67282d60c3",
+        "scripts/wiki/cli.ts": "66ff66868c150426a913579e695a60b8e54126da1821aa86dc9b615986acb738",
+        "scripts/wiki/core.ts": "b13057d2e825fc008d838a046d86c99050d1cc3c581a5e3c278dcd4889ae5dbb",
         "scripts/wiki/fresh-context.test.ts": "1f09fd510b1296019eb21fc7817b654e6bfdfa3e6a968384f105cea40d7f83fd",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c",
         "scripts/wiki/inventories.example.ts": "3c173f3382105416947b30020f8004b02e5667acdcff47c2057757207daa9447",
         "scripts/wiki/inventories.ts": "f8a608159394b661149eb69236a4fef8ab5c90be5acafb5fa14fedff3e74101f",
+        "scripts/wiki/kit-sync.ts": "458992d6622a4298da6f591d422977dded913258cff2a600be3e3163830da6c8",
+        "scripts/wiki/kit.test.ts": "6f3894b233892ced64b2d4ce5c434f1736037f4515e860d80ea8e37fbcbb26b6",
         "scripts/wiki/wiki.test.ts": "f2cb47a81f94507388794a6ff1227cf4ff602af044dfa14b2f273bfa9dbd45bf"
       },
       "verification": {
@@ -18,14 +20,15 @@
       "sources": {
         ".github/pull_request_template.md": "fd1758cf285f4e6c26b004b6c6e182973506677c4ceb3854a7ee624603076244",
         ".github/workflows/checks.yml": "53d46f240a5f4ee78327cae0d1e221ded01bd7b36b714c16121dd1256b1d92d5",
+        ".github/workflows/kit.yml": "d617a2d1e1c666b628afd68e2ed12e5e31a2868f1d2790a891da9f5adc7ec216",
         ".github/workflows/wiki-audit.yml": "33a3bf1dcf6482a293f137a4cfc332eb8804639bd3b8d950a9244fa6fdda97f4",
         ".husky/pre-commit": "58a0e92eab02374a09bea44bb6e18f9b088e5e5180203b0b1cb8c309740ac10b",
         ".husky/pre-push": "21b38e361c58ffc03baec92b4826f3d5bb6d122b0862fce1af0cb12acdfc09d3",
         ".wiki/config.json": "d7d95a7b08ef9499d2035da809103f70ac45b448a3979ba9bc24b83c95218e66",
-        "AGENTS.md": "8379acd14eb9b40ac9c998ec4ab9b4f9f388954247e5891ab932f07bf433d701",
-        "package.json": "77610bd26e1060ac01550e9eeeed17930b88bdf7bc960a21f3274da2233f2c2b",
-        "scripts/wiki/cli.ts": "92bf9ae194f4c8b3a02ddc1d75e54154837075b41418d709b21838955562a111",
-        "scripts/wiki/core.ts": "1cd0374a81f409e1a1368eb3981c413fd83304d39591cab80d145b67282d60c3",
+        "AGENTS.md": "b099a244d4d94a6387dc680df778072c5b250e836f46e39994aac5263fb25381",
+        "package.json": "bcc223d180da7327644072d47c370bb818e26410236ec82ec36bd6b4eb0ea10e",
+        "scripts/wiki/cli.ts": "66ff66868c150426a913579e695a60b8e54126da1821aa86dc9b615986acb738",
+        "scripts/wiki/core.ts": "b13057d2e825fc008d838a046d86c99050d1cc3c581a5e3c278dcd4889ae5dbb",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c"
       },
       "verification": {
@@ -34,20 +37,20 @@
     },
     "product/invariants": {
       "sources": {
-        "scripts/wiki/core.ts": "1cd0374a81f409e1a1368eb3981c413fd83304d39591cab80d145b67282d60c3"
+        "scripts/wiki/core.ts": "b13057d2e825fc008d838a046d86c99050d1cc3c581a5e3c278dcd4889ae5dbb"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "kit output is generated, which the stated non-generated implementation-source scope already excludes"
       }
     },
     "product/scope": {
       "sources": {
         "docs/design.md": "39a3d8459c363d855589df0c041a77731a3768c1ac3dedc2c3631205dacc78ae",
-        "README.md": "0948c018c6534c0818caab0623704b4f5e72fcd0a6a6661cd38c5ecc7f9999ad"
+        "README.md": "3dc3612912bf51c019684dc2eefe7d980d7073a20d4337947ed27943a60ff134"
       },
       "verification": {
-        "kind": "unchanged",
-        "reason": "Design prose now describes finding disposition; the product scope contract itself is unchanged."
+        "kind": "updated"
       }
     }
   },

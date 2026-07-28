@@ -14,6 +14,7 @@
     "wiki:inventory": "bun scripts/wiki/cli.ts inventory",
     "wiki:index": "bun scripts/wiki/cli.ts index",
     "wiki:generated": "bun scripts/wiki/cli.ts generated",
+    "wiki:kit": "bun scripts/wiki/cli.ts kit",
     "wiki:lint": "bun scripts/wiki/cli.ts lint",
     "wiki:search": "bun scripts/wiki/cli.ts search",
     "wiki:conflicts": "bun scripts/wiki/cli.ts conflicts",

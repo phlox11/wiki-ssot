@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+bun run wiki:lint --staged

@@ -29,10 +29,18 @@ Full rationale: [docs/design.md](docs/design.md).
 
 ## Get started
 
+The distribution is [`kit/`](kit/README.md) — a generated tree containing the toolkit and nothing about this repository. Copy it into another repository, and take later upgrades, with:
+
+```sh
+bun scripts/wiki/kit-sync.ts --into /path/to/your-repo
+```
+
+It splits kit-owned files (replaced on upgrade) from seed files (yours after the first copy), and refuses to overwrite a file you edited. [`kit/README.md`](kit/README.md) has the full procedure.
+
 Two paths, each a step-by-step playbook with copy-paste commands:
 
 - **Existing repository** → [docs/adopt-existing-repo.md](docs/adopt-existing-repo.md). Drop the kit in, bootstrap pages from the code you already have, then maintain.
-- **New repository** → [docs/adopt-new-repo.md](docs/adopt-new-repo.md). Start from this template and grow the wiki as you build.
+- **New repository** → [docs/adopt-new-repo.md](docs/adopt-new-repo.md). Start from the kit and grow the wiki as you build.
 
 Full command reference: [docs/commands.md](docs/commands.md).
 
