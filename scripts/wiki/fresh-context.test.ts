@@ -228,7 +228,7 @@ describe("fresh-context review manifest", () => {
     const one = makeReviewBundle(createRepoView(root), loadWikiPages(createRepoView(root)).pages, impactReport(createRepoView(root), loadWikiPages(createRepoView(root)).pages, { base: "HEAD~1", metadata: metadata() }), "bundle-one", metadata());
     const two = makeReviewBundle(createRepoView(root), loadWikiPages(createRepoView(root)).pages, impactReport(createRepoView(root), loadWikiPages(createRepoView(root)).pages, { base: "HEAD~1", metadata: metadata() }), "bundle-two", metadata());
     expect(readFileSync(join(one, "manifest.json"), "utf8")).toBe(readFileSync(join(two, "manifest.json"), "utf8"));
-    expect(hashContent(readFileSync(join(one, "PROMPT.md"), "utf8"))).toBe("8fceea8ec3c44e5518b90a7038e380d629f1e8cb87ac07762fc4e187f2eb4cf5");
+    expect(hashContent(readFileSync(join(one, "PROMPT.md"), "utf8"))).toBe("48ab078132b552b2622a9ca63e094623cacd990e556b6f4a93eb610668d7d109");
     expect(hashContent(readFileSync(join(one, "REPORT.md"), "utf8"))).toBe("67e53b0950c120a27d7c6ae2bb9312094216f04eaf7df7f42f983e214dd7767e");
     expect(JSON.parse(readFileSync(join(one, "impact.json"), "utf8")).affectedInvariants).toBeUndefined();
     expect(existsSync(join(one, "REPORT.example.json"))).toBe(true);

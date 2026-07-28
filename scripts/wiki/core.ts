@@ -1322,7 +1322,7 @@ Report every discrepancy as a structured finding described by \`REPORT.md\`, and
 - A mismatch that predates the candidate, an undecidable product intent, or a documentation disagreement may instead be tracked by an open conflict this candidate introduces or already links, with acceptance criteria.
 - A real defect outside this change's semantic scope belongs in a named follow-up, not in this diff.
 
-Classify by what you actually found. \`REPORT.md\` lists which dispositions each classification admits, and the engine rejects a pair outside that table, so a classification chosen to widen your deferral options fails the report rather than passing it.
+Classify by what you actually found. \`REPORT.md\` lists which dispositions each classification admits, and the engine rejects a pair outside that table. It cannot tell whether the classification itself is honest: a regression relabelled as pre-existing buys deferrals the engine will accept. That judgement is yours alone, which makes it the one that matters.
 
 Return the report as:
 
