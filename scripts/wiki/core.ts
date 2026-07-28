@@ -1318,7 +1318,7 @@ Read \`manifest.json\`, \`impact.json\`, \`pr-metadata.json\`, \`diff.patch\`, \
 
 Report every discrepancy as a structured finding described by \`REPORT.md\`, and decide its disposition instead of assuming this candidate must fix it:
 
-- A problem this candidate introduced, or a contract the PR itself declares, has to be fixed here. The engine enforces this: those classifications accept no deferring disposition.
+- A problem this candidate introduced, or a contract the PR itself declares, has to be fixed here. The engine enforces this: those classifications accept no deferring disposition, only \`fixed\` or \`unresolved\`.
 - A mismatch that predates the candidate, an undecidable product intent, or a documentation disagreement may instead be tracked by an open conflict this candidate introduces or already links, with acceptance criteria.
 - A real defect outside this change's semantic scope belongs in a named follow-up, not in this diff.
 
@@ -1555,13 +1555,11 @@ function nonEmptyStrings(value: unknown): value is string[] {
  * bound to the reviewed change, attributed to a controlling authority, closable
  * against stated criteria, and honest about where an undone finding is tracked.
  *
- * When `conflicts` is supplied it also adjudicates the disposition: whether the
- * classification may be retired that way at all, and — for a disposition that
- * points at a conflict — whether that conflict actually exists and makes the
- * same claim the finding does. Omitting `conflicts` keeps the historical
- * shape-only behaviour for callers that hold no repository view; `reviewCheck`
- * always supplies the open conflicts at HEAD, so an empty array correctly means
- * every conflict pointer is dangling.
+ * It also adjudicates the disposition. The classification-to-disposition table
+ * always applies, because it needs nothing beyond the finding itself. Resolving
+ * a conflict pointer does need a repository view, so that half runs only when
+ * `conflicts` is supplied. `reviewCheck` always supplies the open conflicts at
+ * HEAD, so an empty array correctly means every conflict pointer is dangling.
  */
 export function validateFreshContextFindings(
   raw: unknown,
@@ -1669,10 +1667,16 @@ export function validateFreshContextFindings(
       );
     }
 
+    // Every conflict declares at least one affected current page, so a finding
+    // that claims to be tracked by one has to name a page as well. Without this
+    // a `source:`-only scope could be retired by any open conflict of the
+    // implied type, about any subject.
     const scopedPages = nonEmptyStrings(item.scope_refs)
       ? item.scope_refs.filter((ref) => ref.startsWith("page:")).map((ref) => ref.slice("page:".length).trim()).filter((ref) => ref.length > 0)
       : [];
-    if (scopedPages.length > 0 && conflict.affectedPages.length > 0 && !scopedPages.some((id) => conflict.affectedPages.includes(id))) {
+    if (scopedPages.length === 0) {
+      push("fresh-context-conflict-mismatch", `${name} names ${conflict.id} but declares no page: scope ref to share with it`);
+    } else if (!scopedPages.some((id) => conflict.affectedPages.includes(id))) {
       push(
         "fresh-context-conflict-mismatch",
         `${name} scopes pages ${scopedPages.join(", ")} but ${conflict.id} declares affected pages ${conflict.affectedPages.join(", ")}`,

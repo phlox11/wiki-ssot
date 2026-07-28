@@ -228,7 +228,7 @@ describe("fresh-context review manifest", () => {
     const one = makeReviewBundle(createRepoView(root), loadWikiPages(createRepoView(root)).pages, impactReport(createRepoView(root), loadWikiPages(createRepoView(root)).pages, { base: "HEAD~1", metadata: metadata() }), "bundle-one", metadata());
     const two = makeReviewBundle(createRepoView(root), loadWikiPages(createRepoView(root)).pages, impactReport(createRepoView(root), loadWikiPages(createRepoView(root)).pages, { base: "HEAD~1", metadata: metadata() }), "bundle-two", metadata());
     expect(readFileSync(join(one, "manifest.json"), "utf8")).toBe(readFileSync(join(two, "manifest.json"), "utf8"));
-    expect(hashContent(readFileSync(join(one, "PROMPT.md"), "utf8"))).toBe("6ece212e9ce5a649749f538d764cd7073b53641d57b6935f50db956a1685f4b4");
+    expect(hashContent(readFileSync(join(one, "PROMPT.md"), "utf8"))).toBe("8fceea8ec3c44e5518b90a7038e380d629f1e8cb87ac07762fc4e187f2eb4cf5");
     expect(hashContent(readFileSync(join(one, "REPORT.md"), "utf8"))).toBe("d9cbc8595813044164a7bc9e334bfcb970e3cda46ea38c346b0b3c45bd7c3678");
     expect(JSON.parse(readFileSync(join(one, "impact.json"), "utf8")).affectedInvariants).toBeUndefined();
     expect(existsSync(join(one, "REPORT.example.json"))).toBe(true);
@@ -965,14 +965,40 @@ describe("fresh-context disposition adjudication", () => {
     expect(adjudicate(findingFor({ conflict_id: "C-404" }))).toEqual(["fresh-context-conflict-unknown"]);
     expect(adjudicate(findingFor(), [])).toEqual(["fresh-context-conflict-unknown"]);
 
-    // A caller with no repository view still gets the historical shape-only check.
+    // Without a repository view the pointer cannot be resolved, so it is not judged.
     expect(validateFreshContextFindings([findingFor({ conflict_id: "C-404" })], "error")).toEqual([]);
+  });
+
+  test("adjudicates the table with or without a repository view", () => {
+    // The table needs nothing but the finding, so a caller holding no conflict
+    // list still cannot defer a break this candidate caused.
+    const deferred = findingFor({
+      classification: "candidate_regression",
+      disposition: "dismissed_with_reason",
+      conflict_id: undefined,
+      dismissal_reason: "The author explained this behaviour is intentional.",
+    });
+    expect(validateFreshContextFindings([deferred], "error").map((item) => item.code)).toEqual(["fresh-context-disposition-not-allowed"]);
+    expect(adjudicate(deferred)).toEqual(["fresh-context-disposition-not-allowed"]);
   });
 
   test("requires the named conflict to make the same claim the finding makes", () => {
     expect(adjudicate(findingFor(), [conflictFor({ type: "documentation" })])).toContain("fresh-context-conflict-mismatch");
     expect(adjudicate(findingFor(), [conflictFor({ affectedPages: ["product/other"] })])).toContain("fresh-context-conflict-mismatch");
     expect(adjudicate(findingFor())).toEqual([]);
+  });
+
+  test("will not let a finding that names no page be tracked by a conflict", () => {
+    // Every conflict declares an affected page, so a `source:`-only finding
+    // would otherwise be retired by any open conflict of the implied type.
+    expect(adjudicate(findingFor({ scope_refs: ["source:source.ts"] }))).toEqual(["fresh-context-conflict-mismatch"]);
+    expect(adjudicate(findingFor({ scope_refs: ["source:source.ts", "test:scripts/wiki/wiki.test.ts"] })))
+      .toEqual(["fresh-context-conflict-mismatch"]);
+
+    // A page-scoped finding that overlaps the conflict is still fine, and a
+    // non-pointing disposition never needed a page ref at all.
+    expect(adjudicate(findingFor({ scope_refs: ["page:product/test", "source:source.ts"] }))).toEqual([]);
+    expect(adjudicate(findingFor({ scope_refs: ["source:source.ts"], disposition: "followup_created", conflict_id: undefined, followup_ref: "issue #17" }))).toEqual([]);
   });
 
   test("will not let a reviewer call a problem pre-existing while the conflict says the change caused it", () => {
