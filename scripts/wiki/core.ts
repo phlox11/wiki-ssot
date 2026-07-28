@@ -1318,9 +1318,11 @@ Read \`manifest.json\`, \`impact.json\`, \`pr-metadata.json\`, \`diff.patch\`, \
 
 Report every discrepancy as a structured finding described by \`REPORT.md\`, and decide its disposition instead of assuming this candidate must fix it:
 
-- A problem this candidate introduced, or a contract the PR itself declares, has to be fixed here.
+- A problem this candidate introduced, or a contract the PR itself declares, has to be fixed here. The engine enforces this: those classifications accept no deferring disposition, only \`fixed\` or \`unresolved\`.
 - A mismatch that predates the candidate, an undecidable product intent, or a documentation disagreement may instead be tracked by an open conflict this candidate introduces or already links, with acceptance criteria.
 - A real defect outside this change's semantic scope belongs in a named follow-up, not in this diff.
+
+Classify by what you actually found. \`REPORT.md\` lists which dispositions each classification admits, and the engine rejects a pair outside that table. It cannot tell whether the classification itself is honest: a regression relabelled as pre-existing buys deferrals the engine will accept. That judgement is yours alone, which makes it the one that matters.
 
 Return the report as:
 
@@ -1337,11 +1339,23 @@ Version 2 findings are structured. Each entry requires:
 
 - \`id\` — unique within the report.
 - \`classification\` — \`candidate_regression\`, \`declared_contract_violation\`, \`preexisting_implementation_mismatch\`, \`decision_ambiguity\`, \`documentation_disagreement\`, \`unrelated_defect\`, or \`suggestion\`.
-- \`disposition\` — what the reviewed tree already does about it: \`unresolved\` (nothing yet, so the verdict cannot be \`PASS\`), \`fixed\`, \`conflict_introduced\`, \`existing_conflict_linked\`, \`followup_created\`, \`recorded\` (noted without action; only meaningful for a \`suggestion\`, which states no contract), or \`dismissed_with_reason\`. This is your observation of the candidate, never the author's claim. \`conflict_introduced\` and \`existing_conflict_linked\` require \`conflict_id\`; \`followup_created\` requires \`followup_ref\`; \`dismissed_with_reason\` requires a 20+ character \`dismissal_reason\`.
-
-The engine checks this shape and refuses a \`PASS\` that carries an \`unresolved\` finding. It does not decide which disposition a given classification deserves — that judgement is yours, and a \`candidate_regression\` you deferred instead of fixing is a review failure the engine cannot catch for you.
+- \`disposition\` — what the reviewed tree already does about it: \`unresolved\` (nothing yet, so the verdict cannot be \`PASS\`), \`fixed\`, \`conflict_introduced\`, \`existing_conflict_linked\`, \`followup_created\`, \`recorded\` (noted without action), or \`dismissed_with_reason\`. This is your observation of the candidate, never the author's claim. \`conflict_introduced\` and \`existing_conflict_linked\` require \`conflict_id\`; \`followup_created\` requires \`followup_ref\`; \`dismissed_with_reason\` requires a 20+ character \`dismissal_reason\`.
 - \`scope_refs\` — one or more \`page:\`, \`source:\`, \`invariant:\`, \`conflict:\`, \`test:\`, or \`metadata:\` references binding the finding to this candidate.
 - \`discrepancy\`, \`authority\` (\`{kind, ref}\` naming the controlling normative/observed/derived/test/metadata source), \`evidence\`, and \`acceptance_criteria\` (objective and closable; only a \`suggestion\` may omit them).
+
+The engine refuses a \`PASS\` that carries an \`unresolved\` finding, and it adjudicates which disposition may retire which classification:
+
+| classification | may be retired by |
+|---|---|
+| \`candidate_regression\`, \`declared_contract_violation\` | \`fixed\` |
+| \`preexisting_implementation_mismatch\`, \`documentation_disagreement\` | \`fixed\`, \`conflict_introduced\`, \`existing_conflict_linked\`, \`followup_created\`, \`dismissed_with_reason\` |
+| \`decision_ambiguity\` | \`fixed\`, \`conflict_introduced\`, \`existing_conflict_linked\` |
+| \`unrelated_defect\` | \`fixed\`, \`existing_conflict_linked\`, \`followup_created\`, \`dismissed_with_reason\` |
+| \`suggestion\` | \`fixed\`, \`followup_created\`, \`recorded\`, \`dismissed_with_reason\` |
+
+\`unresolved\` stays available everywhere, but it blocks \`PASS\`. So a break this candidate caused, or a contract the PR itself declares, is closed only by fixing it: classify honestly rather than reaching for a classification whose deferrals are wider.
+
+A disposition naming a conflict must name one that is open at the reviewed HEAD, carries the conflict type its classification implies where one is implied, declares \`origin: baseline\` whenever the classification says the problem predates this candidate, and lists at least one of the finding's \`page:\` scope refs among its affected pages. \`unrelated_defect\` implies no conflict type; \`decision_ambiguity\` is exempt from the \`origin\` rule, because this candidate may legitimately raise a new question about its own behaviour. The author writes that \`origin\` and you write the classification independently; the engine only requires that the two agree.
 
 A \`version: 1\` report with free-text \`findings\` is still accepted so an in-flight review is not invalidated, but it cannot express a disposition. Prefer version 2.
 
@@ -1471,6 +1485,71 @@ const FRESH_CONTEXT_DISPOSITION_FIELD: Partial<Record<FreshContextDisposition, "
   dismissed_with_reason: "dismissal_reason",
 };
 
+/**
+ * Which dispositions retire which classification. This encodes the workflow
+ * rule rather than inventing one: fix what this candidate broke or what the PR
+ * itself declares; track a pre-existing mismatch, an undecided product
+ * decision, or a documentation disagreement in an open conflict; record a named
+ * follow-up for a defect outside this change's semantic scope.
+ *
+ * `unresolved` and `fixed` are legal everywhere — the first is the state a
+ * finding starts in, and fixing something is never the wrong answer. What the
+ * table actually withholds is the deferral: a break this candidate caused
+ * cannot be pushed into a conflict, a follow-up, or a dismissal, so the only
+ * way past it is to fix it. `recorded` retires nothing, so it stays limited to
+ * a `suggestion`, which asserts no contract to begin with.
+ */
+const FRESH_CONTEXT_CLASSIFICATION_DISPOSITIONS: Record<FreshContextClassification, Set<FreshContextDisposition>> = {
+  candidate_regression: new Set(["unresolved", "fixed"]),
+  declared_contract_violation: new Set(["unresolved", "fixed"]),
+  preexisting_implementation_mismatch: new Set([
+    "unresolved",
+    "fixed",
+    "conflict_introduced",
+    "existing_conflict_linked",
+    "followup_created",
+    "dismissed_with_reason",
+  ]),
+  decision_ambiguity: new Set(["unresolved", "fixed", "conflict_introduced", "existing_conflict_linked"]),
+  documentation_disagreement: new Set([
+    "unresolved",
+    "fixed",
+    "conflict_introduced",
+    "existing_conflict_linked",
+    "followup_created",
+    "dismissed_with_reason",
+  ]),
+  unrelated_defect: new Set(["unresolved", "fixed", "existing_conflict_linked", "followup_created", "dismissed_with_reason"]),
+  suggestion: new Set(["unresolved", "fixed", "followup_created", "recorded", "dismissed_with_reason"]),
+};
+
+/** The conflict type a classification must be tracked under when it points at one. */
+const FRESH_CONTEXT_CLASSIFICATION_CONFLICT_TYPE: Partial<Record<FreshContextClassification, ConflictType>> = {
+  preexisting_implementation_mismatch: "implementation",
+  decision_ambiguity: "decision",
+  documentation_disagreement: "documentation",
+};
+
+/**
+ * Classifications that assert the problem predates the candidate. The author
+ * writes a conflict's `origin`; the reviewer independently writes
+ * `classification`. They are the same judgement made by different parties, so a
+ * finding that says "this was already broken" may only point at a conflict that
+ * says the same thing.
+ *
+ * `decision_ambiguity` is deliberately absent. It reports that intent is
+ * undecided, not that something is broken, and a change can legitimately raise
+ * a new question about its own behaviour — a conflict honestly recording
+ * `origin: introduced_by_change`. Requiring `baseline` there would leave that
+ * conflict as the only allowed disposition while making it illegal, and
+ * inventing the decision to close it is forbidden outright.
+ */
+const FRESH_CONTEXT_PREEXISTING_CLASSIFICATIONS = new Set<FreshContextClassification>([
+  "preexisting_implementation_mismatch",
+  "documentation_disagreement",
+  "unrelated_defect",
+]);
+
 function nonEmptyStrings(value: unknown): value is string[] {
   return Array.isArray(value) && value.length > 0 && value.every((item) => typeof item === "string" && item.trim().length > 0);
 }
@@ -1479,9 +1558,19 @@ function nonEmptyStrings(value: unknown): value is string[] {
  * Shape validation for version 2 findings. It proves a finding is actionable —
  * bound to the reviewed change, attributed to a controlling authority, closable
  * against stated criteria, and honest about where an undone finding is tracked.
- * Whether a disposition is *allowed* for a classification is a separate rule.
+ *
+ * It also adjudicates the disposition. The classification-to-disposition table
+ * always applies, because it needs nothing beyond the finding itself. Resolving
+ * a conflict pointer does need a repository view, so that half runs only when
+ * `conflicts` is supplied. `reviewCheck` always supplies the open conflicts at
+ * HEAD, so an empty array correctly means every conflict pointer is dangling.
  */
-export function validateFreshContextFindings(raw: unknown, severity: Finding["severity"]): Finding[] {
+export function validateFreshContextFindings(
+  raw: unknown,
+  severity: Finding["severity"],
+  conflicts?: ConflictSummary[],
+): Finding[] {
+  const byConflictId = conflicts == null ? undefined : new Map(conflicts.map((item) => [item.id, item]));
   const findings: Finding[] = [];
   const push = (code: string, message: string) => findings.push({ code, message, severity });
   if (raw == null) return findings;
@@ -1529,16 +1618,74 @@ export function validateFreshContextFindings(raw: unknown, severity: Finding["se
       push("fresh-context-finding-acceptance-missing", `${name} requires objective acceptance_criteria; only a suggestion may omit them`);
     }
 
-    const disposition = typeof item.disposition === "string" ? item.disposition : undefined;
-    if (disposition == null || !FRESH_CONTEXT_DISPOSITIONS.has(disposition)) {
+    const rawDisposition = typeof item.disposition === "string" ? item.disposition : undefined;
+    if (rawDisposition == null || !FRESH_CONTEXT_DISPOSITIONS.has(rawDisposition)) {
       push("fresh-context-finding-malformed", `${name} requires a known disposition`);
       return;
     }
-    const required = FRESH_CONTEXT_DISPOSITION_FIELD[disposition as FreshContextDisposition];
+    const disposition = rawDisposition as FreshContextDisposition;
+
+    // Only adjudicable once the classification itself parsed; an unknown
+    // classification already reported its own finding above.
+    if (classification != null && FRESH_CONTEXT_CLASSIFICATIONS.has(classification)) {
+      const allowed = FRESH_CONTEXT_CLASSIFICATION_DISPOSITIONS[classification as FreshContextClassification];
+      if (!allowed.has(disposition)) {
+        push(
+          "fresh-context-disposition-not-allowed",
+          `${name} classification ${classification} cannot be retired by ${disposition}; allowed: ${[...allowed].sort((a, b) => a.localeCompare(b)).join(", ")}`,
+        );
+      }
+    }
+
+    const required = FRESH_CONTEXT_DISPOSITION_FIELD[disposition];
     if (required == null) return;
     const value = item[required];
-    if (typeof value !== "string" || value.trim().length === 0) push("fresh-context-disposition-incomplete", `${name} disposition ${disposition} requires ${required}`);
-    else if (required === "dismissal_reason" && value.trim().length < 20) push("fresh-context-disposition-incomplete", `${name} dismissal_reason requires at least 20 characters`);
+    if (typeof value !== "string" || value.trim().length === 0) {
+      push("fresh-context-disposition-incomplete", `${name} disposition ${disposition} requires ${required}`);
+      return;
+    }
+    if (required === "dismissal_reason" && value.trim().length < 20) {
+      push("fresh-context-disposition-incomplete", `${name} dismissal_reason requires at least 20 characters`);
+      return;
+    }
+    if (required !== "conflict_id" || byConflictId == null) return;
+
+    // A disposition that points at a conflict is only worth anything if the
+    // conflict is real, open, and says what the finding says.
+    const conflict = byConflictId.get(value.trim());
+    if (conflict == null) {
+      push("fresh-context-conflict-unknown", `${name} disposition ${disposition} names ${value.trim()}, which is not an open conflict at the reviewed HEAD`);
+      return;
+    }
+    if (classification == null || !FRESH_CONTEXT_CLASSIFICATIONS.has(classification)) return;
+    const typed = classification as FreshContextClassification;
+
+    const expectedType = FRESH_CONTEXT_CLASSIFICATION_CONFLICT_TYPE[typed];
+    if (expectedType != null && conflict.type !== expectedType) {
+      push("fresh-context-conflict-mismatch", `${name} classification ${typed} requires a ${expectedType} conflict, but ${conflict.id} is ${conflict.type}`);
+    }
+    if (FRESH_CONTEXT_PREEXISTING_CLASSIFICATIONS.has(typed) && conflict.origin !== "baseline") {
+      push(
+        "fresh-context-conflict-mismatch",
+        `${name} classification ${typed} states the problem predates this candidate, but ${conflict.id} declares origin ${conflict.origin}`,
+      );
+    }
+
+    // Every conflict declares at least one affected current page, so a finding
+    // that claims to be tracked by one has to name a page as well. Without this
+    // a `source:`-only scope could be retired by any open conflict of the
+    // implied type, about any subject.
+    const scopedPages = nonEmptyStrings(item.scope_refs)
+      ? item.scope_refs.filter((ref) => ref.startsWith("page:")).map((ref) => ref.slice("page:".length).trim()).filter((ref) => ref.length > 0)
+      : [];
+    if (scopedPages.length === 0) {
+      push("fresh-context-conflict-mismatch", `${name} names ${conflict.id} but declares no page: scope ref to share with it`);
+    } else if (!scopedPages.some((id) => conflict.affectedPages.includes(id))) {
+      push(
+        "fresh-context-conflict-mismatch",
+        `${name} scopes pages ${scopedPages.join(", ")} but ${conflict.id} declares affected pages ${conflict.affectedPages.join(", ")}`,
+      );
+    }
   });
   return findings;
 }
@@ -1549,6 +1696,7 @@ export function validateFreshContextAttestation(input: {
   report?: unknown;
   reviewerActor?: string;
   prAuthor?: string;
+  conflicts?: ConflictSummary[];
 }): FreshContextCheckResult {
   const severity: Finding["severity"] = input.policy.mode === "required" ? "error" : "warning";
   const finding = (code: string, message: string): Finding => ({ code, message, severity });
@@ -1584,7 +1732,7 @@ export function validateFreshContextAttestation(input: {
   const report = raw as FreshContextReport;
   const findings: Finding[] = [];
   if (report.version === 2) {
-    findings.push(...validateFreshContextFindings(report.findings, severity));
+    findings.push(...validateFreshContextFindings(report.findings, severity, input.conflicts));
     // A PASS states that nothing is left dangling. A finding the reviewer left
     // `unresolved` is by definition dangling, so the two cannot coexist.
     if (report.verdict === "PASS") {
@@ -1673,12 +1821,22 @@ export function reviewCheck(view: RepoView, pages: WikiPage[], options: {
       findings: [],
     };
   }
+  // Conflict pointers are resolved against the open conflicts at the reviewed
+  // HEAD, so a finding cannot be retired by naming a conflict that never
+  // existed or one already resolved. Whether the candidate opened the conflict
+  // or inherited it is the author-side `touched_conflicts` guard's job, so
+  // `conflict_introduced` and `existing_conflict_linked` resolve identically
+  // here.
   const checked = validateFreshContextAttestation({
     policy,
     manifest,
     report: options.report,
     reviewerActor: options.reviewerActor,
     prAuthor: options.prAuthor,
+    conflicts: openConflicts(pages)
+      .filter((page) => page.data.conflict_id != null && page.data.conflict_type != null && page.data.severity != null
+        && page.data.origin != null && page.data.opened_at != null && page.data.resolution != null)
+      .map(conflictSummary),
   });
   const severity: Finding["severity"] = policy.mode === "required" ? "error" : "warning";
   const mirror = options.metadata?.fresh_context;
