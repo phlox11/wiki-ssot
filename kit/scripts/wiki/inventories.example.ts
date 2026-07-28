@@ -4,8 +4,12 @@
  * A reference adapter for a typical Bun monorepo — an HTTP API, a shared
  * contracts package, and a mobile app — showing the shape of a production
  * `generateInventories`. To enable inventories in your repo, copy the pieces you
- * need into `inventories.ts` and rewrite the paths/parsers for your own stack,
- * then delete this example: it is reference-only and imported by nothing.
+ * need into `inventories.ts` and rewrite the paths/parsers for your own stack.
+ *
+ * Read this file where it sits. It is a kit `reference` entry, so it is never
+ * delivered into an adopting repository and there is nothing here for an adopter
+ * to clean up; if you are reading it in a wiki-ssot checkout, it is the source
+ * the kit generator copies from, so do not delete it.
  *
  * Every returned page is a deterministic function of tracked files and starts
  * with GENERATED_HEADER, so `wiki:generated --check` can detect drift.

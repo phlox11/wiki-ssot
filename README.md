@@ -78,7 +78,7 @@ kit/                     # the generated distribution other repos copy
 docs/                    # design + adoption playbooks + command reference
 ```
 
-That is this repository's layout. What another repository receives is [`kit/`](kit/README.md) and only `kit/` — its manifest is the authoritative list.
+That is this repository's layout. Nothing outside [`kit/`](kit/README.md) travels to another repository, and not everything inside it does either — reference files are read in place rather than copied. `kit/files/.wiki/kit-manifest.json` is the authoritative list.
 
 ## Configure it for your repo
 

@@ -1,5 +1,5 @@
 {
-  "digest": "0bd1400d5d09816840986475b97866081387f9c4e4f03fdbf18196002a29f13a",
+  "digest": "995cd18993ad796d9349aa48d00c5a9f9856576cdf4fa6b091e4ef3c18966c1e",
   "files": {
     ".github/pull_request_template.md": {
       "ownership": "kit",
@@ -89,7 +89,7 @@
   "kit": "wiki-ssot",
   "reference": {
     "package.kit.json": "84649b7e37cef0cced9c41da11c7cf3532105ae3b9b3d77fbd3a425a0178be95",
-    "scripts/wiki/inventories.example.ts": "3c173f3382105416947b30020f8004b02e5667acdcff47c2057757207daa9447"
+    "scripts/wiki/inventories.example.ts": "d9a3a8afaf7f090ff43e221f351b70fd36041228efdfb7cdfbf2bee7db7f1b5d"
   },
   "version": 1
 }

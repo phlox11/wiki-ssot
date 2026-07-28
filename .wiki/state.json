@@ -6,14 +6,15 @@
         "scripts/wiki/core.ts": "91783c94ef7bf7a1780bb3a2d61920a934d2b14dd8c0aa4f7a39c498a0bf9e6e",
         "scripts/wiki/fresh-context.test.ts": "1f09fd510b1296019eb21fc7817b654e6bfdfa3e6a968384f105cea40d7f83fd",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c",
-        "scripts/wiki/inventories.example.ts": "3c173f3382105416947b30020f8004b02e5667acdcff47c2057757207daa9447",
+        "scripts/wiki/inventories.example.ts": "d9a3a8afaf7f090ff43e221f351b70fd36041228efdfb7cdfbf2bee7db7f1b5d",
         "scripts/wiki/inventories.ts": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca",
         "scripts/wiki/kit-sync.ts": "1d8f77baa00a3bcea174d78537cdb7ac80aea680c0ac00154e5af5e94b4b6ac0",
         "scripts/wiki/kit.test.ts": "414039ef16d7754bb4180b868c6d3f375a2381e357ee4d51784110e08e2b3bc8",
         "scripts/wiki/wiki.test.ts": "539712a8f680522a3ade618190db3b7392fe273961ebe8c8e00c4a56e1524646"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "the example docblock now states its reference placement, which the page already describes"
       }
     },
     "operations/enforcement": {
@@ -48,11 +49,11 @@
     "product/scope": {
       "sources": {
         "docs/design.md": "39a3d8459c363d855589df0c041a77731a3768c1ac3dedc2c3631205dacc78ae",
-        "README.md": "7c36bdcd8aefb04432dc67de0db972a83ef72946f385830f889d3d0818e05c1f"
+        "README.md": "f2a7fc0efc177e448570d053926710abfb1ec704cf3d94d7da065ab6c81ce407"
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "README layout and pointer corrections do not change what the toolkit does or excludes"
+        "reason": "tightening the README delivery sentence changes no in-scope or out-of-scope claim"
       }
     }
   },
