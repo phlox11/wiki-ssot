@@ -9,12 +9,12 @@
         "scripts/wiki/inventories.example.ts": "c77492bf25a8e89d6c5f2de5d1238bb426e41b81cd255d7c153e05d295e91c4e",
         "scripts/wiki/inventories.ts": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca",
         "scripts/wiki/kit-sync.ts": "1d8f77baa00a3bcea174d78537cdb7ac80aea680c0ac00154e5af5e94b4b6ac0",
-        "scripts/wiki/kit.test.ts": "414039ef16d7754bb4180b868c6d3f375a2381e357ee4d51784110e08e2b3bc8",
+        "scripts/wiki/kit.test.ts": "a0c7a4b80550b6b9f988cb413ab71944d1c17d683834c5616efe84819b248d82",
         "scripts/wiki/wiki.test.ts": "539712a8f680522a3ade618190db3b7392fe273961ebe8c8e00c4a56e1524646"
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "the example docblock now names the source path instead of asserting which copy is the source"
+        "reason": "the added test asserts a sentence already present in the kit payload; no generator, placement, or sync behavior changed"
       }
     },
     "operations/enforcement": {
@@ -26,7 +26,7 @@
         ".husky/pre-commit": "58a0e92eab02374a09bea44bb6e18f9b088e5e5180203b0b1cb8c309740ac10b",
         ".husky/pre-push": "21b38e361c58ffc03baec92b4826f3d5bb6d122b0862fce1af0cb12acdfc09d3",
         ".wiki/config.json": "9c87990b6b22950644e9b47bb069fab9bace832f63f1341ce8572360f7f5a025",
-        "AGENTS.md": "5a7cd655d5afc18bf79ca0e53c2593e22ba35b2bdefe1271e453667b8568cc64",
+        "AGENTS.md": "5fd95fedee06dde8536f3dc82adb1d0fa8af4d2a11f8f28dae0a5a7f1463de2c",
         "package.json": "bcc223d180da7327644072d47c370bb818e26410236ec82ec36bd6b4eb0ea10e",
         "scripts/wiki/cli.ts": "f7b262c5c5bfea76bb4b5d9d987667df00835cf43386e3e6f2f147813d3562f9",
         "scripts/wiki/core.ts": "91783c94ef7bf7a1780bb3a2d61920a934d2b14dd8c0aa4f7a39c498a0bf9e6e",
@@ -34,7 +34,7 @@
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "the inventories pointer correction touches no enforcement rail described by this page"
+        "reason": "the agent entrypoint now repeats the workflow-definition seam this page already documents; no enforcement rail changed"
       }
     },
     "product/invariants": {

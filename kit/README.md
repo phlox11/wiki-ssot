@@ -88,6 +88,8 @@ Writing the first pages is the real work, and it is not a copy step. `wiki/SCHEM
 
 One step no file can do for you: configure GitHub branch protection on `main` to require `code-check`, `wiki-structure`, `wiki-generated`, `wiki-impact`, and `wiki-review-attestation`, require branches to be current, and disallow direct pushes. Until that is set, CI is evidence, not a merge boundary.
 
+Setting it is still not a complete boundary, and it is worth knowing why. Branch protection matches on check name, not on what the check does, and for a `pull_request` event GitHub runs the workflow file from the PR's own merge tree. So a PR can leave `wiki-review-attestation` in place as a job name, empty its steps, and go green without validating anything. The attestation engine is not the weak point — the `wiki-review-attestation` job checks out the base commit and passes the PR head in only as data — but the job that says so lives in a file a PR can rewrite. Close it by protecting `.github/workflows/checks.yml`: a ruleset-required workflow where available, which depends on who owns the repository and on its plan, otherwise CODEOWNERS plus required owner review, which needs a second account because GitHub does not let you approve your own pull request.
+
 ### Without the tool
 
 `kit-sync.ts` exists because "copy everything" is wrong for `seed/`, and because overwriting a file you edited is wrong for `files/`. If you would rather do the first copy by hand, into a repository that has none of these files yet:

@@ -189,6 +189,12 @@ describe("emitted kit", () => {
     expect(files["kit/files/AGENTS.md"]).toContain("base-checkout");
     expect(files["kit/files/wiki/WORKFLOW.md"]).toContain("merge-base engine");
   });
+
+  test("ships the warning that branch protection matches on check name", () => {
+    // checks.yml is part of the payload, so every adopting repository inherits
+    // the seam, while the wiki page and docs that explained it stay behind here.
+    expect(realKit().files["kit/files/AGENTS.md"]).toContain("keeps a required job's name");
+  });
 });
 
 describe("kit manifest", () => {
