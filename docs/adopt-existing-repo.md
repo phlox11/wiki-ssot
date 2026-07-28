@@ -16,13 +16,9 @@ bun scripts/wiki/kit-sync.ts --into /path/to/your-repo --dry-run   # preview
 bun scripts/wiki/kit-sync.ts --into /path/to/your-repo
 ```
 
-Then merge the scripts and dev dependencies into your `package.json` and install:
+An existing repository usually already has an `AGENTS.md` or a PR template. Those come back as conflicts with the incoming version written alongside as `<path>.kit-new`; nothing of yours is overwritten. Merge each one and re-run with `--accept <path>`.
 
-```sh
-cd /path/to/your-repo
-KIT=/path/to/wiki-ssot/kit bun -e 'const pkg = await Bun.file("package.json").json().catch(() => ({})); const add = await Bun.file(`${process.env.KIT}/package.kit.json`).json(); await Bun.write("package.json", JSON.stringify({ ...pkg, ...add, scripts: { ...pkg.scripts, ...add.scripts }, devDependencies: { ...pkg.devDependencies, ...add.devDependencies } }, null, 2) + "\n")'
-bun install
-```
+Then merge the scripts and dev dependencies into your `package.json` with the command in [`kit/README.md`](../kit/README.md#adopt-it-in-a-new-repository) — it keeps your `type`, `engines`, dependency pins, and any script name you already use, and prints the collisions it refused to take — then `bun install`.
 
 If your repository already has `.github/workflows/`, merge the copied jobs into your existing CI rather than keeping two workflows that install twice.
 

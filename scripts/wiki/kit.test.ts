@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import {
@@ -11,12 +11,13 @@ import {
   createRepoView,
   isImplementationSourceChange,
   isKitManagedPath,
+  jsonStable,
   kitFiles,
   kitPath,
   stripKitExclusions,
   writeKit,
 } from "./core";
-import { applySync, planSync, type SyncAction } from "./kit-sync";
+import { MANIFEST_TARGET, applySync, planSync, sha256 } from "./kit-sync";
 
 const temporary: string[] = [];
 
@@ -116,9 +117,25 @@ describe("kit entry table", () => {
     expect(isKitManagedPath("scripts/wiki/core.ts")).toBe(false);
   });
 
-  test("the derived copy carries no wiki obligation of its own", () => {
-    expect(isImplementationSourceChange("scripts/wiki/core.ts")).toBe(true);
-    expect(isImplementationSourceChange("kit/files/scripts/wiki/core.ts")).toBe(false);
+  test("the derived copy carries no wiki obligation in the publishing repository", () => {
+    expect(isImplementationSourceChange("scripts/wiki/core.ts", true)).toBe(true);
+    expect(isImplementationSourceChange("kit/files/scripts/wiki/core.ts", true)).toBe(false);
+  });
+
+  test("a repository that does not publish a kit gets no kit/ exemption", () => {
+    // This engine ships verbatim inside the kit, so an unconditional exemption
+    // would disable the rails over any adopter's own kit/ directory.
+    expect(isImplementationSourceChange("kit/files/scripts/wiki/core.ts")).toBe(true);
+    expect(isImplementationSourceChange("kit/anything.ts", false)).toBe(true);
+  });
+
+  test("the exemption must be passed explicitly for every path", () => {
+    // The flag is typed boolean so `files.some(isImplementationSourceChange)` is
+    // a compile error; passing the array index would otherwise exempt every
+    // element after the first. Callers bind it once, explicitly.
+    const paths = ["a.ts", "kit/b.ts", "kit/c.ts"];
+    expect(paths.map((path) => isImplementationSourceChange(path, true))).toEqual([true, false, false]);
+    expect(paths.map((path) => isImplementationSourceChange(path, false))).toEqual([true, true, true]);
   });
 });
 
@@ -156,11 +173,21 @@ describe("emitted kit", () => {
     expect(realKit().files["kit/files/AGENTS.md"]).toContain("wiki-ssot:fresh-context-guardrail");
   });
 
-  test("drops instance-only guidance from the shipped AGENTS.md", () => {
-    const shipped = realKit().files["kit/files/AGENTS.md"];
-    expect(readFileSync("AGENTS.md", "utf8")).toContain("base-checkout");
-    expect(shipped).not.toContain("base-checkout");
-    expect(shipped).not.toContain("protected-main");
+  test("drops guidance that points at pages only this repository has", () => {
+    const { files } = realKit();
+    expect(readFileSync("AGENTS.md", "utf8")).toContain("protected-main");
+    expect(files["kit/files/AGENTS.md"]).not.toContain("protected-main");
+    expect(files["kit/files/wiki/WORKFLOW.md"]).not.toContain("protected-main");
+  });
+
+  test("keeps the base-engine bundle rule, which applies downstream too", () => {
+    // The shipped checks.yml does the same base.sha checkout and the shipped
+    // policy lists scripts/wiki/** as review-triggering, so an adopter editing
+    // the engine hits the same digest recomputation. Stripping it from the
+    // entrypoint while wiki/WORKFLOW.md kept it left the two disagreeing.
+    const { files } = realKit();
+    expect(files["kit/files/AGENTS.md"]).toContain("base-checkout");
+    expect(files["kit/files/wiki/WORKFLOW.md"]).toContain("merge-base engine");
   });
 });
 
@@ -169,6 +196,7 @@ describe("kit manifest", () => {
     return JSON.parse(realKit().files[`kit/files/${KIT_MANIFEST_TARGET}`]) as {
       digest: string;
       files: Record<string, { sha256: string; ownership: "kit" | "seed" }>;
+      reference: Record<string, string>;
     };
   }
 
@@ -178,11 +206,25 @@ describe("kit manifest", () => {
     expect(entries[".wiki/config.json"].ownership).toBe("seed");
   });
 
-  test("omits itself and every reference file", () => {
-    const entries = manifest().files;
-    expect(KIT_MANIFEST_TARGET in entries).toBe(false);
-    expect("package.kit.json" in entries).toBe(false);
-    expect(Object.keys(entries).length).toBe(KIT_ENTRIES.filter((entry) => entry.placement !== "reference").length);
+  test("keeps reference files out of the synced file map but inside the kit", () => {
+    const parsed = manifest();
+    expect(KIT_MANIFEST_TARGET in parsed.files).toBe(false);
+    expect("package.kit.json" in parsed.files).toBe(false);
+    expect("package.kit.json" in parsed.reference).toBe(true);
+    expect(Object.keys(parsed.files).length).toBe(KIT_ENTRIES.filter((entry) => entry.placement !== "reference").length);
+  });
+
+  test("the digest covers reference files too", () => {
+    // A dependency bump reaches an adopter only through package.kit.json. If the
+    // digest ignored it, every "are you up to date" check would say nothing moved.
+    const parsed = manifest();
+    const hasher = new Bun.CryptoHasher("sha256");
+    hasher.update(jsonStable({ files: parsed.files, reference: parsed.reference }));
+    expect(hasher.digest("hex")).toBe(parsed.digest);
+
+    const withoutReference = new Bun.CryptoHasher("sha256");
+    withoutReference.update(jsonStable(parsed.files));
+    expect(withoutReference.digest("hex")).not.toBe(parsed.digest);
   });
 
   test("hashes match the bytes actually shipped", () => {
@@ -221,9 +263,13 @@ describe("kit drift detection", () => {
     ]);
   });
 
-  test("writing removes orphans and then compares clean", () => {
+  test("writing removes orphans and then compares clean even once they are tracked", () => {
     const root = tempRepo();
     put(root, "kit/files/gone.txt", "stale payload");
+    // Commit first: `git ls-files --cached` keeps listing a deleted file until
+    // the deletion is staged, so an index-based orphan scan would re-report it.
+    run(root, ["git", "add", "-A"]);
+    run(root, ["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "seed"]);
     const expected = { "kit/files/kept.txt": "kept" };
     const result = writeKit(createRepoView(root), expected);
     expect(result.removed).toEqual(["kit/files/gone.txt"]);
@@ -231,19 +277,36 @@ describe("kit drift detection", () => {
   });
 });
 
+
 describe("kit sync", () => {
   function stageKit(): string {
     const root = tempDir("kit-src-");
-    const { files } = realKit();
-    for (const [path, content] of Object.entries(files)) {
-      mkdirSync(dirname(join(root, path.replace(/^kit\//, ""))), { recursive: true });
-      writeFileSync(join(root, path.replace(/^kit\//, "")), content);
+    for (const [path, content] of Object.entries(realKit().files)) {
+      const target = join(root, path.replace(/^kit\//, ""));
+      mkdirSync(dirname(target), { recursive: true });
+      writeFileSync(target, content);
     }
     return root;
   }
 
-  function actionFor(plan: ReturnType<typeof planSync>, target: string): SyncAction | undefined {
+  /** Rewrite a kit-owned file and re-hash it, the way a real upstream change would. */
+  function moveUpstream(kit: string, target: string, content: string) {
+    writeFileSync(join(kit, "files", target), content);
+    const manifestPath = join(kit, "files", MANIFEST_TARGET);
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+    manifest.files[target].sha256 = sha256(content);
+    writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+  }
+
+  function actionFor(plan: { entries: { target: string; action: string }[] }, target: string) {
     return plan.entries.find((entry) => entry.target === target)?.action;
+  }
+
+  function adopt(): { kit: string; repo: string } {
+    const kit = stageKit();
+    const repo = tempDir("kit-dest-");
+    applySync(kit, repo, planSync(kit, repo));
+    return { kit, repo };
   }
 
   test("a fresh target creates every kit file and seeds the rest", () => {
@@ -255,33 +318,26 @@ describe("kit sync", () => {
     expect(actionFor(plan, ".wiki/config.json")).toBe("seed-created");
     applySync(kit, repo, plan);
     expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toContain("wiki-ssot:fresh-context-guardrail");
-    expect(readFileSync(join(repo, KIT_MANIFEST_TARGET), "utf8").length).toBeGreaterThan(0);
   });
 
   test("a second run reports nothing to do", () => {
-    const kit = stageKit();
-    const repo = tempDir("kit-dest-");
-    applySync(kit, repo, planSync(kit, repo));
+    const { kit, repo } = adopt();
     const plan = planSync(kit, repo);
     expect(actionFor(plan, "AGENTS.md")).toBe("unchanged");
     expect(actionFor(plan, ".wiki/config.json")).toBe("seed-present");
   });
 
   test("an untouched file is updated when the kit moves", () => {
-    const kit = stageKit();
-    const repo = tempDir("kit-dest-");
-    applySync(kit, repo, planSync(kit, repo));
-    writeFileSync(join(kit, "files/AGENTS.md"), `${readFileSync(join(kit, "files/AGENTS.md"), "utf8")}\nupstream line\n`);
+    const { kit, repo } = adopt();
+    moveUpstream(kit, "AGENTS.md", "upstream v2\n");
     const plan = planSync(kit, repo);
     expect(actionFor(plan, "AGENTS.md")).toBe("update");
     applySync(kit, repo, plan);
-    expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toContain("upstream line");
+    expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toBe("upstream v2\n");
   });
 
   test("a local edit is left alone when the kit did not move", () => {
-    const kit = stageKit();
-    const repo = tempDir("kit-dest-");
-    applySync(kit, repo, planSync(kit, repo));
+    const { kit, repo } = adopt();
     writeFileSync(join(repo, "AGENTS.md"), "entirely mine\n");
     const plan = planSync(kit, repo);
     expect(actionFor(plan, "AGENTS.md")).toBe("customized");
@@ -290,44 +346,127 @@ describe("kit sync", () => {
   });
 
   test("a local edit plus an upstream change conflicts without clobbering", () => {
-    const kit = stageKit();
-    const repo = tempDir("kit-dest-");
-    applySync(kit, repo, planSync(kit, repo));
-    const before = readFileSync(join(repo, KIT_MANIFEST_TARGET), "utf8");
+    const { kit, repo } = adopt();
     writeFileSync(join(repo, "AGENTS.md"), "mine\n");
-    writeFileSync(join(kit, "files/AGENTS.md"), "theirs\n");
-
+    moveUpstream(kit, "AGENTS.md", "theirs\n");
     const plan = planSync(kit, repo);
     expect(plan.conflicts).toEqual(["AGENTS.md"]);
-    expect(plan.advanceManifest).toBe(false);
     applySync(kit, repo, plan);
-
     expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toBe("mine\n");
     expect(readFileSync(join(repo, "AGENTS.md.kit-new"), "utf8")).toBe("theirs\n");
-    // An unresolved conflict must not be downgraded to "your customization" by
-    // advancing the recorded manifest underneath it.
-    expect(readFileSync(join(repo, KIT_MANIFEST_TARGET), "utf8")).toBe(before);
   });
 
-  test("an existing file with no recorded manifest is a conflict, not an overwrite", () => {
-    const kit = stageKit();
-    const repo = tempDir("kit-dest-");
-    mkdirSync(join(repo, "wiki"), { recursive: true });
-    writeFileSync(join(repo, "AGENTS.md"), "pre-existing instructions\n");
+  test("a hand-merged conflict terminates once accepted", () => {
+    // Without --accept the merged file matches neither the incoming nor the
+    // recorded version, so it would re-conflict on every future run forever.
+    const { kit, repo } = adopt();
+    writeFileSync(join(repo, "AGENTS.md"), "mine\n");
+    moveUpstream(kit, "AGENTS.md", "theirs\n");
+    applySync(kit, repo, planSync(kit, repo));
+
+    writeFileSync(join(repo, "AGENTS.md"), "mine + theirs\n");
+    rmSync(join(repo, "AGENTS.md.kit-new"));
+    expect(actionFor(planSync(kit, repo), "AGENTS.md")).toBe("conflict");
+
+    const accepted = planSync(kit, repo, ["AGENTS.md"]);
+    expect(accepted.conflicts).toEqual([]);
+    expect(actionFor(accepted, "AGENTS.md")).toBe("resolved");
+    applySync(kit, repo, accepted);
+
+    expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toBe("mine + theirs\n");
+    const after = planSync(kit, repo);
+    expect(actionFor(after, "AGENTS.md")).toBe("customized");
+    expect(after.conflicts).toEqual([]);
+  });
+
+  test("one stuck conflict does not turn later clean updates into false conflicts", () => {
+    // The manifest advances per file. A global advance would freeze the baseline
+    // and make every subsequent upstream change look like the adopter's edit.
+    const { kit, repo } = adopt();
+    writeFileSync(join(repo, "AGENTS.md"), "mine\n");
+    moveUpstream(kit, "AGENTS.md", "theirs v2\n");
+    moveUpstream(kit, "wiki/README.md", "readme v2\n");
+    applySync(kit, repo, planSync(kit, repo));
+    expect(readFileSync(join(repo, "wiki/README.md"), "utf8")).toBe("readme v2\n");
+
+    moveUpstream(kit, "wiki/README.md", "readme v3\n");
     const plan = planSync(kit, repo);
+    expect(actionFor(plan, "wiki/README.md")).toBe("update");
     expect(plan.conflicts).toEqual(["AGENTS.md"]);
     applySync(kit, repo, plan);
-    expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toBe("pre-existing instructions\n");
+    expect(readFileSync(join(repo, "wiki/README.md"), "utf8")).toBe("readme v3\n");
   });
 
   test("an upgrade never rewrites a seed file", () => {
-    const kit = stageKit();
-    const repo = tempDir("kit-dest-");
-    applySync(kit, repo, planSync(kit, repo));
+    const { kit, repo } = adopt();
     writeFileSync(join(repo, ".wiki/config.json"), '{"version":1,"name":"mine"}\n');
     writeFileSync(join(kit, "seed/.wiki/config.json"), '{"version":1,"name":"upstream"}\n');
     applySync(kit, repo, planSync(kit, repo));
     expect(readFileSync(join(repo, ".wiki/config.json"), "utf8")).toContain("mine");
+  });
+
+  test("an existing file with no recorded manifest is a conflict, but a matching one is not", () => {
+    const kit = stageKit();
+    const repo = tempDir("kit-dest-");
+    mkdirSync(join(repo, "wiki"), { recursive: true });
+    writeFileSync(join(repo, "AGENTS.md"), "pre-existing instructions\n");
+    writeFileSync(join(repo, "wiki/README.md"), readFileSync(join(kit, "files/wiki/README.md"), "utf8"));
+    const plan = planSync(kit, repo);
+    expect(plan.conflicts).toEqual(["AGENTS.md"]);
+    expect(actionFor(plan, "wiki/README.md")).toBe("unchanged");
+    applySync(kit, repo, plan);
+    expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toBe("pre-existing instructions\n");
+  });
+
+  test("a symlinked target is never written through", () => {
+    const { kit, repo } = adopt();
+    const outside = join(tempDir("kit-outside-"), "shared-AGENTS.md");
+    writeFileSync(outside, "shared\n");
+    rmSync(join(repo, "AGENTS.md"));
+    symlinkSync(outside, join(repo, "AGENTS.md"));
+    moveUpstream(kit, "AGENTS.md", "theirs\n");
+    const plan = planSync(kit, repo);
+    expect(actionFor(plan, "AGENTS.md")).toBe("conflict");
+    applySync(kit, repo, plan);
+    expect(readFileSync(outside, "utf8")).toBe("shared\n");
+  });
+
+  test("a manifest target that escapes the destination is refused", () => {
+    const { kit, repo } = adopt();
+    const manifestPath = join(kit, "files", MANIFEST_TARGET);
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+    manifest.files["../escaped.txt"] = { sha256: sha256("x"), ownership: "kit" };
+    writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+    writeFileSync(join(kit, "files/../escaped.txt"), "x");
+    expect(() => planSync(kit, repo)).toThrow(/escapes the destination/);
+  });
+
+  test("a file the kit stopped shipping is reported once", () => {
+    const { kit, repo } = adopt();
+    const manifestPath = join(kit, "files", MANIFEST_TARGET);
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+    delete manifest.files["wiki/README.md"];
+    writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+
+    const plan = planSync(kit, repo);
+    expect(actionFor(plan, "wiki/README.md")).toBe("removed-upstream");
+    applySync(kit, repo, plan);
+    expect(existsSync(join(repo, "wiki/README.md"))).toBe(true);
+    expect(actionFor(planSync(kit, repo), "wiki/README.md")).toBeUndefined();
+  });
+
+  test("a malformed incoming manifest is refused rather than crashing", () => {
+    const { kit, repo } = adopt();
+    writeFileSync(join(kit, "files", MANIFEST_TARGET), '{"version":1,"files":null}\n');
+    expect(() => planSync(kit, repo)).toThrow(/malformed/);
+  });
+
+  test("an executable source stays executable in the target", () => {
+    const kit = stageKit();
+    const repo = tempDir("kit-dest-");
+    chmodSync(join(kit, "files/.husky/pre-commit"), 0o755);
+    applySync(kit, repo, planSync(kit, repo));
+    expect(statSync(join(repo, ".husky/pre-commit")).mode & 0o111).not.toBe(0);
   });
 
   test("a dry run writes nothing", () => {

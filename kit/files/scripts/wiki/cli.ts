@@ -152,6 +152,12 @@ async function main() {
   }
 
   if (command === "kit") {
+    // This CLI is shipped inside the kit it generates. Without the guard, running
+    // it in an adopting repository deletes whatever that project keeps in `kit/`
+    // and replaces it with a distribution of their own files.
+    if (!readConfig(view).publishesKit) {
+      throw new UsageError('kit generation is only for the repository that publishes the distribution; set "publishesKit": true in .wiki/config.json to enable it');
+    }
     const { files, findings: sourceFindings } = kitFiles(view);
     if (has(parsed, "check") || staged) {
       const findings = [...sourceFindings, ...compareKit(view, files)];

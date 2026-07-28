@@ -225,7 +225,7 @@ describe("inventory and impact primitives", () => {
     const map = { version: 1 as const, exact: { "a.ts": ["exact"] }, globs: [{ glob: "src/**/*.ts", pages: ["glob"] }] };
     expect(mappedPages(map, "a.ts")).toEqual(["exact"]);
     expect(mappedPages(map, "src/x/y.ts")).toEqual(["glob"]);
-    const config = { version: 1 as const, name: "x", highRisk: ["src/api/**"] };
+    const config = { version: 1 as const, name: "x", highRisk: ["src/api/**"], publishesKit: false };
     expect(isHighRisk(config, "src/api/routes.ts")).toBe(true);
     expect(isHighRisk(config, "src/ui/button.ts")).toBe(false);
   });

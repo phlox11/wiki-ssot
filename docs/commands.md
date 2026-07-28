@@ -6,7 +6,7 @@ All commands are `bun run wiki:<name>`; each maps to `bun scripts/wiki/cli.ts <n
 |---|---|---|
 | `wiki:lint` | Frontmatter, links, source paths, coverage, generated freshness. | pre-commit + CI |
 | `wiki:generated` | Regenerate index, current-status, conflicts, reverse maps, inventories. Add `-- --check` to verify without writing. | CI (`--check`) |
-| `wiki:kit` | Regenerate the `kit/` copy-paste distribution from the files it ships. Add `-- --check` to fail on drift instead of writing. Only this repository publishes a kit. | CI (`--check`) |
+| `wiki:kit` | Regenerate the `kit/` copy-paste distribution from the files it ships. Add `-- --check` to fail on drift instead of writing. Refuses to run unless `.wiki/config.json` sets `publishesKit: true`, so it cannot overwrite an adopting repository's own `kit/`. | CI (`--check`) |
 | `wiki:impact -- --base <ref>` | From the diff since `<ref>`, print affected pages/conflicts, staleness, and metadata findings. Add `--enforce` to exit non-zero on any error. | CI (`--enforce`) |
 | `wiki:verify -- --page <id>` | Record current source hashes for a page you updated. Add `--unchanged "<20+ char reason>"` when meaning did not change. With no `--page`, re-verifies every current page. | — |
 | `wiki:search -- "<terms>"` | Keyword search across pages. | — |

@@ -316,9 +316,12 @@ function markdownTargets(raw: string): string[] {
 
 export function validateMarkdownLinks(view: RepoView): Finding[] {
   const { entries, findings } = loadLegacyAllowlist(view);
-  // `kit/**` is payload staged for another repository: its relative links resolve
-  // once the payload lands at that repository's root, not against this tree.
-  const markdown = view.listFiles().filter((path) => path.endsWith(".md") && !path.startsWith("node_modules/") && !path.startsWith(".git/") && !path.startsWith(`${KIT_ROOT}/`));
+  // Generated kit payload is staged for another repository: its relative links
+  // resolve once the payload lands at that repository's root, not against this
+  // tree. Only the publisher gets that exemption, and `kit/README.md` never does
+  // — it is hand-written, it lives here, and its links resolve here.
+  const publishesKit = readConfig(view).publishesKit;
+  const markdown = view.listFiles().filter((path) => path.endsWith(".md") && !path.startsWith("node_modules/") && !path.startsWith(".git/") && !(publishesKit && isKitManagedPath(path)));
   for (const source of markdown) {
     for (const rawTarget of markdownTargets(view.read(source))) {
       if (rawTarget.startsWith("#") || /^(https?:|mailto:|tel:|data:)/.test(rawTarget)) continue;
@@ -607,7 +610,10 @@ export const KIT_ENTRIES: KitEntry[] = [
   { target: "scripts/wiki/core.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/core.ts" } },
   { target: "scripts/wiki/cli.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/cli.ts" } },
   { target: "scripts/wiki/github-attestation.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/github-attestation.ts" } },
-  { target: "scripts/wiki/inventories.example.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/inventories.example.ts" } },
+  // Seed, not kit-owned: the adoption guides tell an adopter to delete this once
+  // they write their own inventories, and a kit-owned file would come back on the
+  // next upgrade.
+  { target: "scripts/wiki/inventories.example.ts", placement: "seed", source: { kind: "copy", from: "scripts/wiki/inventories.example.ts" } },
   { target: "scripts/wiki/wiki.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/wiki.test.ts" } },
   { target: "scripts/wiki/fresh-context.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/fresh-context.test.ts" } },
   { target: ".github/workflows/checks.yml", placement: "files", source: { kind: "copy", from: ".github/workflows/checks.yml" } },
@@ -702,20 +708,25 @@ export function kitFiles(view: RepoView): { files: Record<string, string>; findi
     if (content != null) rendered.push({ entry, content });
   }
 
-  // Reference files are read from the kit checkout, never copied, so they carry
-  // no ownership and stay out of the manifest an adopter syncs against.
+  // Reference files are read from the kit checkout, never copied, so they stay
+  // out of the file map a sync walks. They are still part of the kit, so they
+  // are hashed separately and folded into the digest — otherwise changing the
+  // dependencies an adopter must merge would leave the digest, and every
+  // "are you up to date" check built on it, claiming nothing moved.
   const manifestFiles: Record<string, { sha256: string; ownership: KitOwnership }> = {};
+  const manifestReference: Record<string, string> = {};
   for (const { entry, content } of rendered) {
-    if (entry.placement === "reference") continue;
-    manifestFiles[entry.target] = { sha256: hashContent(content), ownership: entry.placement === "files" ? "kit" : "seed" };
+    if (entry.placement === "reference") manifestReference[entry.target] = hashContent(content);
+    else manifestFiles[entry.target] = { sha256: hashContent(content), ownership: entry.placement === "files" ? "kit" : "seed" };
   }
   const manifest = {
     version: 1,
     kit: "wiki-ssot",
     // Content-addressed rather than tagged: the digest identifies exactly which
     // kit an adopter holds without a version string or a timestamp to drift.
-    digest: hashContent(jsonStable(manifestFiles)),
+    digest: hashContent(jsonStable({ files: manifestFiles, reference: manifestReference })),
     files: manifestFiles,
+    reference: manifestReference,
   };
 
   const files: Record<string, string> = {};
@@ -736,7 +747,12 @@ export function compareKit(view: RepoView, expected: Record<string, string>): Fi
     else if (view.read(path) !== content) pushFinding(findings, path, "kit-stale", `kit file differs from its source; run bun run wiki:kit`);
   }
   for (const path of view.listFiles()) {
-    if (isKitManagedPath(path) && !(path in expected)) pushFinding(findings, path, "kit-orphan", `kit file is no longer produced by the generator; run bun run wiki:kit`);
+    // Test on disk, not through the view: `git ls-files --cached` still lists a
+    // file `wiki:kit` just deleted until the deletion is staged, which would
+    // make a freshly regenerated kit report its own removals as orphans.
+    if (isKitManagedPath(path) && !(path in expected) && existsSync(join(view.root, path))) {
+      pushFinding(findings, path, "kit-orphan", `kit file is no longer produced by the generator; run bun run wiki:kit`);
+    }
   }
   return findings;
 }
@@ -884,6 +900,15 @@ export type WikiConfig = {
   version: 1;
   name: string;
   highRisk: string[];
+  /**
+   * True only in the repository that publishes the `kit/` distribution. This
+   * engine is shipped verbatim inside that distribution, so every rule about
+   * `kit/` has to be opt-in: in an adopting repository `kit/` is an ordinary
+   * directory holding whatever that project keeps there, and silently exempting
+   * it from the wiki rails — or letting `wiki:kit` overwrite it — would be a
+   * rule about this repository's layout leaking into theirs.
+   */
+  publishesKit: boolean;
   freshContext?: FreshContextPolicy;
 };
 
@@ -939,7 +964,7 @@ export function parseFreshContextPolicy(value: unknown): FreshContextPolicy | un
 }
 
 export function readConfig(view: RepoView): WikiConfig {
-  const fallback: WikiConfig = { version: 1, name: "Project", highRisk: [] };
+  const fallback: WikiConfig = { version: 1, name: "Project", highRisk: [], publishesKit: false };
   if (!view.exists(".wiki/config.json")) return fallback;
   try {
     const raw = JSON.parse(view.read(".wiki/config.json")) as Record<string, unknown>;
@@ -948,6 +973,7 @@ export function readConfig(view: RepoView): WikiConfig {
       version: 1,
       name: typeof raw.name === "string" && raw.name.length > 0 ? raw.name : "Project",
       highRisk: Array.isArray(raw.highRisk) ? raw.highRisk.filter((item): item is string => typeof item === "string" && item.length > 0) : [],
+      publishesKit: raw.publishesKit === true,
       ...(freshContext ? { freshContext } : {}),
     };
   } catch {
@@ -1271,10 +1297,14 @@ export function impactReport(view: RepoView, pages: WikiPage[], options: { base?
       for (const id of affected) if (!declared.has(id)) findings.push({ code: "metadata-page-omitted", message: `affected page is missing from PR metadata: ${id}`, severity: "error" });
     }
     if (metadata.semantic_change === true && metadata.wiki_action === "none") findings.push({ code: "semantic-wiki-none", message: "semantic changes cannot use wiki_action: none", severity: "error" });
-    if (files.some(isImplementationSourceChange) && metadata.wiki_action === "none") findings.push({ code: "implementation-wiki-none", message: "implementation changes cannot use wiki_action: none", severity: "error" });
+    // Bind the flag explicitly: passing the predicate to `.some` directly would
+    // hand it the array index as `publishesKit`, granting the exemption from the
+    // second element onward.
+    const isImplementationSource = (path: string) => isImplementationSourceChange(path, config.publishesKit);
+    if (files.some(isImplementationSource) && metadata.wiki_action === "none") findings.push({ code: "implementation-wiki-none", message: "implementation changes cannot use wiki_action: none", severity: "error" });
     const removedCurrentPaths = new Set(removedCurrentPages.map((page) => page.path));
     const changedCurrentDocs = files.filter((path) => removedCurrentPaths.has(path) || pages.some((page) => page.path === path && page.data.status === "current"));
-    const implementationChanged = files.some(isImplementationSourceChange);
+    const implementationChanged = files.some(isImplementationSource);
     if (changedCurrentDocs.length > 0 && !implementationChanged && !["proposal", "editorial", "reconcile"].includes(metadata.change_type ?? "")) {
       findings.push({ code: "current-doc-only-policy", message: "current semantic documentation changes without code require proposal, editorial, or reconcile change_type", severity: "error" });
     }
@@ -1295,7 +1325,7 @@ export function impactReport(view: RepoView, pages: WikiPage[], options: { base?
       if (touch.action === "introduce") {
         if (base) findings.push({ code: "conflict-introduce-existing", message: `${touch.id} already existed at the merge base`, severity: "error" });
         if (!head || head.data.status !== "conflicted") findings.push({ code: "conflict-introduce-state", message: `${touch.id} introduce requires an open conflicted page`, severity: "error" });
-        if (head?.data.origin === "introduced_by_change" && head.data.severity === "high" && files.some(isImplementationSourceChange)) {
+        if (head?.data.origin === "introduced_by_change" && head.data.severity === "high" && files.some(isImplementationSource)) {
           findings.push({ code: "conflict-introduced-high-risk", message: `a PR may not introduce a new high-severity implementation conflict: ${touch.id}`, severity: "error" });
         }
       }
@@ -1341,13 +1371,16 @@ export function impactReport(view: RepoView, pages: WikiPage[], options: { base?
   };
 }
 
-export function isImplementationSourceChange(path: string): boolean {
+/**
+ * `publishesKit` defaults to false so the exemption is never granted by accident.
+ * In the publishing repository `kit/**` is a derived copy of files that already
+ * carry the wiki obligation, and `wiki:kit --check` keeps the copy honest;
+ * elsewhere `kit/` is an ordinary directory and gets no exemption at all.
+ */
+export function isImplementationSourceChange(path: string, publishesKit = false): boolean {
   if (path.endsWith(".md")) return false;
   if (path.startsWith("wiki/_generated/")) return false;
-  // `kit/**` is a derived copy of files that are themselves implementation
-  // sources, so the originals already carry the wiki obligation. `wiki:kit
-  // --check` is what keeps the copy honest.
-  if (path.startsWith(`${KIT_ROOT}/`)) return false;
+  if (publishesKit && isKitManagedPath(path)) return false;
   if ([".wiki/state.json", ".wiki/source-map.json", ".wiki/conflict-map.json"].includes(path)) return false;
   return true;
 }

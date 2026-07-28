@@ -2,24 +2,24 @@
 
 The copy-paste distribution of wiki-ssot. Everything under `files/` and `seed/` is meant to land in **another** repository's root.
 
-This directory is generated. Do not hand-edit it — change the real file in this repository and run `bun run wiki:kit`. CI fails when the two drift apart.
+Everything in this directory except this README is generated — change the real file in the repository above and run `bun run wiki:kit`; CI fails when the two drift apart. This README is hand-maintained and is not covered by that check.
 
 ## What is in here
 
 | Path | Meaning |
 |---|---|
 | `files/**` | **Kit-owned.** Copied on adoption, replaced on upgrade, so engine and enforcement improvements actually reach you. |
-| `seed/**` | **Yours after the first copy.** Written only when absent, never updated, so your policy, your recorded source hashes, and your inventory implementation survive every upgrade. |
+| `seed/**` | **Yours after the first copy.** Written only when absent, never updated, so your policy, your recorded source hashes, your inventory implementation, and your `tsconfig.json` survive every upgrade. |
 | `package.kit.json` | **Reference.** Read from this directory and merged into your `package.json`; never copied, so an upgrade cannot re-drop a file you already merged away. |
-| `files/.wiki/kit-manifest.json` | The file list, a sha256 per file, and which side of the split each one is on. This is what makes an upgrade able to tell "you never touched this" from "you edited this". |
+| `files/.wiki/kit-manifest.json` | A sha256 per file, which side of the split it is on, and a roll-up `digest`. This is what lets an upgrade tell "you never touched this" from "you edited this". |
 
 The manifest is the authoritative list — this table does not repeat it. To see exactly what you would receive:
 
 ```bash
-bun -e 'const m = await Bun.file("kit/files/.wiki/kit-manifest.json").json(); console.log(`kit ${m.digest.slice(0,12)} — ${Object.keys(m.files).length} files`); for (const [p, v] of Object.entries(m.files)) console.log(`  ${v.ownership.padEnd(5)} ${p}`)'
+bun -e 'const m = await Bun.file("kit/files/.wiki/kit-manifest.json").json(); console.log(`kit ${m.digest.slice(0,12)}`); for (const [p, v] of Object.entries(m.files)) console.log(`  ${v.ownership.padEnd(9)} ${p}`); for (const p of Object.keys(m.reference)) console.log(`  reference ${p}`)'
 ```
 
-The kit has no version number. Its identity is `digest` — a content hash of every file it ships. Two checkouts with the same digest hold byte-identical kits.
+The kit has no version number. Its identity is `digest`, a content hash over every file it ships — the copied ones and the reference one alike. Two checkouts with the same digest hold byte-identical kits.
 
 ## Requirements
 
@@ -30,31 +30,47 @@ The kit has no version number. Its identity is `digest` — a content hash of ev
 From a checkout of this repository:
 
 ```bash
+bun scripts/wiki/kit-sync.ts --into /path/to/your-repo --dry-run
 bun scripts/wiki/kit-sync.ts --into /path/to/your-repo
 ```
 
-Preview without writing anything first, if you like:
+If your repository already has an `AGENTS.md`, a PR template, or anything else the kit ships, the first run reports those as conflicts and writes the incoming version alongside as `<path>.kit-new` rather than overwriting you. That is expected — see [Apply an upgrade](#apply-an-upgrade) for how to settle them.
 
-```bash
-bun scripts/wiki/kit-sync.ts --into /path/to/your-repo --dry-run
-```
-
-Then merge the scripts and dev dependencies into your `package.json`. This keeps everything you already had:
+Then merge the scripts and dev dependencies into your `package.json`. This keeps your `type`, your `engines`, your dependency pins, and any script name you already use — it reports collisions instead of taking them:
 
 ```bash
 cd /path/to/your-repo
-KIT=/path/to/wiki-ssot/kit bun -e 'const pkg = await Bun.file("package.json").json().catch(() => ({})); const add = await Bun.file(`${process.env.KIT}/package.kit.json`).json(); await Bun.write("package.json", JSON.stringify({ ...pkg, ...add, scripts: { ...pkg.scripts, ...add.scripts }, devDependencies: { ...pkg.devDependencies, ...add.devDependencies } }, null, 2) + "\n")'
+KIT=/path/to/wiki-ssot/kit bun -e '
+const pkg = await Bun.file("package.json").json().catch(() => ({}));
+const add = await Bun.file(`${process.env.KIT}/package.kit.json`).json();
+const scripts = { ...pkg.scripts }, kept = [], added = [];
+for (const [name, value] of Object.entries(add.scripts)) {
+  if (scripts[name] != null && scripts[name] !== value) kept.push(name);
+  else { scripts[name] = value; added.push(name); }
+}
+await Bun.write("package.json", JSON.stringify({
+  ...pkg,
+  type: pkg.type ?? add.type,
+  engines: { ...add.engines, ...pkg.engines },
+  scripts,
+  devDependencies: { ...add.devDependencies, ...pkg.devDependencies },
+}, null, 2) + "\n");
+console.log("added:", added.join(" ") || "(none)");
+console.log("kept yours:", kept.join(" ") || "(none)");
+'
 bun install
 ```
 
-`bun install` activates the git hooks through the `prepare` script.
+Whatever it prints under **kept yours** is now your job: those scripts exist in your repository and the kit did not touch them. In practice this is `test`, `typecheck`, and `prepare`. Your CI runs `bun run typecheck` and `bun run test`, so make sure yours also cover `scripts/wiki/**` — the engine ships its own regression suite and it needs to run.
+
+`bun install` activates the git hooks through the `prepare` script. If `prepare` was kept, run `bunx husky` once yourself.
 
 Now make it yours — these are the `seed/` files, and nothing upstream will overwrite them:
 
 - `.wiki/config.json` — set `name`, your `highRisk` globs, and the `freshContext` policy. The shipped `changedFileGlobs` covers the toolkit's own trust boundary; add your security, schema, and migration paths.
 - `.wiki/coverage.json` — set `include` to the code that must always map to a page. Start narrow.
-- `scripts/wiki/inventories.ts` — leave the stub until you want code-derived pages; `scripts/wiki/inventories.example.ts` has the patterns.
-- `tsconfig.json` — if you already had one, keep yours and make sure `scripts/**/*.ts` is in `include`.
+- `scripts/wiki/inventories.ts` — leave the stub until you want code-derived pages; `scripts/wiki/inventories.example.ts` has the patterns and can be deleted once you no longer need it.
+- `tsconfig.json` — if you already had one, yours was kept. If this became yours, add your own source globs to `include`; as shipped it typechecks only `scripts/**`, so CI would pass while never looking at your `src/`.
 
 Then bootstrap your pages and go green:
 
@@ -74,7 +90,7 @@ One step no file can do for you: configure GitHub branch protection on `main` to
 
 ### Without the tool
 
-`kit-sync.ts` exists because "copy everything" is wrong for `seed/`. If you would rather do it by hand, this is the equivalent:
+`kit-sync.ts` exists because "copy everything" is wrong for `seed/`, and because overwriting a file you edited is wrong for `files/`. If you would rather do the first copy by hand, into a repository that has none of these files yet:
 
 ```bash
 DEST=/path/to/your-repo
@@ -83,6 +99,8 @@ cp -R kit/files/. "$DEST"/
   [ -e "$DEST/$f" ] || { mkdir -p "$DEST/$(dirname "$f")"; cp "kit/seed/$f" "$DEST/$f"; }
 done
 ```
+
+There is no by-hand equivalent for an upgrade. Use the tool.
 
 ## Apply an upgrade
 
@@ -93,31 +111,37 @@ git -C /path/to/wiki-ssot pull
 bun /path/to/wiki-ssot/scripts/wiki/kit-sync.ts --into /path/to/your-repo
 ```
 
-It compares three versions of every kit-owned file — the incoming one, the one recorded in your `.wiki/kit-manifest.json` at your last sync, and the one on your disk — and acts per file:
+For every kit-owned file it compares three versions — the incoming one, the one recorded in your `.wiki/kit-manifest.json` at your last sync, and the one on your disk:
 
 | Your file | Upstream | Result |
 |---|---|---|
 | absent | — | `create` |
-| already equals the incoming version | — | `unchanged` |
+| byte-identical to the incoming version | — | `unchanged` |
 | identical to what you last synced | changed | `update` — replaced |
 | edited by you | unchanged | `customized` — left alone |
 | edited by you | changed | `conflict` — **never overwritten** |
-| present, but you have no recorded manifest | — | `conflict` — cannot be proven pristine |
+| differs, and you have no recorded manifest | — | `conflict` — cannot be proven pristine |
+| a symlink | — | `conflict` — never written through |
 
-A conflict writes the incoming version beside your file as `<path>.kit-new` and leaves yours untouched. The command exits non-zero and **does not advance** your recorded manifest, so an unresolved conflict cannot quietly turn into "your customization" on the next run.
+Two more outcomes are not about your edits: `seed-created` / `seed-present` for `seed/` files, and `removed-upstream` for a file an older kit shipped and this one no longer does. A removal is **reported once and then forgotten** — the file is yours now, and deleting things in your repository is not this tool's call.
 
-Resolve a conflict by merging and deleting the sidecar:
+A conflict writes the incoming version beside your file as `<path>.kit-new`, leaves yours untouched, and exits non-zero. Everything that did not conflict is still applied, and the manifest advances for exactly those files — one stuck conflict never blocks the rest.
+
+Resolve a conflict by merging and telling the tool you did:
 
 ```bash
 cd /path/to/your-repo
 diff -u AGENTS.md AGENTS.md.kit-new     # or your merge tool
 # ...merge by hand, then:
 rm AGENTS.md.kit-new
+bun /path/to/wiki-ssot/scripts/wiki/kit-sync.ts --into . --accept AGENTS.md
 ```
 
-Re-run the sync. When nothing is left in conflict it exits 0 and records the new digest.
+`--accept` is required and not cosmetic. A hand-merged file matches neither the incoming version nor the recorded one, so nothing about it can be inferred; `--accept` records the incoming hash without touching your file, which turns it into an ordinary `customized` from then on. Without it the file would re-conflict on every future run. Pass `--accept` once per resolved path — the tool prints the exact flags for you.
 
-Upgrades never touch `seed/` files. If upstream changes the shape of `.wiki/config.json`, that arrives as a note in this repository's `wiki/changelog.md`, not as an overwrite of your policy.
+To take upstream's version instead, `mv AGENTS.md.kit-new AGENTS.md` and re-run; it becomes `unchanged`.
+
+Upgrades never touch `seed/` files. If upstream changes the shape of `.wiki/config.json`, that arrives as a note in this repository's `wiki/changelog.md`, not as an overwrite of your policy. Dependencies and scripts arrive through `package.kit.json`, which is never copied either — when the digest moves, re-run the merge command above.
 
 Review the result as an ordinary change — `git diff` in your repository shows exactly what moved.
 
@@ -127,7 +151,7 @@ Confirm an adopted repository still matches the kit it recorded:
 
 ```bash
 cd /path/to/your-repo
-bun -e 'const m = await Bun.file(".wiki/kit-manifest.json").json(); let bad = 0; for (const [p, v] of Object.entries(m.files)) { const f = Bun.file(p); if (!(await f.exists())) { console.log(`missing    ${p}`); bad++; continue; } const h = new Bun.CryptoHasher("sha256"); h.update(await f.text()); if (h.digest("hex") !== v.sha256) { console.log(`${v.ownership === "seed" ? "yours     " : "modified  "} ${p}`); if (v.ownership === "kit") bad++; } } console.log(bad === 0 ? `kit ${m.digest.slice(0,12)} intact` : `${bad} kit-owned file(s) diverged`)'
+bun -e 'const m = await Bun.file(".wiki/kit-manifest.json").json(); let bad = 0; for (const [p, v] of Object.entries(m.files)) { const f = Bun.file(p); if (!(await f.exists())) { console.log(`missing    ${p}`); if (v.ownership === "kit") bad++; continue; } const h = new Bun.CryptoHasher("sha256"); h.update(await f.text()); if (h.digest("hex") !== v.sha256) { console.log(`${v.ownership === "seed" ? "yours     " : "modified  "} ${p}`); if (v.ownership === "kit") bad++; } } console.log(bad === 0 ? `kit ${m.digest.slice(0,12)} intact` : `${bad} kit-owned file(s) diverged`)'
 ```
 
-A `seed/` file showing as changed is expected — that is your configuration. A kit-owned file showing as modified means either a local edit that an upgrade will flag as a conflict, or a sync that was interrupted.
+A `seed/` file showing as changed is expected — that is your configuration. A kit-owned file showing as modified means an edit that the next upgrade will surface as a conflict, or one you resolved with `--accept`, which is the same thing recorded deliberately.

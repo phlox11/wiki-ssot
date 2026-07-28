@@ -1,6 +1,7 @@
 {
   "version": 1,
   "name": "wiki-ssot",
+  "publishesKit": true,
   "highRisk": [
     ".github/workflows/checks.yml",
     "scripts/wiki/*.ts"
@@ -13,7 +14,7 @@
       "kind": "risk-based",
       "changedFileGlobs": [
         ".github/pull_request_template.md",
-        ".github/workflows/checks.yml",
+        ".github/workflows/**",
         ".wiki/config.json",
         "AGENTS.md",
         "package.json",
