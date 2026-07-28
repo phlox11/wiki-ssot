@@ -1,5 +1,5 @@
 {
-  "digest": "9bf83da297a3ee0c801530da83326310a7be57720297f5649f84d02cd54ecffe",
+  "digest": "e40fa798178b9c71690ba8301628109bec56c892abe59d78f940d4ba05aa403d",
   "files": {
     ".github/pull_request_template.md": {
       "ownership": "kit",
@@ -35,7 +35,7 @@
     },
     "AGENTS.md": {
       "ownership": "kit",
-      "sha256": "b9205de6899ae5fb349abdc3b013551c441d3404a3c23fd725483798861ebc39"
+      "sha256": "410ae6f0c3e74b3f3a29f1fc24d0cf056f8645133b46f94a1298d9e13b88544f"
     },
     "CLAUDE.md": {
       "ownership": "seed",

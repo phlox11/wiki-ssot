@@ -47,6 +47,7 @@ These rules apply to every coding agent and every task in this repository. They 
 
 - Work on a feature branch and use PRs. Do not push directly to `main`.
 - Hooks and CI are feedback. The real remote boundary is branch protection on `main`.
+- Branch protection is not a complete boundary on its own, because it matches on check name: a `pull_request` runs the workflow file from the PR's own merge tree, so a PR that keeps a required job's name while emptying its steps reports success without validating anything. Protect `.github/workflows/checks.yml` with a ruleset-required workflow or CODEOWNERS plus required owner review.
 <!-- kit:exclude:start -->
 - Branch protection status and the no-gap required-check migration for this repository: `wiki/proposals/protected-main.md`.
 <!-- kit:exclude:end -->
