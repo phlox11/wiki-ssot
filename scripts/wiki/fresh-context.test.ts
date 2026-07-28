@@ -229,7 +229,7 @@ describe("fresh-context review manifest", () => {
     const two = makeReviewBundle(createRepoView(root), loadWikiPages(createRepoView(root)).pages, impactReport(createRepoView(root), loadWikiPages(createRepoView(root)).pages, { base: "HEAD~1", metadata: metadata() }), "bundle-two", metadata());
     expect(readFileSync(join(one, "manifest.json"), "utf8")).toBe(readFileSync(join(two, "manifest.json"), "utf8"));
     expect(hashContent(readFileSync(join(one, "PROMPT.md"), "utf8"))).toBe("8fceea8ec3c44e5518b90a7038e380d629f1e8cb87ac07762fc4e187f2eb4cf5");
-    expect(hashContent(readFileSync(join(one, "REPORT.md"), "utf8"))).toBe("d9cbc8595813044164a7bc9e334bfcb970e3cda46ea38c346b0b3c45bd7c3678");
+    expect(hashContent(readFileSync(join(one, "REPORT.md"), "utf8"))).toBe("67e53b0950c120a27d7c6ae2bb9312094216f04eaf7df7f42f983e214dd7767e");
     expect(JSON.parse(readFileSync(join(one, "impact.json"), "utf8")).affectedInvariants).toBeUndefined();
     expect(existsSync(join(one, "REPORT.example.json"))).toBe(true);
     expect(existsSync(join(one, "REPORT.md"))).toBe(true);
@@ -999,6 +999,25 @@ describe("fresh-context disposition adjudication", () => {
     // non-pointing disposition never needed a page ref at all.
     expect(adjudicate(findingFor({ scope_refs: ["page:product/test", "source:source.ts"] }))).toEqual([]);
     expect(adjudicate(findingFor({ scope_refs: ["source:source.ts"], disposition: "followup_created", conflict_id: undefined, followup_ref: "issue #17" }))).toEqual([]);
+  });
+
+  test("lets this candidate open a conflict for a question it raised itself", () => {
+    // A decision ambiguity reports undecided intent, not a break, and its only
+    // deferrals are the conflict dispositions. Holding it to `origin: baseline`
+    // would leave it no legal exit at all, since inventing the decision to
+    // close it is forbidden and `unresolved` blocks PASS.
+    const ambiguity = findingFor({ classification: "decision_ambiguity", disposition: "conflict_introduced" });
+    for (const origin of ["baseline", "introduced_by_change"] as const) {
+      expect(adjudicate(ambiguity, [conflictFor({ type: "decision", origin })])).toEqual([]);
+    }
+  });
+
+  test("does not impose a conflict type on a defect outside this change's scope", () => {
+    // `unrelated_defect` implies no type, so any open baseline conflict whose
+    // pages match may track it.
+    for (const type of ["implementation", "documentation", "decision"] as const) {
+      expect(adjudicate(findingFor({ classification: "unrelated_defect", disposition: "existing_conflict_linked" }), [conflictFor({ type })])).toEqual([]);
+    }
   });
 
   test("will not let a reviewer call a problem pre-existing while the conflict says the change caused it", () => {

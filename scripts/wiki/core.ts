@@ -1355,7 +1355,7 @@ The engine refuses a \`PASS\` that carries an \`unresolved\` finding, and it adj
 
 \`unresolved\` stays available everywhere, but it blocks \`PASS\`. So a break this candidate caused, or a contract the PR itself declares, is closed only by fixing it: classify honestly rather than reaching for a classification whose deferrals are wider.
 
-A disposition naming a conflict must name one that is open at the reviewed HEAD, carries the conflict type its classification implies, declares \`origin: baseline\` whenever the classification says the problem predates this candidate, and lists at least one of the finding's \`page:\` scope refs among its affected pages. The author writes that \`origin\` and you write the classification independently; the engine only requires that the two agree.
+A disposition naming a conflict must name one that is open at the reviewed HEAD, carries the conflict type its classification implies where one is implied, declares \`origin: baseline\` whenever the classification says the problem predates this candidate, and lists at least one of the finding's \`page:\` scope refs among its affected pages. \`unrelated_defect\` implies no conflict type; \`decision_ambiguity\` is exempt from the \`origin\` rule, because this candidate may legitimately raise a new question about its own behaviour. The author writes that \`origin\` and you write the classification independently; the engine only requires that the two agree.
 
 A \`version: 1\` report with free-text \`findings\` is still accepted so an in-flight review is not invalidated, but it cannot express a disposition. Prefer version 2.
 
@@ -1535,13 +1535,17 @@ const FRESH_CONTEXT_CLASSIFICATION_CONFLICT_TYPE: Partial<Record<FreshContextCla
  * writes a conflict's `origin`; the reviewer independently writes
  * `classification`. They are the same judgement made by different parties, so a
  * finding that says "this was already broken" may only point at a conflict that
- * says the same thing. Disagreement means one of the two is misreporting who
- * caused the break, and `conflict-introduced-high-risk` — which keys on
- * `origin: introduced_by_change` — is only load-bearing while they agree.
+ * says the same thing.
+ *
+ * `decision_ambiguity` is deliberately absent. It reports that intent is
+ * undecided, not that something is broken, and a change can legitimately raise
+ * a new question about its own behaviour — a conflict honestly recording
+ * `origin: introduced_by_change`. Requiring `baseline` there would leave that
+ * conflict as the only allowed disposition while making it illegal, and
+ * inventing the decision to close it is forbidden outright.
  */
 const FRESH_CONTEXT_PREEXISTING_CLASSIFICATIONS = new Set<FreshContextClassification>([
   "preexisting_implementation_mismatch",
-  "decision_ambiguity",
   "documentation_disagreement",
   "unrelated_defect",
 ]);
@@ -1818,8 +1822,11 @@ export function reviewCheck(view: RepoView, pages: WikiPage[], options: {
     };
   }
   // Conflict pointers are resolved against the open conflicts at the reviewed
-  // HEAD, so a finding cannot be retired by naming a conflict the candidate
-  // never opened, one already resolved, or one that never existed.
+  // HEAD, so a finding cannot be retired by naming a conflict that never
+  // existed or one already resolved. Whether the candidate opened the conflict
+  // or inherited it is the author-side `touched_conflicts` guard's job, so
+  // `conflict_introduced` and `existing_conflict_linked` resolve identically
+  // here.
   const checked = validateFreshContextAttestation({
     policy,
     manifest,
