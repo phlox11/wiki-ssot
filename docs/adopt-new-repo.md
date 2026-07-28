@@ -2,19 +2,19 @@
 
 Goal: start a repository with the wiki already in place, and grow it as the code grows.
 
-## 1. Start from this template
+## 1. Copy the kit in
 
-Use this repository as a GitHub template (or copy its files), then remove the self-describing example pages and reset the verification ledger to your project:
+Create your empty repository, then sync the kit into it from a checkout of this one:
 
 ```sh
-# after copying the kit into your new repo:
-rm wiki/product/scope.md wiki/product/invariants.md wiki/architecture/engine.md \
-   wiki/operations/enforcement.md wiki/proposals/protected-main.md
-echo '{"pages":{},"version":1}' > .wiki/state.json
-bun install
+bun scripts/wiki/kit-sync.ts --into /path/to/your-repo
 ```
 
-Keep `scripts/wiki/`, `.wiki/config.json`, `.wiki/coverage.json`, `.husky/`, `.github/`, `AGENTS.md`, `CLAUDE.md`, and `wiki/SCHEMA.md` / `wiki/WORKFLOW.md` / `wiki/README.md` / `wiki/changelog.md`. Within `scripts/wiki/`, keep `wiki.test.ts` (the engine's regression suite, run in CI); `inventories.example.ts` is reference-only — delete it once you write your own `inventories.ts`, or right away if you will not use inventories.
+Then merge the scripts and dev dependencies into your `package.json` with the command in [`kit/README.md`](../kit/README.md#adopt-it-in-a-new-repository), and run `bun install`.
+
+You arrive with an empty verification ledger and no pages to delete: the kit contains only the toolkit, never this repository's own wiki pages, conflicts, or proposals. Within `scripts/wiki/`, `wiki.test.ts` and `fresh-context.test.ts` are kit-owned — they are the engine's regression suites and run in CI. `inventories.example.ts` is never copied into your repository at all; read its patterns from `kit/scripts/wiki/inventories.example.ts` in this checkout when you write your own `inventories.ts`.
+
+[`kit/README.md`](../kit/README.md) documents the full file list, the kit-owned/seed split, and how to take a later upgrade.
 
 ## 2. Point config at your project
 

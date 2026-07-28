@@ -47,7 +47,4 @@ These rules apply to every coding agent and every task in this repository. They 
 
 - Work on a feature branch and use PRs. Do not push directly to `main`.
 - Hooks and CI are feedback. The real remote boundary is branch protection on `main`.
-<!-- kit:exclude:start -->
-- Branch protection status and the no-gap required-check migration for this repository: `wiki/proposals/protected-main.md`.
-<!-- kit:exclude:end -->
 - Keep unrelated changes intact and do not bypass checks to make a change appear valid.

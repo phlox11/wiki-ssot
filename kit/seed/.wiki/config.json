@@ -1,0 +1,35 @@
+{
+  "freshContext": {
+    "evidenceRequired": true,
+    "mode": "required",
+    "requiredVerdict": "PASS",
+    "requiredWhen": {
+      "affectedConflicts": true,
+      "affectedInvariants": true,
+      "changedFileGlobs": [
+        ".github/workflows/**",
+        ".wiki/config.json",
+        "AGENTS.md",
+        "scripts/wiki/**",
+        "wiki/SCHEMA.md",
+        "wiki/WORKFLOW.md"
+      ],
+      "kind": "risk-based",
+      "removedCurrentPages": true
+    },
+    "trust": {
+      "allowedReviewers": [
+        "*"
+      ],
+      "requireAuthenticatedActor": true,
+      "requireDifferentActor": false
+    }
+  },
+  "highRisk": [
+    "src/contracts/**",
+    "src/db/**",
+    "migrations/**"
+  ],
+  "name": "your-repo",
+  "version": 1
+}

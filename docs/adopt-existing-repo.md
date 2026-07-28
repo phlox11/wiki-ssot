@@ -9,25 +9,20 @@ Goal: stand up an enforced SSOT wiki over a codebase that already exists, then k
 
 ## 1. Copy the kit in
 
-From this repository, copy into the root of yours:
-
-```
-scripts/wiki/          → scripts/wiki/
-.wiki/config.json      → .wiki/config.json
-.wiki/coverage.json    → .wiki/coverage.json
-.wiki/state.json       → .wiki/state.json      (start it as {"pages":{},"version":1})
-.husky/                → .husky/
-.github/workflows/     → .github/workflows/     (merge into your CI if you already have one)
-.github/pull_request_template.md
-AGENTS.md, CLAUDE.md
-wiki/SCHEMA.md, wiki/WORKFLOW.md, wiki/README.md, wiki/changelog.md
-```
-
-Add the `wiki:*`, `typecheck`, `test`, and `prepare` scripts and the `devDependencies` from this repo's `package.json` to yours, then:
+The distribution lives in [`kit/`](../kit/README.md). From a checkout of this repository:
 
 ```sh
-bun install
+bun scripts/wiki/kit-sync.ts --into /path/to/your-repo --dry-run   # preview
+bun scripts/wiki/kit-sync.ts --into /path/to/your-repo
 ```
+
+An existing repository usually already has an `AGENTS.md` or a PR template. Those come back as conflicts with the incoming version written alongside as `<path>.kit-new`; nothing of yours is overwritten. Merge each one and re-run with `--accept <path>`.
+
+Then merge the scripts and dev dependencies into your `package.json` with the command in [`kit/README.md`](../kit/README.md#adopt-it-in-a-new-repository) — it keeps your `type`, `engines`, dependency pins, and any script name you already use, and prints the collisions it refused to take — then `bun install`.
+
+If your repository already has `.github/workflows/`, merge the copied jobs into your existing CI rather than keeping two workflows that install twice.
+
+The kit ships only the toolkit. This repository's own wiki pages, conflicts, and proposals are instance content and are never part of it, so there is nothing to delete afterwards. [`kit/README.md`](../kit/README.md) documents the full file list, the kit-owned/seed split, and how to take a later upgrade without losing your configuration.
 
 ## 2. Configure the policy and project seams
 
@@ -79,7 +74,7 @@ Map every file matched by `coverage.json` `include` to some page's `sources`, or
 
 ## 4. Optional: code-derived inventories
 
-For always-current generated pages (route tables, schema lists), implement `scripts/wiki/inventories.ts` for your stack. Copy patterns from `scripts/wiki/inventories.example.ts`, then delete the example — it is reference-only and imported by nothing. Keep `scripts/wiki/wiki.test.ts`: it is the engine's own regression suite (run by the `code-check` CI job) and depends on no host project.
+For always-current generated pages (route tables, schema lists), implement `scripts/wiki/inventories.ts` for your stack. Copy patterns from `kit/scripts/wiki/inventories.example.ts` in this repository — it is reference-only, is never delivered into yours, and so is nothing you have to clean up. Keep `scripts/wiki/wiki.test.ts` and `scripts/wiki/fresh-context.test.ts`: they are the engine's own regression suites (run by the `code-check` CI job) and depend on no host project.
 
 ## 5. Verify and go green
 
