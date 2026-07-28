@@ -3,13 +3,13 @@
     "architecture/engine": {
       "sources": {
         "scripts/wiki/cli.ts": "f7b262c5c5bfea76bb4b5d9d987667df00835cf43386e3e6f2f147813d3562f9",
-        "scripts/wiki/core.ts": "9db2ae16fcd15cc158729ccaeac74203e14dc9156709b0a5ab36c348f7f58ba0",
+        "scripts/wiki/core.ts": "fecb552313cf80c83f55e7e4f3650d10e9642470900747f96a6e213aecd3b078",
         "scripts/wiki/fresh-context.test.ts": "1f09fd510b1296019eb21fc7817b654e6bfdfa3e6a968384f105cea40d7f83fd",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c",
         "scripts/wiki/inventories.example.ts": "3c173f3382105416947b30020f8004b02e5667acdcff47c2057757207daa9447",
         "scripts/wiki/inventories.ts": "f8a608159394b661149eb69236a4fef8ab5c90be5acafb5fa14fedff3e74101f",
-        "scripts/wiki/kit-sync.ts": "65c55c64aedf71205afd79a10e3b91737c97f9ef0283daafa3cb41accb20faf0",
-        "scripts/wiki/kit.test.ts": "3d0ffb7a5408642f4c702f7e7e1f20843286ef571e84345dcdfb4dabc2e64460",
+        "scripts/wiki/kit-sync.ts": "1d8f77baa00a3bcea174d78537cdb7ac80aea680c0ac00154e5af5e94b4b6ac0",
+        "scripts/wiki/kit.test.ts": "414039ef16d7754bb4180b868c6d3f375a2381e357ee4d51784110e08e2b3bc8",
         "scripts/wiki/wiki.test.ts": "539712a8f680522a3ade618190db3b7392fe273961ebe8c8e00c4a56e1524646"
       },
       "verification": {
@@ -28,20 +28,21 @@
         "AGENTS.md": "5a7cd655d5afc18bf79ca0e53c2593e22ba35b2bdefe1271e453667b8568cc64",
         "package.json": "bcc223d180da7327644072d47c370bb818e26410236ec82ec36bd6b4eb0ea10e",
         "scripts/wiki/cli.ts": "f7b262c5c5bfea76bb4b5d9d987667df00835cf43386e3e6f2f147813d3562f9",
-        "scripts/wiki/core.ts": "9db2ae16fcd15cc158729ccaeac74203e14dc9156709b0a5ab36c348f7f58ba0",
+        "scripts/wiki/core.ts": "fecb552313cf80c83f55e7e4f3650d10e9642470900747f96a6e213aecd3b078",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "kit containment and placement changes do not alter any enforcement rail described by this page"
       }
     },
     "product/invariants": {
       "sources": {
-        "scripts/wiki/core.ts": "9db2ae16fcd15cc158729ccaeac74203e14dc9156709b0a5ab36c348f7f58ba0"
+        "scripts/wiki/core.ts": "fecb552313cf80c83f55e7e4f3650d10e9642470900747f96a6e213aecd3b078"
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "the kit exemption is now opt-in and covers only generated paths, so the non-generated implementation-source scope is unchanged"
+        "reason": "the kit exemption remains opt-in and generated-scoped, so the non-generated implementation-source scope is unchanged"
       }
     },
     "product/scope": {

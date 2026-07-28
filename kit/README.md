@@ -10,7 +10,7 @@ Everything in this directory except this README is generated — change the real
 |---|---|
 | `files/**` | **Kit-owned.** Copied on adoption, replaced on upgrade, so engine and enforcement improvements actually reach you. |
 | `seed/**` | **Yours after the first copy.** Written only when absent, never updated, so your policy, your recorded source hashes, your inventory implementation, and your `tsconfig.json` survive every upgrade. |
-| `package.kit.json` | **Reference.** Read from this directory and merged into your `package.json`; never copied, so an upgrade cannot re-drop a file you already merged away. |
+| `package.kit.json`, `scripts/wiki/inventories.example.ts` | **Reference.** Read from this directory, never copied. Seed placement would not do: "seed" means "written when absent", so anything you merged away or deleted on purpose would come straight back on the next upgrade. |
 | `files/.wiki/kit-manifest.json` | A sha256 per file, which side of the split it is on, and a roll-up `digest`. This is what lets an upgrade tell "you never touched this" from "you edited this". |
 
 The manifest is the authoritative list — this table does not repeat it. To see exactly what you would receive:
@@ -69,7 +69,7 @@ Now make it yours — these are the `seed/` files, and nothing upstream will ove
 
 - `.wiki/config.json` — set `name`, your `highRisk` globs, and the `freshContext` policy. The shipped `changedFileGlobs` covers the toolkit's own trust boundary; add your security, schema, and migration paths.
 - `.wiki/coverage.json` — set `include` to the code that must always map to a page. Start narrow.
-- `scripts/wiki/inventories.ts` — leave the stub until you want code-derived pages; `scripts/wiki/inventories.example.ts` has the patterns and can be deleted once you no longer need it.
+- `scripts/wiki/inventories.ts` — leave the stub until you want code-derived pages. The patterns live in `kit/scripts/wiki/inventories.example.ts` in this checkout; it is never copied into your repository, so there is nothing to delete afterwards.
 - `tsconfig.json` — if you already had one, yours was kept. If this became yours, add your own source globs to `include`; as shipped it typechecks only `scripts/**`, so CI would pass while never looking at your `src/`.
 
 Then bootstrap your pages and go green:

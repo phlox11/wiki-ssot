@@ -610,10 +610,11 @@ export const KIT_ENTRIES: KitEntry[] = [
   { target: "scripts/wiki/core.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/core.ts" } },
   { target: "scripts/wiki/cli.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/cli.ts" } },
   { target: "scripts/wiki/github-attestation.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/github-attestation.ts" } },
-  // Seed, not kit-owned: the adoption guides tell an adopter to delete this once
-  // they write their own inventories, and a kit-owned file would come back on the
-  // next upgrade.
-  { target: "scripts/wiki/inventories.example.ts", placement: "seed", source: { kind: "copy", from: "scripts/wiki/inventories.example.ts" } },
+  // Reference, not copied at all. It is documentation of the inventory patterns,
+  // and the guides tell an adopter to delete it once they no longer need it — a
+  // seed file would be re-created the moment it went missing, since "seed" means
+  // "written when absent", not "deleted once and gone".
+  { target: "scripts/wiki/inventories.example.ts", placement: "reference", source: { kind: "copy", from: "scripts/wiki/inventories.example.ts" } },
   { target: "scripts/wiki/wiki.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/wiki.test.ts" } },
   { target: "scripts/wiki/fresh-context.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/fresh-context.test.ts" } },
   { target: ".github/workflows/checks.yml", placement: "files", source: { kind: "copy", from: ".github/workflows/checks.yml" } },

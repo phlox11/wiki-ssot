@@ -431,6 +431,39 @@ describe("kit sync", () => {
     expect(readFileSync(outside, "utf8")).toBe("shared\n");
   });
 
+  test("a deleted reference file is never re-created", () => {
+    // Seed placement cannot make a deletion stick: "seed" means "written when
+    // absent", which is exactly re-creation. Reference files are never copied.
+    const { kit, repo } = adopt();
+    expect(existsSync(join(repo, "scripts/wiki/inventories.example.ts"))).toBe(false);
+    expect(existsSync(join(repo, "package.kit.json"))).toBe(false);
+    applySync(kit, repo, planSync(kit, repo));
+    expect(existsSync(join(repo, "scripts/wiki/inventories.example.ts"))).toBe(false);
+    expect(existsSync(join(repo, "package.kit.json"))).toBe(false);
+  });
+
+  test("a symlinked manifest is not written through", () => {
+    // The manifest write bypasses classification, so it needs its own guard.
+    const { kit, repo } = adopt();
+    const outside = join(tempDir("kit-outside-"), "victim.json");
+    writeFileSync(outside, "ORIGINAL\n");
+    rmSync(join(repo, MANIFEST_TARGET));
+    symlinkSync(outside, join(repo, MANIFEST_TARGET));
+    expect(() => applySync(kit, repo, planSync(kit, repo))).toThrow(/symlink/);
+    expect(readFileSync(outside, "utf8")).toBe("ORIGINAL\n");
+  });
+
+  test("a symlinked ancestor directory cannot smuggle writes outside", () => {
+    // resolve()/relative() are lexical and do not follow links, so the lexical
+    // test alone lets every target under a symlinked directory land outside.
+    const kit = stageKit();
+    const repo = tempDir("kit-dest-");
+    const outside = tempDir("kit-outside-");
+    symlinkSync(outside, join(repo, "scripts"));
+    expect(() => planSync(kit, repo)).toThrow(/symlinked directory/);
+    expect(Bun.spawnSync(["ls", "-A", outside]).stdout.toString().trim()).toBe("");
+  });
+
   test("a manifest target that escapes the destination is refused", () => {
     const { kit, repo } = adopt();
     const manifestPath = join(kit, "files", MANIFEST_TARGET);

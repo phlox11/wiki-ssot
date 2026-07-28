@@ -12,7 +12,7 @@ bun scripts/wiki/kit-sync.ts --into /path/to/your-repo
 
 Then merge the scripts and dev dependencies into your `package.json` with the command in [`kit/README.md`](../kit/README.md#adopt-it-in-a-new-repository), and run `bun install`.
 
-You arrive with an empty verification ledger and no pages to delete: the kit contains only the toolkit, never this repository's own wiki pages, conflicts, or proposals. Within `scripts/wiki/`, `wiki.test.ts` and `fresh-context.test.ts` are kit-owned — they are the engine's regression suites and run in CI. `inventories.example.ts` is reference-only and ships as a seed file, so deleting it once you write your own `inventories.ts` sticks across upgrades.
+You arrive with an empty verification ledger and no pages to delete: the kit contains only the toolkit, never this repository's own wiki pages, conflicts, or proposals. Within `scripts/wiki/`, `wiki.test.ts` and `fresh-context.test.ts` are kit-owned — they are the engine's regression suites and run in CI. `inventories.example.ts` is never copied into your repository at all; read its patterns from `kit/scripts/wiki/inventories.example.ts` in this checkout when you write your own `inventories.ts`.
 
 [`kit/README.md`](../kit/README.md) documents the full file list, the kit-owned/seed split, and how to take a later upgrade.
 

@@ -1,5 +1,5 @@
 {
-  "digest": "a78516604c011b50d11d71e2671b77d3cebb5409a2f77d0b3884761cd8b3e7b8",
+  "digest": "27291d3e3fd3563505434fa06abf0977920724fe0a7de57bc5a8f0c71629b053",
   "files": {
     ".github/pull_request_template.md": {
       "ownership": "kit",
@@ -47,7 +47,7 @@
     },
     "scripts/wiki/core.ts": {
       "ownership": "kit",
-      "sha256": "9db2ae16fcd15cc158729ccaeac74203e14dc9156709b0a5ab36c348f7f58ba0"
+      "sha256": "fecb552313cf80c83f55e7e4f3650d10e9642470900747f96a6e213aecd3b078"
     },
     "scripts/wiki/fresh-context.test.ts": {
       "ownership": "kit",
@@ -56,10 +56,6 @@
     "scripts/wiki/github-attestation.ts": {
       "ownership": "kit",
       "sha256": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c"
-    },
-    "scripts/wiki/inventories.example.ts": {
-      "ownership": "seed",
-      "sha256": "3c173f3382105416947b30020f8004b02e5667acdcff47c2057757207daa9447"
     },
     "scripts/wiki/inventories.ts": {
       "ownership": "seed",
@@ -92,7 +88,8 @@
   },
   "kit": "wiki-ssot",
   "reference": {
-    "package.kit.json": "84649b7e37cef0cced9c41da11c7cf3532105ae3b9b3d77fbd3a425a0178be95"
+    "package.kit.json": "84649b7e37cef0cced9c41da11c7cf3532105ae3b9b3d77fbd3a425a0178be95",
+    "scripts/wiki/inventories.example.ts": "3c173f3382105416947b30020f8004b02e5667acdcff47c2057757207daa9447"
   },
   "version": 1
 }

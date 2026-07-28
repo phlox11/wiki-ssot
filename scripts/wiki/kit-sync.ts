@@ -44,7 +44,7 @@
  * This script is intentionally standalone — it must run against a repository
  * that does not have this engine installed yet, so it imports nothing.
  */
-import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 
 export const MANIFEST_TARGET = ".wiki/kit-manifest.json";
@@ -102,11 +102,26 @@ export function readManifest(path: string): KitManifest | null {
   }
 }
 
-/** Refuse any target that would write outside the destination repository. */
+function escapes(root: string, candidate: string): boolean {
+  const rel = relative(root, candidate);
+  return rel.startsWith("..") || isAbsolute(rel);
+}
+
+/**
+ * Refuse any target that would write outside the destination repository.
+ *
+ * The lexical check alone is not enough: `resolve`/`relative` do not follow
+ * symlinks, so a symlinked directory component — a `scripts -> ../shared/scripts`
+ * arrangement, say — passes it while `mkdir`/`writeFile` traverse the link and
+ * land outside. Resolve the deepest existing ancestor too.
+ */
 function resolveInside(root: string, target: string): string {
-  const full = resolve(root, target);
-  const rel = relative(root, full);
-  if (rel === "" || rel.startsWith("..") || isAbsolute(rel)) throw new Error(`kit manifest target escapes the destination repository: ${target}`);
+  const realRoot = realpathSync(root);
+  const full = resolve(realRoot, target);
+  if (relative(realRoot, full) === "" || escapes(realRoot, full)) throw new Error(`kit manifest target escapes the destination repository: ${target}`);
+  let ancestor = dirname(full);
+  while (!existsSync(ancestor) && ancestor !== dirname(ancestor)) ancestor = dirname(ancestor);
+  if (escapes(realRoot, realpathSync(ancestor))) throw new Error(`kit target resolves outside the destination through a symlinked directory: ${target}`);
   return full;
 }
 
@@ -183,6 +198,9 @@ export function planSync(kitRoot: string, repoRoot: string, accept: string[] = [
 }
 
 function write(path: string, content: string, mode?: number) {
+  // `classify` turns a symlinked kit-owned file into a conflict, but the manifest
+  // write does not go through it, so the guard has to live here as well.
+  if (existsSync(path) && lstatSync(path).isSymbolicLink()) throw new Error(`refusing to write through a symlink: ${path}`);
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, content);
   if (mode != null) chmodSync(path, mode & 0o777);
