@@ -74,7 +74,7 @@ Map every file matched by `coverage.json` `include` to some page's `sources`, or
 
 ## 4. Optional: code-derived inventories
 
-For always-current generated pages (route tables, schema lists), implement `scripts/wiki/inventories.ts` for your stack. Copy patterns from `scripts/wiki/inventories.example.ts`, then delete the example — it is reference-only and imported by nothing. Keep `scripts/wiki/wiki.test.ts`: it is the engine's own regression suite (run by the `code-check` CI job) and depends on no host project.
+For always-current generated pages (route tables, schema lists), implement `scripts/wiki/inventories.ts` for your stack. Copy patterns from `kit/scripts/wiki/inventories.example.ts` in this repository — it is reference-only, is never delivered into yours, and so is nothing you have to clean up. Keep `scripts/wiki/wiki.test.ts` and `scripts/wiki/fresh-context.test.ts`: they are the engine's own regression suites (run by the `code-check` CI job) and depend on no host project.
 
 ## 5. Verify and go green
 

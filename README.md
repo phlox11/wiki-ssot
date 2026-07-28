@@ -66,22 +66,26 @@ scripts/wiki/
   cli.ts                 # thin CLI over core
   github-attestation.ts  # authenticated GitHub review/comment adapter
   inventories.ts         # project-owned adapter for code-derived pages (default: none)
-  inventories.example.ts # a real inventory adapter you can copy
-  wiki.test.ts / fresh-context.test.ts  # engine regression suites (synthetic repos)
+  inventories.example.ts # a real inventory adapter to read and adapt (not delivered)
+  kit-sync.ts            # adopt the kit into another repo, or upgrade it
+  wiki.test.ts / fresh-context.test.ts / kit.test.ts  # engine regression suites
 wiki/                    # the SSOT pages + SCHEMA.md + WORKFLOW.md
 .wiki/                   # machine config + generated indexes + verification ledger
 .husky/                  # pre-commit (lint) + pre-push (block main)
-.github/workflows/       # checks.yml (PR gates) + wiki-audit.yml (weekly)
+.github/workflows/       # checks.yml (PR gates) + kit.yml + wiki-audit.yml (weekly)
 AGENTS.md / CLAUDE.md    # the agent entrypoint
+kit/                     # the generated distribution other repos copy
 docs/                    # design + adoption playbooks + command reference
 ```
+
+That is this repository's layout. What another repository receives is [`kit/`](kit/README.md) and only `kit/` — its manifest is the authoritative list.
 
 ## Configure it for your repo
 
 Two seams make it yours; everything else is generic:
 
 - **`.wiki/config.json`** — your wiki's `name`, stale-page `highRisk` globs, and explicit Fresh-context mode/scope/evidence/reviewer trust policy.
-- **`scripts/wiki/inventories.ts`** — optional. Teach the engine to emit deterministic `wiki/_generated/**` pages from your stack (see `inventories.example.ts`).
+- **`scripts/wiki/inventories.ts`** — optional. Teach the engine to emit deterministic `wiki/_generated/**` pages from your stack; read `kit/scripts/wiki/inventories.example.ts` in a wiki-ssot checkout for a worked adapter.
 
 Omit `freshContext.requiredWhen` to require review for every PR. A `risk-based` selector can instead require it for trusted changed-file globs, affected invariants/conflicts, and current-page removals. For a solo-maintainer repository, set `trust.requireDifferentActor` to `false`: before opening the PR, the authoring agent must still use a separate context-isolated reviewer or sub-agent, but the authenticated publisher may be the PR author. Teams with a provisioned reviewer account or bot can set it to `true` to make distinct GitHub identities a blocking requirement.
 

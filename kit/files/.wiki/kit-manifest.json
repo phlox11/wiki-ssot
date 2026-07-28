@@ -1,5 +1,5 @@
 {
-  "digest": "27291d3e3fd3563505434fa06abf0977920724fe0a7de57bc5a8f0c71629b053",
+  "digest": "0bd1400d5d09816840986475b97866081387f9c4e4f03fdbf18196002a29f13a",
   "files": {
     ".github/pull_request_template.md": {
       "ownership": "kit",
@@ -47,7 +47,7 @@
     },
     "scripts/wiki/core.ts": {
       "ownership": "kit",
-      "sha256": "fecb552313cf80c83f55e7e4f3650d10e9642470900747f96a6e213aecd3b078"
+      "sha256": "91783c94ef7bf7a1780bb3a2d61920a934d2b14dd8c0aa4f7a39c498a0bf9e6e"
     },
     "scripts/wiki/fresh-context.test.ts": {
       "ownership": "kit",
@@ -59,7 +59,7 @@
     },
     "scripts/wiki/inventories.ts": {
       "ownership": "seed",
-      "sha256": "f8a608159394b661149eb69236a4fef8ab5c90be5acafb5fa14fedff3e74101f"
+      "sha256": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca"
     },
     "scripts/wiki/wiki.test.ts": {
       "ownership": "kit",

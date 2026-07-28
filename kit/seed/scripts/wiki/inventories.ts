@@ -16,8 +16,10 @@ import type { RepoView } from "./core";
  * a pure function of tracked files, read through `view.read(path)` /
  * `view.listFiles()`, so two runs on the same tree produce identical bytes.
  *
- * See `inventories.example.ts` for a real implementation (Hono routes, Zod
- * contracts, Drizzle tables, Expo routes) you can copy and adapt.
+ * For a real implementation to copy and adapt (Hono routes, Zod contracts,
+ * Drizzle tables, Expo routes), see `kit/scripts/wiki/inventories.example.ts` in
+ * the wiki-ssot checkout. It is reference-only and is deliberately not delivered
+ * into an adopting repository, so it will not be sitting next to this file.
  */
 export function generateInventories(_view: RepoView): Record<string, string> {
   return {};

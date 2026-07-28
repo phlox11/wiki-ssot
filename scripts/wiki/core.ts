@@ -610,10 +610,11 @@ export const KIT_ENTRIES: KitEntry[] = [
   { target: "scripts/wiki/core.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/core.ts" } },
   { target: "scripts/wiki/cli.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/cli.ts" } },
   { target: "scripts/wiki/github-attestation.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/github-attestation.ts" } },
-  // Reference, not copied at all. It is documentation of the inventory patterns,
-  // and the guides tell an adopter to delete it once they no longer need it — a
-  // seed file would be re-created the moment it went missing, since "seed" means
-  // "written when absent", not "deleted once and gone".
+  // Reference, not copied at all: it is documentation of the inventory patterns,
+  // read from the kit checkout when someone writes their own `inventories.ts`.
+  // Delivering it would mean an adopter carrying a file they never run, and seed
+  // placement could not even let them delete it — "seed" means "written when
+  // absent", so the next sync would put it straight back.
   { target: "scripts/wiki/inventories.example.ts", placement: "reference", source: { kind: "copy", from: "scripts/wiki/inventories.example.ts" } },
   { target: "scripts/wiki/wiki.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/wiki.test.ts" } },
   { target: "scripts/wiki/fresh-context.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/fresh-context.test.ts" } },

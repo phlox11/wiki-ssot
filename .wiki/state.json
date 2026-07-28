@@ -3,11 +3,11 @@
     "architecture/engine": {
       "sources": {
         "scripts/wiki/cli.ts": "f7b262c5c5bfea76bb4b5d9d987667df00835cf43386e3e6f2f147813d3562f9",
-        "scripts/wiki/core.ts": "fecb552313cf80c83f55e7e4f3650d10e9642470900747f96a6e213aecd3b078",
+        "scripts/wiki/core.ts": "91783c94ef7bf7a1780bb3a2d61920a934d2b14dd8c0aa4f7a39c498a0bf9e6e",
         "scripts/wiki/fresh-context.test.ts": "1f09fd510b1296019eb21fc7817b654e6bfdfa3e6a968384f105cea40d7f83fd",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c",
         "scripts/wiki/inventories.example.ts": "3c173f3382105416947b30020f8004b02e5667acdcff47c2057757207daa9447",
-        "scripts/wiki/inventories.ts": "f8a608159394b661149eb69236a4fef8ab5c90be5acafb5fa14fedff3e74101f",
+        "scripts/wiki/inventories.ts": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca",
         "scripts/wiki/kit-sync.ts": "1d8f77baa00a3bcea174d78537cdb7ac80aea680c0ac00154e5af5e94b4b6ac0",
         "scripts/wiki/kit.test.ts": "414039ef16d7754bb4180b868c6d3f375a2381e357ee4d51784110e08e2b3bc8",
         "scripts/wiki/wiki.test.ts": "539712a8f680522a3ade618190db3b7392fe273961ebe8c8e00c4a56e1524646"
@@ -28,30 +28,31 @@
         "AGENTS.md": "5a7cd655d5afc18bf79ca0e53c2593e22ba35b2bdefe1271e453667b8568cc64",
         "package.json": "bcc223d180da7327644072d47c370bb818e26410236ec82ec36bd6b4eb0ea10e",
         "scripts/wiki/cli.ts": "f7b262c5c5bfea76bb4b5d9d987667df00835cf43386e3e6f2f147813d3562f9",
-        "scripts/wiki/core.ts": "fecb552313cf80c83f55e7e4f3650d10e9642470900747f96a6e213aecd3b078",
+        "scripts/wiki/core.ts": "91783c94ef7bf7a1780bb3a2d61920a934d2b14dd8c0aa4f7a39c498a0bf9e6e",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c"
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "kit containment and placement changes do not alter any enforcement rail described by this page"
+        "reason": "the inventories pointer correction touches no enforcement rail described by this page"
       }
     },
     "product/invariants": {
       "sources": {
-        "scripts/wiki/core.ts": "fecb552313cf80c83f55e7e4f3650d10e9642470900747f96a6e213aecd3b078"
+        "scripts/wiki/core.ts": "91783c94ef7bf7a1780bb3a2d61920a934d2b14dd8c0aa4f7a39c498a0bf9e6e"
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "the kit exemption remains opt-in and generated-scoped, so the non-generated implementation-source scope is unchanged"
+        "reason": "a docblock pointer correction does not change any invariant scope"
       }
     },
     "product/scope": {
       "sources": {
         "docs/design.md": "39a3d8459c363d855589df0c041a77731a3768c1ac3dedc2c3631205dacc78ae",
-        "README.md": "3dc3612912bf51c019684dc2eefe7d980d7073a20d4337947ed27943a60ff134"
+        "README.md": "7c36bdcd8aefb04432dc67de0db972a83ef72946f385830f889d3d0818e05c1f"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "README layout and pointer corrections do not change what the toolkit does or excludes"
       }
     }
   },
