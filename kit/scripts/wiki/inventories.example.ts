@@ -8,8 +8,13 @@
  *
  * Read this file where it sits. It is a kit `reference` entry, so it is never
  * delivered into an adopting repository and there is nothing here for an adopter
- * to clean up; if you are reading it in a wiki-ssot checkout, it is the source
- * the kit generator copies from, so do not delete it.
+ * to clean up.
+ *
+ * A wiki-ssot checkout holds two byte-identical copies of it, and this note is
+ * in both, so it names them rather than saying "this one": edit
+ * `scripts/wiki/inventories.example.ts`, which is the source; `wiki:kit`
+ * regenerates `kit/scripts/wiki/inventories.example.ts` from it, and an edit
+ * made there is discarded by the next run.
  *
  * Every returned page is a deterministic function of tracked files and starts
  * with GENERATED_HEADER, so `wiki:generated --check` can detect drift.
