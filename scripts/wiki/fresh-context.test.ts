@@ -1234,7 +1234,7 @@ touched_conflicts: []
     expect(codes).not.toContain("work-discovery-entrypoint-missing");
   });
 
-  test("core seam validation rejects an inert work-discovery entrypoint and command", () => {
+  test("core seam validation rejects a missing work command token and noncanonical package script", () => {
     const view = {
       root: "/memory",
       mode: "working" as const,

@@ -4,7 +4,7 @@
       "sources": {
         "scripts/wiki/cli.ts": "26cf169770f36afaedd456a300b6a7b5f7ec20d834ae852b344ac55df727e390",
         "scripts/wiki/core.ts": "0bbb44da8db9dc979f6abca0b0fabdcb09db92f7ef6606406b8a4dc4e07ab152",
-        "scripts/wiki/fresh-context.test.ts": "6c51f593d48a39f627229d8e5b94deba511a01ac4a484a9ff9a861456d8557f7",
+        "scripts/wiki/fresh-context.test.ts": "00f4e0ad1d225cb6e01579024ef3414088592b1d343afedba515a68835611522",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c",
         "scripts/wiki/inventories.example.ts": "c77492bf25a8e89d6c5f2de5d1238bb426e41b81cd255d7c153e05d295e91c4e",
         "scripts/wiki/inventories.ts": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca",
