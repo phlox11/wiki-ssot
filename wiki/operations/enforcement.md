@@ -24,7 +24,7 @@ tags: [enforcement, ci, hooks]
 
 # Enforcement
 
-Enforcement is attached to events that always happen. Semantic review is external; the blocking validation of its attestation is deterministic.
+Enforcement is attached to events that always happen. Semantic review is external; the Ready-only validation of its attestation is deterministic.
 
 - **Session start.** Every agent reads `AGENTS.md`. A generic remaining, unfinished, or next-work request runs `wiki:work` without asking for a search term or internal ID; only returned active or ready work may be selected automatically, and the printed `wiki:context -- --work <ID>` command supplies the exact work contract and authority-labelled context. Topic-specific work continues through search and context.
 - **Local commit.** `.husky/pre-commit` runs `wiki:lint --staged`; `.husky/pre-push` blocks direct pushes to `main`. Hooks are bypassable feedback, not a security boundary.

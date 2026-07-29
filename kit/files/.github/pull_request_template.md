@@ -19,7 +19,7 @@ fresh_context:
   evidence: []
 ```
 
-`fresh_context` is a machine-validated status mirror. Run `wiki:review-preflight` before opening this PR. For a required report, open as Draft only after local PASS, publish it through the trusted PR review/comment channel using `<!-- wiki-ssot:fresh-context-attestation -->`, update this mirror, then mark the PR Ready. Drafts skip the blocking `wiki-review-attestation` check.
+`fresh_context` is a machine-validated status mirror. Run `wiki:review-preflight` before opening this PR. For a required report, open as Draft only after local PASS, publish it through the trusted PR review/comment channel using `<!-- wiki-ssot:fresh-context-attestation -->`, update this mirror, then mark the PR Ready. Drafts skip the Ready-only `wiki-review-attestation` check.
 
 ## Verification
 
