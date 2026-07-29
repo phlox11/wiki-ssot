@@ -1,9 +1,9 @@
 {
-  "digest": "1a5e8e1720194c85d08e254354140598387df55a1bd24b10f76bc48664e3200a",
+  "digest": "b09e89060e29f3f16ed7a65c1c2d5d0afc90c08883174cdfa8feebe80f69118a",
   "files": {
     ".github/pull_request_template.md": {
       "ownership": "kit",
-      "sha256": "fd1758cf285f4e6c26b004b6c6e182973506677c4ceb3854a7ee624603076244"
+      "sha256": "01671f58991af636842acb82728fddcef26bd314ed394a0cd2c7cee67503afa0"
     },
     ".github/workflows/checks.yml": {
       "ownership": "kit",
@@ -35,7 +35,7 @@
     },
     "AGENTS.md": {
       "ownership": "kit",
-      "sha256": "fe70a504ede7b2fe93eb643a305910a9cb0237c91c6c99e1db36cfe70b8c4d6e"
+      "sha256": "93715ca258469050c0e5c466bd86d9ecd67442329faac2350641966dfd810574"
     },
     "CLAUDE.md": {
       "ownership": "seed",
@@ -87,7 +87,7 @@
     },
     "wiki/WORKFLOW.md": {
       "ownership": "kit",
-      "sha256": "3597290c43962a19cbc7124e6e711f1135c0e26b2c95ee08fb0a4fa8058ca2db"
+      "sha256": "533574eee6fdffdbc606efad9d594f1258782fe413598681f94020d757fef185"
     }
   },
   "kit": "wiki-ssot",

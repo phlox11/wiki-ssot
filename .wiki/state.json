@@ -20,14 +20,14 @@
     },
     "operations/enforcement": {
       "sources": {
-        ".github/pull_request_template.md": "fd1758cf285f4e6c26b004b6c6e182973506677c4ceb3854a7ee624603076244",
+        ".github/pull_request_template.md": "01671f58991af636842acb82728fddcef26bd314ed394a0cd2c7cee67503afa0",
         ".github/workflows/checks.yml": "53d46f240a5f4ee78327cae0d1e221ded01bd7b36b714c16121dd1256b1d92d5",
         ".github/workflows/kit.yml": "d617a2d1e1c666b628afd68e2ed12e5e31a2868f1d2790a891da9f5adc7ec216",
         ".github/workflows/wiki-audit.yml": "33a3bf1dcf6482a293f137a4cfc332eb8804639bd3b8d950a9244fa6fdda97f4",
         ".husky/pre-commit": "58a0e92eab02374a09bea44bb6e18f9b088e5e5180203b0b1cb8c309740ac10b",
         ".husky/pre-push": "21b38e361c58ffc03baec92b4826f3d5bb6d122b0862fce1af0cb12acdfc09d3",
         ".wiki/config.json": "c97c3a7bf2b88d88662f0bd88cf46e1402721e53a1375d1feea5e4be0b9ee93c",
-        "AGENTS.md": "5001e989033a492e1d2d9d5f12d84a69a348e6b76f89af856dc6ac512d24c9c1",
+        "AGENTS.md": "c8b27b3e362c11d1f85c12b0ed1af9ce706dcfe1955255b404461754a4c34712",
         "package.json": "df071fab971a1e88e77e575449f76921f83244bffbf9b756ae36797032bffeaf",
         "scripts/wiki/cli.ts": "26cf169770f36afaedd456a300b6a7b5f7ec20d834ae852b344ac55df727e390",
         "scripts/wiki/core.ts": "a9613c2765fe3e02490d016f1f0aeafaf5a79d72c79d5951f7310bf499e2ec22",
@@ -39,7 +39,7 @@
     },
     "product/invariants": {
       "sources": {
-        "AGENTS.md": "5001e989033a492e1d2d9d5f12d84a69a348e6b76f89af856dc6ac512d24c9c1",
+        "AGENTS.md": "c8b27b3e362c11d1f85c12b0ed1af9ce706dcfe1955255b404461754a4c34712",
         "scripts/wiki/cli.ts": "26cf169770f36afaedd456a300b6a7b5f7ec20d834ae852b344ac55df727e390",
         "scripts/wiki/core.ts": "a9613c2765fe3e02490d016f1f0aeafaf5a79d72c79d5951f7310bf499e2ec22"
       },
@@ -49,8 +49,8 @@
     },
     "product/scope": {
       "sources": {
-        "docs/design.md": "07b3179169977bd2cc17f975513ed970007d926064f50e2efbbc007ba7c70516",
-        "README.md": "cae8aa6a05c108282dfcc50c946c75702b86f7f992adb2345bb91c7b56cc6fc4"
+        "docs/design.md": "2b133ac6edd5d96ddf9d10e8e7e55945abc9ce3144b0ddacc3990f40deaaba2e",
+        "README.md": "33124882b1397aa05247d24c5d4fc20b4462c4c7a5fe47fda52b488c90992916"
       },
       "verification": {
         "kind": "updated"

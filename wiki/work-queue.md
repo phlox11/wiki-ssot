@@ -17,7 +17,7 @@ This is a deterministic view of structured `work_items` on proposal pages. It is
 
 **Recommended next:** `PV-04` — run `bun run wiki:context -- --work PV-04`.
 
-Outstanding work: 13. Completed work hidden: 3; run `bun run wiki:work -- --all` to inspect it.
+Outstanding work: 12. Completed work hidden: 4; run `bun run wiki:work -- --all` to inspect it.
 
 ## Active
 
@@ -48,7 +48,7 @@ Outstanding work: 13. Completed work hidden: 3; run `bun run wiki:work -- --all`
 
 | ID | Priority | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|
-| PV-01 | critical | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | — | Protect the editable checks.yml workflow bootstrap seam — Blocker: The owner must select the protection mechanism available for this repository and account plan. | `bun run wiki:context -- --work PV-01` |
+| — | — | — | — | None | — |
 
 ## Open decision conflicts
 

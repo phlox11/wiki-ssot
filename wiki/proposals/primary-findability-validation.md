@@ -34,19 +34,20 @@ work_items:
     evidence:
       - wiki/proposals/primary-findability-validation.md
   - id: PV-01
-    title: Protect the editable checks.yml workflow bootstrap seam
-    state: blocked
+    title: Decide the editable checks.yml workflow trust boundary
+    state: done
     priority: critical
     depends_on: []
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
     acceptance:
-      - An active repository setting protects .github/workflows/checks.yml through a ruleset-required workflow, or CODEOWNERS plus required owner review.
-      - Strict required checks still include code-check, wiki-structure, wiki-generated, wiki-impact, wiki-review-attestation, and wiki-kit.
-      - Administrators cannot bypass the chosen protection unintentionally.
-      - Force pushes and branch deletion remain blocked.
-      - The resulting remote state is re-read after the change and recorded as evidence.
-    evidence: []
-    blocker: The owner must select the protection mechanism available for this repository and account plan.
+      - Current scope explicitly states that repository write/admin actors are trusted.
+      - Organization-level required workflows, CODEOWNERS, rulesets, and administrator-bypass policy are outside the product contract.
+      - Documentation discloses that an editable pull_request workflow can preserve a required job name while removing validation.
+      - No current page claims security against a hostile or compromised maintainer.
+    evidence:
+      - wiki/product/scope.md
+      - wiki/operations/enforcement.md
+      - docs/design.md
   - id: PV-02
     title: Make the product-scope contract review-triggering
     state: done
@@ -249,7 +250,7 @@ The target re-entry request is deliberately ordinary: a user starting a new sess
 ## Strategy
 
 - Treat the existing Secondary enforcement path as mature enough to freeze for feature work. Fix security or contract-integrity defects, but do not expand review machinery without a reproduced failure.
-- Close known trust-boundary gaps before relying on the system as validation evidence.
+- Resolve known trust-boundary questions before relying on the system, either by closing a gap or explicitly recording an accepted limit.
 - Make outstanding work repository-wide and machine-discoverable before relying on a human-readable roadmap table.
 - Measure the current Primary path before changing search or context behavior.
 - Improve `wiki:context`, search, coverage/bootstrap, and the session entrypoint only where the baseline exposes a failure.
@@ -264,13 +265,9 @@ Inspect the deterministic human view at [work queue](../work-queue.md), run `bun
 
 ## Phase A — close known boundaries
 
-### `PV-01`: protect the workflow definition
+### `PV-01`: decide the workflow trust boundary
 
-The current branch protection requires the stable checks, but a pull request can still edit `.github/workflows/checks.yml`, keep a required job name, and replace its validation steps. The tracked-file design and required remote state are already specified in [proposal/protected-main](./protected-main.md); this roadmap does not duplicate that contract.
-
-Decision gate:
-
-- Owner selects the protection mechanism available for this repository and account plan.
+A pull request can edit `.github/workflows/checks.yml`, keep a required job name, and replace its validation steps. The owner explicitly accepts this bootstrap seam by trusting repository write/admin actors and keeping organization-level security outside the product contract. The earlier hardening proposal is retained as archived history in [proposal/protected-main](./protected-main.md).
 
 ### `PV-02`: protect the scope contract from unreviewed semantic movement
 
@@ -433,7 +430,7 @@ The intended critical path is:
 
 1. `PV-03` makes remaining work discoverable without prior node knowledge.
 2. `PV-02` closes the in-repository scope-review boundary while `PV-04` can begin the scenario contract.
-3. `PV-01` remains a parallel external-setting decision and must not be guessed.
+3. `PV-01` records the trusted-developer boundary; organization-level workflow protection is not part of the remaining roadmap.
 4. `PV-05` records the baseline before behavior changes.
 5. `PV-06` fixes selected-work context completeness.
 6. `PV-07` runs only if the baseline proves search failures.
@@ -442,7 +439,7 @@ The intended critical path is:
 9. `PV-12` records the owner decision at the Primary exit gate.
 10. `PV-13`–`PV-15` are reconsidered from evidence rather than momentum.
 
-`PV-03` and read-only baseline preparation may proceed while the external setting decision for `PV-01` is pending, but no final Primary validation should claim a complete merge boundary until `PV-01` is done.
+Primary validation may claim the deterministic rails only within the trusted-developer boundary. It must not claim protection against a hostile maintainer or organization-level security guarantees.
 
 ## Decision log
 
@@ -452,7 +449,7 @@ Record decisions here when they concern proposed sequencing or evaluation. If a 
 |---|---|---|
 | Prioritize Primary validation over new Secondary review features | proposed | Approve this roadmap or revise its priority |
 | Zero-knowledge re-entry | decided | A user may ask only what work remains; no proposal ID, task ID, or search term is required |
-| Workflow protection mechanism | pending | Select ruleset-required workflow or CODEOWNERS/required owner review |
+| Workflow protection boundary | decided | Trust repository developers/admins; leave required workflows, CODEOWNERS, rulesets, and bypass policy to deployments |
 | Pilot repositories/fixtures | pending | Select at least one new-repository and one existing-repository target |
 | Search work after baseline | pending | Execute only for reproduced misses |
 | Resume Secondary feature investment | pending | Decide at `PV-12` from exit-gate evidence |

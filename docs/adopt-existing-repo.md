@@ -53,7 +53,7 @@ The kit ships only the toolkit. This repository's own wiki pages, conflicts, and
 }
 ```
 
-The `risk-based` selector requires review for matching trust-boundary files, affected invariants/conflicts, and current-page removals. Add project security, schema, and migration globs; omit `requiredWhen` to retain all-PR review. `["*"]` means any authenticated GitHub actor allowed by the remaining trust policy. The solo-maintainer default above permits the PR author to publish a required report created by a separate context-isolated session; it does not let the authoring session review itself. Set `requireDifferentActor: true` only after a second reviewer account or bot can publish the report, otherwise every applicable solo-authored PR will be intentionally unmergeable. Replace `["*"]` with explicit reviewer/service logins when your organization has a narrower trust boundary. Use `advisory` only as a deliberate migration state, and record when it will become `required`.
+The `risk-based` selector requires review for matching trust-boundary files, affected invariants/conflicts, and current-page removals. Add project security, schema, and migration globs; omit `requiredWhen` to retain all-PR review. `["*"]` means any authenticated GitHub actor allowed by the remaining trust policy. The solo-maintainer default above permits the PR author to publish a required report created by a separate context-isolated session; it does not let the authoring session review itself. Set `requireDifferentActor: true` only after a second reviewer account or bot can publish the report; without that channel, applicable solo-authored PRs fail the attestation job and are blocked from merge only when deployment policy makes that job required. Replace `["*"]` with explicit reviewer/service logins when your organization has a narrower trust boundary. Use `advisory` only as a deliberate migration state, and record when it will become `required`.
 
 `.wiki/coverage.json` — the code areas that must always map to a page (start narrow, widen later):
 
@@ -93,9 +93,8 @@ Commit the wiki, `.wiki/`, and generated files together.
 
 - Hooks activate on `bun install` (via the `prepare` script). Confirm a bad staged page blocks a commit.
 - Keep the root `AGENTS.md` markers `wiki-ssot:fresh-context-guardrail` and `wiki-ssot:work-discovery`, canonical `wiki:work` and review/doctor scripts, structured PR `fresh_context` block, and stable `wiki-review-attestation` workflow job. `wiki:doctor` detects accidental omission when adoption rewrites these files.
-- CI: the workflows in `.github/workflows/` run code, structure/doctor, generated, impact, and Ready-only review-attestation checks. The attestation check skips Drafts, uses trusted base code/policy, and never executes PR-head code. Because the `pull_request` workflow definition is still part of the PR test-merge tree, protect `.github/workflows/checks.yml` with a ruleset-required workflow or CODEOWNERS plus required owner review.
-- Remote boundary (required human step): configure GitHub branch protection/rulesets on `main`, require `code-check`, `wiki-structure`, `wiki-generated`, `wiki-impact`, and `wiki-review-attestation`, require the branch to be current, and disallow direct pushes. Branch protection cannot be guaranteed by local files or the CLI; without it, the jobs are not a merge guardrail.
-- When renaming an already-required check, keep the old context required until the new context has succeeded on the candidate HEAD. Add the new context first, verify strict mode and every unrelated required context, then remove the old context and re-read protection. A temporarily blocked PR is acceptable; a temporarily weaker protection set is not.
+- CI: the workflows in `.github/workflows/` run code, structure/doctor, generated, impact, and Ready-only review-attestation checks. The attestation check skips Drafts, uses trusted base code/policy, and never executes PR-head code.
+- Trust boundary: wiki-ssot assumes repository write/admin actors are trusted. Branch protection, required workflows, CODEOWNERS, and administrator-bypass rules are optional deployment governance; the toolkit neither configures nor audits them.
 
 ## 7. Establish the reviewer channel
 
@@ -109,7 +108,7 @@ Commit the wiki, `.wiki/`, and generated files together.
    ```
 
    Follow it with a fenced `json` or `yaml` report. The report's `reviewer` must match the authenticated GitHub actor. With `requireDifferentActor: false`, that publisher may be the PR author, but the report must still come from the separate review session. The author-editable PR body cannot substitute for this envelope.
-5. Mirror the required attested verdict, HEAD, bundle digest, reviewer, and evidence into the PR body's `fresh_context` block, then mark the Draft Ready. This author-editable mirror is checked against—but never substitutes for—the authenticated envelope. Drafts skip the expected attestation failure; Ready/merge requires either `required: false` or a current PASS.
+5. Mirror the required attested verdict, HEAD, bundle digest, reviewer, and evidence into the PR body's `fresh_context` block, then mark the Draft Ready. This author-editable mirror is checked against—but never substitutes for—the authenticated envelope. Drafts skip the expected attestation failure; the Ready-PR job succeeds only with either `required: false` or a current PASS. Deployment policy decides whether that job is required for merge.
 
 ## 8. Maintain
 
