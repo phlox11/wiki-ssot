@@ -93,9 +93,8 @@ Commit the wiki, `.wiki/`, and generated files together.
 
 - Hooks activate on `bun install` (via the `prepare` script). Confirm a bad staged page blocks a commit.
 - Keep the root `AGENTS.md` markers `wiki-ssot:fresh-context-guardrail` and `wiki-ssot:work-discovery`, canonical `wiki:work` and review/doctor scripts, structured PR `fresh_context` block, and stable `wiki-review-attestation` workflow job. `wiki:doctor` detects accidental omission when adoption rewrites these files.
-- CI: the workflows in `.github/workflows/` run code, structure/doctor, generated, impact, and Ready-only review-attestation checks. The attestation check skips Drafts, uses trusted base code/policy, and never executes PR-head code. Because the `pull_request` workflow definition is still part of the PR test-merge tree, protect `.github/workflows/checks.yml` with a ruleset-required workflow or CODEOWNERS plus required owner review.
-- Remote boundary (required human step): configure GitHub branch protection/rulesets on `main`, require `code-check`, `wiki-structure`, `wiki-generated`, `wiki-impact`, and `wiki-review-attestation`, require the branch to be current, and disallow direct pushes. Branch protection cannot be guaranteed by local files or the CLI; without it, the jobs are not a merge guardrail.
-- When renaming an already-required check, keep the old context required until the new context has succeeded on the candidate HEAD. Add the new context first, verify strict mode and every unrelated required context, then remove the old context and re-read protection. A temporarily blocked PR is acceptable; a temporarily weaker protection set is not.
+- CI: the workflows in `.github/workflows/` run code, structure/doctor, generated, impact, and Ready-only review-attestation checks. The attestation check skips Drafts, uses trusted base code/policy, and never executes PR-head code.
+- Trust boundary: wiki-ssot assumes repository write/admin actors are trusted. Branch protection, required workflows, CODEOWNERS, and administrator-bypass rules are optional deployment governance; the toolkit neither configures nor audits them.
 
 ## 7. Establish the reviewer channel
 

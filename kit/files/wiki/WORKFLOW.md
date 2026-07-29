@@ -55,4 +55,4 @@ After a local required PASS, open a Draft PR, publish that exact report through 
 - pre-commit: staged wiki structure/link/source/generated validation only.
 - pre-push: direct `main` push prevention.
 - CI: code tests, wiki structure/doctor, generated freshness, blocking impact enforcement, and the Ready-only `wiki-review-attestation` policy/attestation check, plus a weekly full audit. Drafts do not emit an expected Fresh-context failure; Ready/merge requires a trusted non-required classification or a current PASS.
-- protected `main`: the durable remote boundary. Local hooks and CI can be bypassed and are not a security boundary.
+- remote policy: deployments may add branch protection, required workflows, or CODEOWNERS, but wiki-ssot assumes repository write/admin actors are trusted and does not make organization-security policy part of its product contract.

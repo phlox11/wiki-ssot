@@ -87,9 +87,7 @@ bun run typecheck && bun run test
 
 Writing the first pages is the real work, and it is not a copy step. `wiki/SCHEMA.md` defines the page contract; the playbook for recompiling pages from code you already have is in this repository's [docs/adopt-existing-repo.md](../docs/adopt-existing-repo.md), starting at section 3.
 
-One step no file can do for you: configure GitHub branch protection on `main` to require `code-check`, `wiki-structure`, `wiki-generated`, `wiki-impact`, and `wiki-review-attestation`, require branches to be current, and disallow direct pushes. Until that is set, CI is evidence, not a merge boundary.
-
-Setting it is still not a complete boundary, and it is worth knowing why. Branch protection matches on check name, not on what the check does, and for a `pull_request` event GitHub runs the workflow file from the PR's own merge tree. So a PR can leave `wiki-review-attestation` in place as a job name, empty its steps, and go green without validating anything. The attestation engine is not the weak point — the `wiki-review-attestation` job checks out the base commit and passes the PR head in only as data — but the job that says so lives in a file a PR can rewrite. Close it by protecting `.github/workflows/checks.yml`: a ruleset-required workflow where available, which depends on who owns the repository and on its plan, otherwise CODEOWNERS plus required owner review, which needs a second account because GitHub does not let you approve your own pull request.
+The shipped trust model assumes repository write/admin actors are trusted. Branch protection matches on check name rather than workflow meaning, so a maintainer could preserve `wiki-review-attestation` while emptying its steps. Deployments with a hostile-maintainer threat model may add branch protection, required workflows, CODEOWNERS, and administrator-bypass restrictions, but those organization-security controls are outside wiki-ssot's product contract and are not configured or audited by the kit.
 
 ### Without the tool
 

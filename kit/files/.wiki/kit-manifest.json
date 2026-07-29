@@ -1,5 +1,5 @@
 {
-  "digest": "1a5e8e1720194c85d08e254354140598387df55a1bd24b10f76bc48664e3200a",
+  "digest": "152c5f165919db6ed67e8fd4fcc69b73dd96135fc935b670fd7397e3ae010bb1",
   "files": {
     ".github/pull_request_template.md": {
       "ownership": "kit",
@@ -35,7 +35,7 @@
     },
     "AGENTS.md": {
       "ownership": "kit",
-      "sha256": "fe70a504ede7b2fe93eb643a305910a9cb0237c91c6c99e1db36cfe70b8c4d6e"
+      "sha256": "b5662de09fea9b6fd1fb4c7955efa9c548730da1e6a31fb458424120ecc53eda"
     },
     "CLAUDE.md": {
       "ownership": "seed",
@@ -87,7 +87,7 @@
     },
     "wiki/WORKFLOW.md": {
       "ownership": "kit",
-      "sha256": "3597290c43962a19cbc7124e6e711f1135c0e26b2c95ee08fb0a4fa8058ca2db"
+      "sha256": "ee24d829ddf71ab1cecc0a224a6f87e22de9a25316e88dbaeb6d8153b687b55f"
     }
   },
   "kit": "wiki-ssot",

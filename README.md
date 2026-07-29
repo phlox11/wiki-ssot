@@ -91,6 +91,10 @@ Two seams make it yours; everything else is generic:
 
 Omit `freshContext.requiredWhen` to require review for every PR. A `risk-based` selector can instead require it for trusted changed-file globs, affected invariants/conflicts, and current-page removals. For a solo-maintainer repository, set `trust.requireDifferentActor` to `false`: before opening the PR, the authoring agent must still use a separate context-isolated reviewer or sub-agent, but the authenticated publisher may be the PR author. Teams with a provisioned reviewer account or bot can set it to `true` to make distinct GitHub identities a blocking requirement.
 
+## Trust boundary
+
+wiki-ssot assumes that people with repository write or administration access are trusted. Its deterministic gates catch accidental drift and validate the declared review process; they do not defend against a maintainer who intentionally rewrites GitHub Actions or weakens repository settings. Organization-level controls such as required workflows, CODEOWNERS staffing, and administrator-bypass policy are deployment choices outside the product contract.
+
 ## License
 
 [MIT](LICENSE).
