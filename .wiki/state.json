@@ -2,19 +2,19 @@
   "pages": {
     "architecture/engine": {
       "sources": {
-        "scripts/wiki/cli.ts": "f7b262c5c5bfea76bb4b5d9d987667df00835cf43386e3e6f2f147813d3562f9",
-        "scripts/wiki/core.ts": "91783c94ef7bf7a1780bb3a2d61920a934d2b14dd8c0aa4f7a39c498a0bf9e6e",
-        "scripts/wiki/fresh-context.test.ts": "1f09fd510b1296019eb21fc7817b654e6bfdfa3e6a968384f105cea40d7f83fd",
+        "scripts/wiki/cli.ts": "26cf169770f36afaedd456a300b6a7b5f7ec20d834ae852b344ac55df727e390",
+        "scripts/wiki/core.ts": "a9613c2765fe3e02490d016f1f0aeafaf5a79d72c79d5951f7310bf499e2ec22",
+        "scripts/wiki/fresh-context.test.ts": "00f4e0ad1d225cb6e01579024ef3414088592b1d343afedba515a68835611522",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c",
         "scripts/wiki/inventories.example.ts": "c77492bf25a8e89d6c5f2de5d1238bb426e41b81cd255d7c153e05d295e91c4e",
         "scripts/wiki/inventories.ts": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca",
         "scripts/wiki/kit-sync.ts": "1d8f77baa00a3bcea174d78537cdb7ac80aea680c0ac00154e5af5e94b4b6ac0",
-        "scripts/wiki/kit.test.ts": "a0c7a4b80550b6b9f988cb413ab71944d1c17d683834c5616efe84819b248d82",
-        "scripts/wiki/wiki.test.ts": "539712a8f680522a3ade618190db3b7392fe273961ebe8c8e00c4a56e1524646"
+        "scripts/wiki/kit.test.ts": "b41c8091b8b5f5f99ab33e6c3aa82414f5b7308d4022e7a52281a41c1c62d403",
+        "scripts/wiki/wiki.test.ts": "539712a8f680522a3ade618190db3b7392fe273961ebe8c8e00c4a56e1524646",
+        "scripts/wiki/work.test.ts": "ca6daaa45c15556a2da45688ada714db193e38b276b7d32218c6c781f8d7ba9c"
       },
       "verification": {
-        "kind": "unchanged",
-        "reason": "the added test asserts a sentence already present in the kit payload; no generator, placement, or sync behavior changed"
+        "kind": "updated"
       }
     },
     "operations/enforcement": {
@@ -26,34 +26,33 @@
         ".husky/pre-commit": "58a0e92eab02374a09bea44bb6e18f9b088e5e5180203b0b1cb8c309740ac10b",
         ".husky/pre-push": "21b38e361c58ffc03baec92b4826f3d5bb6d122b0862fce1af0cb12acdfc09d3",
         ".wiki/config.json": "9c87990b6b22950644e9b47bb069fab9bace832f63f1341ce8572360f7f5a025",
-        "AGENTS.md": "5fd95fedee06dde8536f3dc82adb1d0fa8af4d2a11f8f28dae0a5a7f1463de2c",
-        "package.json": "bcc223d180da7327644072d47c370bb818e26410236ec82ec36bd6b4eb0ea10e",
-        "scripts/wiki/cli.ts": "f7b262c5c5bfea76bb4b5d9d987667df00835cf43386e3e6f2f147813d3562f9",
-        "scripts/wiki/core.ts": "91783c94ef7bf7a1780bb3a2d61920a934d2b14dd8c0aa4f7a39c498a0bf9e6e",
+        "AGENTS.md": "5001e989033a492e1d2d9d5f12d84a69a348e6b76f89af856dc6ac512d24c9c1",
+        "package.json": "df071fab971a1e88e77e575449f76921f83244bffbf9b756ae36797032bffeaf",
+        "scripts/wiki/cli.ts": "26cf169770f36afaedd456a300b6a7b5f7ec20d834ae852b344ac55df727e390",
+        "scripts/wiki/core.ts": "a9613c2765fe3e02490d016f1f0aeafaf5a79d72c79d5951f7310bf499e2ec22",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c"
       },
       "verification": {
-        "kind": "unchanged",
-        "reason": "the agent entrypoint now repeats the workflow-definition seam this page already documents; no enforcement rail changed"
+        "kind": "updated"
       }
     },
     "product/invariants": {
       "sources": {
-        "scripts/wiki/core.ts": "91783c94ef7bf7a1780bb3a2d61920a934d2b14dd8c0aa4f7a39c498a0bf9e6e"
+        "AGENTS.md": "5001e989033a492e1d2d9d5f12d84a69a348e6b76f89af856dc6ac512d24c9c1",
+        "scripts/wiki/cli.ts": "26cf169770f36afaedd456a300b6a7b5f7ec20d834ae852b344ac55df727e390",
+        "scripts/wiki/core.ts": "a9613c2765fe3e02490d016f1f0aeafaf5a79d72c79d5951f7310bf499e2ec22"
       },
       "verification": {
-        "kind": "unchanged",
-        "reason": "a docblock pointer correction does not change any invariant scope"
+        "kind": "updated"
       }
     },
     "product/scope": {
       "sources": {
-        "docs/design.md": "39a3d8459c363d855589df0c041a77731a3768c1ac3dedc2c3631205dacc78ae",
-        "README.md": "f2a7fc0efc177e448570d053926710abfb1ec704cf3d94d7da065ab6c81ce407"
+        "docs/design.md": "07b3179169977bd2cc17f975513ed970007d926064f50e2efbbc007ba7c70516",
+        "README.md": "cae8aa6a05c108282dfcc50c946c75702b86f7f992adb2345bb91c7b56cc6fc4"
       },
       "verification": {
-        "kind": "unchanged",
-        "reason": "tightening the README delivery sentence changes no in-scope or out-of-scope claim"
+        "kind": "updated"
       }
     }
   },

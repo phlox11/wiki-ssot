@@ -5,10 +5,12 @@ import {
   UsageError,
   allLintFindings,
   auditReport,
+  buildWorkQueue,
   compareGenerated,
   compareKit,
   conflictSummary,
   createRepoView,
+  currentPages,
   generatedCoreFiles,
   impactReport,
   isConflictGuardFinding,
@@ -22,12 +24,16 @@ import {
   readConfig,
   reviewCheck,
   validateIntegrationSeams,
+  validatePages,
   validatePrMetadata,
   verifyState,
   writeGenerated,
   writeKit,
   type Finding,
   type PrMetadata,
+  type WikiPage,
+  type WikiSource,
+  type WorkQueueItem,
 } from "./core";
 import { validateGitHubIntegrationSeams } from "./github-attestation";
 import { generateInventories } from "./inventories";
@@ -80,7 +86,44 @@ function emit(value: unknown, json: boolean) {
 }
 
 function usage(): never {
-  throw new UsageError("usage: bun scripts/wiki/cli.ts <lint|inventory|index|generated|kit|search|conflicts|context|impact|verify|review-preflight|review-bundle|review-check|doctor|check|audit> [options]");
+  throw new UsageError("usage: bun scripts/wiki/cli.ts <lint|inventory|index|generated|kit|work|search|conflicts|context|impact|verify|review-preflight|review-bundle|review-check|doctor|check|audit> [options]");
+}
+
+function sourceText(sources: WikiSource[]): string {
+  if (sources.length === 0) return "- none";
+  return sources.map((source) => "path" in source
+    ? `- path: ${source.path}${source.symbols?.length ? ` (symbols: ${source.symbols.join(", ")})` : ""}`
+    : `- glob: ${source.glob}`).join("\n");
+}
+
+function workText(item: WorkQueueItem): string {
+  const details = [
+    `${item.id} [${item.queue_state}, ${item.priority}]\t${item.title}`,
+    `  Owner: ${item.owner_page.id} (${item.owner_page.path}; ${item.owner_page.owners.join(", ")})`,
+    `  Dependencies: ${item.depends_on.join(", ") || "none"}`,
+  ];
+  if (item.unmet_dependencies.length > 0) details.push(`  Waiting on: ${item.unmet_dependencies.join(", ")}`);
+  if (item.blocker) details.push(`  Blocker: ${item.blocker}`);
+  if (item.deferred_reason) details.push(`  Deferred: ${item.deferred_reason}`);
+  if (item.evidence.length > 0) details.push(`  Evidence: ${item.evidence.join("; ")}`);
+  details.push(`  Context: ${item.context_command}`);
+  return details.join("\n");
+}
+
+function contextPageText(page: WikiPage, label: string): string {
+  return [
+    `# ${label} ${page.data.id}`,
+    "",
+    `Status: ${page.data.status}`,
+    `Authority: ${page.data.authority}`,
+    `Wiki page: ${page.path}`,
+    "",
+    "Declared sources:",
+    sourceText(page.data.sources),
+    "",
+    page.body.trim(),
+    "",
+  ].join("\n");
 }
 
 async function main() {
@@ -192,6 +235,56 @@ async function main() {
     return;
   }
 
+  if (command === "work") {
+    if (parsed.positional.length > 0) throw new UsageError("work does not accept a query or work ID; run it without arguments, then use context --work <ID>");
+    const findings = validatePages(view, loaded.pages);
+    if (findings.length > 0) {
+      if (json) emit({ ok: false, findings }, true);
+      else printFindings(findings);
+      process.exitCode = 1;
+      return;
+    }
+    const queue = buildWorkQueue(loaded.pages);
+    const groups = {
+      active: queue.groups.active,
+      ready: queue.groups.ready,
+      waiting: queue.groups.waiting,
+      blocked: queue.groups.blocked,
+      deferred: queue.groups.deferred,
+      ...(has(parsed, "all") ? { done: queue.groups.done } : {}),
+    };
+    if (json) {
+      emit({ version: queue.version, recommended_next: queue.recommended_next, groups, open_conflicts: queue.open_conflicts }, true);
+      return;
+    }
+    const outstanding = queue.groups.active.length + queue.groups.ready.length + queue.groups.waiting.length + queue.groups.blocked.length + queue.groups.deferred.length;
+    if (outstanding === 0 && queue.open_conflicts.length === 0 && (!has(parsed, "all") || queue.groups.done.length === 0)) {
+      emit("No remaining work.", false);
+      return;
+    }
+    const lines = [
+      queue.recommended_next ? `Recommended next: ${queue.recommended_next.id}` : "Recommended next: none",
+      "",
+    ];
+    for (const [heading, items] of [
+      ["ACTIVE", queue.groups.active],
+      ["READY", queue.groups.ready],
+      ["WAITING", queue.groups.waiting],
+      ["BLOCKED", queue.groups.blocked],
+    ] as const) {
+      lines.push(`${heading} (${items.length})`, ...(items.length > 0 ? items.map(workText) : ["none"]), "");
+    }
+    lines.push(`OPEN DECISION CONFLICTS (${queue.open_conflicts.length})`);
+    lines.push(...(queue.open_conflicts.length > 0
+      ? queue.open_conflicts.map((item) => `${item.id} [${item.severity}, ${item.type}, ${item.state}]\t${item.summary}\n  Context: bun run wiki:context -- --conflict ${item.id}`)
+      : ["none"]), "");
+    lines.push(`DEFERRED (${queue.groups.deferred.length})`, ...(queue.groups.deferred.length > 0 ? queue.groups.deferred.map(workText) : ["none"]));
+    if (has(parsed, "all")) lines.push("", `DONE (${queue.groups.done.length})`, ...(queue.groups.done.length > 0 ? queue.groups.done.map(workText) : ["none"]));
+    else if (queue.groups.done.length > 0) lines.push("", `Completed work hidden: ${queue.groups.done.length}. Run bun run wiki:work -- --all to inspect it.`);
+    emit(lines.join("\n").trimEnd(), false);
+    return;
+  }
+
   if (command === "search") {
     const query = parsed.positional.join(" ").trim() || one(parsed, "query")?.trim();
     if (!query) throw new UsageError("search requires a query");
@@ -238,6 +331,107 @@ async function main() {
   if (command === "context") {
     const query = parsed.positional.join(" ").trim() || one(parsed, "query")?.trim();
     const requestedConflict = one(parsed, "conflict")?.toUpperCase();
+    const requestedWorkInput = one(parsed, "work")?.trim();
+    if (requestedWorkInput && (requestedConflict || query || has(parsed, "base"))) throw new UsageError("context --work cannot be combined with a query, --conflict, or --base");
+    if (requestedWorkInput) {
+      const findings = validatePages(view, loaded.pages);
+      if (findings.length > 0) {
+        if (json) emit({ ok: false, findings }, true);
+        else printFindings(findings);
+        process.exitCode = 1;
+        return;
+      }
+      const queue = buildWorkQueue(loaded.pages);
+      const workItems = Object.values(queue.groups).flat();
+      const work = workItems.find((item) => item.id === requestedWorkInput)
+        ?? workItems.find((item) => item.id.toLowerCase() === requestedWorkInput.toLowerCase());
+      if (!work) throw new UsageError(`unknown work item: ${requestedWorkInput}`);
+      const ownerPage = loaded.pages.find((page) => page.data.id === work.owner_page.id)!;
+      const requestedPageIds = new Set(work.context_pages);
+      for (const page of currentPages(loaded.pages)) if (page.data.kind === "invariant") requestedPageIds.add(page.data.id);
+      const selectedPages = currentPages(loaded.pages).filter((page) => requestedPageIds.has(page.data.id));
+      const invariantPages = selectedPages.filter((page) => page.data.kind === "invariant");
+      const otherPages = selectedPages.filter((page) => page.data.kind !== "invariant");
+      const conflicts = openConflicts(loaded.pages)
+        .filter((page) => (page.data.affected_pages ?? []).some((id) => requestedPageIds.has(id))
+          || (page.data.affected_invariants ?? []).some((id) => requestedPageIds.has(id)))
+        .map(conflictSummary);
+      const pages = [...invariantPages, ...otherPages].map((page) => ({
+        id: page.data.id,
+        path: page.path,
+        summary: page.data.summary,
+        status: page.data.status,
+        authority: page.data.authority,
+        sources: page.data.sources,
+        body: page.body,
+      }));
+      const owner = {
+        id: ownerPage.data.id,
+        path: ownerPage.path,
+        summary: ownerPage.data.summary,
+        status: ownerPage.data.status,
+        authority: ownerPage.data.authority,
+        owners: ownerPage.data.owners,
+        sources: ownerPage.data.sources,
+        body: ownerPage.body,
+      };
+      const sources = [
+        ...pages.map((page) => ({ pageId: page.id, path: page.path, status: page.status, authority: page.authority, declared: page.sources })),
+        { pageId: owner.id, path: owner.path, status: owner.status, authority: owner.authority, declared: owner.sources },
+      ];
+      if (json) {
+        emit({
+          query: null,
+          requestedConflict: null,
+          requestedWork: work.id,
+          work,
+          pages,
+          conflicts,
+          ownerPage: owner,
+          sources,
+        }, true);
+      } else {
+        const workSection = [
+          `# WORK ${work.id} [${work.queue_state}, ${work.priority}]`,
+          "",
+          work.title,
+          "",
+          `Stored state: ${work.state}`,
+          `Owner proposal: ${work.owner_page.id} (${work.owner_page.path})`,
+          `Dependencies: ${work.depends_on.join(", ") || "none"}`,
+          `Unmet dependencies: ${work.unmet_dependencies.join(", ") || "none"}`,
+          ...(work.blocker ? [`Blocker: ${work.blocker}`] : []),
+          ...(work.deferred_reason ? [`Deferred reason: ${work.deferred_reason}`] : []),
+          `Evidence: ${work.evidence.join("; ") || "none"}`,
+          `Next context command: ${work.context_command}`,
+          "",
+          "Acceptance:",
+          ...work.acceptance.map((criterion) => `- ${criterion}`),
+          "",
+        ].join("\n");
+        const currentSections = [
+          ...invariantPages.map((page) => contextPageText(page, "CURRENT INVARIANT")),
+          ...otherPages.map((page) => contextPageText(page, "CURRENT PAGE")),
+        ];
+        const conflictSections = conflicts.map((item) => [
+          `# OPEN CONFLICT ${item.id} [${item.severity}, ${item.type}, ${item.state}]`,
+          "",
+          item.summary,
+          "",
+          `Wiki page: ${item.path}`,
+          "",
+          "Declared sources:",
+          sourceText(item.sources),
+          "",
+          "Acceptance:",
+          ...item.acceptance.map((criterion) => `- ${criterion}`),
+          "",
+        ].join("\n"));
+        const ownerSection = contextPageText(ownerPage, "NON-CURRENT WORK OWNER");
+        emit([workSection, ...currentSections, ...conflictSections, ownerSection].join("\n---\n\n"), false);
+      }
+      return;
+    }
     const ids = new Set<string>();
     const conflictIds = new Set<string>();
     if (requestedConflict) {

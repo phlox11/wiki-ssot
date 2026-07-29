@@ -5,12 +5,13 @@ All commands are `bun run wiki:<name>`; each maps to `bun scripts/wiki/cli.ts <n
 | Command | What it does | Blocks? |
 |---|---|---|
 | `wiki:lint` | Frontmatter, links, source paths, coverage, generated freshness. | pre-commit + CI |
-| `wiki:generated` | Regenerate index, current-status, conflicts, reverse maps, inventories. Add `-- --check` to verify without writing. | CI (`--check`) |
+| `wiki:generated` | Regenerate index, current-status, work queue, conflicts, reverse maps, inventories. Add `-- --check` to verify without writing. | CI (`--check`) |
 | `wiki:kit` | Regenerate the `kit/` copy-paste distribution from the files it ships. Add `-- --check` to fail on drift instead of writing. Refuses to run unless `.wiki/config.json` sets `publishesKit: true`, so it cannot overwrite an adopting repository's own `kit/`. | CI (`--check`) |
 | `wiki:impact -- --base <ref>` | From the diff since `<ref>`, print affected pages/conflicts, staleness, and metadata findings. Add `--enforce` to exit non-zero on any error. | CI (`--enforce`) |
 | `wiki:verify -- --page <id>` | Record current source hashes for a page you updated. Add `--unchanged "<20+ char reason>"` when meaning did not change. With no `--page`, re-verifies every current page. | — |
 | `wiki:search -- "<terms>"` | Keyword search across pages. | — |
-| `wiki:context -- "<terms>"` | The pages + open conflicts + sources an agent should read for a task. Also `-- --conflict C-NNN` or `-- --base <ref>`. | — |
+| `wiki:work` | With no query or ID, list every proposal work item and open conflict, derive ready/waiting state, and recommend the highest-priority active or ready item. Add `-- --all` for completed work or `-- --json` for versioned output. | — |
+| `wiki:context -- "<terms>"` | The pages + open conflicts + sources an agent should read for a task. Also `-- --work <ID>`, `-- --conflict C-NNN`, or `-- --base <ref>`; selectors cannot be combined. | — |
 | `wiki:conflicts` | List open conflicts. `-- C-NNN` prints one resolution contract; `-- --all` includes resolved. | — |
 | `wiki:review-preflight -- --base <ref> --metadata <file> [--output <dir>] [--report <file>]` | Before opening a PR, classify risk, prepare the exact independent-review bundle, or validate the returned report while the PR mirror is still pending. | pre-PR |
 | `wiki:review-bundle -- --base <ref> --metadata <file>` | Write a deterministic bundle with `manifest.json`, reviewer instructions, and a report example. | review input |
@@ -21,6 +22,16 @@ All commands are `bun run wiki:<name>`; each maps to `bun scripts/wiki/cli.ts <n
 | `wiki:index` / `wiki:inventory` | Write just the core generated files / just the inventories. | — |
 
 ## Common flows
+
+Start a fresh session without knowing internal wiki nodes:
+
+```sh
+bun run wiki:work
+# choose an active or ready item from the deterministic result
+bun run wiki:context -- --work PV-02
+```
+
+`wiki:work` never recommends waiting, blocked, deferred, or conflict records. Each row identifies its proposal owner, dependencies, unmet dependencies, state-specific reason/evidence, and exact selected-context command. An empty repository returns success with "No remaining work."
 
 Before a PR:
 

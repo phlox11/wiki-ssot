@@ -1199,8 +1199,10 @@ touched_conflicts: []
     expect(found).toEqual(expect.arrayContaining([
       "fresh-context-config-missing",
       "fresh-context-agents-marker-missing",
+      "work-discovery-entrypoint-missing",
       "fresh-context-template-missing",
       "fresh-context-command-missing",
+      "work-command-missing",
       "fresh-context-workflow-missing",
     ]));
   });
@@ -1218,11 +1220,46 @@ touched_conflicts: []
           highRisk: [],
           freshContext: policy(),
         }),
-        "AGENTS.md": "wiki-ssot:fresh-context-guardrail",
-        "package.json": jsonStable({ scripts: { "wiki:review-check": "true", "wiki:doctor": "true" } }),
+        "AGENTS.md": "wiki-ssot:fresh-context-guardrail\nwiki-ssot:work-discovery\nbun run wiki:work",
+        "package.json": jsonStable({ scripts: {
+          "wiki:work": "bun scripts/wiki/cli.ts work",
+          "wiki:review-check": "true",
+          "wiki:doctor": "true",
+        } }),
       })[path] ?? "",
     };
-    expect(validateIntegrationSeams(view).map((finding) => finding.code)).toContain("fresh-context-command-missing");
+    const codes = validateIntegrationSeams(view).map((finding) => finding.code);
+    expect(codes).toContain("fresh-context-command-missing");
+    expect(codes).not.toContain("work-command-missing");
+    expect(codes).not.toContain("work-discovery-entrypoint-missing");
+  });
+
+  test("core seam validation rejects a missing work command token and noncanonical package script", () => {
+    const view = {
+      root: "/memory",
+      mode: "working" as const,
+      listFiles: () => [".wiki/config.json", "AGENTS.md", "package.json"],
+      exists: (path: string) => [".wiki/config.json", "AGENTS.md", "package.json"].includes(path),
+      read: (path: string) => ({
+        ".wiki/config.json": jsonStable({
+          version: 1,
+          name: "x",
+          highRisk: [],
+          freshContext: policy(),
+        }),
+        "AGENTS.md": "wiki-ssot:fresh-context-guardrail\nwiki-ssot:work-discovery",
+        "package.json": jsonStable({ scripts: {
+          "wiki:review-preflight": "bun scripts/wiki/cli.ts review-preflight",
+          "wiki:review-check": "bun scripts/wiki/cli.ts review-check",
+          "wiki:doctor": "bun scripts/wiki/cli.ts doctor",
+          "wiki:work": "true",
+        } }),
+      })[path] ?? "",
+    };
+    const codes = validateIntegrationSeams(view).map((finding) => finding.code);
+    expect(codes).toContain("work-discovery-entrypoint-missing");
+    expect(codes).toContain("work-command-missing");
+    expect(codes).not.toContain("fresh-context-command-missing");
   });
 
   test("GitHub reference workflow skips Drafts and validates Ready PRs", () => {

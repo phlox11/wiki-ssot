@@ -167,10 +167,20 @@ describe("emitted kit", () => {
     expect(shrunk.length).toBeGreaterThan(0);
   });
 
-  test("keeps the integration marker that doctor requires downstream", () => {
+  test("keeps the integration markers and work route that doctor requires downstream", () => {
     // core.ts fails a repository whose AGENTS.md lost this marker, so stripping
     // instance-only guidance must never take the marker with it.
-    expect(realKit().files["kit/files/AGENTS.md"]).toContain("wiki-ssot:fresh-context-guardrail");
+    const agents = realKit().files["kit/files/AGENTS.md"];
+    expect(agents).toContain("wiki-ssot:fresh-context-guardrail");
+    expect(agents).toContain("wiki-ssot:work-discovery");
+    expect(agents).toContain("bun run wiki:work");
+  });
+
+  test("ships the work command and its dedicated regression suite", () => {
+    const { files } = realKit();
+    expect(files["kit/files/scripts/wiki/work.test.ts"]).toContain("generic fresh-session prompts");
+    const fragment = JSON.parse(files["kit/package.kit.json"]);
+    expect(fragment.scripts["wiki:work"]).toBe("bun scripts/wiki/cli.ts work");
   });
 
   test("drops guidance that points at pages only this repository has", () => {
@@ -324,6 +334,8 @@ describe("kit sync", () => {
     expect(actionFor(plan, ".wiki/config.json")).toBe("seed-created");
     applySync(kit, repo, plan);
     expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toContain("wiki-ssot:fresh-context-guardrail");
+    expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toContain("wiki-ssot:work-discovery");
+    expect(readFileSync(join(repo, "scripts/wiki/work.test.ts"), "utf8")).toContain("generic fresh-session prompts");
   });
 
   test("a second run reports nothing to do", () => {

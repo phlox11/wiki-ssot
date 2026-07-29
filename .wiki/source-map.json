@@ -22,7 +22,8 @@
       "operations/enforcement"
     ],
     "AGENTS.md": [
-      "operations/enforcement"
+      "operations/enforcement",
+      "product/invariants"
     ],
     "docs/design.md": [
       "product/scope"
@@ -34,7 +35,8 @@
       "product/scope"
     ],
     "scripts/wiki/cli.ts": [
-      "operations/enforcement"
+      "operations/enforcement",
+      "product/invariants"
     ],
     "scripts/wiki/core.ts": [
       "operations/enforcement",

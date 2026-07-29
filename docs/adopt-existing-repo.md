@@ -74,12 +74,12 @@ Map every file matched by `coverage.json` `include` to some page's `sources`, or
 
 ## 4. Optional: code-derived inventories
 
-For always-current generated pages (route tables, schema lists), implement `scripts/wiki/inventories.ts` for your stack. Copy patterns from `kit/scripts/wiki/inventories.example.ts` in this repository — it is reference-only, is never delivered into yours, and so is nothing you have to clean up. Keep `scripts/wiki/wiki.test.ts` and `scripts/wiki/fresh-context.test.ts`: they are the engine's own regression suites (run by the `code-check` CI job) and depend on no host project.
+For always-current generated pages (route tables, schema lists), implement `scripts/wiki/inventories.ts` for your stack. Copy patterns from `kit/scripts/wiki/inventories.example.ts` in this repository — it is reference-only, is never delivered into yours, and so is nothing you have to clean up. Keep `scripts/wiki/wiki.test.ts`, `scripts/wiki/work.test.ts`, and `scripts/wiki/fresh-context.test.ts`: they are the engine's own regression suites (run by the `code-check` CI job) and depend on no host project.
 
 ## 5. Verify and go green
 
 ```sh
-bun run wiki:generated                 # write index, maps, inventories
+bun run wiki:generated                 # write index, work queue, maps, inventories
 bun run wiki:verify                    # record source hashes for all current pages
 bun run wiki:lint                      # must pass
 bun run wiki:doctor                    # integration seams must be present
@@ -92,7 +92,7 @@ Commit the wiki, `.wiki/`, and generated files together.
 ## 6. Turn on the rails
 
 - Hooks activate on `bun install` (via the `prepare` script). Confirm a bad staged page blocks a commit.
-- Keep the root `AGENTS.md` marker `wiki-ssot:fresh-context-guardrail`, structured PR `fresh_context` block, `wiki:review-preflight`/`wiki:review-check`/`wiki:doctor` scripts, and stable `wiki-review-attestation` workflow job. `wiki:doctor` detects accidental omission when adoption rewrites these files.
+- Keep the root `AGENTS.md` markers `wiki-ssot:fresh-context-guardrail` and `wiki-ssot:work-discovery`, canonical `wiki:work` and review/doctor scripts, structured PR `fresh_context` block, and stable `wiki-review-attestation` workflow job. `wiki:doctor` detects accidental omission when adoption rewrites these files.
 - CI: the workflows in `.github/workflows/` run code, structure/doctor, generated, impact, and Ready-only review-attestation checks. The attestation check skips Drafts, uses trusted base code/policy, and never executes PR-head code. Because the `pull_request` workflow definition is still part of the PR test-merge tree, protect `.github/workflows/checks.yml` with a ruleset-required workflow or CODEOWNERS plus required owner review.
 - Remote boundary (required human step): configure GitHub branch protection/rulesets on `main`, require `code-check`, `wiki-structure`, `wiki-generated`, `wiki-impact`, and `wiki-review-attestation`, require the branch to be current, and disallow direct pushes. Branch protection cannot be guaranteed by local files or the CLI; without it, the jobs are not a merge guardrail.
 - When renaming an already-required check, keep the old context required until the new context has succeeded on the candidate HEAD. Add the new context first, verify strict mode and every unrelated required context, then remove the old context and re-read protection. A temporarily blocked PR is acceptable; a temporarily weaker protection set is not.
@@ -113,6 +113,6 @@ Commit the wiki, `.wiki/`, and generated files together.
 
 ## 8. Maintain
 
-Every change follows `wiki/WORKFLOW.md`: search → read sources → change code + page + tests together → regenerate → `wiki:impact --enforce` → prospective PR metadata → preflight bundle and independent reconciliation when required → PR publication. `NEEDS_RECONCILE` or a new commit stays local and requires a new bundle/report before the PR is opened or updated.
+Every change follows `wiki/WORKFLOW.md`. A generic remaining-work request starts with no-query `wiki:work`, then the selected item's printed `wiki:context -- --work <ID>` command; topic-specific work still starts with search/context. From there: read sources → change code + page + tests together → regenerate → `wiki:impact --enforce` → prospective PR metadata → preflight bundle and independent reconciliation when required → PR publication. `NEEDS_RECONCILE` or a new commit stays local and requires a new bundle/report before the PR is opened or updated.
 
 See the [command reference](commands.md) and the [design](design.md).

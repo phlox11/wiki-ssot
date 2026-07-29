@@ -16,6 +16,7 @@
     "wiki:generated": "bun scripts/wiki/cli.ts generated",
     "wiki:kit": "bun scripts/wiki/cli.ts kit",
     "wiki:lint": "bun scripts/wiki/cli.ts lint",
+    "wiki:work": "bun scripts/wiki/cli.ts work",
     "wiki:search": "bun scripts/wiki/cli.ts search",
     "wiki:conflicts": "bun scripts/wiki/cli.ts conflicts",
     "wiki:context": "bun scripts/wiki/cli.ts context",

@@ -9,13 +9,219 @@ sources:
   - path: README.md
   - path: docs/design.md
   - path: AGENTS.md
+  - path: package.json
   - path: .wiki/config.json
   - path: .wiki/coverage.json
+  - path: scripts/wiki/core.ts
   - path: scripts/wiki/cli.ts
+  - path: scripts/wiki/work.test.ts
+  - path: wiki/SCHEMA.md
+  - path: wiki/WORKFLOW.md
+  - path: docs/commands.md
   - path: docs/adopt-existing-repo.md
   - path: docs/adopt-new-repo.md
 related: [product/scope, product/invariants, architecture/engine, operations/enforcement, proposal/protected-main]
 tags: [roadmap, primary, findability, fresh-session, context, adoption, dogfood]
+work_items:
+  - id: PV-00
+    title: Put the roadmap and backlog in the repository wiki
+    state: done
+    priority: critical
+    depends_on: []
+    context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
+    acceptance:
+      - The Primary validation roadmap and backlog are stored in a version-controlled proposal page.
+    evidence:
+      - wiki/proposals/primary-findability-validation.md
+  - id: PV-01
+    title: Protect the editable checks.yml workflow bootstrap seam
+    state: blocked
+    priority: critical
+    depends_on: []
+    context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
+    acceptance:
+      - An active repository setting protects .github/workflows/checks.yml through a ruleset-required workflow, or CODEOWNERS plus required owner review.
+      - Strict required checks still include code-check, wiki-structure, wiki-generated, wiki-impact, wiki-review-attestation, and wiki-kit.
+      - Administrators cannot bypass the chosen protection unintentionally.
+      - Force pushes and branch deletion remain blocked.
+      - The resulting remote state is re-read after the change and recorded as evidence.
+    evidence: []
+    blocker: The owner must select the protection mechanism available for this repository and account plan.
+  - id: PV-02
+    title: Make the product-scope contract review-triggering
+    state: not-started
+    priority: critical
+    depends_on: []
+    context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
+    acceptance:
+      - Changes to wiki/product/scope.md, README.md, or docs/design.md require Fresh-context reconciliation.
+      - A regression test proves all three paths are selected.
+      - Publishing-repository and downstream-kit policy remain intentionally distinct.
+    evidence: []
+  - id: PV-03
+    title: Provide zero-knowledge repository-wide work discovery
+    state: done
+    priority: critical
+    depends_on: [PV-00]
+    context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
+    acceptance:
+      - A no-query command lists repository-wide outstanding work.
+      - The queue is derived from machine-readable repository records rather than Markdown table parsing or chat memory.
+      - Open conflicts are included as first-class decision work.
+      - Default output separates ready, active, waiting, blocked, and deferred work, while completed work is opt-in.
+      - Blocked, deferred, and done states require their corresponding reason or durable evidence.
+      - The schema rejects duplicate IDs, invalid states, invalid context pages, illegal lifecycle fields, unknown or self dependencies, and dependency cycles.
+      - Ordering and recommendation are deterministic from explicit priority, dependency, and ID data.
+      - Every result names its owning proposal and provides a selected-work context command.
+      - A generated work queue is linked from the wiki entrypoint and current status.
+      - The agent entrypoint routes generic remaining-work requests to the no-query command.
+      - Tests start from prompts containing no proposal ID, work ID, or task-specific search term.
+    evidence:
+      - scripts/wiki/work.test.ts
+      - wiki/work-queue.md
+      - AGENTS.md
+  - id: PV-04
+    title: Define deterministic Primary scenarios, expected context, and metrics
+    state: not-started
+    priority: high
+    depends_on: [PV-03]
+    context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
+    acceptance:
+      - Versioned scenarios cover feature changes, refactors, invariants, conflicts, multi-area work, mixed current and proposed matches, and coverage edges.
+      - Each scenario declares its task, required authorities, sources, conflicts, expected changes, and wiki action.
+      - A deterministic runner or test contract evaluates scenario context without an LLM.
+    evidence: []
+  - id: PV-05
+    title: Capture the unmodified Primary baseline
+    state: not-started
+    priority: high
+    depends_on: [PV-04]
+    context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
+    acceptance:
+      - A machine-readable report records recall, authority labelling, irrelevant context, unmapped files, command sequence, and drift escapes for every scenario.
+      - A short interpretation distinguishes measured failures from hypotheses.
+    evidence: []
+  - id: PV-06
+    title: Make selected-work context authority- and source-complete
+    state: not-started
+    priority: high
+    depends_on: [PV-05]
+    context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
+    acceptance:
+      - Current pages are the authoritative default result set.
+      - Non-current pages are omitted or clearly separated from current authority.
+      - Every returned page exposes status, authority, wiki path, exact sources, globs, and relevant open conflicts.
+      - Deterministic glob expansion and a stable invariant-conflict-page-source read order are available.
+      - Text and JSON outputs express the same semantic fields.
+      - Existing impact-based context remains deterministic.
+    evidence: []
+  - id: PV-07
+    title: Improve wiki:search only for baseline-proven misses
+    state: not-started
+    priority: normal
+    depends_on: [PV-05]
+    context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
+    acceptance:
+      - Every selected search change starts from a failing baseline scenario and ends with focused passing evidence.
+      - No ranking or search machinery is added without a reproduced miss.
+    evidence: []
+  - id: PV-08
+    title: Validate new-repository adoption and coverage growth
+    state: not-started
+    priority: high
+    depends_on: [PV-04]
+    context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
+    acceptance:
+      - The empty repository starting state and expected point of becoming green are explicit.
+      - The first feature adds code, a current page, source mapping, coverage, verification, and tests in one candidate.
+      - Generated, lint, doctor, impact, typecheck, test, and applicable review preflight gates pass.
+    evidence: []
+  - id: PV-09
+    title: Validate existing-repository bootstrap and coverage closure
+    state: not-started
+    priority: high
+    depends_on: [PV-04]
+    context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
+    acceptance:
+      - Every covered file maps to a current page or a reasoned exclusion.
+      - Confirmed behavior is compiled from primary sources and ambiguity becomes a conflict.
+      - Initial review can disposition pre-existing mismatches without expanding the bootstrap candidate.
+      - A later kit upgrade preserves adopter-owned policy, state, inventories, and local customizations.
+    evidence: []
+  - id: PV-10
+    title: Strengthen the agent-entrypoint integration contract
+    state: not-started
+    priority: high
+    depends_on: [PV-03, PV-05]
+    context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
+    acceptance:
+      - The installed entrypoint points to the wiki index and current status.
+      - Generic remaining-work requests route to the repository-wide work queue without a known node or search term.
+      - The entrypoint directs agents to invariants, search, and selected context while preserving non-current authority labels.
+      - Marker-only, placeholder, and command-name-only entrypoints fail tests.
+      - The contract remains provider-neutral.
+    evidence: []
+  - id: PV-11
+    title: Run fresh-session agent pilots over both adoption paths
+    state: not-started
+    priority: high
+    depends_on: [PV-06, PV-08, PV-09, PV-10]
+    context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
+    acceptance:
+      - Versioned pilot records preserve the exact task, repository and base, commands, surfaced authorities and sources, changes, misses, and gate result.
+      - Both new- and existing-repository adoption paths are exercised in isolated sessions.
+      - PV-07 evidence is included when the baseline made search work applicable.
+    evidence: []
+  - id: PV-12
+    title: Evaluate the Primary exit gate and decide the next investment
+    state: not-started
+    priority: high
+    depends_on: [PV-11]
+    context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
+    acceptance:
+      - A fresh session can enumerate remaining work from a generic request without knowing any internal node or ID.
+      - The queue correctly distinguishes ready, active, waiting, blocked, deferred, and evidenced done work.
+      - Every scenario surfaces all controlling current pages, invariants, relevant open conflicts, and required implementation sources.
+      - No non-current page is presented as current authority.
+      - Every changed file inside configured coverage maps to a current page or a reasoned exclusion.
+      - No scenario demonstrates a code or wiki drift escape through deterministic gates.
+      - Both adoption paths run reproducibly from their documented starting state to green.
+      - Remaining misses are classified as a concrete defect, owner decision, or explicitly accepted limitation.
+      - The owner records Primary validated, another focused cycle, or changed product priority with supporting evidence.
+    evidence: []
+  - id: PV-13
+    title: Define and validate a meaningful followup_ref contract
+    state: deferred
+    priority: low
+    depends_on: []
+    context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
+    acceptance:
+      - Accepted reference syntax, existence policy, provider ownership, and offline behavior are explicit.
+      - Adversarial tests prove the selected contract cannot be satisfied by meaningless prose.
+    evidence: []
+    deferred_reason: Reconsider after the Primary exit gate or a reproduced disposition escape.
+  - id: PV-14
+    title: Decide whether a reviewer claim-audit artifact is needed
+    state: deferred
+    priority: low
+    depends_on: []
+    context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
+    acceptance:
+      - A concrete false-claim incident identifies which claim must become checkable.
+      - The selected artifact contract states what it can and cannot prove.
+    evidence: []
+    deferred_reason: Reconsider after a reproduced false-claim incident or the Primary exit gate.
+  - id: PV-15
+    title: Reconsider source-map and bootstrap review breadth
+    state: deferred
+    priority: low
+    depends_on: [PV-05]
+    context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
+    acceptance:
+      - A scenario proves current source-to-page mapping causes a measurable harmful over-bundling failure.
+      - Any redesign preserves deterministic source tracing and review completeness.
+    evidence: []
+    deferred_reason: Reconsider only when Primary baseline evidence demonstrates harmful over-bundling.
 ---
 
 # Primary findability validation roadmap
@@ -47,53 +253,17 @@ The target re-entry request is deliberately ordinary: a user starting a new sess
 - Validate both deterministic context completeness and real fresh-session adoption flows.
 - Resume Secondary feature work only after the Primary exit gate is met or an owner explicitly changes this priority.
 
-## Status vocabulary
+## Work queue
 
-| Status | Meaning |
-|---|---|
-| `not-started` | No candidate work has begun. |
-| `ready` | Inputs and owner decisions are sufficient to begin. |
-| `active` | A candidate is being implemented or validated. |
-| `blocked` | A named decision, capability, or external setting is required. |
-| `done` | Acceptance criteria are satisfied and evidence is linked. |
-| `deferred` | Deliberately outside the current critical path, with a reason. |
+The `work_items` frontmatter is the only state, dependency, acceptance, and evidence contract. `not-started` is derived as `ready` when every dependency is done and `waiting` otherwise. Update a work record in the same PR that changes it; never mark an item done from a chat summary.
 
-Update the tracker in the same PR that changes a work item's state. A `done` item must name durable evidence: a PR/commit, a test or fixture path, a report path, or verified repository settings. Do not mark an item done from a chat summary.
-
-## Master tracker
-
-| ID | Work item | Status | Depends on | Durable evidence required |
-|---|---|---|---|---|
-| `PV-00` | Put the roadmap and backlog in the repository wiki | `done` | — | This proposal page |
-| `PV-01` | Protect the editable `checks.yml` workflow bootstrap seam | `blocked` | Owner selects an available GitHub protection mechanism | Verified ruleset/workflow protection or CODEOWNERS plus required owner review |
-| `PV-02` | Make the product-scope contract review-triggering | `ready` | — | Config/test change covering `wiki/product/scope.md`, `README.md`, and `docs/design.md` |
-| `PV-03` | Provide zero-knowledge, repository-wide work discovery | `ready` | `PV-00` | Machine-readable work schema, validated aggregate queue, and a no-query command |
-| `PV-04` | Define deterministic Primary scenarios, expected context, and metrics | `not-started` | `PV-03` | Versioned fixture/scenario files and a reproducible runner or test contract |
-| `PV-05` | Capture the unmodified Primary baseline | `not-started` | `PV-04` | Machine-readable baseline plus a short interpretation |
-| `PV-06` | Make selected-work context authority- and source-complete | `not-started` | `PV-05` | Contract tests and updated current wiki/docs |
-| `PV-07` | Improve `wiki:search` only for baseline-proven misses | `not-started` | `PV-05`; may be skipped if no search failure is found | Before/after scenario evidence and focused tests |
-| `PV-08` | Validate new-repository adoption and coverage growth | `not-started` | `PV-04` | Clean fixture smoke test and recorded expected setup edits |
-| `PV-09` | Validate existing-repository bootstrap and coverage closure | `not-started` | `PV-04` | Existing-code fixture smoke test with zero unexplained unmapped sources |
-| `PV-10` | Strengthen the agent-entrypoint integration contract | `not-started` | `PV-03`, `PV-05` | Doctor tests proving generic re-entry and context guidance cannot become inert |
-| `PV-11` | Run fresh-session agent pilots over both adoption paths | `not-started` | `PV-06`, `PV-08`, `PV-09`, `PV-10`; `PV-07` if applicable | Versioned task inputs, expected authorities/sources, and observed results |
-| `PV-12` | Evaluate the Primary exit gate and decide the next investment | `not-started` | `PV-11` | Owner decision recorded below with supporting evidence |
-| `PV-13` | Define and validate a meaningful `followup_ref` contract | `deferred` | Primary exit gate or reproduced disposition escape | Accepted reference syntax, resolution policy, and adversarial tests |
-| `PV-14` | Decide whether a reviewer claim-audit artifact is needed | `deferred` | Reproduced false-claim incident or Primary exit gate | Concrete incident and selected artifact contract |
-| `PV-15` | Reconsider source-map/bootstrap review breadth | `deferred` | Baseline evidence of harmful over-bundling | Scenario showing the current source-to-page rule causes a measurable failure |
+Inspect the deterministic human view at [work queue](../work-queue.md), run `bun run wiki:work`, or assemble a selected item's complete context with `bun run wiki:context -- --work <ID>`.
 
 ## Phase A — close known boundaries
 
 ### `PV-01`: protect the workflow definition
 
 The current branch protection requires the stable checks, but a pull request can still edit `.github/workflows/checks.yml`, keep a required job name, and replace its validation steps. The tracked-file design and required remote state are already specified in [proposal/protected-main](./protected-main.md); this roadmap does not duplicate that contract.
-
-Acceptance:
-
-- An active repository setting protects `.github/workflows/checks.yml` through a ruleset-required workflow, or CODEOWNERS plus required owner review.
-- Strict required checks still include `code-check`, `wiki-structure`, `wiki-generated`, `wiki-impact`, `wiki-review-attestation`, and `wiki-kit`.
-- Administrators cannot bypass the chosen protection unintentionally.
-- Force pushes and branch deletion remain blocked.
-- The resulting remote state is re-read after the change and recorded as evidence.
 
 Decision gate:
 
@@ -103,42 +273,21 @@ Decision gate:
 
 The risk selector currently protects enforcement and invariant files but does not select the product-scope page or either of its declared primary sources.
 
-Acceptance:
-
-- Changes to `wiki/product/scope.md`, `README.md`, or `docs/design.md` require Fresh-context reconciliation.
-- A regression test proves all three paths are selected.
-- The publishing repository and downstream kit policy remain intentionally distinct; instance-only paths must not leak into adopter policy without an explicit product decision.
-
 ## Phase B — make work discoverable and establish a Primary baseline
 
 ### `PV-03`: zero-knowledge work discovery
 
-The current proposal table is a transitional human-readable tracker. It does not satisfy the product goal by itself: a new session has no reason to know this page exists, and the engine does not parse its rows, dependencies, states, or evidence.
+The previous proposal table was a transitional human-readable tracker. It did not satisfy the product goal by itself: a new session had no reason to know this page existed, and the engine did not parse its rows, dependencies, states, or evidence.
 
 The required user experience is:
 
 1. the user asks a generic question such as "what work remains?", "what is unfinished?", or "what should we do next?";
 2. the agent entrypoint directs all such requests to one standard repository command without requiring search terms;
 3. the command scans the whole repository's structured work records and open conflicts;
-4. it reports what is ready, active, blocked, and deferred, with explicit dependencies and evidence;
+4. it reports what is ready, active, waiting, blocked, and deferred, with explicit dependencies and evidence;
 5. the user can select an item by the returned ID, after which a standard context command returns its controlling current pages, invariants, conflicts, proposal detail, acceptance criteria, and sources.
 
-Acceptance:
-
-- A no-query command such as `wiki:work` lists repository-wide outstanding work; the final command name is part of this item's implementation decision.
-- The queue is derived from machine-readable repository records rather than Markdown table parsing or chat memory.
-- Open conflicts are included or linked as first-class decision work.
-- Default output separates `ready`, `active`, `blocked`, and `deferred`; completed work is hidden unless requested.
-- A blocked item names its blocker or required owner decision.
-- A done item requires non-empty durable evidence.
-- The schema rejects duplicate IDs, unknown dependencies, dependency cycles, illegal states, done-without-evidence, and blocked-without-a-blocker.
-- Ordering is deterministic and follows explicit priority and dependency data rather than agent preference.
-- Every result names its owning wiki node and provides the next context command.
-- A generated work-queue entrypoint is linked from the wiki entrypoint so humans can inspect the same state without running the CLI.
-- `AGENTS.md` tells an agent receiving a generic remaining-work request to run this command before searching by topic.
-- Tests begin from a fresh session prompt that contains no proposal ID, work ID, or task-specific search term.
-
-The work-record representation may be structured fields on proposal/task pages or a dedicated repository-owned work-item format. Whichever representation is selected must keep detailed rationale close to its wiki node while giving the engine a stable schema. GitHub issues may be linked as evidence or execution channels, but the repository queue must remain usable without a live provider API.
+The selected representation is the structured `work_items` field on proposal pages. It keeps detailed rationale close to its wiki node while giving the engine a stable schema. GitHub issues may be linked as evidence or execution channels, but the repository queue remains usable without a live provider API.
 
 ### `PV-04`: deterministic scenario contract
 
@@ -195,16 +344,6 @@ Known hypotheses to test rather than assume:
 
 Default context output should make the truth model visible without requiring the caller to remember hidden conventions.
 
-Acceptance:
-
-- Current pages are the authoritative default result set.
-- Proposed, deprecated, and archived pages are omitted or placed in a clearly labelled non-current section.
-- Each returned page exposes `status`, `authority`, wiki path, declared exact sources, declared globs, and relevant open conflicts.
-- Glob expansion is available deterministically when the caller needs concrete source files.
-- Output communicates a stable read order: invariants and conflicts, current page, then implementation sources.
-- Text and JSON outputs express the same semantic fields.
-- Existing impact-based context behavior remains deterministic.
-
 ### `PV-07`: evidence-driven search changes
 
 Do not add ranking machinery merely because the implementation is simple. Select changes only from baseline misses.
@@ -224,15 +363,6 @@ Every selected remedy requires a failing scenario before the change and a passin
 
 The integration doctor currently must not treat the marker alone as sufficient evidence that an agent can find the wiki workflow.
 
-Acceptance:
-
-- The installed entrypoint points to `wiki/index.md` and `wiki/current-status.md`.
-- A generic question about remaining or next work routes to the repository-wide work queue without requiring a known node or search term.
-- It directs the agent to current invariant pages and `wiki:search` / `wiki:context`.
-- It preserves the rule that proposed or archived pages are not current behavior.
-- Marker-only, placeholder, or command-name-only entrypoints fail a test.
-- The contract remains provider-neutral; host-specific bridge files may point at it without moving model behavior into core.
-
 This work improves discoverability. It does not claim proof that the agent cognitively read the returned material.
 
 ## Phase D — validate adoption
@@ -241,24 +371,9 @@ This work improves discoverability. It does not claim proof that the agent cogni
 
 Validate the documented empty-repository path from kit sync through the first feature.
 
-Acceptance:
-
-- The exact initial state of `.wiki/coverage.json` is intentional and consistent with the playbook.
-- The point at which an empty repository is expected to become green is explicit.
-- The first feature adds code, a current page, source mapping, coverage, verification, and tests in one candidate.
-- Generated files, lint, doctor, impact, typecheck, tests, and applicable review preflight pass.
-
 ### `PV-09`: existing repository
 
 Validate bootstrap over a repository that already contains multiple code areas and at least one ambiguous intent.
-
-Acceptance:
-
-- Every file selected by coverage maps to a current page or a reasoned exclusion.
-- Confirmed current behavior is compiled from primary sources rather than copied from old prose.
-- The ambiguous behavior becomes a conflict instead of an invented current statement.
-- The initial review can disposition pre-existing mismatches without forcing the entire repository into the bootstrap PR.
-- A later kit upgrade preserves adopter-owned policy, state, inventories, and local customizations.
 
 ### `PV-11`: fresh-session agent pilots
 
@@ -276,18 +391,7 @@ The pilot measures whether the provided path is usable. It does not turn subject
 
 ## Primary exit gate
 
-`PV-12` may pass only when:
-
-- a fresh session can enumerate remaining work from a generic request without knowing any internal node or ID;
-- the queue correctly distinguishes ready, active, blocked, deferred, and evidenced done work;
-- every scenario surfaces all controlling current pages;
-- every scenario surfaces all controlling invariants and relevant open conflicts;
-- every context result exposes the required implementation sources;
-- no non-current page is presented as current authority;
-- every changed file inside configured coverage maps to a current page or a reasoned exclusion;
-- no scenario demonstrates a code/wiki drift escape through the deterministic gates;
-- both adoption paths run from their documented starting state to green reproducibly;
-- remaining misses are classified as a concrete defect, an owner decision, or an explicitly accepted limitation.
+`PV-12` may pass only when its frontmatter acceptance contract is satisfied with durable evidence.
 
 The owner then records one outcome:
 
@@ -324,9 +428,9 @@ Parallel review lenses remain an orchestrator technique outside the core contrac
 
 The intended critical path is:
 
-1. `PV-01` and `PV-02` close boundary gaps.
-2. `PV-03` makes remaining work discoverable without prior node knowledge.
-3. `PV-04` defines scenarios and expected authorities.
+1. `PV-03` makes remaining work discoverable without prior node knowledge.
+2. `PV-02` closes the in-repository scope-review boundary while `PV-04` can begin the scenario contract.
+3. `PV-01` remains a parallel external-setting decision and must not be guessed.
 4. `PV-05` records the baseline before behavior changes.
 5. `PV-06` fixes selected-work context completeness.
 6. `PV-07` runs only if the baseline proves search failures.
@@ -358,6 +462,6 @@ Each implementing PR must:
 2. change only one coherent work item unless the tracker declares them inseparable;
 3. add the failing scenario or evidence before the fix where practical;
 4. update current wiki pages when behavior changes;
-5. update this tracker status and durable-evidence cell;
+5. update this item's structured state and durable evidence;
 6. regenerate deterministic artifacts and pass the repository's full preflight;
 7. leave undecidable current intent in a conflict rather than marking the item done.

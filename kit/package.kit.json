@@ -26,7 +26,8 @@
     "wiki:review-check": "bun scripts/wiki/cli.ts review-check",
     "wiki:review-preflight": "bun scripts/wiki/cli.ts review-preflight",
     "wiki:search": "bun scripts/wiki/cli.ts search",
-    "wiki:verify": "bun scripts/wiki/cli.ts verify"
+    "wiki:verify": "bun scripts/wiki/cli.ts verify",
+    "wiki:work": "bun scripts/wiki/cli.ts work"
   },
   "type": "module"
 }

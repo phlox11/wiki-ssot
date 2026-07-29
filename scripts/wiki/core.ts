@@ -19,6 +19,20 @@ export type ConflictResolution = {
   acceptance: string[];
   evidence?: string[];
 };
+export type WorkState = "not-started" | "active" | "blocked" | "done" | "deferred";
+export type WorkPriority = "critical" | "high" | "normal" | "low";
+export type WorkItem = {
+  id: string;
+  title: string;
+  state: WorkState;
+  priority: WorkPriority;
+  depends_on: string[];
+  context_pages: string[];
+  acceptance: string[];
+  evidence: string[];
+  blocker?: string;
+  deferred_reason?: string;
+};
 
 export type WikiFrontmatter = {
   id: string;
@@ -39,6 +53,7 @@ export type WikiFrontmatter = {
   affected_pages?: string[];
   affected_invariants?: string[];
   resolution?: ConflictResolution;
+  work_items?: WorkItem[];
 };
 
 export type WikiPage = {
@@ -122,6 +137,7 @@ export const WIKI_SYSTEM_FILES = new Set([
   "wiki/index.md",
   "wiki/current-status.md",
   "wiki/conflicts.md",
+  "wiki/work-queue.md",
   "wiki/changelog.md",
 ]);
 
@@ -148,7 +164,7 @@ export function loadWikiPages(view: RepoView): { pages: WikiPage[]; findings: Fi
 }
 
 function stringArray(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every((item) => typeof item === "string" && item.length > 0);
+  return Array.isArray(value) && value.every((item) => typeof item === "string" && item.trim().length > 0);
 }
 
 function validateSource(source: unknown): source is WikiSource {
@@ -267,6 +283,141 @@ export function validatePages(view: RepoView, pages: WikiPage[]): Finding[] {
       }
     }
   }
+  findings.push(...validateWorkItems(pages));
+  return findings;
+}
+
+type OwnedWorkItem = { item: WorkItem; page: WikiPage };
+
+function ownedWorkItems(pages: WikiPage[]): OwnedWorkItem[] {
+  const states = new Set<WorkState>(["not-started", "active", "blocked", "done", "deferred"]);
+  const priorities = new Set<WorkPriority>(["critical", "high", "normal", "low"]);
+  const items: OwnedWorkItem[] = [];
+  for (const page of pages) {
+    if (!Array.isArray(page.data.work_items)) continue;
+    for (const raw of page.data.work_items as unknown[]) {
+      if (raw == null || typeof raw !== "object" || Array.isArray(raw)) continue;
+      const item = raw as Record<string, unknown>;
+      if (typeof item.id !== "string" || typeof item.title !== "string") continue;
+      if (!states.has(item.state as WorkState) || !priorities.has(item.priority as WorkPriority)) continue;
+      if (!stringArray(item.depends_on) || !stringArray(item.context_pages) || !stringArray(item.acceptance) || !stringArray(item.evidence)) continue;
+      items.push({ page, item: item as WorkItem });
+    }
+  }
+  return items;
+}
+
+export function validateWorkItems(pages: WikiPage[]): Finding[] {
+  const findings: Finding[] = [];
+  const states = new Set<WorkState>(["not-started", "active", "blocked", "done", "deferred"]);
+  const priorities = new Set<WorkPriority>(["critical", "high", "normal", "low"]);
+  const pageById = new Map(pages.map((page) => [page.data.id, page]));
+  const workById = new Map<string, OwnedWorkItem>();
+  const seenIds = new Map<string, string>();
+  const validItems: OwnedWorkItem[] = [];
+
+  for (const page of pages) {
+    const rawItems = (page.data as unknown as Record<string, unknown>).work_items;
+    if (rawItems == null) continue;
+    if (page.data.kind !== "proposal") {
+      pushFinding(findings, page.path, "work-owner-kind", "work_items are allowed only on kind: proposal pages");
+    }
+    if (!Array.isArray(rawItems)) {
+      pushFinding(findings, page.path, "work-items-shape", "work_items must be an array");
+      continue;
+    }
+    for (const [index, raw] of rawItems.entries()) {
+      const label = `work_items[${index}]`;
+      if (raw == null || typeof raw !== "object" || Array.isArray(raw)) {
+        pushFinding(findings, page.path, "work-item-shape", `${label} must be a mapping`);
+        continue;
+      }
+      const item = raw as Record<string, unknown>;
+      const rawId = typeof item.id === "string" ? item.id : "";
+      const id = rawId.trim();
+      const validId = rawId === id && /^[A-Za-z0-9][A-Za-z0-9._/-]*$/.test(id);
+      if (!validId) {
+        pushFinding(findings, page.path, "work-id", `${label}.id must be a stable non-empty identifier without whitespace`);
+      } else if (seenIds.has(id)) {
+        pushFinding(findings, page.path, "work-duplicate-id", `work item ${id} is already owned by ${seenIds.get(id)}`);
+      } else {
+        seenIds.set(id, page.data.id);
+      }
+      if (typeof item.title !== "string" || item.title.trim().length === 0) pushFinding(findings, page.path, "work-title", `${label}.title must be a non-empty string`);
+      if (!states.has(item.state as WorkState)) pushFinding(findings, page.path, "work-state", `${label}.state is invalid: ${String(item.state)}`);
+      if (!priorities.has(item.priority as WorkPriority)) pushFinding(findings, page.path, "work-priority", `${label}.priority is invalid: ${String(item.priority)}`);
+      for (const field of ["depends_on", "context_pages", "acceptance", "evidence"] as const) {
+        if (!stringArray(item[field])) pushFinding(findings, page.path, `work-${field.replaceAll("_", "-")}`, `${label}.${field} must be a string array`);
+      }
+      if (stringArray(item.context_pages) && item.context_pages.length === 0) pushFinding(findings, page.path, "work-context-pages", `${label}.context_pages must name at least one current page`);
+      if (stringArray(item.acceptance) && item.acceptance.length === 0) pushFinding(findings, page.path, "work-acceptance", `${label}.acceptance must contain at least one objective criterion`);
+      const state = item.state as WorkState;
+      const blocker = typeof item.blocker === "string" ? item.blocker.trim() : "";
+      const deferredReason = typeof item.deferred_reason === "string" ? item.deferred_reason.trim() : "";
+      if (state === "blocked" && blocker.length === 0) pushFinding(findings, page.path, "work-blocker", `${label} is blocked and requires a non-empty blocker`);
+      if (state !== "blocked" && item.blocker != null) pushFinding(findings, page.path, "work-blocker-state", `${label}.blocker is allowed only when state is blocked`);
+      if (state === "deferred" && deferredReason.length === 0) pushFinding(findings, page.path, "work-deferred-reason", `${label} is deferred and requires a non-empty deferred_reason`);
+      if (state !== "deferred" && item.deferred_reason != null) pushFinding(findings, page.path, "work-deferred-state", `${label}.deferred_reason is allowed only when state is deferred`);
+      if (state === "done" && (!stringArray(item.evidence) || item.evidence.length === 0)) pushFinding(findings, page.path, "work-done-evidence", `${label} is done and requires durable evidence`);
+      if (page.data.status !== "proposed" && !["done", "deferred"].includes(state)) {
+        pushFinding(findings, page.path, "work-owner-status", `${label} is non-terminal but its proposal status is ${page.data.status}`);
+      }
+      if (validId && !workById.has(id) && states.has(state) && priorities.has(item.priority as WorkPriority)
+        && stringArray(item.depends_on) && stringArray(item.context_pages) && stringArray(item.acceptance) && stringArray(item.evidence)
+        && typeof item.title === "string" && item.title.trim().length > 0) {
+        workById.set(id, { page, item: item as WorkItem });
+      }
+      if (validId && states.has(state) && priorities.has(item.priority as WorkPriority)
+        && stringArray(item.depends_on) && stringArray(item.context_pages) && stringArray(item.acceptance) && stringArray(item.evidence)
+        && typeof item.title === "string" && item.title.trim().length > 0) {
+        validItems.push({ page, item: item as WorkItem });
+      }
+    }
+  }
+
+  for (const owned of validItems) {
+    const item = owned.item;
+    const id = item.id;
+    for (const dependency of item.depends_on) {
+      if (dependency === id) pushFinding(findings, owned.page.path, "work-self-dependency", `${id} cannot depend on itself`);
+      else if (!workById.has(dependency)) pushFinding(findings, owned.page.path, "work-dependency-unknown", `${id} depends on unknown work item ${dependency}`);
+    }
+    for (const pageId of item.context_pages) {
+      const context = pageById.get(pageId);
+      if (!context || context.data.status !== "current" || context.data.kind === "conflict") {
+        pushFinding(findings, owned.page.path, "work-context-page-unknown", `${id} context_pages must reference a current non-conflict page: ${pageId}`);
+      }
+    }
+    if (["active", "done"].includes(item.state)) {
+      const unmet = item.depends_on.filter((dependency) => workById.get(dependency)?.item.state !== "done");
+      if (unmet.length > 0) pushFinding(findings, owned.page.path, "work-state-dependencies", `${id} is ${item.state} with unmet dependencies: ${unmet.join(", ")}`);
+    }
+  }
+
+  const visiting = new Set<string>();
+  const visited = new Set<string>();
+  const stack: string[] = [];
+  const reportedCycles = new Set<string>();
+  const visit = (id: string) => {
+    if (visited.has(id)) return;
+    if (visiting.has(id)) {
+      const start = stack.indexOf(id);
+      const cycle = [...stack.slice(start), id];
+      const key = [...new Set(cycle)].sort().join("|");
+      if (!reportedCycles.has(key)) {
+        reportedCycles.add(key);
+        pushFinding(findings, workById.get(id)!.page.path, "work-dependency-cycle", `work dependency cycle: ${cycle.join(" -> ")}`);
+      }
+      return;
+    }
+    visiting.add(id);
+    stack.push(id);
+    for (const dependency of workById.get(id)?.item.depends_on ?? []) if (workById.has(dependency)) visit(dependency);
+    stack.pop();
+    visiting.delete(id);
+    visited.add(id);
+  };
+  for (const id of [...workById.keys()].sort()) visit(id);
   return findings;
 }
 
@@ -394,6 +545,142 @@ export function openConflicts(pages: WikiPage[]): WikiPage[] {
     .sort((a, b) => order[a.data.severity!] - order[b.data.severity!] || a.data.conflict_id!.localeCompare(b.data.conflict_id!));
 }
 
+export type WorkQueueState = "ready" | "waiting" | "active" | "blocked" | "done" | "deferred";
+export type WorkQueueItem = WorkItem & {
+  queue_state: WorkQueueState;
+  unmet_dependencies: string[];
+  owner_page: {
+    id: string;
+    path: string;
+    owners: string[];
+    status: WikiStatus;
+    authority: WikiAuthority;
+  };
+  context_command: string;
+};
+export type WorkQueueGroups = {
+  active: WorkQueueItem[];
+  ready: WorkQueueItem[];
+  waiting: WorkQueueItem[];
+  blocked: WorkQueueItem[];
+  deferred: WorkQueueItem[];
+  done: WorkQueueItem[];
+};
+export type WorkQueue = {
+  version: 1;
+  recommended_next: { kind: "work"; id: string } | null;
+  groups: WorkQueueGroups;
+  open_conflicts: ConflictSummary[];
+};
+
+const WORK_PRIORITY_ORDER: Record<WorkPriority, number> = { critical: 0, high: 1, normal: 2, low: 3 };
+
+export function buildWorkQueue(pages: WikiPage[]): WorkQueue {
+  const owned = ownedWorkItems(pages);
+  const stateById = new Map(owned.map(({ item }) => [item.id, item.state]));
+  const normalized = owned.map(({ item, page }): WorkQueueItem => {
+    const unmet = item.depends_on.filter((dependency) => stateById.get(dependency) !== "done").sort((a, b) => a.localeCompare(b));
+    const queueState: WorkQueueState = item.state === "not-started" ? (unmet.length === 0 ? "ready" : "waiting") : item.state;
+    return {
+      ...item,
+      depends_on: [...item.depends_on].sort((a, b) => a.localeCompare(b)),
+      context_pages: [...item.context_pages],
+      acceptance: [...item.acceptance],
+      evidence: [...item.evidence],
+      queue_state: queueState,
+      unmet_dependencies: unmet,
+      owner_page: {
+        id: page.data.id,
+        path: page.path,
+        owners: [...page.data.owners],
+        status: page.data.status,
+        authority: page.data.authority,
+      },
+      context_command: `bun run wiki:context -- --work ${item.id}`,
+    };
+  }).sort((a, b) => WORK_PRIORITY_ORDER[a.priority] - WORK_PRIORITY_ORDER[b.priority] || a.id.localeCompare(b.id));
+  const groups: WorkQueueGroups = { active: [], ready: [], waiting: [], blocked: [], deferred: [], done: [] };
+  for (const item of normalized) groups[item.queue_state].push(item);
+  const recommended = groups.active[0] ?? groups.ready[0];
+  return {
+    version: 1,
+    recommended_next: recommended ? { kind: "work", id: recommended.id } : null,
+    groups,
+    open_conflicts: openConflicts(pages).map(conflictSummary),
+  };
+}
+
+function renderWorkTable(items: WorkQueueItem[]): string[] {
+  const lines = [
+    "| ID | Priority | Owner page | Dependencies | Summary | Context |",
+    "|---|---|---|---|---|---|",
+  ];
+  for (const item of items) {
+    const owner = `[${item.owner_page.id}](./${item.owner_page.path.slice("wiki/".length)})`;
+    const dependencies = item.depends_on.length > 0 ? item.depends_on.join(", ") : "—";
+    const reason = item.queue_state === "blocked"
+      ? ` — Blocker: ${item.blocker}`
+      : item.queue_state === "deferred"
+        ? ` — Deferred: ${item.deferred_reason}`
+        : item.queue_state === "waiting"
+          ? ` — Waiting on: ${item.unmet_dependencies.join(", ")}`
+          : "";
+    lines.push(`| ${item.id} | ${item.priority} | ${owner} | ${dependencies} | ${item.title}${reason} | \`${item.context_command}\` |`);
+  }
+  if (items.length === 0) lines.push("| — | — | — | — | None | — |");
+  return lines;
+}
+
+export function generateWorkQueue(pages: WikiPage[]): string {
+  const queue = buildWorkQueue(pages);
+  const outstanding = ["active", "ready", "waiting", "blocked", "deferred"]
+    .reduce((total, group) => total + queue.groups[group as keyof WorkQueueGroups].length, 0);
+  const lines = [
+    "---",
+    "id: generated/work-queue",
+    "summary: Deterministic repository-wide projection of outstanding proposal work.",
+    "kind: generated",
+    "status: archived",
+    "authority: derived",
+    'owners: ["@repository-maintainers"]',
+    "sources: []",
+    "tags: [generated, work, queue]",
+    "---",
+    "",
+    GENERATED_HEADER,
+    "",
+    "# Repository work queue",
+    "",
+    "This is a deterministic view of structured `work_items` on proposal pages. It is not current product authority; open the owning proposal and then the returned current context.",
+    "",
+    queue.recommended_next
+      ? `**Recommended next:** \`${queue.recommended_next.id}\` — run \`bun run wiki:context -- --work ${queue.recommended_next.id}\`.`
+      : "**Recommended next:** none. Do not invent work; inspect blockers and open decisions below.",
+    "",
+    `Outstanding work: ${outstanding}. Completed work hidden: ${queue.groups.done.length}; run \`bun run wiki:work -- --all\` to inspect it.`,
+    "",
+  ];
+  for (const [heading, group] of [
+    ["Active", "active"],
+    ["Ready", "ready"],
+    ["Waiting", "waiting"],
+    ["Blocked", "blocked"],
+  ] as const) {
+    lines.push(`## ${heading}`, "", ...renderWorkTable(queue.groups[group]), "");
+  }
+  lines.push("## Open decision conflicts", "");
+  if (queue.open_conflicts.length === 0) {
+    lines.push("No open conflicts.", "");
+  } else {
+    lines.push("| ID | Severity | Type | State | Summary |", "|---|---|---|---|---|");
+    for (const conflict of queue.open_conflicts) lines.push(`| [${conflict.id}](./${conflict.path.slice("wiki/".length)}) | ${conflict.severity} | ${conflict.type} | ${conflict.state} | ${conflict.summary} |`);
+    lines.push("");
+  }
+  lines.push("## Deferred", "", ...renderWorkTable(queue.groups.deferred), "");
+  if (outstanding === 0 && queue.open_conflicts.length === 0) lines.push("No remaining work.", "");
+  return `${lines.join("\n").trimEnd()}\n`;
+}
+
 export function generateConflictsIndex(pages: WikiPage[]): string {
   const conflicts = openConflicts(pages);
   const lines = [
@@ -430,7 +717,7 @@ export function generateIndex(pages: WikiPage[], name = "Project"): string {
     lines.push("");
   }
   if (groups.size === 0) lines.push("No current pages yet.", "");
-  lines.push("- [Open conflicts](./conflicts.md)", "- [Changelog](./changelog.md)", "");
+  lines.push("- [Outstanding work](./work-queue.md)", "- [Open conflicts](./conflicts.md)", "- [Changelog](./changelog.md)", "");
   return `${lines.join("\n").trimEnd()}\n`;
 }
 
@@ -438,6 +725,13 @@ export function generateCurrentStatus(pages: WikiPage[]): string {
   const lines = [GENERATED_HEADER, "", "# Current status", "", "| ID | Kind | Authority | Owner | Sources |", "|---|---|---|---|---:|"];
   for (const page of currentPages(pages)) lines.push(`| [${page.data.id}](./${page.path.slice("wiki/".length)}) | ${page.data.kind} | ${page.data.authority} | ${page.data.owners.join(", ")} | ${page.data.sources.length} |`);
   if (currentPages(pages).length === 0) lines.push("| — | — | — | — | 0 |");
+  const queue = buildWorkQueue(pages);
+  const outstanding = queue.groups.active.length + queue.groups.ready.length + queue.groups.waiting.length + queue.groups.blocked.length + queue.groups.deferred.length;
+  lines.push("", `## Outstanding work (${outstanding})`, "");
+  lines.push(queue.recommended_next
+    ? `Recommended next: \`${queue.recommended_next.id}\`. Run \`bun run wiki:context -- --work ${queue.recommended_next.id}\`.`
+    : "No active or ready work is available; do not infer a task from blocked or deferred records.");
+  lines.push("", "See the [repository work queue](./work-queue.md) or run `bun run wiki:work`.", "");
   const conflicts = openConflicts(pages);
   lines.push("", `## Open conflicts (${conflicts.length})`, "", "| Severity | Count |", "|---|---:|");
   for (const severity of ["high", "medium", "low"] as const) lines.push(`| ${severity} | ${conflicts.filter((page) => page.data.severity === severity).length} |`);
@@ -484,6 +778,7 @@ export function generatedCoreFiles(pages: WikiPage[], name = "Project"): Record<
     "wiki/index.md": generateIndex(pages, name),
     "wiki/current-status.md": generateCurrentStatus(pages),
     "wiki/conflicts.md": generateConflictsIndex(pages),
+    "wiki/work-queue.md": generateWorkQueue(pages),
     ".wiki/source-map.json": jsonStable(buildSourceMap(pages)),
     ".wiki/conflict-map.json": jsonStable(buildConflictMap(pages)),
   };
@@ -501,7 +796,9 @@ export function compareGenerated(view: RepoView, expected: Record<string, string
   for (const [path, content] of Object.entries(expected)) {
     if (!view.exists(path)) pushFinding(findings, path, "generated-missing", `generated file is missing; regenerate ${path}`);
     else if (view.read(path) !== content) pushFinding(findings, path, "generated-stale", `generated file differs from deterministic output; regenerate ${path}`);
-    else if (path.endsWith(".md") && !content.startsWith(GENERATED_HEADER)) pushFinding(findings, path, "generated-header", "generated Markdown requires the do-not-edit header");
+    else if (path.endsWith(".md") && !content.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "").trimStart().startsWith(GENERATED_HEADER)) {
+      pushFinding(findings, path, "generated-header", "generated Markdown requires the do-not-edit header");
+    }
   }
   return findings;
 }
@@ -617,6 +914,7 @@ export const KIT_ENTRIES: KitEntry[] = [
   // absent", so the next sync would put it straight back.
   { target: "scripts/wiki/inventories.example.ts", placement: "reference", source: { kind: "copy", from: "scripts/wiki/inventories.example.ts" } },
   { target: "scripts/wiki/wiki.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/wiki.test.ts" } },
+  { target: "scripts/wiki/work.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/work.test.ts" } },
   { target: "scripts/wiki/fresh-context.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/fresh-context.test.ts" } },
   { target: ".github/workflows/checks.yml", placement: "files", source: { kind: "copy", from: ".github/workflows/checks.yml" } },
   { target: ".github/workflows/wiki-audit.yml", placement: "files", source: { kind: "copy", from: ".github/workflows/wiki-audit.yml" } },
@@ -1007,6 +1305,9 @@ export function validateIntegrationSeams(view: RepoView): Finding[] {
   if (!agents.includes("wiki-ssot:fresh-context-guardrail")) {
     findings.push({ code: "fresh-context-agents-marker-missing", message: "root AGENTS.md must contain the wiki-ssot:fresh-context-guardrail integration marker", path: "AGENTS.md", severity: "error" });
   }
+  if (!agents.includes("wiki-ssot:work-discovery") || !agents.includes("bun run wiki:work")) {
+    findings.push({ code: "work-discovery-entrypoint-missing", message: "root AGENTS.md must route generic remaining-work requests to bun run wiki:work", path: "AGENTS.md", severity: "error" });
+  }
 
   const packagePath = "package.json";
   let scripts: Record<string, unknown> = {};
@@ -1022,6 +1323,9 @@ export function validateIntegrationSeams(view: RepoView): Finding[] {
     || scripts["wiki:review-check"] !== "bun scripts/wiki/cli.ts review-check"
     || scripts["wiki:doctor"] !== "bun scripts/wiki/cli.ts doctor") {
     findings.push({ code: "fresh-context-command-missing", message: "package.json must expose the canonical wiki:review-preflight, wiki:review-check, and wiki:doctor CLI entrypoints", path: packagePath, severity: "error" });
+  }
+  if (scripts["wiki:work"] !== "bun scripts/wiki/cli.ts work") {
+    findings.push({ code: "work-command-missing", message: "package.json must expose the canonical wiki:work CLI entrypoint", path: packagePath, severity: "error" });
   }
 
   return findings;
