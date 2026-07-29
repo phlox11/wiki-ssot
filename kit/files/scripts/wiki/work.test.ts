@@ -223,6 +223,13 @@ describe("work item schema and queue", () => {
     ]);
     const first = generateWorkQueue(pages);
     expect(first).toBe(generateWorkQueue(pages));
+    expect(parseWikiPage("wiki/work-queue.md", first).data).toMatchObject({
+      id: "generated/work-queue",
+      status: "archived",
+      authority: "derived",
+      sources: [],
+    });
+    expect(compareGenerated(memoryView({ "wiki/work-queue.md": first }), { "wiki/work-queue.md": first })).toEqual([]);
     expect(first).toContain("Repository work queue");
     expect(first).toContain("WK-01");
     expect(first).not.toContain("| WK-00 |");

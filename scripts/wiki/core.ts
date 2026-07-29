@@ -636,6 +636,17 @@ export function generateWorkQueue(pages: WikiPage[]): string {
   const outstanding = ["active", "ready", "waiting", "blocked", "deferred"]
     .reduce((total, group) => total + queue.groups[group as keyof WorkQueueGroups].length, 0);
   const lines = [
+    "---",
+    "id: generated/work-queue",
+    "summary: Deterministic repository-wide projection of outstanding proposal work.",
+    "kind: generated",
+    "status: archived",
+    "authority: derived",
+    'owners: ["@repository-maintainers"]',
+    "sources: []",
+    "tags: [generated, work, queue]",
+    "---",
+    "",
     GENERATED_HEADER,
     "",
     "# Repository work queue",
@@ -785,7 +796,9 @@ export function compareGenerated(view: RepoView, expected: Record<string, string
   for (const [path, content] of Object.entries(expected)) {
     if (!view.exists(path)) pushFinding(findings, path, "generated-missing", `generated file is missing; regenerate ${path}`);
     else if (view.read(path) !== content) pushFinding(findings, path, "generated-stale", `generated file differs from deterministic output; regenerate ${path}`);
-    else if (path.endsWith(".md") && !content.startsWith(GENERATED_HEADER)) pushFinding(findings, path, "generated-header", "generated Markdown requires the do-not-edit header");
+    else if (path.endsWith(".md") && !content.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "").trimStart().startsWith(GENERATED_HEADER)) {
+      pushFinding(findings, path, "generated-header", "generated Markdown requires the do-not-edit header");
+    }
   }
   return findings;
 }

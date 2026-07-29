@@ -1,3 +1,14 @@
+---
+id: generated/work-queue
+summary: Deterministic repository-wide projection of outstanding proposal work.
+kind: generated
+status: archived
+authority: derived
+owners: ["@repository-maintainers"]
+sources: []
+tags: [generated, work, queue]
+---
+
 <!-- GENERATED FILE. DO NOT EDIT. Run the matching wiki command. -->
 
 # Repository work queue

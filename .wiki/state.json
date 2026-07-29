@@ -3,7 +3,7 @@
     "architecture/engine": {
       "sources": {
         "scripts/wiki/cli.ts": "26cf169770f36afaedd456a300b6a7b5f7ec20d834ae852b344ac55df727e390",
-        "scripts/wiki/core.ts": "0bbb44da8db9dc979f6abca0b0fabdcb09db92f7ef6606406b8a4dc4e07ab152",
+        "scripts/wiki/core.ts": "a9613c2765fe3e02490d016f1f0aeafaf5a79d72c79d5951f7310bf499e2ec22",
         "scripts/wiki/fresh-context.test.ts": "00f4e0ad1d225cb6e01579024ef3414088592b1d343afedba515a68835611522",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c",
         "scripts/wiki/inventories.example.ts": "c77492bf25a8e89d6c5f2de5d1238bb426e41b81cd255d7c153e05d295e91c4e",
@@ -11,7 +11,7 @@
         "scripts/wiki/kit-sync.ts": "1d8f77baa00a3bcea174d78537cdb7ac80aea680c0ac00154e5af5e94b4b6ac0",
         "scripts/wiki/kit.test.ts": "b41c8091b8b5f5f99ab33e6c3aa82414f5b7308d4022e7a52281a41c1c62d403",
         "scripts/wiki/wiki.test.ts": "539712a8f680522a3ade618190db3b7392fe273961ebe8c8e00c4a56e1524646",
-        "scripts/wiki/work.test.ts": "d6bb09aedb2b1ac1ac6156cb019ad12b1881eadf4d9505c45887f607e81c5e18"
+        "scripts/wiki/work.test.ts": "ca6daaa45c15556a2da45688ada714db193e38b276b7d32218c6c781f8d7ba9c"
       },
       "verification": {
         "kind": "updated"
@@ -29,7 +29,7 @@
         "AGENTS.md": "5001e989033a492e1d2d9d5f12d84a69a348e6b76f89af856dc6ac512d24c9c1",
         "package.json": "df071fab971a1e88e77e575449f76921f83244bffbf9b756ae36797032bffeaf",
         "scripts/wiki/cli.ts": "26cf169770f36afaedd456a300b6a7b5f7ec20d834ae852b344ac55df727e390",
-        "scripts/wiki/core.ts": "0bbb44da8db9dc979f6abca0b0fabdcb09db92f7ef6606406b8a4dc4e07ab152",
+        "scripts/wiki/core.ts": "a9613c2765fe3e02490d016f1f0aeafaf5a79d72c79d5951f7310bf499e2ec22",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c"
       },
       "verification": {
@@ -40,7 +40,7 @@
       "sources": {
         "AGENTS.md": "5001e989033a492e1d2d9d5f12d84a69a348e6b76f89af856dc6ac512d24c9c1",
         "scripts/wiki/cli.ts": "26cf169770f36afaedd456a300b6a7b5f7ec20d834ae852b344ac55df727e390",
-        "scripts/wiki/core.ts": "0bbb44da8db9dc979f6abca0b0fabdcb09db92f7ef6606406b8a4dc4e07ab152"
+        "scripts/wiki/core.ts": "a9613c2765fe3e02490d016f1f0aeafaf5a79d72c79d5951f7310bf499e2ec22"
       },
       "verification": {
         "kind": "updated"
