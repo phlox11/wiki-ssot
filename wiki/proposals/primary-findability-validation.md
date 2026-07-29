@@ -49,7 +49,7 @@ work_items:
     blocker: The owner must select the protection mechanism available for this repository and account plan.
   - id: PV-02
     title: Make the product-scope contract review-triggering
-    state: not-started
+    state: done
     priority: critical
     depends_on: []
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
@@ -57,7 +57,10 @@ work_items:
       - Changes to wiki/product/scope.md, README.md, or docs/design.md require Fresh-context reconciliation.
       - A regression test proves all three paths are selected.
       - Publishing-repository and downstream-kit policy remain intentionally distinct.
-    evidence: []
+    evidence:
+      - .wiki/config.json
+      - scripts/wiki/kit.test.ts
+      - wiki/operations/enforcement.md
   - id: PV-03
     title: Provide zero-knowledge repository-wide work discovery
     state: done
@@ -271,7 +274,7 @@ Decision gate:
 
 ### `PV-02`: protect the scope contract from unreviewed semantic movement
 
-The risk selector currently protects enforcement and invariant files but does not select the product-scope page or either of its declared primary sources.
+The publishing repository's risk selector now protects the product-scope page and both of its declared primary sources. A publishing-only regression test exercises all three paths through the Fresh-context requirement evaluator and proves that these repository-specific paths do not leak into the generated downstream seed policy.
 
 ## Phase B — make work discoverable and establish a Primary baseline
 
