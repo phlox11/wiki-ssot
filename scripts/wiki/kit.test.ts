@@ -9,13 +9,18 @@ import {
   KIT_MANIFEST_TARGET,
   compareKit,
   createRepoView,
+  evaluateFreshContextRequirement,
   isImplementationSourceChange,
   isKitManagedPath,
   jsonStable,
   kitFiles,
   kitPath,
+  parseFreshContextPolicy,
+  readConfig,
   stripKitExclusions,
   writeKit,
+  type ImpactReport,
+  type ReviewManifest,
 } from "./core";
 import { MANIFEST_TARGET, applySync, planSync, sha256 } from "./kit-sync";
 
@@ -140,6 +145,54 @@ describe("kit entry table", () => {
 });
 
 describe("emitted kit", () => {
+  test("review-selects this publisher's product-scope contract without leaking its paths downstream", () => {
+    const publisherPolicy = readConfig(createRepoView(process.cwd())).freshContext;
+    expect(publisherPolicy).toBeDefined();
+
+    const manifest: ReviewManifest = {
+      version: 1,
+      base_ref: "origin/main",
+      merge_base_sha: "0".repeat(40),
+      head_sha: "1".repeat(40),
+      pr_metadata_digest: "2".repeat(64),
+      impact_report_digest: "3".repeat(64),
+      diff_digest: "4".repeat(64),
+      affected_page_ids: [],
+      affected_invariant_ids: [],
+      affected_conflict_ids: [],
+      file_digests: {},
+      bundle_digest: "5".repeat(64),
+    };
+    const productScopePaths = ["wiki/product/scope.md", "README.md", "docs/design.md"];
+    for (const path of productScopePaths) {
+      const impact: ImpactReport = {
+        base: "origin/main",
+        mergeBase: manifest.merge_base_sha,
+        changedFiles: [path],
+        affectedPages: [],
+        affectedConflicts: [],
+        removedCurrentPages: [],
+        stalePages: [],
+        highRiskStalePages: [],
+        advisoryStalePages: [],
+        unmappedHighRisk: [],
+        findings: [],
+      };
+      expect(evaluateFreshContextRequirement(publisherPolicy!, manifest, impact)).toEqual({
+        applies: true,
+        reasons: [`changed file matches ${path}: ${path}`],
+      });
+    }
+
+    const downstreamConfig = JSON.parse(realKit().files["kit/seed/.wiki/config.json"]) as { freshContext?: unknown };
+    const downstreamPolicy = parseFreshContextPolicy(downstreamConfig.freshContext);
+    expect(downstreamPolicy?.requiredWhen?.kind).toBe("risk-based");
+    if (downstreamPolicy?.requiredWhen?.kind !== "risk-based") throw new Error("expected downstream risk-based policy");
+    for (const path of productScopePaths) {
+      expect(downstreamPolicy.requiredWhen.changedFileGlobs).not.toContain(path);
+    }
+  });
+
   test("renders every entry without a source finding", () => {
     const { files, findings } = realKit();
     expect(findings).toEqual([]);

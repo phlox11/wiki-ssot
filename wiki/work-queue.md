@@ -15,9 +15,9 @@ tags: [generated, work, queue]
 
 This is a deterministic view of structured `work_items` on proposal pages. It is not current product authority; open the owning proposal and then the returned current context.
 
-**Recommended next:** `PV-02` — run `bun run wiki:context -- --work PV-02`.
+**Recommended next:** `PV-04` — run `bun run wiki:context -- --work PV-04`.
 
-Outstanding work: 14. Completed work hidden: 2; run `bun run wiki:work -- --all` to inspect it.
+Outstanding work: 13. Completed work hidden: 3; run `bun run wiki:work -- --all` to inspect it.
 
 ## Active
 
@@ -29,7 +29,6 @@ Outstanding work: 14. Completed work hidden: 2; run `bun run wiki:work -- --all`
 
 | ID | Priority | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|
-| PV-02 | critical | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | — | Make the product-scope contract review-triggering | `bun run wiki:context -- --work PV-02` |
 | PV-04 | high | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | PV-03 | Define deterministic Primary scenarios, expected context, and metrics | `bun run wiki:context -- --work PV-04` |
 
 ## Waiting

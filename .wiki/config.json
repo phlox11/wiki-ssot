@@ -17,12 +17,15 @@
         ".github/workflows/**",
         ".wiki/config.json",
         "AGENTS.md",
+        "README.md",
+        "docs/design.md",
         "package.json",
         "scripts/wiki/*.ts",
         "wiki/SCHEMA.md",
         "wiki/WORKFLOW.md",
         "wiki/operations/enforcement.md",
-        "wiki/product/invariants.md"
+        "wiki/product/invariants.md",
+        "wiki/product/scope.md"
       ],
       "affectedInvariants": true,
       "affectedConflicts": true,
