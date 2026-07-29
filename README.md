@@ -17,6 +17,7 @@ It is derived from Andrej Karpathy's [LLM wiki](https://gist.github.com/karpathy
 - Each page's frontmatter lists its **`sources`** (real paths / globs). The engine builds a reverse index and **hashes those sources**. When a source changes, its page goes *stale* and must be updated or explicitly verified — in the same PR.
 - A **coverage** gate ensures every major code file maps to some page, so there is no "unfindable" code.
 - When intent is unclear or code and wiki disagree, you open a **conflict** — a first-class, machine-tracked record with acceptance criteria — instead of guessing.
+- Proposal frontmatter carries a validated, repository-wide **work queue**. A fresh session can run `wiki:work` with no topic, node, or task ID, then load a selected item's current invariants, context pages, conflicts, sources, and non-current proposal owner.
 - `wiki:review-preflight` decides whether independent reconciliation is required before a PR exists, prepares the exact bundle, and validates the separate review context's report. Draft PRs do not emit an expected Fresh-context failure; applicable Ready PRs reject missing, non-PASS, stale, malformed, empty-evidence, or untrusted reports.
 
 Full rationale: [docs/design.md](docs/design.md).
@@ -55,6 +56,7 @@ bun run test             # engine regression suite
 bun run typecheck
 bun run wiki:audit       # full repo audit: structure + generated + every page's source hashes
 bun run wiki:doctor      # required downstream integration seams
+bun run wiki:work        # repository-wide outstanding work, no query or ID required
 bun run wiki:context -- "enforcement"   # what an agent reads before touching enforcement
 ```
 
@@ -68,7 +70,7 @@ scripts/wiki/
   inventories.ts         # project-owned adapter for code-derived pages (default: none)
   inventories.example.ts # a real inventory adapter to read and adapt (not delivered)
   kit-sync.ts            # adopt the kit into another repo, or upgrade it
-  wiki.test.ts / fresh-context.test.ts / kit.test.ts  # engine regression suites
+  wiki.test.ts / fresh-context.test.ts / work.test.ts / kit.test.ts  # engine regression suites
 wiki/                    # the SSOT pages + SCHEMA.md + WORKFLOW.md
 .wiki/                   # machine config + generated indexes + verification ledger
 .husky/                  # pre-commit (lint) + pre-push (block main)

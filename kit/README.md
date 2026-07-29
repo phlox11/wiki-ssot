@@ -79,10 +79,11 @@ bun run wiki:generated
 bun run wiki:verify
 bun run wiki:lint
 bun run wiki:doctor
+bun run wiki:work
 bun run typecheck && bun run test
 ```
 
-`wiki:doctor` passes immediately — it checks that the rails arrived intact. `wiki:lint` is supposed to fail at this point, and its errors are the to-do list: first that `coverage.json`'s `include` matches nothing, then, once it does, one `coverage-unmapped` error per code file that no page claims yet. Driving that list to zero is the adoption.
+`wiki:doctor` passes immediately — it checks that the rails arrived intact. `wiki:work` also succeeds with "No remaining work" until you add proposal work records; later it becomes the no-query entrypoint for generic remaining-work requests. `wiki:lint` is supposed to fail at this point, and its errors are the to-do list: first that `coverage.json`'s `include` matches nothing, then, once it does, one `coverage-unmapped` error per code file that no page claims yet. Driving that list to zero is the adoption.
 
 Writing the first pages is the real work, and it is not a copy step. `wiki/SCHEMA.md` defines the page contract; the playbook for recompiling pages from code you already have is in this repository's [docs/adopt-existing-repo.md](../docs/adopt-existing-repo.md), starting at section 3.
 

@@ -40,6 +40,36 @@ Authorities:
 - `observed`: behavior directly established by executable sources.
 - `derived`: deterministic inventory or explanation computed from primary sources.
 
+## Proposal work items
+
+A `kind: proposal` page may own a structured repository backlog in frontmatter:
+
+```yaml
+work_items:
+  - id: PV-03
+    title: Provide zero-knowledge repository-wide work discovery
+    state: not-started
+    priority: critical
+    depends_on: [PV-00]
+    context_pages: [product/scope, product/invariants]
+    acceptance:
+      - A no-query command lists repository-wide outstanding work.
+    evidence: []
+```
+
+Every item requires `id`, `title`, `state`, `priority`, `depends_on`, `context_pages`, `acceptance`, and `evidence`.
+
+- `state`: `not-started | active | blocked | done | deferred`.
+- `priority`: `critical | high | normal | low`.
+- Stored `not-started` derives to queue state `ready` when all dependencies are done and `waiting` otherwise.
+- `blocked` requires a non-empty `blocker`; `deferred` requires a non-empty `deferred_reason`; `done` requires at least one durable `evidence` entry. Those conditional fields are illegal on other states.
+- `active` and `done` require all dependencies to be done.
+- IDs are repository-wide unique. Unknown, self, and cyclic dependencies are invalid.
+- `context_pages` may name only existing, non-conflict `status: current` pages.
+- A deprecated or archived proposal may retain only `done` or `deferred` work.
+
+Frontmatter is the sole state, dependency, acceptance, and evidence contract. The proposal body keeps rationale rather than a second tracker. GitHub or provider records may appear as evidence, but the repository queue must remain complete offline.
+
 ## Conflict pages
 
 `wiki/conflicts.md` is generated. Each conflict is a content page under `wiki/conflicts/open/**` or `wiki/conflicts/resolved/**` with these additional fields:

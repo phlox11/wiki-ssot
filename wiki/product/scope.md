@@ -1,6 +1,6 @@
 ---
 id: product/scope
-summary: wiki-ssot is a portable enforced SSOT toolkit with provider-neutral Fresh-context attestation validation; it is not a documentation site, hosted reviewer, or decision-maker.
+summary: wiki-ssot is a portable enforced SSOT toolkit with zero-knowledge work discovery and provider-neutral Fresh-context attestation validation; it is not a documentation site, hosted reviewer, or decision-maker.
 kind: product
 status: current
 authority: normative
@@ -19,6 +19,7 @@ wiki-ssot turns a repository's development knowledge into a small set of `status
 ## In scope
 
 - A page schema and frontmatter contract (`wiki/SCHEMA.md`).
+- A repository-wide, offline work graph stored with proposal rationale, plus a no-query command and generated queue that let a fresh session discover and select outstanding work without knowing a wiki node or task ID.
 - Deterministic CLI checks: structure lint, generated-file freshness, code→page impact, source staleness, coverage, and a conflict lifecycle.
 - A pre-PR command that deterministically classifies risk, prepares an independent-review bundle, and validates the returned structured Fresh-context report before publication.
 - Explicit solo and team trust policies: separate review context is always procedural, while distinct GitHub actors are optional and machine-enforced only when configured.
@@ -31,5 +32,6 @@ wiki-ssot turns a repository's development knowledge into a small set of `status
 - Rendering or hosting a documentation website.
 - Replacing the wiki with an auto-generated API reference.
 - Deciding product questions on the agent's behalf: an ambiguous decision is a conflict, not an invention.
+- Automatically executing recommended work. Queue recommendation is deterministic ordering, not authorization.
 - Running or hosting a particular LLM/reviewer in core or CI. The invoking code agent supplies a context-isolated reviewer or sub-agent; core prepares and validates its artifact.
 - Claiming cryptographic proof that a reviewer had a genuinely fresh context. The selected reviewer/orchestrator defines that trust boundary.

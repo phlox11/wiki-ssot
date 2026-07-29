@@ -1,5 +1,5 @@
 {
-  "digest": "e40fa798178b9c71690ba8301628109bec56c892abe59d78f940d4ba05aa403d",
+  "digest": "eca0fa1ab0be4a350e53d0083f07bb68dab9e602616e945cbbf3a3204baa9570",
   "files": {
     ".github/pull_request_template.md": {
       "ownership": "kit",
@@ -35,7 +35,7 @@
     },
     "AGENTS.md": {
       "ownership": "kit",
-      "sha256": "410ae6f0c3e74b3f3a29f1fc24d0cf056f8645133b46f94a1298d9e13b88544f"
+      "sha256": "fe70a504ede7b2fe93eb643a305910a9cb0237c91c6c99e1db36cfe70b8c4d6e"
     },
     "CLAUDE.md": {
       "ownership": "seed",
@@ -43,15 +43,15 @@
     },
     "scripts/wiki/cli.ts": {
       "ownership": "kit",
-      "sha256": "f7b262c5c5bfea76bb4b5d9d987667df00835cf43386e3e6f2f147813d3562f9"
+      "sha256": "26cf169770f36afaedd456a300b6a7b5f7ec20d834ae852b344ac55df727e390"
     },
     "scripts/wiki/core.ts": {
       "ownership": "kit",
-      "sha256": "91783c94ef7bf7a1780bb3a2d61920a934d2b14dd8c0aa4f7a39c498a0bf9e6e"
+      "sha256": "0bbb44da8db9dc979f6abca0b0fabdcb09db92f7ef6606406b8a4dc4e07ab152"
     },
     "scripts/wiki/fresh-context.test.ts": {
       "ownership": "kit",
-      "sha256": "1f09fd510b1296019eb21fc7817b654e6bfdfa3e6a968384f105cea40d7f83fd"
+      "sha256": "6c51f593d48a39f627229d8e5b94deba511a01ac4a484a9ff9a861456d8557f7"
     },
     "scripts/wiki/github-attestation.ts": {
       "ownership": "kit",
@@ -65,6 +65,10 @@
       "ownership": "kit",
       "sha256": "539712a8f680522a3ade618190db3b7392fe273961ebe8c8e00c4a56e1524646"
     },
+    "scripts/wiki/work.test.ts": {
+      "ownership": "kit",
+      "sha256": "d6bb09aedb2b1ac1ac6156cb019ad12b1881eadf4d9505c45887f607e81c5e18"
+    },
     "tsconfig.json": {
       "ownership": "seed",
       "sha256": "8c3d96cbfc0a838c87344481ed0e0da012fe83612883206702eef8dd9d71e07e"
@@ -75,20 +79,20 @@
     },
     "wiki/README.md": {
       "ownership": "kit",
-      "sha256": "1e23f13ef0d117990dedb28dd00521540d55156c2fb4f492ff0e9407f65d4082"
+      "sha256": "3630e413d44b68e1a141cf3b971098d540ae3e5fc8de0fac83153f392c2c6a54"
     },
     "wiki/SCHEMA.md": {
       "ownership": "kit",
-      "sha256": "a316d480641b90a11b5192151e09be6d976a13debd2144a14c7167476fb21a22"
+      "sha256": "e4153d1ffce8960bda99e531b5e5090d016acb1d1ca7978dbbf61ec86df374d2"
     },
     "wiki/WORKFLOW.md": {
       "ownership": "kit",
-      "sha256": "dab003a85c2ad6c91fd5aca443b47dd117211f8389c5e3b7ba344d7cb68f5f40"
+      "sha256": "3597290c43962a19cbc7124e6e711f1135c0e26b2c95ee08fb0a4fa8058ca2db"
     }
   },
   "kit": "wiki-ssot",
   "reference": {
-    "package.kit.json": "84649b7e37cef0cced9c41da11c7cf3532105ae3b9b3d77fbd3a425a0178be95",
+    "package.kit.json": "3cd2ebe06fe9cb5bcf72540a682f39fa6fd2fd5c4b2139fbc8c56654c12b3a4a",
     "scripts/wiki/inventories.example.ts": "c77492bf25a8e89d6c5f2de5d1238bb426e41b81cd255d7c153e05d295e91c4e"
   },
   "version": 1

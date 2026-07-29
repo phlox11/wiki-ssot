@@ -6,8 +6,15 @@
 |---|---|---|---|---:|
 | [architecture/engine](./architecture/engine.md) | architecture | observed | @phlox11 | 1 |
 | [operations/enforcement](./operations/enforcement.md) | operation | normative | @phlox11 | 12 |
-| [product/invariants](./product/invariants.md) | invariant | normative | @phlox11 | 1 |
+| [product/invariants](./product/invariants.md) | invariant | normative | @phlox11 | 3 |
 | [product/scope](./product/scope.md) | product | normative | @phlox11 | 2 |
+
+## Outstanding work (14)
+
+Recommended next: `PV-02`. Run `bun run wiki:context -- --work PV-02`.
+
+See the [repository work queue](./work-queue.md) or run `bun run wiki:work`.
+
 
 ## Open conflicts (0)
 
