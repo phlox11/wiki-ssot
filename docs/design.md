@@ -1,6 +1,6 @@
 # Design
 
-wiki-ssot exists to stop one expensive failure mode and a secondary one. Repository checks remain deterministic, while the authoring code agent performs risk-selected independent semantic reconciliation before opening a PR and CI verifies the resulting attestation before merge.
+wiki-ssot exists to stop one expensive failure mode and a secondary one. Repository checks remain deterministic, while the authoring code agent performs risk-selected independent semantic reconciliation before opening a PR and CI verifies the resulting attestation for applicable Ready PRs.
 
 ## The problem
 
@@ -88,7 +88,7 @@ Reviewer failures are explicit rather than hidden: every `NEEDS_RECONCILE` findi
 
 ## GitHub reference trust boundary
 
-The GitHub reference job runs on `pull_request` for non-Draft PRs so GitHub associates the required check with the PR test-merge commit without producing an expected failure while a locally-passed report is being attached. It explicitly checks out the base implementation and trust policy, fetches the PR HEAD into a detached worktree, and treats every head file as data. Bun remains in the trusted base working directory and receives the detached head only through the CLI's `--root` data path, so an untrusted `bunfig.toml` or preload cannot run before validation. The job never imports scripts, installs dependencies, or runs commands from the PR head. The external report is selected from GitHub PR reviews/comments and its `reviewer` must match the authenticated envelope actor; the PR body's `fresh_context` block is only a required status mirror. Marking the prepared Draft Ready triggers the Ready-only validation job.
+The GitHub reference job runs on `pull_request` for non-Draft PRs so GitHub associates the Ready-only validation check with the PR test-merge commit without producing an expected failure while a locally-passed report is being attached. It explicitly checks out the base implementation and trust policy, fetches the PR HEAD into a detached worktree, and treats every head file as data. Bun remains in the trusted base working directory and receives the detached head only through the CLI's `--root` data path, so an untrusted `bunfig.toml` or preload cannot run before validation. The job never imports scripts, installs dependencies, or runs commands from the PR head. The external report is selected from GitHub PR reviews/comments and its `reviewer` must match the authenticated envelope actor; the PR body's `fresh_context` block is only a required status mirror. Marking the prepared Draft Ready triggers the Ready-only validation job.
 
 This still has a bootstrap boundary. The engine and trust policy are pinned to the base, but the `pull_request` workflow definition is part of the PR test-merge tree and can itself be edited. A rewrite that preserves a required job name can counterfeit success. wiki-ssot explicitly assumes that repository developers and administrators are trusted not to do that; defending against those actors with required workflows, CODEOWNERS, rulesets, or administrator-bypass policy is organization-level governance outside the product contract. Deployments may add those controls, but the toolkit neither requires nor audits them. A green job is therefore evidence within the trusted-maintainer model, not a security guarantee against a hostile or compromised maintainer.
 
