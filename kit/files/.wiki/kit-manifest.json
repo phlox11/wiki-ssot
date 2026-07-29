@@ -1,5 +1,5 @@
 {
-  "digest": "152c5f165919db6ed67e8fd4fcc69b73dd96135fc935b670fd7397e3ae010bb1",
+  "digest": "15af6752524c379d8603cd9b2c80d8eac7cfe21e2d7dc23064cd359161490985",
   "files": {
     ".github/pull_request_template.md": {
       "ownership": "kit",
@@ -87,7 +87,7 @@
     },
     "wiki/WORKFLOW.md": {
       "ownership": "kit",
-      "sha256": "ee24d829ddf71ab1cecc0a224a6f87e22de9a25316e88dbaeb6d8153b687b55f"
+      "sha256": "6c700c71b02f64c9aede673aa91dc61b324ca455485295adb8e697dc9ce51c32"
     }
   },
   "kit": "wiki-ssot",

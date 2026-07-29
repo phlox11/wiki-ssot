@@ -46,9 +46,11 @@ Enforcement is only real if it fires on events that always happen:
 
 1. **Session start** — every agent auto-reads `AGENTS.md`: a generic remaining-work request routes to the no-query repository queue, while selected work routes to its current invariants, context pages, conflicts, sources, and explicitly non-current proposal owner. (Compliance rail.)
 2. **Local commit** — a pre-commit hook runs the cheap structural lint on staged files; a pre-push hook blocks direct pushes to `main`. Bypassable feedback.
-3. **Pre-PR / pull request / CI** — `wiki:review-preflight` prepares and validates risk-selected independent reconciliation before publication. Structural, generated-freshness, impact, integration-seam, and Ready-only review-attestation checks then protect the merge; a weekly job re-audits everything.
+3. **Pre-PR / pull request / CI** — `wiki:review-preflight` prepares and validates risk-selected independent reconciliation before publication. Structural, generated-freshness, impact, integration-seam, and Ready-only review-attestation checks then reject invalid candidates; deployments that make those jobs required checks also use them to block merges. A weekly job re-audits everything.
 
-## What blocks a merge (all deterministic)
+## What rejects an invalid candidate (all deterministic)
+
+These checks block a GitHub merge only when deployment policy makes their jobs required; otherwise they still fail deterministically and provide evidence to trusted maintainers.
 
 - **Structure** (`wiki:lint`): frontmatter and required fields, duplicate page/work IDs, work dependency/lifecycle/context rules, broken internal links, missing source paths, orphaned/empty globs, coverage, and generated-file freshness.
 - **Generated freshness** (`wiki:generated --check`): the index, current-status, repository work queue, conflicts index, reverse maps, and any code-derived inventories must match a clean regeneration.
@@ -82,7 +84,7 @@ That does **not** prove the reviewer really had no prior context, reasoned well,
 
 Actor separation is a deployment choice. When review applies, a solo repository uses `requireDifferentActor: false`: a separate context-isolated session creates the report, while the PR author's authenticated GitHub account may publish it. CI can verify the publisher and bindings, but not the session separation. A team can set `requireDifferentActor: true` after provisioning a second reviewer account or bot; enabling it without that channel intentionally makes applicable solo PRs unmergeable.
 
-Reviewer failures are explicit rather than hidden: every `NEEDS_RECONCILE` finding is dispositioned before PR creation — fixed, tracked in an open conflict with acceptance criteria, or recorded as a named follow-up — and each new HEAD receives a new bundle/review. Convergence is therefore defined by disposition rather than by an empty finding list, which keeps a large change from looping until the whole repository is perfect. Ambiguity becomes a conflict or owner decision rather than a speculative repair loop. A required report is attached to a Draft after local PASS; Drafts skip the review-attestation check, while Ready/merge requires either `required: false` or PASS for the current HEAD. Projects that deliberately choose `advisory` mode receive warnings; missing config never silently becomes advisory. Existing configurations that omit `requiredWhen` retain all-PR review.
+Reviewer failures are explicit rather than hidden: every `NEEDS_RECONCILE` finding is dispositioned before PR creation — fixed, tracked in an open conflict with acceptance criteria, or recorded as a named follow-up — and each new HEAD receives a new bundle/review. Convergence is therefore defined by disposition rather than by an empty finding list, which keeps a large change from looping until the whole repository is perfect. Ambiguity becomes a conflict or owner decision rather than a speculative repair loop. A required report is attached to a Draft after local PASS; Drafts skip the review-attestation check, while the Ready-PR job succeeds only with either `required: false` or PASS for the current HEAD. Deployment policy decides whether that job is required for merge. Projects that deliberately choose `advisory` mode receive warnings; missing config never silently becomes advisory. Existing configurations that omit `requiredWhen` retain all-PR review.
 
 ## GitHub reference trust boundary
 

@@ -1,6 +1,6 @@
 ---
 id: operations/enforcement
-summary: Three rails enforce the wiki within a trusted-maintainer boundary — zero-knowledge agent entry, local hooks, and blocking CI including the wiki-review-attestation check.
+summary: Three rails enforce the wiki within a trusted-maintainer boundary — zero-knowledge agent entry, local hooks, and deterministic CI including the wiki-review-attestation check.
 kind: operation
 status: current
 authority: normative

@@ -54,7 +54,7 @@ After a local required PASS, open a Draft PR, publish that exact report through 
 
 - pre-commit: staged wiki structure/link/source/generated validation only.
 - pre-push: direct `main` push prevention.
-- CI: code tests, wiki structure/doctor, generated freshness, blocking impact enforcement, and the Ready-only `wiki-review-attestation` policy/attestation check, plus a weekly full audit. Drafts do not emit an expected Fresh-context failure; Ready/merge requires a trusted non-required classification or a current PASS.
+- CI: code tests, wiki structure/doctor, generated freshness, blocking impact enforcement, and the Ready-only `wiki-review-attestation` policy/attestation check, plus a weekly full audit. Drafts do not emit an expected Fresh-context failure; for a Ready PR the attestation job succeeds only with a trusted non-required classification or a current PASS. Deployment policy may make that job a required merge check.
 - remote policy: deployments may add branch protection, required workflows, or CODEOWNERS, but wiki-ssot assumes repository write/admin actors are trusted and does not make organization-security policy part of its product contract.
 <!-- kit:exclude:start -->
 - trust decision for this repository: [proposal/protected-main](./proposals/protected-main.md); enforcement detail in [operations/enforcement](./operations/enforcement.md).
