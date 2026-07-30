@@ -24,6 +24,7 @@ import {
   makeReviewBundle,
   parsePrMetadata,
   parseWikiPage,
+  searchWikiPages,
   validateMarkdownLinks,
   validatePages,
   validateCoverage,
@@ -35,6 +36,7 @@ import {
 } from "./core";
 
 const temporary: string[] = [];
+const cli = join(process.cwd(), "scripts/wiki/cli.ts");
 
 afterEach(() => {
   for (const path of temporary.splice(0)) rmSync(path, { recursive: true, force: true });
@@ -193,6 +195,53 @@ describe("staged snapshot", () => {
     put(root, "new.md", "staged content\n");
     run(root, ["git", "add", "new.md"]);
     expect(createRepoView(root, true).read("new.md")).toBe("staged content\n");
+  });
+});
+
+describe("baseline-proven query relevance", () => {
+  test("prefers pages matching the complete PV-05 task over partial-term noise", () => {
+    const root = tempRepo();
+    const task = "Add support for partial refunds while preserving the checkout total and currency rules.";
+    put(root, "src/checkout/refunds.ts", "export const refunds = true;\n");
+    put(root, "src/orders/service.ts", "export const orders = true;\n");
+    put(root, "wiki/features/checkout.md", `${frontmatter({
+      id: "features/checkout",
+      summary: "Checkout refund contract.",
+      kind: "feature",
+      sources: [{ path: "src/checkout/refunds.ts" }],
+    })}\n${task}\n`);
+    put(root, "wiki/features/orders.md", `${frontmatter({
+      id: "features/orders",
+      summary: "Order export contract.",
+      kind: "feature",
+      sources: [{ path: "src/orders/service.ts" }],
+    })}\nSupport order exports without changing their behavior.\n`);
+
+    const search = run(root, [process.execPath, cli, "search", task, "--root", root]);
+    expect(search.split("\n").filter(Boolean).map((line) => line.split("\t")[0])).toEqual(["features/checkout"]);
+
+    const context = run(root, [process.execPath, cli, "context", task, "--root", root]);
+    expect(context).toContain("# features/checkout");
+    expect(context).not.toContain("# features/orders");
+  });
+
+  test("keeps deterministic partial matches when no page contains every query term", () => {
+    const pages = [
+      parseWikiPage("wiki/features/checkout.md", `${frontmatter({
+        id: "features/checkout",
+        summary: "Refund checkout behavior.",
+        kind: "feature",
+      })}\nPartial refunds are supported.\n`),
+      parseWikiPage("wiki/features/orders.md", `${frontmatter({
+        id: "features/orders",
+        summary: "Order export behavior.",
+        kind: "feature",
+      })}\nOrder exports are supported.\n`),
+    ];
+    expect(searchWikiPages(pages, "refund order").map((item) => item.page.data.id)).toEqual([
+      "features/checkout",
+      "features/orders",
+    ]);
   });
 });
 

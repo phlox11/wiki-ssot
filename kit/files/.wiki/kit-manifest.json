@@ -1,5 +1,5 @@
 {
-  "digest": "68470b5faa9e3748065e6d16b5fb58582bdc0f9534f1ecc791c60c074b25335e",
+  "digest": "5353d822643392c3ed773bcdc95ee0d6be204cd6ecdf47966d2d8186cfaedb90",
   "files": {
     ".github/pull_request_template.md": {
       "ownership": "kit",
@@ -47,11 +47,11 @@
     },
     "scripts/wiki/cli.ts": {
       "ownership": "kit",
-      "sha256": "490e62efc76880d16d3f72ecd91a5b24288f5c26665c6da991c22a25083ecfe6"
+      "sha256": "ecb1ec3e539c04e52d2e072886345d7ea5aa1f7c8b69a5d9e2765e3cabc77581"
     },
     "scripts/wiki/core.ts": {
       "ownership": "kit",
-      "sha256": "66015547b950569a9ece293a80f2f9a79116c22e0b45d2247dbed4ff6d759146"
+      "sha256": "12eb7b65d9a6bea5b0251972a56655321b37a40f28bb8cd762e3ff2b9bb4f30d"
     },
     "scripts/wiki/fresh-context.test.ts": {
       "ownership": "kit",
@@ -67,7 +67,7 @@
     },
     "scripts/wiki/wiki.test.ts": {
       "ownership": "kit",
-      "sha256": "539712a8f680522a3ade618190db3b7392fe273961ebe8c8e00c4a56e1524646"
+      "sha256": "576cae956de33a9d4fb69e99799506c73c30519bd146a60767f143467b9739c5"
     },
     "scripts/wiki/work.test.ts": {
       "ownership": "kit",

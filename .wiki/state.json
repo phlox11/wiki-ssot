@@ -2,8 +2,8 @@
   "pages": {
     "architecture/engine": {
       "sources": {
-        "scripts/wiki/cli.ts": "490e62efc76880d16d3f72ecd91a5b24288f5c26665c6da991c22a25083ecfe6",
-        "scripts/wiki/core.ts": "66015547b950569a9ece293a80f2f9a79116c22e0b45d2247dbed4ff6d759146",
+        "scripts/wiki/cli.ts": "ecb1ec3e539c04e52d2e072886345d7ea5aa1f7c8b69a5d9e2765e3cabc77581",
+        "scripts/wiki/core.ts": "12eb7b65d9a6bea5b0251972a56655321b37a40f28bb8cd762e3ff2b9bb4f30d",
         "scripts/wiki/existing-repo-bootstrap.test.ts": "2c305b2939473cd5e23fa948348fbc9c18019b29acb8e9684c61bc8feb26fdcd",
         "scripts/wiki/fresh-context.test.ts": "763c8ea1d161b56afe79ea4a23125636ddf34b4158c31122baf981a6b1bb1ca5",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c",
@@ -16,12 +16,11 @@
         "scripts/wiki/primary-baseline.ts": "eed786753febe2bf1b9974aeaa7991cc822045d9378c6b4ffd602aaf09d0d9a5",
         "scripts/wiki/primary-scenarios.test.ts": "b73743ef76a079a014bcc1eba26ea7740a31cc1d776e31db40ed3c03e996de5b",
         "scripts/wiki/primary-scenarios.ts": "8e8ba1de2abf551d0003f90637f58370f470c7ecdfb62a50a8d9993e1f273dec",
-        "scripts/wiki/wiki.test.ts": "539712a8f680522a3ade618190db3b7392fe273961ebe8c8e00c4a56e1524646",
+        "scripts/wiki/wiki.test.ts": "576cae956de33a9d4fb69e99799506c73c30519bd146a60767f143467b9739c5",
         "scripts/wiki/work.test.ts": "776328e82224f58fd867e77d417a07273417644c30f6f03e91074860eca59242"
       },
       "verification": {
-        "kind": "unchanged",
-        "reason": "FC-005 closes direct work-command negations within the already-current syntax contract"
+        "kind": "updated"
       }
     },
     "operations/enforcement": {
@@ -35,24 +34,23 @@
         ".wiki/config.json": "c97c3a7bf2b88d88662f0bd88cf46e1402721e53a1375d1feea5e4be0b9ee93c",
         "AGENTS.md": "c8b27b3e362c11d1f85c12b0ed1af9ce706dcfe1955255b404461754a4c34712",
         "package.json": "df071fab971a1e88e77e575449f76921f83244bffbf9b756ae36797032bffeaf",
-        "scripts/wiki/cli.ts": "490e62efc76880d16d3f72ecd91a5b24288f5c26665c6da991c22a25083ecfe6",
-        "scripts/wiki/core.ts": "66015547b950569a9ece293a80f2f9a79116c22e0b45d2247dbed4ff6d759146",
+        "scripts/wiki/cli.ts": "ecb1ec3e539c04e52d2e072886345d7ea5aa1f7c8b69a5d9e2765e3cabc77581",
+        "scripts/wiki/core.ts": "12eb7b65d9a6bea5b0251972a56655321b37a40f28bb8cd762e3ff2b9bb4f30d",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c"
       },
       "verification": {
-        "kind": "unchanged",
-        "reason": "FC-005 closes direct work-command negations within the already-current syntax contract"
+        "kind": "updated"
       }
     },
     "product/invariants": {
       "sources": {
         "AGENTS.md": "c8b27b3e362c11d1f85c12b0ed1af9ce706dcfe1955255b404461754a4c34712",
-        "scripts/wiki/cli.ts": "490e62efc76880d16d3f72ecd91a5b24288f5c26665c6da991c22a25083ecfe6",
-        "scripts/wiki/core.ts": "66015547b950569a9ece293a80f2f9a79116c22e0b45d2247dbed4ff6d759146"
+        "scripts/wiki/cli.ts": "ecb1ec3e539c04e52d2e072886345d7ea5aa1f7c8b69a5d9e2765e3cabc77581",
+        "scripts/wiki/core.ts": "12eb7b65d9a6bea5b0251972a56655321b37a40f28bb8cd762e3ff2b9bb4f30d"
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "FC-005 closes direct work-command negations within the already-current syntax contract"
+        "reason": "Search matching changed, but the repository invariants remain semantically unchanged."
       }
     },
     "product/scope": {

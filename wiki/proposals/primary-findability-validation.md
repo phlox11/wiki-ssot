@@ -141,14 +141,18 @@ work_items:
       - docs/commands.md
   - id: PV-07
     title: Improve wiki:search only for baseline-proven misses
-    state: not-started
+    state: done
     priority: normal
     depends_on: [PV-05]
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
     acceptance:
       - Every selected search change starts from a failing baseline scenario and ends with focused passing evidence.
       - No ranking or search machinery is added without a reproduced miss.
-    evidence: []
+    evidence:
+      - scripts/wiki/wiki.test.ts
+      - scripts/wiki/core.ts
+      - scripts/wiki/cli.ts
+      - wiki/architecture/engine.md
   - id: PV-08
     title: Validate new-repository adoption and coverage growth
     state: done
@@ -393,18 +397,21 @@ Selected-work context now makes the truth model visible without requiring the ca
 
 ### `PV-07`: evidence-driven search changes
 
-Do not add ranking machinery merely because the implementation is simple. Select changes only from baseline misses.
+PV-05's exact feature-change task was isolated as a focused regression: the relevant
+`features/checkout` authority contained the complete task, while unrelated
+`features/orders` was returned solely because its body contained `support`. The focused
+test failed against the original any-term behavior before the remedy was added.
 
-Candidate remedies include:
+`wiki:search` and generic query-based `wiki:context` now share one provider-neutral
+matcher. It prefers the complete-match set whenever at least one page contains every
+lowercase whitespace-delimited query term. If there is no complete match, it
+preserves partial recall and orders matches by matched-term count and page ID. The same
+focused test now proves that the PV-05 noise is removed, and a second test locks the
+partial-match fallback.
 
-- current-first ranking;
-- separate current and non-current result groups;
-- weighting IDs, tags, summaries, and source paths differently;
-- distinguishing all-term from partial-term matches;
-- searching declared source paths;
-- linking a search result directly to a focused context command.
-
-Every selected remedy requires a failing scenario before the change and a passing one after it.
+No current-first ranking, current/non-current grouping, field weighting, source-path
+search, or focused-context link was added because PV-05 did not establish those as the
+required remedy.
 
 ### `PV-10`: session entrypoint integrity
 

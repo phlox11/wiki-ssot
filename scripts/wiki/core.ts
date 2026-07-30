@@ -503,6 +503,24 @@ export function currentPages(pages: WikiPage[]): WikiPage[] {
   return pages.filter((page) => page.data.status === "current").sort((a, b) => a.data.id.localeCompare(b.data.id));
 }
 
+export type WikiSearchMatch = {
+  page: WikiPage;
+  score: number;
+};
+
+export function searchWikiPages(pages: WikiPage[], query: string): WikiSearchMatch[] {
+  const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+  if (terms.length === 0) return [];
+  const matches = pages.flatMap((page) => {
+    const haystack = `${page.data.id} ${page.data.summary} ${(page.data.tags ?? []).join(" ")} ${page.body}`.toLowerCase();
+    const score = terms.reduce((total, term) => total + (haystack.includes(term) ? 1 : 0), 0);
+    return score > 0 ? [{ page, score }] : [];
+  });
+  const complete = matches.filter((item) => item.score === terms.length);
+  return (complete.length > 0 ? complete : matches)
+    .sort((a, b) => b.score - a.score || a.page.data.id.localeCompare(b.page.data.id));
+}
+
 export type ConflictSummary = {
   id: string;
   pageId: string;
