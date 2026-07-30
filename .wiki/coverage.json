@@ -1,7 +1,7 @@
 {
   "version": 1,
   "include": [
-    "scripts/wiki/*.ts"
+    "scripts/wiki/**/*.ts"
   ],
   "exclusions": []
 }

@@ -16,6 +16,7 @@
         "scripts/wiki/primary-baseline.ts": "802da77badba5401bdae2e0836491ebb30d602d3b6701c97374da4c4b692d568",
         "scripts/wiki/primary-scenarios.test.ts": "b73743ef76a079a014bcc1eba26ea7740a31cc1d776e31db40ed3c03e996de5b",
         "scripts/wiki/primary-scenarios.ts": "8e8ba1de2abf551d0003f90637f58370f470c7ecdfb62a50a8d9993e1f273dec",
+        "scripts/wiki/publisher-boundary.test.ts": "c1971ca5c32c8b45cdc55ea3ce559587624ee6cbb62aba716517bffdcca42f14",
         "scripts/wiki/wiki.test.ts": "00c5762f2fa69bf6830c10f70ca63ad12baa822c0fc1506603f89ff6fe77f7a4",
         "scripts/wiki/work.test.ts": "776328e82224f58fd867e77d417a07273417644c30f6f03e91074860eca59242"
       },
@@ -31,7 +32,7 @@
         ".github/workflows/wiki-audit.yml": "33a3bf1dcf6482a293f137a4cfc332eb8804639bd3b8d950a9244fa6fdda97f4",
         ".husky/pre-commit": "58a0e92eab02374a09bea44bb6e18f9b088e5e5180203b0b1cb8c309740ac10b",
         ".husky/pre-push": "21b38e361c58ffc03baec92b4826f3d5bb6d122b0862fce1af0cb12acdfc09d3",
-        ".wiki/config.json": "c97c3a7bf2b88d88662f0bd88cf46e1402721e53a1375d1feea5e4be0b9ee93c",
+        ".wiki/config.json": "fd7f3e08ea2a853cae2e7664c7b605a4ceef169fc6cfb24b92a19919a17bc5b8",
         "AGENTS.md": "c8b27b3e362c11d1f85c12b0ed1af9ce706dcfe1955255b404461754a4c34712",
         "package.json": "df071fab971a1e88e77e575449f76921f83244bffbf9b756ae36797032bffeaf",
         "scripts/wiki/cli.ts": "ecb1ec3e539c04e52d2e072886345d7ea5aa1f7c8b69a5d9e2765e3cabc77581",

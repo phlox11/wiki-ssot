@@ -15,9 +15,9 @@ tags: [generated, work, queue]
 
 This is a deterministic view of structured `work_items` on proposal pages. It is not current product authority; open the owning proposal and then the returned current context.
 
-**Recommended next:** `PV-16` — run `bun run wiki:context -- --work PV-16`.
+**Recommended next:** `PV-17` — run `bun run wiki:context -- --work PV-17`.
 
-Outstanding work: 8. Completed work hidden: 12; run `bun run wiki:work -- --all` to inspect it.
+Outstanding work: 7. Completed work hidden: 13; run `bun run wiki:work -- --all` to inspect it.
 
 ## Active
 
@@ -29,7 +29,6 @@ Outstanding work: 8. Completed work hidden: 12; run `bun run wiki:work -- --all`
 
 | ID | Priority | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|
-| PV-16 | high | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | PV-11 | Close recursive wiki-engine coverage and risk boundaries | `bun run wiki:context -- --work PV-16` |
 | PV-17 | high | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | PV-11 | Make generic topic context authority- and source-complete | `bun run wiki:context -- --work PV-17` |
 | PV-18 | high | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | PV-11 | Complete independent PASS for the existing-repository fresh-session pilot | `bun run wiki:context -- --work PV-18` |
 
@@ -38,7 +37,7 @@ Outstanding work: 8. Completed work hidden: 12; run `bun run wiki:work -- --all`
 | ID | Priority | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|
 | PV-12 | high | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | PV-18, PV-19 | Evaluate the Primary exit gate and decide the next investment — Waiting on: PV-18, PV-19 | `bun run wiki:context -- --work PV-12` |
-| PV-19 | high | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | PV-16, PV-17 | Re-evaluate all eight Primary scenarios against the fixed current engine — Waiting on: PV-16, PV-17 | `bun run wiki:context -- --work PV-19` |
+| PV-19 | high | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | PV-16, PV-17 | Re-evaluate all eight Primary scenarios against the fixed current engine — Waiting on: PV-17 | `bun run wiki:context -- --work PV-19` |
 
 ## Blocked
 

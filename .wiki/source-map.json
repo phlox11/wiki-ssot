@@ -48,7 +48,7 @@
   },
   "globs": [
     {
-      "glob": "scripts/wiki/*.ts",
+      "glob": "scripts/wiki/**/*.ts",
       "pages": [
         "architecture/engine"
       ]
