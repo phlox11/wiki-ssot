@@ -32,6 +32,7 @@ const PROJECT_ROOT = resolve(import.meta.dir, "../..");
 const CLI_PATH = join(PROJECT_ROOT, "scripts/wiki/cli.ts");
 const DEFAULT_REPORT_PATH = join(PROJECT_ROOT, "docs/evidence/pv-05-primary-baseline.json");
 const DEFAULT_INTERPRETATION_PATH = join(PROJECT_ROOT, "docs/evidence/pv-05-primary-baseline.md");
+export const PRIMARY_BASELINE_ENGINE_REF = "fa21d350935d7d16c21734e0a25f84ff29f3e41e" as const;
 
 type CommandResult = {
   exitCode: number;
@@ -79,7 +80,7 @@ export type PrimaryBaselineReport = {
   contractVersion: 1;
   fixtureVersion: 1;
   engine: {
-    baseRef: "origin/main";
+    baseRef: typeof PRIMARY_BASELINE_ENGINE_REF;
     baseSha: string;
     unchangedPaths: string[];
   };
@@ -502,11 +503,21 @@ function engineBaseSha(): string {
     "scripts/wiki/cli.ts",
     "scripts/wiki/primary-scenarios.ts",
   ];
-  const diff = run(["git", "diff", "--quiet", "origin/main", "--", ...unchangedPaths], PROJECT_ROOT);
+  const resolved = required(
+    ["git", "rev-parse", `${PRIMARY_BASELINE_ENGINE_REF}^{commit}`],
+    PROJECT_ROOT,
+  ).stdout.trim();
+  if (resolved !== PRIMARY_BASELINE_ENGINE_REF) {
+    throw new Error(`PV-05 baseline engine ref did not resolve exactly: ${PRIMARY_BASELINE_ENGINE_REF}`);
+  }
+  const diff = run(
+    ["git", "diff", "--quiet", PRIMARY_BASELINE_ENGINE_REF, "--", ...unchangedPaths],
+    PROJECT_ROOT,
+  );
   if (diff.exitCode !== 0) {
     throw new Error(`PV-05 baseline requires the unmodified engine and scenario contract: ${unchangedPaths.join(", ")}`);
   }
-  return required(["git", "rev-parse", "origin/main"], PROJECT_ROOT).stdout.trim();
+  return resolved;
 }
 
 export function buildPrimaryBaselineReport(): PrimaryBaselineReport {
@@ -590,7 +601,7 @@ export function buildPrimaryBaselineReport(): PrimaryBaselineReport {
       contractVersion: PRIMARY_SCENARIO_SUITE.version,
       fixtureVersion: 1,
       engine: {
-        baseRef: "origin/main",
+        baseRef: PRIMARY_BASELINE_ENGINE_REF,
         baseSha,
         unchangedPaths: [
           "scripts/wiki/cli.ts",
@@ -609,6 +620,7 @@ export function buildPrimaryBaselineReport(): PrimaryBaselineReport {
           "bun run wiki:impact -- --base main --enforce --json",
         ],
         notes: [
+          `Engine identity is pinned to immutable commit ${baseSha}; advancing a branch ref does not rewrite historical PV-05 evidence.`,
           "Each expected candidate is materialized and committed in a synthetic git fixture; changedFiles comes from git diff.",
           "Unmapped changed files are implementation/test expectations with no current-page source mapping at the baseline.",
           "Context bytes are exact UTF-8 bytes from the default text context output; runtime and model-token cost are not claimed.",
@@ -666,7 +678,7 @@ export function renderPrimaryBaselineInterpretation(report: PrimaryBaselineRepor
   return [
     "# PV-05 Primary baseline interpretation",
     "",
-    `This report measures Primary scenario contract v${report.contractVersion} against the unmodified engine at \`${report.engine.baseSha}\`.`,
+    `This report measures Primary scenario contract v${report.contractVersion} against the unmodified engine at immutable revision \`${report.engine.baseSha}\`.`,
     "The machine-readable observations and per-scenario metrics are in `pv-05-primary-baseline.json`.",
     "",
     section("Measured passes", report.interpretation.measuredPasses),

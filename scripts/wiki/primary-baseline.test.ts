@@ -1,9 +1,18 @@
 import { beforeAll, describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import {
+  copyFileSync,
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { jsonStable } from "./core";
 import {
   buildPrimaryBaselineReport,
+  PRIMARY_BASELINE_ENGINE_REF,
   renderPrimaryBaselineInterpretation,
   type PrimaryBaselineReport,
 } from "./primary-baseline";
@@ -20,6 +29,8 @@ describe("PV-05 Primary baseline", () => {
   test("records every version 1 scenario and every required metric", () => {
     expect(report.reportVersion).toBe(1);
     expect(report.contractVersion).toBe(PRIMARY_SCENARIO_SUITE.version);
+    expect(report.engine.baseRef).toBe(PRIMARY_BASELINE_ENGINE_REF);
+    expect(report.engine.baseSha).toBe(PRIMARY_BASELINE_ENGINE_REF);
     expect(report.scenarios.map((item) => item.scenarioId)).toEqual(
       PRIMARY_SCENARIO_SUITE.scenarios.map((item) => item.id),
     );
@@ -76,5 +87,50 @@ describe("PV-05 Primary baseline", () => {
       },
     );
     expect(result.exitCode, result.stderr.toString() || result.stdout.toString()).toBe(0);
+  }, 30_000);
+
+  test("keeps historical evidence current after origin/main advances", () => {
+    const temporaryRoot = mkdtempSync(join(tmpdir(), "wiki-ssot-primary-post-merge-"));
+    const cloneRoot = join(temporaryRoot, "repo");
+    try {
+      const clone = Bun.spawnSync(["git", "clone", "--quiet", "--shared", root, cloneRoot], {
+        stdout: "pipe",
+        stderr: "pipe",
+      });
+      expect(clone.exitCode, clone.stderr.toString() || clone.stdout.toString()).toBe(0);
+
+      for (const path of [
+        "scripts/wiki/primary-baseline.ts",
+        "docs/evidence/pv-05-primary-baseline.json",
+        "docs/evidence/pv-05-primary-baseline.md",
+      ]) {
+        copyFileSync(resolve(root, path), resolve(cloneRoot, path));
+      }
+      const nodeModules = resolve(root, "node_modules");
+      expect(existsSync(nodeModules)).toBe(true);
+      symlinkSync(nodeModules, resolve(cloneRoot, "node_modules"), "dir");
+
+      const advance = Bun.spawnSync(
+        ["git", "-C", cloneRoot, "update-ref", "refs/remotes/origin/main", "HEAD"],
+        { stdout: "pipe", stderr: "pipe" },
+      );
+      expect(advance.exitCode, advance.stderr.toString() || advance.stdout.toString()).toBe(0);
+
+      const result = Bun.spawnSync(
+        [process.execPath, resolve(cloneRoot, "scripts/wiki/primary-baseline.ts"), "--check"],
+        {
+          cwd: cloneRoot,
+          env: {
+            ...process.env,
+            GITHUB_EVENT_NAME: "push",
+          },
+          stdout: "pipe",
+          stderr: "pipe",
+        },
+      );
+      expect(result.exitCode, result.stderr.toString() || result.stdout.toString()).toBe(0);
+    } finally {
+      rmSync(temporaryRoot, { recursive: true, force: true });
+    }
   }, 30_000);
 });

@@ -1,6 +1,6 @@
 # PV-05 Primary baseline interpretation
 
-This report measures Primary scenario contract v1 against the unmodified engine at `fa21d350935d7d16c21734e0a25f84ff29f3e41e`.
+This report measures Primary scenario contract v1 against the unmodified engine at immutable revision `fa21d350935d7d16c21734e0a25f84ff29f3e41e`.
 The machine-readable observations and per-scenario metrics are in `pv-05-primary-baseline.json`.
 
 ## Measured passes
