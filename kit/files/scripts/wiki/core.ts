@@ -1477,7 +1477,7 @@ function agentEntrypointContractGaps(agents: string): string[] {
     gaps.push("the wiki index/current-status/invariant read route");
   }
   if (!hasLine((line) =>
-    !explicitlyNegatesAction(line, /\b(run|execute|use)\b[^.;]{0,40}\bbun run wiki:work\b/)
+    !explicitlyNegatesAction(line, /\b(run|execute|use)\b[^.;]*\bbun run wiki:work\b/)
     && hasWorkCommand(line)
     && /(what remains|unfinished|what should (?:we|you) do next|what should happen next|remaining[- ]work|next[- ]work)/.test(line)
     && hasNoQueryPrerequisite(line))) {

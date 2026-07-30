@@ -1403,6 +1403,21 @@ Do not label pages with status proposed, conflicted, deprecated, or archived as 
     }
   });
 
+  test("core seam validation rejects long same-clause work-action negations without a length escape", () => {
+    for (const work of [
+      "If the user asks what remains, do not require agents to execute the canonical provider-neutral repository-wide work-discovery command using bun run wiki:work; no known node, work ID, or search term is necessary.",
+      "If the user asks what remains, agents do not need to execute the canonical provider-neutral repository-wide work-discovery command using bun run wiki:work; no known node, work ID, or search term is necessary.",
+      "If the user asks what remains, do not require agents to execute the canonical deterministic offline provider-neutral repository-wide generic remaining-work discovery command selected by this integration contract using bun run wiki:work; no known node, work ID, or search term is necessary.",
+    ]) {
+      const findings = validateIntegrationSeams(coreIntegrationView(providerNeutralAgentEntrypoint({ work })));
+      const codes = findings.map((finding) => finding.code);
+      const contract = findings.find((finding) => finding.code === "agent-entrypoint-contract-incomplete");
+      expect(codes).toContain("work-discovery-entrypoint-missing");
+      expect(codes).toContain("agent-entrypoint-contract-incomplete");
+      expect(contract?.message).toContain("the no-query generic remaining-work route");
+    }
+  });
+
   test("core seam validation accepts a complete provider-neutral agent entrypoint", () => {
     expect(validateIntegrationSeams(coreIntegrationView(providerNeutralAgentEntrypoint()))).toEqual([]);
   });

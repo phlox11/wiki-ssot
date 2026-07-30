@@ -1,5 +1,5 @@
 {
-  "digest": "7e03a08ea8ea5809a408963cdcce3de2c7595055b72e17221f05bc07e06824f5",
+  "digest": "471b010b4fe636df38c88902eeb14d6ea2533a1903a3b50d3bce7b7b9cd71449",
   "files": {
     ".github/pull_request_template.md": {
       "ownership": "kit",
@@ -51,11 +51,11 @@
     },
     "scripts/wiki/core.ts": {
       "ownership": "kit",
-      "sha256": "42fadd5428231409f57d32678bc2e07892f24335a973b70aae74d38ec186f22c"
+      "sha256": "1fe3ece0f9247e1f973e5ab4d767a738a42fd44d55c3e12584e598b2a80e000b"
     },
     "scripts/wiki/fresh-context.test.ts": {
       "ownership": "kit",
-      "sha256": "3c4464d6e2e8d3ffd9ecad41d63989b91db39869bcc7767e8d40aa3fd2d8b556"
+      "sha256": "b84dd1e467625b47df1b57e8b4d462f048332a3d6e1b67697b1c855fd65bd2d0"
     },
     "scripts/wiki/github-attestation.ts": {
       "ownership": "kit",

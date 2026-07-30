@@ -3,9 +3,9 @@
     "architecture/engine": {
       "sources": {
         "scripts/wiki/cli.ts": "490e62efc76880d16d3f72ecd91a5b24288f5c26665c6da991c22a25083ecfe6",
-        "scripts/wiki/core.ts": "42fadd5428231409f57d32678bc2e07892f24335a973b70aae74d38ec186f22c",
+        "scripts/wiki/core.ts": "1fe3ece0f9247e1f973e5ab4d767a738a42fd44d55c3e12584e598b2a80e000b",
         "scripts/wiki/existing-repo-bootstrap.test.ts": "2c305b2939473cd5e23fa948348fbc9c18019b29acb8e9684c61bc8feb26fdcd",
-        "scripts/wiki/fresh-context.test.ts": "3c4464d6e2e8d3ffd9ecad41d63989b91db39869bcc7767e8d40aa3fd2d8b556",
+        "scripts/wiki/fresh-context.test.ts": "b84dd1e467625b47df1b57e8b4d462f048332a3d6e1b67697b1c855fd65bd2d0",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c",
         "scripts/wiki/inventories.example.ts": "c77492bf25a8e89d6c5f2de5d1238bb426e41b81cd255d7c153e05d295e91c4e",
         "scripts/wiki/inventories.ts": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca",
@@ -21,7 +21,7 @@
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "Expanded FC-001 route variants preserve the already-current syntax contract"
+        "reason": "FC-003 removes a fixed-length escape from the already-current syntax contract"
       }
     },
     "operations/enforcement": {
@@ -36,23 +36,23 @@
         "AGENTS.md": "c8b27b3e362c11d1f85c12b0ed1af9ce706dcfe1955255b404461754a4c34712",
         "package.json": "df071fab971a1e88e77e575449f76921f83244bffbf9b756ae36797032bffeaf",
         "scripts/wiki/cli.ts": "490e62efc76880d16d3f72ecd91a5b24288f5c26665c6da991c22a25083ecfe6",
-        "scripts/wiki/core.ts": "42fadd5428231409f57d32678bc2e07892f24335a973b70aae74d38ec186f22c",
+        "scripts/wiki/core.ts": "1fe3ece0f9247e1f973e5ab4d767a738a42fd44d55c3e12584e598b2a80e000b",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c"
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "FC-001 and FC-002 align implementation with the already-current syntax contract"
+        "reason": "FC-003 removes a fixed-length escape from the already-current syntax contract"
       }
     },
     "product/invariants": {
       "sources": {
         "AGENTS.md": "c8b27b3e362c11d1f85c12b0ed1af9ce706dcfe1955255b404461754a4c34712",
         "scripts/wiki/cli.ts": "490e62efc76880d16d3f72ecd91a5b24288f5c26665c6da991c22a25083ecfe6",
-        "scripts/wiki/core.ts": "42fadd5428231409f57d32678bc2e07892f24335a973b70aae74d38ec186f22c"
+        "scripts/wiki/core.ts": "1fe3ece0f9247e1f973e5ab4d767a738a42fd44d55c3e12584e598b2a80e000b"
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "FC-001 and FC-002 align implementation with the already-current syntax contract"
+        "reason": "FC-003 removes a fixed-length escape from the already-current syntax contract"
       }
     },
     "product/scope": {
