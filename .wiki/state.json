@@ -10,6 +10,8 @@
         "scripts/wiki/inventories.ts": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca",
         "scripts/wiki/kit-sync.ts": "1d8f77baa00a3bcea174d78537cdb7ac80aea680c0ac00154e5af5e94b4b6ac0",
         "scripts/wiki/kit.test.ts": "45a845a874c5ebf4b0dece30c1bf4bed23a04e343fdddfc46673ccf4af09315f",
+        "scripts/wiki/primary-baseline.test.ts": "2892abe42b52d29ab3d77f4c7ddf07a6e0f9ed5f1fd802d1a3ebe709f9e311dc",
+        "scripts/wiki/primary-baseline.ts": "4e720177e4d9d55bed1ab65d6d5f48223c8a050ba9335e1e2318d8ca7b79cdd0",
         "scripts/wiki/primary-scenarios.test.ts": "b73743ef76a079a014bcc1eba26ea7740a31cc1d776e31db40ed3c03e996de5b",
         "scripts/wiki/primary-scenarios.ts": "8e8ba1de2abf551d0003f90637f58370f470c7ecdfb62a50a8d9993e1f273dec",
         "scripts/wiki/wiki.test.ts": "539712a8f680522a3ade618190db3b7392fe273961ebe8c8e00c4a56e1524646",

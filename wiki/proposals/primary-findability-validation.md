@@ -17,6 +17,10 @@ sources:
   - path: scripts/wiki/work.test.ts
   - path: scripts/wiki/primary-scenarios.ts
   - path: scripts/wiki/primary-scenarios.test.ts
+  - path: scripts/wiki/primary-baseline.ts
+  - path: scripts/wiki/primary-baseline.test.ts
+  - path: docs/evidence/pv-05-primary-baseline.json
+  - path: docs/evidence/pv-05-primary-baseline.md
   - path: wiki/SCHEMA.md
   - path: wiki/WORKFLOW.md
   - path: docs/commands.md
@@ -101,14 +105,17 @@ work_items:
       - scripts/wiki/primary-scenarios.test.ts
   - id: PV-05
     title: Capture the unmodified Primary baseline
-    state: not-started
+    state: done
     priority: high
     depends_on: [PV-04]
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
     acceptance:
       - A machine-readable report records recall, authority labelling, irrelevant context, unmapped files, command sequence, and drift escapes for every scenario.
       - A short interpretation distinguishes measured failures from hypotheses.
-    evidence: []
+    evidence:
+      - docs/evidence/pv-05-primary-baseline.json
+      - docs/evidence/pv-05-primary-baseline.md
+      - scripts/wiki/primary-baseline.test.ts
   - id: PV-06
     title: Make selected-work context authority- and source-complete
     state: not-started
@@ -344,6 +351,21 @@ Known hypotheses to test rather than assume:
 - simple substring search may over-return loosely related pages;
 - coverage and adoption defaults may produce different first-run behavior between new and existing repositories.
 
+The version 1 baseline is recorded in
+[`docs/evidence/pv-05-primary-baseline.json`](../../docs/evidence/pv-05-primary-baseline.json),
+with measured results separated from untested hypotheses in the adjacent
+[`pv-05-primary-baseline.md`](../../docs/evidence/pv-05-primary-baseline.md).
+The evidence is pinned to immutable engine revision
+`fa21d350935d7d16c21734e0a25f84ff29f3e41e`, so advancing `origin/main` does not
+rewrite the historical measurement. Against that unmodified engine, the default text discovery path recalled all 9 controlling
+current-page expectations, all 4 invariant expectations, and both required conflicts. It
+exposed 0 of 18 declared implementation sources and 0 of 14 exact status-plus-authority
+labels, returned 91 irrelevant page occurrences, stated no expected wiki action, and left
+two nested coverage-edge files unmapped. The code-only probe for that edge passed both
+`wiki:lint` and `wiki:impact --enforce`; all seven mapped-source probes were caught.
+These are fixture measurements, not evidence of model comprehension, adoption behavior,
+runtime cost, or the correct search remedy.
+
 ## Phase C — improve selected-work context
 
 ### `PV-06`: authoritative context output
@@ -457,7 +479,7 @@ Record decisions here when they concern proposed sequencing or evaluation. If a 
 | Zero-knowledge re-entry | decided | A user may ask only what work remains; no proposal ID, task ID, or search term is required |
 | Workflow protection boundary | decided | Trust repository developers/admins; leave required workflows, CODEOWNERS, rulesets, and bypass policy to deployments |
 | Pilot repositories/fixtures | pending | Select at least one new-repository and one existing-repository target |
-| Search work after baseline | pending | Execute only for reproduced misses |
+| Search work after baseline | applicable | PV-05 reproduced 91 irrelevant page occurrences from substring matching; PV-07 must still select remedies from focused failing evidence |
 | Resume Secondary feature investment | pending | Decide at `PV-12` from exit-gate evidence |
 
 ## Per-PR update protocol
