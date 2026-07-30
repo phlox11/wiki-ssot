@@ -10,7 +10,7 @@
         "scripts/wiki/inventories.example.ts": "c77492bf25a8e89d6c5f2de5d1238bb426e41b81cd255d7c153e05d295e91c4e",
         "scripts/wiki/inventories.ts": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca",
         "scripts/wiki/kit-sync.ts": "1d8f77baa00a3bcea174d78537cdb7ac80aea680c0ac00154e5af5e94b4b6ac0",
-        "scripts/wiki/kit.test.ts": "f35d29271a5d6e9ec7df62607bf49a8efaa3bd05d3c5a7c0884780035ebb191a",
+        "scripts/wiki/kit.test.ts": "a5c9fec78cb3c6a92fb08c13dad7eecc469dcba3a783374a64b3381f58c3776e",
         "scripts/wiki/new-repository-adoption.test.ts": "43bdd173b0347e52a9fd0e30f0eb418dbd25ab864b9e7ab6cf0ecbc15ddef9ca",
         "scripts/wiki/primary-baseline.test.ts": "4a0df89a35bd811ffbca75865a3153abe869caae11d1f585c599c902ee4e16b7",
         "scripts/wiki/primary-baseline.ts": "802da77badba5401bdae2e0836491ebb30d602d3b6701c97374da4c4b692d568",

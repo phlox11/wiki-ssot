@@ -247,3 +247,145 @@ the pilot and an authoring-context replay both recorded:
 The review-required result is not represented as a local PASS. The pilot obeyed
 the installed contract by stopping after bundle creation instead of fabricating
 an independent report.
+
+## PV-18 independent reconciliation
+
+PV-18 continued from that exact stopping point in context-isolated review
+sessions. The authoring session did not write either reviewer verdict or mark
+its own work `PASS`. The reviewer actor is recorded as `phlox11`; that
+authenticated actor label binds publication under this repository's
+solo-maintainer `requireDifferentActor: false` policy, while context isolation
+is the orchestrator boundary required by the repository contract.
+
+The first review reproduced candidate
+`d5f3087e0312d85dc8e419bd1f02ae2921a06310`, merge base
+`45d4bd6fb8dccfb2c7f43546950ba66573dc6179`, and bundle digest
+`bf7b650276af60b386417770cf932cf9b8281a179d3122d0adda47b196e6b03b`.
+It returned `NEEDS_RECONCILE`. Finding `PV11-EXISTING-001` retained the
+pre-existing delivery mismatch under baseline conflict C-501. Finding
+`PV11-EXISTING-002` was a `declared_contract_violation`: the generated
+downstream workflow required `wiki:kit`, but the downstream package
+intentionally exposed no such script. The exact report is preserved at
+[`pv-18-existing-repository-review-needs-reconcile.json`](./pv-18-existing-repository-review-needs-reconcile.json),
+with file SHA-256
+`04b78854d6966fa35cd10a0ab4b88d777fdffbb005ac5df11dbea1081b67625a`.
+
+The publisher then fixed only that declared contract:
+
+- publisher-only workflow commands remain available in the publishing
+  repository but are excluded from generated adopter workflow content;
+- the current architecture contract describes that publisher/downstream
+  distinction;
+- a focused regression proves the publisher keeps both commands while the
+  generated downstream workflow and package omit them.
+
+At publisher HEAD
+`f5c1a1d840c0b2fe08d322722ae9682587e589be`, merge base
+`7389e2d81f1b8e79abae1dc9684ca1a84ef453f2`, the independent publisher
+review returned `PASS` for bundle digest
+`d39f7ce0aa971c8b4cac9b72d615c32840feddc64f951236b0431b00784c4ed1`.
+The exact report is
+[`pv-18-publisher-review-pass.json`](./pv-18-publisher-review-pass.json), with
+file SHA-256
+`e24be6555fec007073b16f20b84edcee6b72cbdd17ac9383bd82340e1d1902a1`.
+That report binds the functional fix before this durable evidence was added;
+the final publishing-repository PR therefore requires a new review bundle and
+fresh exact-HEAD report rather than reusing this PASS as final attestation.
+
+The corrected kit was then dry-run and applied to the existing-repository
+pilot. The change from predecessor candidate
+`d5f3087e0312d85dc8e419bd1f02ae2921a06310` to corrected candidate
+`914f56804ff034b10f3019fdbb8b27afc5b7bbd5` changed only
+`.wiki/kit-manifest.json` and `wiki/WORKFLOW.md`. Host instructions, adopter
+policy, generated maps and state, product pages, C-501, wiki engine, and all
+service sources remained byte-identical. The installed workflow contains no
+`wiki:kit` command, every documented `bun run` command resolves to an installed
+script, and its SHA-256
+`200ac0e53e48561050591a6f3b5c8273cae9c5e04eb88b14814d16d00dbed046`
+matches the manifest.
+
+The second pilot review reproduced corrected HEAD
+`914f56804ff034b10f3019fdbb8b27afc5b7bbd5`, the same immutable base, diff
+digest
+`3641516338ba49690a4d90e6a9b9ffec7c35b894a03c4e04aba6c2063cc00f44`,
+and bundle digest
+`5c72fbc66812bfb75196c5c84c1894ea079dc40d7549b3d1e308bada0ba0007f`.
+It returned `PASS`: `PV11-EXISTING-001` remained truthfully tracked by C-501
+and `PV11-EXISTING-002` was dispositioned `fixed`. The exact report is
+[`pv-18-existing-repository-review-pass.json`](./pv-18-existing-repository-review-pass.json),
+with file SHA-256
+`bdc9435af6126f29b36dc23f1dc11dc6a81531ae0342f9101ac6da399f3152ba`.
+
+Both exact `PASS` reports were locally validated with
+`wiki:review-preflight --report`, `--reviewer-actor phlox11`, and
+`--pr-author phlox11`; each returned `status: pass` and `ready: true` for its
+recorded HEAD, base, and bundle digest. The corrected pilot also passed
+generated freshness, lint, doctor, audit, `wiki:check`, metadata-enforced
+impact against the immutable base, typecheck, and all 114 tests with 516
+assertions. The publisher fix passed generated and kit freshness, lint, doctor,
+audit, metadata-enforced impact against `origin/main`, typecheck, and all 289
+tests with 1,408 assertions. Both worktrees were clean at the reviewed
+bindings.
+
+## Current-kit revalidation after PV-16 and PV-17
+
+After PV-16 and PV-17 merged, PV-18 rebased its publisher on
+`ffaa1fc37f9974f3f864ebffa8cf2300f0496bb2` and regenerated the distribution.
+The current kit digest is
+`0a56c1edf904d07a1069d8de233e24ee1346ab2ebe58adedd962f0ed7c531664`.
+Its dry-run over the existing pilot planned three kit-owned updates and no
+conflicts; the subsequent sync and second dry-run converged to only
+`unchanged`, `customized`, and `seed-present` actions.
+
+The upgrade from reconciled pilot
+`914f56804ff034b10f3019fdbb8b27afc5b7bbd5` to current-kit pilot
+`29d91ed4414f44280042d68eec6f0dee9f63c988` changes exactly:
+
+- `.wiki/kit-manifest.json`;
+- `scripts/wiki/cli.ts`;
+- `scripts/wiki/core.ts`;
+- `scripts/wiki/work.test.ts`.
+
+The first file binds the current distribution. The other three implement and
+test PV-17's authority- and source-complete generic topic context. Their hashes
+match the publisher kit entries. The installed workflow remains SHA-256
+`200ac0e53e48561050591a6f3b5c8273cae9c5e04eb88b14814d16d00dbed046`,
+contains no `wiki:kit` token, and every documented `bun run` command resolves
+to an adopter package script.
+
+Before and after hashes prove that the upgrade did not change host
+instructions, adopter config or coverage, package policy, inventory
+customization, any of the five existing `src` files, either current product
+page, or C-501. In particular, delivery still returns `accepted`, its adjacent
+contract still declares `queued`, and the exact baseline conflict remains open
+without an invented resolution.
+
+The current engine's `billing delivery` topic context returns C-501 before the
+two current pages, then the four exact primary sources. It labels C-501
+`conflicted`/`observed`, both product pages `current`/`observed`, and gives
+`product/delivery` the open-conflict link. This directly exercises PV-17 in the
+adopter rather than relying only on publisher tests.
+
+A new context-isolated reviewer independently regenerated the exact pilot
+bundle and returned `PASS` for:
+
+- reviewed HEAD:
+  `29d91ed4414f44280042d68eec6f0dee9f63c988`;
+- immutable base:
+  `45d4bd6fb8dccfb2c7f43546950ba66573dc6179`;
+- diff digest:
+  `cca569a90ac400fab066d249f13b3f0dbf46cbca5d398bb1d565c9452d2fbef1`;
+- bundle digest:
+  `80196617fd51ab62d19727e1126562816d0019f083696ef6b77c2b4aecebd2ad`;
+- reviewer publisher identity: `phlox11`.
+
+The exact report is preserved at
+[`pv-18-existing-repository-current-kit-review-pass.json`](./pv-18-existing-repository-current-kit-review-pass.json),
+with file SHA-256
+`92f94f4aac87e455e1416a8e943303cd64cb58ae109017fb4084e1f759ffe9ac`.
+Local `wiki:review-preflight --report` validation returned `status: pass` and
+`ready: true`; the pilot metadata mirror carries the identical eight-element
+evidence array. The reviewed exact HEAD passed generated freshness, lint,
+doctor, audit, `wiki:check`, metadata-enforced impact, typecheck, the focused
+15-test topic/work suite, and the full 116-test suite with 547 assertions. The
+reviewer modified no tracked pilot file.

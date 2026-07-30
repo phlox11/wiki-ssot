@@ -1,0 +1,72 @@
+{
+  "version": 2,
+  "verdict": "PASS",
+  "reviewer": "phlox11",
+  "reviewed_head_sha": "29d91ed4414f44280042d68eec6f0dee9f63c988",
+  "merge_base_sha": "45d4bd6fb8dccfb2c7f43546950ba66573dc6179",
+  "bundle_digest": "80196617fd51ab62d19727e1126562816d0019f083696ef6b77c2b4aecebd2ad",
+  "summary": "PASS: the PV-16/PV-17-era engine upgrade preserves the reconciled existing-repository pilot, keeps host and adopter policy intact, exposes authority- and source-complete topic context, retains only supported downstream commands, and truthfully tracks the unchanged baseline delivery mismatch in C-501.",
+  "evidence": [
+    "Verified the clean repository at exact HEAD 29d91ed4414f44280042d68eec6f0dee9f63c988 against merge base 45d4bd6fb8dccfb2c7f43546950ba66573dc6179; recomputed the binary full-index diff digest cca569a90ac400fab066d249f13b3f0dbf46cbca5d398bb1d565c9452d2fbef1, all 11 bundle file digests, and bundle digest 80196617fd51ab62d19727e1126562816d0019f083696ef6b77c2b4aecebd2ad without mismatch.",
+    "Independently regenerated preflight from the exact metadata and base; it reproduced the same HEAD, merge base, affected pages product/billing and product/delivery, affected conflict C-501, diff digest, file digests, and bundle digest, with status review-required and no invalid-candidate finding.",
+    "Read the installed AGENTS.md, wiki/index.md, wiki/current-status.md, bundle prompt/report contract/manifest/diff/impact/sources, both current product pages, C-501, primary billing and delivery sources, package scripts, workflows, adopter config/coverage/state/inventories, kit manifest, and the upgraded topic-context engine/CLI/tests.",
+    "The upgrade from predecessor candidate 914f56804ff034b10f3019fdbb8b27afc5b7bbd5 changes only .wiki/kit-manifest.json, scripts/wiki/cli.ts, scripts/wiki/core.ts, and scripts/wiki/work.test.ts. Host instructions, adopter policy, coverage/state/inventories, primary sources, current pages, C-501, package.json, GitHub workflows, and installed wiki/WORKFLOW.md remain byte-identical to that reconciled predecessor.",
+    "The upgraded scripts/wiki/cli.ts, scripts/wiki/core.ts, and scripts/wiki/work.test.ts hashes match the PV-17 publisher kit artifacts. Focused runtime checks showed query context for delivery returning current product/delivery, open C-501, observed authority, both exact delivery sources, and conflict-before-page-before-source read order; billing returned product/billing and both billing sources. Repeated delivery JSON context had identical sha256 1f9e37a71eaf5d44774ffd2db307742b79b22b884de0d06748fcd7faf7ffa728.",
+    "Installed wiki/WORKFLOW.md contains no wiki:kit token, package.json exposes no publishing-only wiki:kit script, and every documented bun run command across the installed entrypoint, wiki documents, hooks, and workflows resolves to a package script. The installed workflow sha256 200ac0e53e48561050591a6f3b5c8273cae9c5e04eb88b14814d16d00dbed046 matches its content-addressed pilot manifest entry.",
+    "The four product source blobs are byte-identical at merge base and reviewed HEAD. Billing still exports 800 basis points and tests 1,000 to 1,080; delivery still returns accepted while the adjacent contract remains queued. Product pages state those observed facts, and C-501 remains open with origin baseline, type implementation, product/delivery scope, both sources, owner @delivery, and an objective resolution criterion.",
+    "Passed bun run wiki:generated -- --check, bun run wiki:lint, bun run wiki:doctor, metadata-enforced bun run wiki:impact against the exact base, bun run typecheck, the host bun test src command, bun run test with 116 passing tests and 547 assertions, and bun run wiki:audit with zero stale pages and one tracked open conflict."
+  ],
+  "findings": [
+    {
+      "id": "PV11-EXISTING-001",
+      "classification": "preexisting_implementation_mismatch",
+      "disposition": "conflict_introduced",
+      "conflict_id": "C-501",
+      "scope_refs": [
+        "page:product/delivery",
+        "source:src/delivery/send.ts",
+        "source:src/delivery/contract.ts",
+        "conflict:C-501",
+        "metadata:touched_conflicts"
+      ],
+      "discrepancy": "The delivery implementation returns accepted while its adjacent intended-status contract declares queued.",
+      "authority": {
+        "kind": "observed",
+        "ref": "source:src/delivery/send.ts and source:src/delivery/contract.ts"
+      },
+      "evidence": [
+        "Both delivery values are present at merge base 45d4bd6fb8dccfb2c7f43546950ba66573dc6179 and the corresponding source blobs remain byte-identical at reviewed HEAD 29d91ed4414f44280042d68eec6f0dee9f63c988.",
+        "wiki/product/delivery.md labels the disagreement as observed without selecting a winner; wiki/conflicts/open/C-501.md is open, declares implementation type and baseline origin, affects product/delivery, names both primary sources, and the exact metadata introduces C-501."
+      ],
+      "acceptance_criteria": [
+        "An owner selects accepted or queued and implementation, contract, current page, and tests agree."
+      ]
+    },
+    {
+      "id": "PV11-EXISTING-002",
+      "classification": "declared_contract_violation",
+      "disposition": "fixed",
+      "scope_refs": [
+        "source:wiki/WORKFLOW.md",
+        "source:package.json",
+        "source:.wiki/kit-manifest.json",
+        "metadata:wiki_action"
+      ],
+      "discrepancy": "The initial pilot candidate installed publishing-only wiki:kit commands into a downstream workflow whose package exposed no wiki:kit script; the reviewed candidate removes those unsupported commands and preserves that reconciliation through the current engine upgrade.",
+      "authority": {
+        "kind": "normative",
+        "ref": "source:wiki/WORKFLOW.md"
+      },
+      "evidence": [
+        "The reviewed wiki/WORKFLOW.md Before a PR block contains only commands present in package.json and contains no wiki:kit token.",
+        "Commit 914f56804ff034b10f3019fdbb8b27afc5b7bbd5 changed only wiki/WORKFLOW.md and its content-addressed manifest entry to remove the unsupported commands; reviewed HEAD 29d91ed4414f44280042d68eec6f0dee9f63c988 leaves both bytes unchanged.",
+        "Every documented bun run command resolves in the reviewed package, the installed workflow hash matches .wiki/kit-manifest.json, and the complete documented gate sequence passes."
+      ],
+      "acceptance_criteria": [
+        "The downstream Before a PR workflow names only commands that the adopted package actually exposes and supports under its non-publisher configuration.",
+        "Running the reconciled documented gate sequence reaches the implemented deterministic checks without a missing-script failure.",
+        "The exact reviewed workflow and its content-addressed manifest entry remain consistent after the PV-16/PV-17-era engine upgrade."
+      ]
+    }
+  ]
+}

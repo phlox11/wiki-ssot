@@ -21,17 +21,23 @@
 
 ```sh
 bun run wiki:generated
-bun run wiki:kit
 bun run wiki:lint
 bun run wiki:doctor
 bun run wiki:impact -- --base origin/main --enforce
 bun run typecheck
 bun run test
-bun run wiki:kit -- --check
 bun run wiki:audit
 bun run wiki:review-preflight -- --base origin/main \
   --metadata /path/to/pr-body.md --output /path/to/review-bundle --json
 ```
+
+<!-- kit:exclude:start -->
+This publishing repository additionally owns the generated `kit/**`
+distribution. Run `bun run wiki:kit` immediately after `wiki:generated`, then
+run `bun run wiki:kit -- --check` after the tests. These commands are
+publisher-only: the downstream package fragment intentionally omits
+`wiki:kit`, and an adopting repository does not set `publishesKit`.
+<!-- kit:exclude:end -->
 
 Commit the complete candidate first so the review binds an exact HEAD. Fill a prospective PR metadata block, including the structured `fresh_context` status mirror, before preflight; keep metadata and bundle artifacts outside the repository or pass them explicitly. Any other uncommitted or untracked candidate file makes preflight fail instead of silently reviewing an incomplete HEAD. No PR needs to exist yet. `WIKI_PR_BODY` may provide the same block when a file is inconvenient. `status: not-required` means the trusted policy selected no independent semantic review.
 

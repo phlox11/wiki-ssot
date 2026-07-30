@@ -33,6 +33,10 @@ sources:
   - path: docs/evidence/pv-11-existing-repository-agent-pilot.md
   - path: docs/evidence/pv-12-primary-exit-gate.md
   - path: docs/evidence/pv-16-recursive-wiki-boundary.md
+  - path: docs/evidence/pv-18-existing-repository-review-needs-reconcile.json
+  - path: docs/evidence/pv-18-publisher-review-pass.json
+  - path: docs/evidence/pv-18-existing-repository-review-pass.json
+  - path: docs/evidence/pv-18-existing-repository-current-kit-review-pass.json
 related: [product/scope, product/invariants, architecture/engine, operations/enforcement, proposal/protected-main]
 tags: [roadmap, primary, findability, fresh-session, context, adoption, dogfood]
 work_items:
@@ -303,7 +307,7 @@ work_items:
       - docs/commands.md
   - id: PV-18
     title: Complete independent PASS for the existing-repository fresh-session pilot
-    state: not-started
+    state: done
     priority: high
     depends_on: [PV-11]
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
@@ -311,7 +315,12 @@ work_items:
       - A context-isolated reviewer reconciles the existing-repository pilot candidate against its current wiki, code, tests, conflict, metadata, and exact review bundle.
       - The pilot reaches a locally validated PASS report bound to an exact HEAD, merge base, bundle digest, and authenticated reviewer without authoring-session self-attestation.
       - Any reviewer finding is dispositioned under the installed contract, and the durable pilot record preserves the final report binding and verification result.
-    evidence: []
+    evidence:
+      - docs/evidence/pv-11-existing-repository-agent-pilot.md
+      - docs/evidence/pv-18-existing-repository-review-needs-reconcile.json
+      - docs/evidence/pv-18-publisher-review-pass.json
+      - docs/evidence/pv-18-existing-repository-review-pass.json
+      - docs/evidence/pv-18-existing-repository-current-kit-review-pass.json
   - id: PV-19
     title: Re-evaluate all eight Primary scenarios against the fixed current engine
     state: not-started
@@ -539,8 +548,12 @@ starts from a service with two code areas, an existing agent entrypoint,
 generated code, and a delivery implementation/contract mismatch. It preserves
 the host instructions, surfaces the sync conflict, maps maintained sources,
 records the mismatch as baseline conflict C-501 without changing behavior, and
-stops at the required independent-review bundle. Its PV-07 partial-fallback
-query retains both current pages and C-501 without unrelated results.
+initially stops at the required independent-review bundle. PV-18 preserves the
+first `NEEDS_RECONCILE`, fixes the downstream workflow contract, and records a
+locally validated, context-isolated exact `PASS` for the corrected pilot. After
+PV-16 and PV-17, it applies the combined current kit again and preserves a new
+exact `PASS` for the upgraded pilot. Its topic context retains both current
+pages, C-501, and their exact sources in authoritative read order.
 
 Both records include incidental and expected command failures instead of
 silently polishing them out. Authoring-context replays bind the final HEADs,
@@ -554,19 +567,18 @@ not turn subjective reviewer quality into a deterministic claim.
 The owner selected **Primary needs another focused cycle**. The supporting
 exit-gate record is
 [`docs/evidence/pv-12-primary-exit-gate.md`](../../docs/evidence/pv-12-primary-exit-gate.md).
-It does not declare Primary validated: generic topic context still lacks the
-selected-work authority and source contract, nested `scripts/wiki` paths can
-escape the publishing repository's one-level coverage and risk globs, the
-existing-repository fresh-session pilot stopped at `review-required`, and the
-eight scenarios have not been rerun against the post-fix current engine.
+It does not declare Primary validated. PV-16 has closed recursive engine
+coverage/risk alignment, PV-17 has closed generic topic-context completeness,
+and PV-18 has closed and current-kit-revalidated the independent
+existing-repository pilot. The eight scenarios still have not been rerun
+against that combined current engine; PV-19 owns that final focused criterion.
 
 The focused cycle is deliberately bounded:
 
-1. `PV-16`, `PV-17`, and `PV-18` may run in parallel.
-2. `PV-19` starts only after the two engine/policy changes, `PV-16` and
-   `PV-17`, are done.
-3. `PV-12` stays open and waiting until both `PV-18` and `PV-19` are done, then
-   reevaluates the unchanged exit-gate acceptance contract.
+1. `PV-16`, `PV-17`, and `PV-18` are done.
+2. `PV-19` is ready against their combined current engine.
+3. `PV-12` stays open and waiting only on `PV-19`, then reevaluates the unchanged
+   exit-gate acceptance contract.
 
 `PV-13` through `PV-15` remain deferred. This decision does not revive
 Secondary feature investment or broaden the focused cycle into those items.
@@ -656,8 +668,8 @@ Record decisions here when they concern proposed sequencing or evaluation. If a 
 | Workflow protection boundary | decided | Trust repository developers/admins; leave required workflows, CODEOWNERS, rulesets, and bypass policy to deployments |
 | Pilot repositories/fixtures | decided | Use an empty Git repository followed by a first greeting feature, plus an existing two-area TypeScript service with one baseline implementation conflict and one reasoned generated-code exclusion |
 | Search work after baseline | applicable | PV-05 reproduced 91 irrelevant page occurrences from substring matching; PV-07 must still select remedies from focused failing evidence |
-| Primary exit-gate outcome | decided | Primary needs another focused cycle; execute `PV-16`–`PV-19`, then reevaluate `PV-12` |
-| Resume Secondary feature investment | decided | Do not resume yet; `PV-12` remains waiting on `PV-18` and `PV-19` |
+| Primary exit-gate outcome | decided | Primary needs another focused cycle; `PV-16`–`PV-18` are complete, so run `PV-19` and then reevaluate `PV-12` |
+| Resume Secondary feature investment | decided | Do not resume yet; `PV-12` remains waiting only on `PV-19` |
 
 ## Per-PR update protocol
 

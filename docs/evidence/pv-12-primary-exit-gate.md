@@ -5,9 +5,10 @@
 The owner selected **Primary needs another focused cycle**.
 
 This record is a decision contract, not evidence that Primary is validated.
-`PV-12` remains open and waiting while the bounded follow-up graph closes the
-failed criteria below. The current product scope is unchanged, and `PV-13`
-through `PV-15` remain deferred.
+`PV-12` remains open and waiting only on `PV-19`. PV-16, PV-17, and PV-18 have
+closed their focused criteria, while the current-engine eight-scenario report
+still must close the remaining criterion below. The current product scope is
+unchanged, and `PV-13` through `PV-15` remain deferred.
 
 ## Evidence-backed criteria
 
@@ -20,71 +21,75 @@ through `PV-15` remain deferred.
   pilots exercise that route.
 - Both documented adoption paths reached committed candidates with passing
   deterministic gates. The new-repository feature correctly returned
-  `not-required`; the existing-repository bootstrap correctly stopped at
-  `review-required` rather than self-attesting.
+  `not-required`. The existing-repository author correctly stopped at
+  `review-required`, and PV-18 subsequently completed context-isolated review
+  and locally validated both the corrected exact candidate and its
+  post-PV-16/PV-17 current-kit upgrade as `PASS`.
+- PV-16 aligned recursive `scripts/wiki` architecture sources, coverage,
+  high-risk staleness, and Fresh-context selection, with focused regressions
+  proving nested implementation and test changes cannot repeat the PV-05 drift
+  escape.
+- PV-17 made generic topic context authority-, source-, and conflict-complete
+  in text and JSON while explicitly separating non-current rationale. The
+  current-kit existing-repository pilot also exercised that output over
+  billing, delivery, and C-501.
 
 ### Failed or incomplete
 
-1. **Generic topic context is not authority- and source-complete.**
-   `bun run wiki:context -- "Primary exit gate"` renders a proposed page under
-   an ordinary page heading with only its source file path. It does not render
-   the page's `status` or `authority`, declared and expanded implementation
-   sources, page-local conflicts, an authoritative read order, or an explicit
-   current/non-current section boundary. Its JSON form carries declared
-   `sources`, but still omits status, authority, expansion, and the
-   selected-work separation model. PV-06 explicitly fixed only selected-work
-   context, while PV-07 explicitly left current/non-current grouping outside
-   its search remedy. The immutable PV-05 baseline measured 0/14 exact
-   status-plus-authority labels and 0/18 implementation sources on the default
-   text path.
-
-2. **Nested wiki-engine files can escape aligned coverage and risk
-   enforcement.** The publishing repository uses `scripts/wiki/*.ts` in
-   `.wiki/coverage.json`, the `architecture/engine` source declaration,
-   `.wiki/config.json` `highRisk`, and Fresh-context `changedFileGlobs`.
-   Those one-level globs do not include a maintained path such as
-   `scripts/wiki/parsers/edge.ts`. PV-05 recorded two unmapped nested files and
-   a code-only coverage-edge probe that passed both `wiki:lint` and enforced
-   `wiki:impact`.
-
-3. **There is no post-fix current-engine eight-scenario report.** PV-05 is
+1. **There is no post-fix current-engine eight-scenario report.** PV-05 is
    intentionally pinned to immutable engine revision
    `58869b75dc23374b918a79d9731c601764018ead`. PV-06 and PV-07 preserve that
    historical evidence rather than rewriting it, so it cannot demonstrate that
-   the current engine satisfies all eight exit-gate scenarios after the focused
-   fixes.
+   the current engine satisfies all eight exit-gate scenarios after PV-16,
+   PV-17, and the current-kit PV-18 pilot. PV-19 owns that reproducible report.
 
-4. **The existing-repository fresh-session pilot has not reached independent
-   PASS.** Its exact candidate
-   `d5f3087e0312d85dc8e419bd1f02ae2921a06310` passed generated freshness,
-   verification, lint, doctor, audit, impact, typecheck, and 114 tests. Its
-   preflight correctly emitted `review-required` with bundle digest
-   `bf7b650276af60b386417770cf932cf9b8281a179d3122d0adda47b196e6b03b`,
-   and the isolated author stopped. The stricter exit-gate evidence contract
-   requires a context-isolated reviewer report that validates as PASS.
+### Closed during the focused cycle
+
+- **Generic topic context became authority- and source-complete.** PV-17 added
+  the shared semantic text/JSON model, explicit current/conflict/non-current
+  separation, deterministic source expansion, and stable read order that the
+  initial decision record found missing.
+- **Nested wiki-engine drift is covered recursively.** PV-16 aligned
+  `scripts/wiki/**/*.ts` source/coverage mapping with recursive
+  `scripts/wiki/**` risk selection and locked both implementation and test
+  edges with failing-drift regressions.
+- **The existing-repository fresh-session pilot reached independent PASS.**
+   The first context-isolated review of predecessor candidate
+   `d5f3087e0312d85dc8e419bd1f02ae2921a06310` returned
+   `NEEDS_RECONCILE` because the generated adopter workflow required an
+   unsupported publishing-only `wiki:kit` command. The publisher fixed that
+   contract with focused regression coverage, the corrected pilot changed only
+   its workflow and content-addressed manifest, and a second isolated review
+   returned `PASS` for exact pilot HEAD
+   `914f56804ff034b10f3019fdbb8b27afc5b7bbd5`, immutable base
+   `45d4bd6fb8dccfb2c7f43546950ba66573dc6179`, and bundle digest
+   `5c72fbc66812bfb75196c5c84c1894ea079dc40d7549b3d1e308bada0ba0007f`.
+   The exact failed and passing reports, fixed disposition, command results,
+   and context-isolation boundary are preserved in the
+   [PV-11 existing-repository record](./pv-11-existing-repository-agent-pilot.md).
+   After PV-16 and PV-17 merged, the current publisher kit was applied again;
+   a new context-isolated review returned `PASS` for exact pilot HEAD
+   `29d91ed4414f44280042d68eec6f0dee9f63c988` and bundle digest
+   `80196617fd51ab62d19727e1126562816d0019f083696ef6b77c2b4aecebd2ad`.
 
 ## Bounded follow-up graph
 
-Three lanes can start from completed `PV-11`:
+The three independent lanes from completed PV-11 are now done:
 
-- `PV-16` closes recursive `scripts/wiki` coverage, current-page source
-  mapping, high-risk staleness, Fresh-context selection, and the demonstrated
-  nested-file drift escape.
-- `PV-17` gives generic topic context the status, authority, source expansion,
-  conflict, ordering, and current/non-current separation contract already
-  established for selected-work context.
-- `PV-18` extends the existing-repository fresh-session pilot through
-  context-isolated review and a locally validated exact PASS report.
+- PV-16 closed recursive publishing boundaries.
+- PV-17 closed generic topic-context completeness.
+- PV-18 closed the existing-repository independent-review criterion and
+  revalidated it against the combined current kit.
 
-`PV-19` depends on `PV-16` and `PV-17` and records a byte-reproducible
-current-engine evaluation of all eight Primary scenarios. `PV-12` depends on
-`PV-18` and `PV-19`; it reevaluates the original exit-gate acceptance contract
-only after both are done.
+PV-19 is therefore ready and records the byte-reproducible current-engine
+evaluation of all eight Primary scenarios. PV-12 waits only for PV-19 before
+reevaluating the original exit-gate acceptance contract.
 
 ## Non-goals
 
 - Do not mark `PV-12` done or claim Primary validated in this decision PR.
 - Do not change the current product scope.
-- Do not implement `PV-16` through `PV-19` in this decision PR.
+- Do not rewrite completed PV-16 through PV-18 evidence or implement PV-19 in
+  this evidence update.
 - Do not activate `PV-13`, `PV-14`, or `PV-15` without their existing evidence
   triggers.

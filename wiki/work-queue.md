@@ -15,9 +15,9 @@ tags: [generated, work, queue]
 
 This is a deterministic view of structured `work_items` on proposal pages. It is not current product authority; open the owning proposal and then the returned current context.
 
-**Recommended next:** `PV-18` — run `bun run wiki:context -- --work PV-18`.
+**Recommended next:** `PV-19` — run `bun run wiki:context -- --work PV-19`.
 
-Outstanding work: 6. Completed work hidden: 14; run `bun run wiki:work -- --all` to inspect it.
+Outstanding work: 5. Completed work hidden: 15; run `bun run wiki:work -- --all` to inspect it.
 
 ## Active
 
@@ -29,14 +29,13 @@ Outstanding work: 6. Completed work hidden: 14; run `bun run wiki:work -- --all`
 
 | ID | Priority | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|
-| PV-18 | high | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | PV-11 | Complete independent PASS for the existing-repository fresh-session pilot | `bun run wiki:context -- --work PV-18` |
 | PV-19 | high | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | PV-16, PV-17 | Re-evaluate all eight Primary scenarios against the fixed current engine | `bun run wiki:context -- --work PV-19` |
 
 ## Waiting
 
 | ID | Priority | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|
-| PV-12 | high | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | PV-18, PV-19 | Evaluate the Primary exit gate and decide the next investment — Waiting on: PV-18, PV-19 | `bun run wiki:context -- --work PV-12` |
+| PV-12 | high | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | PV-18, PV-19 | Evaluate the Primary exit gate and decide the next investment — Waiting on: PV-19 | `bun run wiki:context -- --work PV-12` |
 
 ## Blocked
 

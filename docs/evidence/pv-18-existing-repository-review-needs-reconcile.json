@@ -1,0 +1,68 @@
+{
+  "version": 2,
+  "verdict": "NEEDS_RECONCILE",
+  "reviewer": "phlox11",
+  "reviewed_head_sha": "d5f3087e0312d85dc8e419bd1f02ae2921a06310",
+  "merge_base_sha": "45d4bd6fb8dccfb2c7f43546950ba66573dc6179",
+  "bundle_digest": "bf7b650276af60b386417770cf932cf9b8281a179d3122d0adda47b196e6b03b",
+  "summary": "NEEDS_RECONCILE: the exact bundle, source mappings, observed billing and delivery pages, and baseline conflict C-501 reconcile, but the candidate installs publishing-only wiki:kit commands into a downstream workflow whose package exposes no wiki:kit script.",
+  "evidence": [
+    "Recomputed the full-index candidate diff digest and every bundled file digest, regenerated the review bundle independently, and obtained the same exact HEAD d5f3087e0312d85dc8e419bd1f02ae2921a06310, merge base 45d4bd6fb8dccfb2c7f43546950ba66573dc6179, and bundle digest bf7b650276af60b386417770cf932cf9b8281a179d3122d0adda47b196e6b03b.",
+    "Read the complete bundle contract, metadata, impact, affected pages, source declarations, open conflict C-501, candidate/base primary sources, installed agent entrypoint, package scripts, coverage, source/conflict maps, verification state, workflows, hooks, schema, and downstream development workflow.",
+    "Confirmed from both merge base and reviewed HEAD that src/delivery/send.ts returns accepted while src/delivery/contract.ts declares queued, and that the candidate changes neither source; C-501 records origin baseline, type implementation, product/delivery scope, both sources, owner, and an objective resolution criterion.",
+    "Passed wiki:generated --check, wiki:lint, wiki:doctor, wiki:audit, wiki:check, metadata-enforced wiki:impact against the exact base, typecheck, and the complete 114-test suite with 516 assertions.",
+    "Ran the candidate's documented bun run wiki:kit -- --check command and reproduced error: Script not found \"wiki:kit\"; package.json contains no wiki:kit script."
+  ],
+  "findings": [
+    {
+      "id": "PV11-EXISTING-001",
+      "classification": "preexisting_implementation_mismatch",
+      "disposition": "conflict_introduced",
+      "conflict_id": "C-501",
+      "scope_refs": [
+        "page:product/delivery",
+        "source:src/delivery/send.ts",
+        "source:src/delivery/contract.ts",
+        "conflict:C-501",
+        "metadata:touched_conflicts"
+      ],
+      "discrepancy": "The delivery implementation returns accepted while its adjacent intended-status contract declares queued.",
+      "authority": {
+        "kind": "observed",
+        "ref": "source:src/delivery/send.ts and source:src/delivery/contract.ts"
+      },
+      "evidence": [
+        "Both values are present at merge base 45d4bd6fb8dccfb2c7f43546950ba66573dc6179 and remain byte-identical at the reviewed HEAD.",
+        "wiki/conflicts/open/C-501.md is open, declares conflict_type implementation and origin baseline, affects product/delivery, names both primary sources, and the metadata introduces C-501."
+      ],
+      "acceptance_criteria": [
+        "An owner selects accepted or queued and implementation, contract, current page, and tests agree."
+      ]
+    },
+    {
+      "id": "PV11-EXISTING-002",
+      "classification": "declared_contract_violation",
+      "disposition": "unresolved",
+      "scope_refs": [
+        "source:wiki/WORKFLOW.md",
+        "source:package.json",
+        "metadata:wiki_action"
+      ],
+      "discrepancy": "The candidate adds a downstream Before a PR contract that requires bun run wiki:kit and bun run wiki:kit -- --check, but the same candidate's package.json defines no wiki:kit script, so adopters cannot execute the declared workflow.",
+      "authority": {
+        "kind": "normative",
+        "ref": "source:wiki/WORKFLOW.md"
+      },
+      "evidence": [
+        "wiki/WORKFLOW.md lists both wiki:kit commands in its mandatory Before a PR command block.",
+        "package.json contains wiki commands for audit, check, conflicts, context, doctor, generated, impact, index, inventory, lint, review, search, verify, and work, but no wiki:kit.",
+        "Running bun run wiki:kit -- --check at exact reviewed HEAD d5f3087e0312d85dc8e419bd1f02ae2921a06310 exits 1 with Script not found \"wiki:kit\"."
+      ],
+      "acceptance_criteria": [
+        "The downstream Before a PR workflow names only commands that the adopted package actually exposes and supports under its non-publisher configuration.",
+        "Running the reconciled documented gate sequence reaches the implemented deterministic checks without a missing-script failure.",
+        "Publisher and generated-kit regression coverage prevents publishing-only wiki:kit commands from reappearing in an adopter workflow, and the pilot bundle is regenerated for the reconciled exact HEAD."
+      ]
+    }
+  ]
+}

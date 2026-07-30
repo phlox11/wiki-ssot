@@ -1,0 +1,69 @@
+{
+  "version": 2,
+  "verdict": "PASS",
+  "reviewer": "phlox11",
+  "reviewed_head_sha": "914f56804ff034b10f3019fdbb8b27afc5b7bbd5",
+  "merge_base_sha": "45d4bd6fb8dccfb2c7f43546950ba66573dc6179",
+  "bundle_digest": "5c72fbc66812bfb75196c5c84c1894ea079dc40d7549b3d1e308bada0ba0007f",
+  "summary": "PASS: the updated existing-repository pilot fixes the prior unsupported wiki:kit workflow contract, preserves the host service and adopter-owned policy, keeps the baseline delivery mismatch truthfully tracked by C-501, and passes the exact deterministic review binding.",
+  "evidence": [
+    "Independently regenerated the pilot bundle and reproduced exact HEAD 914f56804ff034b10f3019fdbb8b27afc5b7bbd5, merge base 45d4bd6fb8dccfb2c7f43546950ba66573dc6179, diff digest 3641516338ba49690a4d90e6a9b9ffec7c35b894a03c4e04aba6c2063cc00f44, and bundle digest 5c72fbc66812bfb75196c5c84c1894ea079dc40d7549b3d1e308bada0ba0007f.",
+    "Read the prior NEEDS_RECONCILE report, both exact bundles and metadata, installed AGENTS.md, wiki entrypoint/current status, product pages, source declarations, C-501, source/conflict maps, verification state, coverage, adopter policy, package scripts, workflows, hooks, and primary billing and delivery sources.",
+    "The upgrade from d5f3087e0312d85dc8e419bd1f02ae2921a06310 changes only .wiki/kit-manifest.json and wiki/WORKFLOW.md; host instructions, package policy, coverage/state/inventories, maps, product pages, C-501, wiki engine, and service sources remain byte-identical to that prior candidate, while all src files remain unchanged from the baseline.",
+    "Installed wiki/WORKFLOW.md contains no wiki:kit command; every bun run command in that workflow and installed GitHub workflows resolves to a script in package.json. Its sha256 200ac0e53e48561050591a6f3b5c8273cae9c5e04eb88b14814d16d00dbed046 matches the upgraded content-addressed manifest.",
+    "The reviewed pilot passed wiki:generated --check, wiki:lint, wiki:doctor, wiki:audit, wiki:check, metadata-enforced wiki:impact against the exact baseline, typecheck, and the complete 114-test suite with 516 assertions; work/search/context/conflict commands surfaced product/billing, product/delivery, and C-501 without inventing a resolution."
+  ],
+  "findings": [
+    {
+      "id": "PV11-EXISTING-001",
+      "classification": "preexisting_implementation_mismatch",
+      "disposition": "conflict_introduced",
+      "conflict_id": "C-501",
+      "scope_refs": [
+        "page:product/delivery",
+        "source:src/delivery/send.ts",
+        "source:src/delivery/contract.ts",
+        "conflict:C-501",
+        "metadata:touched_conflicts"
+      ],
+      "discrepancy": "The delivery implementation returns accepted while its adjacent intended-status contract declares queued.",
+      "authority": {
+        "kind": "observed",
+        "ref": "source:src/delivery/send.ts and source:src/delivery/contract.ts"
+      },
+      "evidence": [
+        "Both values are present at merge base 45d4bd6fb8dccfb2c7f43546950ba66573dc6179 and remain byte-identical at the reviewed HEAD.",
+        "wiki/conflicts/open/C-501.md is open, declares conflict_type implementation and origin baseline, affects product/delivery, names both primary sources, and the metadata introduces C-501."
+      ],
+      "acceptance_criteria": [
+        "An owner selects accepted or queued and implementation, contract, current page, and tests agree."
+      ]
+    },
+    {
+      "id": "PV11-EXISTING-002",
+      "classification": "declared_contract_violation",
+      "disposition": "fixed",
+      "scope_refs": [
+        "source:wiki/WORKFLOW.md",
+        "source:package.json",
+        "test:scripts/wiki/kit.test.ts",
+        "metadata:wiki_action"
+      ],
+      "discrepancy": "The predecessor candidate installed publishing-only wiki:kit commands into a downstream workflow whose package exposed no wiki:kit script; the reviewed candidate removes those unsupported commands.",
+      "authority": {
+        "kind": "normative",
+        "ref": "source:wiki/WORKFLOW.md"
+      },
+      "evidence": [
+        "The reviewed wiki/WORKFLOW.md Before a PR block contains only commands present in package.json and contains no wiki:kit token.",
+        "The upgrade changes only the installed workflow and its content-addressed manifest entry, whose sha256 matches the reviewed workflow bytes.",
+        "The publisher regression fails against the merge-base kit because downstream workflow contains wiki:kit and passes at publisher HEAD f5c1a1d840c0b2fe08d322722ae9682587e589be, preventing this unsupported command from reappearing."
+      ],
+      "acceptance_criteria": [
+        "The downstream Before a PR workflow names only commands that the adopted package actually exposes and supports under its non-publisher configuration.",
+        "Running the reconciled documented gate sequence reaches the implemented deterministic checks without a missing-script failure.",
+        "Publisher regression coverage prevents publishing-only wiki:kit commands from reappearing in an adopter workflow, and the pilot bundle is regenerated for the reconciled exact HEAD."
+      ]
+    }
+  ]
+}
