@@ -58,6 +58,8 @@ type FixturePage = {
   sources: WikiSource[];
 };
 
+export type PrimaryScenarioFixtureBoundary = "pv-05-baseline" | "pv-19-current";
+
 type RecallTotal = {
   found: number;
   required: number;
@@ -268,14 +270,17 @@ function sourceContent(path: string): string {
   return `export const primaryBaselineFixture = ${JSON.stringify(path)};\n`;
 }
 
-function fixturePages(): FixturePage[] {
+function fixturePages(boundary: PrimaryScenarioFixtureBoundary = "pv-05-baseline"): FixturePage[] {
   const pages = new Map<string, FixturePage>();
   for (const item of PRIMARY_SCENARIO_SUITE.scenarios) {
     for (const expectation of item.requiredAuthorities) {
       const existing = pages.get(expectation.pageId);
       const baselineSources: WikiSource[] = item.category === "coverage-edge"
         ? expectation.pageId === "architecture/engine"
-          ? [{ path: ".wiki/coverage.json" }, { glob: "scripts/wiki/*.ts" }]
+          ? [
+            { path: ".wiki/coverage.json" },
+            { glob: boundary === "pv-19-current" ? "scripts/wiki/**/*.ts" : "scripts/wiki/*.ts" },
+          ]
           : [{ path: ".wiki/coverage.json" }]
         : item.requiredSources.map((path) => ({ path }));
       if (existing) {
@@ -310,12 +315,16 @@ export function materializePrimaryBaselineFixturePages(): WikiPage[] {
     .map(([path, raw]) => parseWikiPage(path, raw));
 }
 
-function createFixture(root: string) {
+export function createPrimaryScenarioFixture(
+  root: string,
+  boundary: PrimaryScenarioFixtureBoundary = "pv-05-baseline",
+) {
+  const recursiveBoundary = boundary === "pv-19-current";
   put(root, ".wiki/config.json", jsonStable({
     version: 1,
     name: "Primary baseline fixture",
     publishesKit: false,
-    highRisk: ["src/**/*.ts", "test/**/*.ts", "db/**/*.sql", "scripts/wiki/*.ts"],
+    highRisk: ["src/**/*.ts", "test/**/*.ts", "db/**/*.sql", recursiveBoundary ? "scripts/wiki/**" : "scripts/wiki/*.ts"],
     freshContext: {
       mode: "required",
       requiredVerdict: "PASS",
@@ -330,10 +339,19 @@ function createFixture(root: string) {
   }));
   put(root, ".wiki/coverage.json", jsonStable({
     version: 1,
-    include: ["src/**/*.ts", "test/**/*.ts", "db/**/*.sql", "scripts/wiki/*.ts"],
+    include: ["src/**/*.ts", "test/**/*.ts", "db/**/*.sql", recursiveBoundary ? "scripts/wiki/**/*.ts" : "scripts/wiki/*.ts"],
     exclusions: [],
   }));
-  put(root, "AGENTS.md", `<!-- wiki-ssot:fresh-context-guardrail -->
+  put(root, "AGENTS.md", recursiveBoundary
+    ? `<!-- wiki-ssot:fresh-context-guardrail -->
+Start at wiki/index.md, then read wiki/current-status.md and every kind: invariant page.
+Pages with status: proposed, conflicted, deprecated, or archived are not current authority.
+<!-- wiki-ssot:work-discovery -->
+For generic remaining-work requests with no known node, ID, or search term, run bun run wiki:work.
+After selecting a returned item, run bun run wiki:context -- --work <ID>.
+For topic work, run bun run wiki:search -- "<task terms>" and bun run wiki:context -- "<task terms>" before editing.
+`
+    : `<!-- wiki-ssot:fresh-context-guardrail -->
 <!-- wiki-ssot:work-discovery -->
 
 Run bun run wiki:work for generic remaining-work requests.
@@ -358,7 +376,7 @@ Run bun run wiki:work for generic remaining-work requests.
     }
   }
   put(root, "scripts/wiki/root.ts", "export const rootFixture = true;\n");
-  for (const page of fixturePages()) put(root, pagePath(page.id), renderPage(page));
+  for (const page of fixturePages(boundary)) put(root, pagePath(page.id), renderPage(page));
 
   required(["git", "init", "-q", "-b", "main"], root);
   git(root, ["config", "user.name", "Primary Baseline"]);
@@ -420,7 +438,7 @@ function resolveConflict(root: string, id: string) {
   writeFileSync(to, resolved);
 }
 
-function materializeCandidate(root: string, item: PrimaryScenario): string[] {
+export function materializePrimaryScenarioCandidate(root: string, item: PrimaryScenario): string[] {
   git(root, ["switch", "-q", "-c", `candidate-${item.id}`]);
   let needsVerification = false;
   for (const change of item.expectedChanges) {
@@ -583,7 +601,7 @@ export function buildPrimaryBaselineReport(): PrimaryBaselineReport {
   if (!engineMatchesBaseline()) return buildHistoricalPrimaryBaselineReport();
   const root = mkdtempSync(join(tmpdir(), "wiki-ssot-primary-baseline-"));
   try {
-    createFixture(root);
+    createPrimaryScenarioFixture(root);
     const baseView = createRepoView(root);
     const loaded = loadWikiPages(baseView);
     if (loaded.findings.length > 0) throw new Error(`fixture page load failed: ${jsonStable(loaded.findings)}`);
@@ -597,7 +615,7 @@ export function buildPrimaryBaselineReport(): PrimaryBaselineReport {
       const context = requiredCli(root, ["context", item.task]);
       const searchMatches = parseSearch(search.stdout);
       const contextResult = parseContext(context.stdout, knownPageIds);
-      const changedFiles = materializeCandidate(root, item);
+      const changedFiles = materializePrimaryScenarioCandidate(root, item);
       const unmappedChangedFiles = item.expectedChanges
         .filter((change) => change.kind === "implementation" || change.kind === "test")
         .map((change) => change.path)

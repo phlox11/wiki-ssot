@@ -1,0 +1,1769 @@
+{
+  "contractVersion": 1,
+  "engine": {
+    "baseRef": "8b93a6f6e8026963b5cdd49cbb7a8b737e71b9ec",
+    "baseSha": "8b93a6f6e8026963b5cdd49cbb7a8b737e71b9ec",
+    "evaluatedPaths": [
+      ".wiki/config.json",
+      ".wiki/coverage.json",
+      "scripts/wiki/cli.ts",
+      "scripts/wiki/core.ts",
+      "scripts/wiki/primary-scenarios.ts"
+    ],
+    "requiredCommits": {
+      "PV-16": "322b42e44ec54dd73545cc8bce00922c25b32282",
+      "PV-17": "f3cdd8a3d759a84141b2da9f2271cde61313d927",
+      "PV-18": "b12e7d2dd6d4b1b6c8c12b2c0a90422f37b9baff"
+    }
+  },
+  "fixtureVersion": 2,
+  "interpretation": {
+    "explicitlyAcceptedLimitations": [
+      "The deterministic fixture proves surfaced repository context and gate behavior, not that a model read or understood that context.",
+      "It does not claim protection against a trusted maintainer who intentionally weakens repository policy.",
+      "Context byte counts are exact UTF-8 output size, not runtime or model-token cost."
+    ],
+    "measuredPasses": [
+      "All 8 scenarios passed the versioned expectations and the added coverage, separation, candidate-gate, and drift-probe checks.",
+      "Topic context recalled 9/9 current pages, 4/4 invariants, 2/2 conflicts, and 18/18 declared sources.",
+      "Exact status-plus-authority labels were present for 14/14 authorities; non-current labels were correct for 1/1.",
+      "All 17 implementation/test source paths mapped to current authority, all 8 reconciled candidates passed both gates, and all 17 code-only probes were caught."
+    ],
+    "remainingMissClassifications": [
+      "None. The current-engine evaluation has no remaining measured miss to classify."
+    ]
+  },
+  "method": {
+    "candidateGatePath": [
+      "materialize every declared expected change and verification action",
+      "bun run wiki:lint -- --json",
+      "bun run wiki:impact -- --base main --enforce --json"
+    ],
+    "discoveryPath": [
+      "bun run wiki:search -- \"<task>\" --json",
+      "bun run wiki:context -- \"<task>\" --json"
+    ],
+    "driftProbePath": [
+      "change each declared implementation/test source independently without wiki reconciliation",
+      "bun run wiki:lint -- --json",
+      "bun run wiki:impact -- --base main --enforce --json"
+    ],
+    "notes": [
+      "Engine identity is pinned to exact combined post-PV-16/PV-17/PV-18 revision 8b93a6f6e8026963b5cdd49cbb7a8b737e71b9ec.",
+      "The synthetic fixture uses the PV-16 recursive scripts/wiki coverage, source-mapping, and risk boundary.",
+      "Generic topic context JSON is the authority/status/source/conflict observation; no LLM participates.",
+      "Candidate diffs come from committed fixture branches, and code-only probes start independently from the same fixture main.",
+      "The immutable PV-05 report and interpretation are neither inputs to nor outputs from this runner."
+    ]
+  },
+  "remainingMisses": [],
+  "reportVersion": 1,
+  "scenarios": [
+    {
+      "candidate": {
+        "changedFiles": [
+          ".wiki/state.json",
+          "src/checkout/refunds.ts",
+          "test/checkout/refunds.test.ts",
+          "wiki/features/checkout.md"
+        ],
+        "findingCodes": [],
+        "gatesPass": true,
+        "impactExitCode": 0,
+        "lintExitCode": 0,
+        "observedWikiAction": "update"
+      },
+      "category": "feature-change",
+      "coverage": [
+        {
+          "coveredBy": [
+            "src/**/*.ts"
+          ],
+          "disposition": "mapped",
+          "exclusion": null,
+          "mappedCurrentPageIds": [
+            "features/checkout",
+            "product/money-invariants"
+          ],
+          "passes": true,
+          "path": "src/checkout/refunds.ts"
+        },
+        {
+          "coveredBy": [
+            "test/**/*.ts"
+          ],
+          "disposition": "mapped",
+          "exclusion": null,
+          "mappedCurrentPageIds": [
+            "features/checkout",
+            "product/money-invariants"
+          ],
+          "passes": true,
+          "path": "test/checkout/refunds.test.ts"
+        }
+      ],
+      "discovery": {
+        "contextConflictIds": [],
+        "contextCurrentPageIds": [
+          "features/checkout"
+        ],
+        "contextInvariantIds": [
+          "product/money-invariants"
+        ],
+        "contextNonCurrentPageIds": [],
+        "searchMatches": [
+          {
+            "id": "features/checkout",
+            "status": "current"
+          },
+          {
+            "id": "product/money-invariants",
+            "status": "current"
+          }
+        ],
+        "surfacedSourceFiles": [
+          "src/checkout/refunds.ts",
+          "test/checkout/refunds.test.ts"
+        ]
+      },
+      "driftProbes": [
+        {
+          "caught": true,
+          "findingCodes": [
+            "stale-verification"
+          ],
+          "impactExitCode": 1,
+          "lintExitCode": 0,
+          "sourcePath": "src/checkout/refunds.ts"
+        },
+        {
+          "caught": true,
+          "findingCodes": [
+            "stale-verification"
+          ],
+          "impactExitCode": 1,
+          "lintExitCode": 0,
+          "sourcePath": "test/checkout/refunds.test.ts"
+        }
+      ],
+      "evaluation": {
+        "category": "feature-change",
+        "commandSequence": [
+          "bun run wiki:search -- \"Add support for partial refunds while preserving the checkout total and currency rules.\" --json",
+          "bun run wiki:context -- \"Add support for partial refunds while preserving the checkout total and currency rules.\" --json",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change src/checkout/refunds.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change test/checkout/refunds.test.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "contractVersion": 1,
+        "driftEscapes": [],
+        "expectationsMet": true,
+        "irrelevantPages": [],
+        "metrics": {
+          "authorityLabelRecall": {
+            "found": 2,
+            "ratio": 1,
+            "required": 2
+          },
+          "commandCount": 10,
+          "conflictRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "contextBytes": 4205,
+          "currentPageRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "driftEscapeCount": 0,
+          "expectedChangeRecall": {
+            "found": 4,
+            "ratio": 1,
+            "required": 4
+          },
+          "implementationSourceRecall": {
+            "found": 2,
+            "ratio": 1,
+            "required": 2
+          },
+          "invariantRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "irrelevantPageCount": 0,
+          "nonCurrentAuthorityLabelRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "unmappedChangedFileCount": 0
+        },
+        "scenarioId": "primary-v1-feature-change",
+        "unmappedChangedFiles": [],
+        "wikiActionMatches": true
+      },
+      "expectedWikiAction": "update",
+      "nonCurrentSeparation": {
+        "matches": true,
+        "misplacedAsCurrentPageIds": [],
+        "observedNonCurrentPageIds": [],
+        "requiredPageIds": []
+      },
+      "observation": {
+        "authorities": [
+          {
+            "authority": "normative",
+            "pageId": "product/money-invariants",
+            "status": "current"
+          },
+          {
+            "authority": "observed",
+            "pageId": "features/checkout",
+            "status": "current"
+          }
+        ],
+        "changedFiles": [
+          ".wiki/state.json",
+          "src/checkout/refunds.ts",
+          "test/checkout/refunds.test.ts",
+          "wiki/features/checkout.md"
+        ],
+        "commands": [
+          "bun run wiki:search -- \"Add support for partial refunds while preserving the checkout total and currency rules.\" --json",
+          "bun run wiki:context -- \"Add support for partial refunds while preserving the checkout total and currency rules.\" --json",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change src/checkout/refunds.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change test/checkout/refunds.test.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "conflicts": [],
+        "contextBytes": 4205,
+        "driftEscapes": [],
+        "sources": [
+          "src/checkout/refunds.ts",
+          "test/checkout/refunds.test.ts"
+        ],
+        "unmappedChangedFiles": [],
+        "wikiAction": "update"
+      },
+      "passes": true,
+      "scenarioId": "primary-v1-feature-change",
+      "task": "Add support for partial refunds while preserving the checkout total and currency rules."
+    },
+    {
+      "candidate": {
+        "changedFiles": [
+          ".wiki/state.json",
+          "src/contracts/order.ts",
+          "test/contracts/order.test.ts"
+        ],
+        "findingCodes": [],
+        "gatesPass": true,
+        "impactExitCode": 0,
+        "lintExitCode": 0,
+        "observedWikiAction": "verify"
+      },
+      "category": "semantics-preserving-refactor",
+      "coverage": [
+        {
+          "coveredBy": [
+            "src/**/*.ts"
+          ],
+          "disposition": "mapped",
+          "exclusion": null,
+          "mappedCurrentPageIds": [
+            "architecture/contracts"
+          ],
+          "passes": true,
+          "path": "src/contracts/order.ts"
+        },
+        {
+          "coveredBy": [
+            "test/**/*.ts"
+          ],
+          "disposition": "mapped",
+          "exclusion": null,
+          "mappedCurrentPageIds": [
+            "architecture/contracts"
+          ],
+          "passes": true,
+          "path": "test/contracts/order.test.ts"
+        }
+      ],
+      "discovery": {
+        "contextConflictIds": [],
+        "contextCurrentPageIds": [
+          "architecture/contracts"
+        ],
+        "contextInvariantIds": [],
+        "contextNonCurrentPageIds": [],
+        "searchMatches": [
+          {
+            "id": "architecture/contracts",
+            "status": "current"
+          }
+        ],
+        "surfacedSourceFiles": [
+          "src/contracts/order.ts",
+          "test/contracts/order.test.ts"
+        ]
+      },
+      "driftProbes": [
+        {
+          "caught": true,
+          "findingCodes": [
+            "stale-verification"
+          ],
+          "impactExitCode": 1,
+          "lintExitCode": 0,
+          "sourcePath": "src/contracts/order.ts"
+        },
+        {
+          "caught": true,
+          "findingCodes": [
+            "stale-verification"
+          ],
+          "impactExitCode": 1,
+          "lintExitCode": 0,
+          "sourcePath": "test/contracts/order.test.ts"
+        }
+      ],
+      "evaluation": {
+        "category": "semantics-preserving-refactor",
+        "commandSequence": [
+          "bun run wiki:search -- \"Split order contract parsing into helpers without changing its exported behavior.\" --json",
+          "bun run wiki:context -- \"Split order contract parsing into helpers without changing its exported behavior.\" --json",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change src/contracts/order.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change test/contracts/order.test.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "contractVersion": 1,
+        "driftEscapes": [],
+        "expectationsMet": true,
+        "irrelevantPages": [],
+        "metrics": {
+          "authorityLabelRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "commandCount": 10,
+          "conflictRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "contextBytes": 2340,
+          "currentPageRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "driftEscapeCount": 0,
+          "expectedChangeRecall": {
+            "found": 3,
+            "ratio": 1,
+            "required": 3
+          },
+          "implementationSourceRecall": {
+            "found": 2,
+            "ratio": 1,
+            "required": 2
+          },
+          "invariantRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "irrelevantPageCount": 0,
+          "nonCurrentAuthorityLabelRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "unmappedChangedFileCount": 0
+        },
+        "scenarioId": "primary-v1-semantics-preserving-refactor",
+        "unmappedChangedFiles": [],
+        "wikiActionMatches": true
+      },
+      "expectedWikiAction": "verify",
+      "nonCurrentSeparation": {
+        "matches": true,
+        "misplacedAsCurrentPageIds": [],
+        "observedNonCurrentPageIds": [],
+        "requiredPageIds": []
+      },
+      "observation": {
+        "authorities": [
+          {
+            "authority": "observed",
+            "pageId": "architecture/contracts",
+            "status": "current"
+          }
+        ],
+        "changedFiles": [
+          ".wiki/state.json",
+          "src/contracts/order.ts",
+          "test/contracts/order.test.ts"
+        ],
+        "commands": [
+          "bun run wiki:search -- \"Split order contract parsing into helpers without changing its exported behavior.\" --json",
+          "bun run wiki:context -- \"Split order contract parsing into helpers without changing its exported behavior.\" --json",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change src/contracts/order.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change test/contracts/order.test.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "conflicts": [],
+        "contextBytes": 2340,
+        "driftEscapes": [],
+        "sources": [
+          "src/contracts/order.ts",
+          "test/contracts/order.test.ts"
+        ],
+        "unmappedChangedFiles": [],
+        "wikiAction": "verify"
+      },
+      "passes": true,
+      "scenarioId": "primary-v1-semantics-preserving-refactor",
+      "task": "Split order contract parsing into helpers without changing its exported behavior."
+    },
+    {
+      "candidate": {
+        "changedFiles": [
+          ".wiki/state.json",
+          "src/tenancy/access.ts",
+          "test/tenancy/access.test.ts",
+          "wiki/features/tenant-access.md"
+        ],
+        "findingCodes": [],
+        "gatesPass": true,
+        "impactExitCode": 0,
+        "lintExitCode": 0,
+        "observedWikiAction": "update"
+      },
+      "category": "invariant-controlled-change",
+      "coverage": [
+        {
+          "coveredBy": [
+            "src/**/*.ts"
+          ],
+          "disposition": "mapped",
+          "exclusion": null,
+          "mappedCurrentPageIds": [
+            "features/tenant-access",
+            "product/tenant-isolation"
+          ],
+          "passes": true,
+          "path": "src/tenancy/access.ts"
+        },
+        {
+          "coveredBy": [
+            "test/**/*.ts"
+          ],
+          "disposition": "mapped",
+          "exclusion": null,
+          "mappedCurrentPageIds": [
+            "features/tenant-access",
+            "product/tenant-isolation"
+          ],
+          "passes": true,
+          "path": "test/tenancy/access.test.ts"
+        }
+      ],
+      "discovery": {
+        "contextConflictIds": [],
+        "contextCurrentPageIds": [
+          "features/tenant-access"
+        ],
+        "contextInvariantIds": [
+          "product/tenant-isolation"
+        ],
+        "contextNonCurrentPageIds": [],
+        "searchMatches": [
+          {
+            "id": "features/tenant-access",
+            "status": "current"
+          },
+          {
+            "id": "product/tenant-isolation",
+            "status": "current"
+          }
+        ],
+        "surfacedSourceFiles": [
+          "src/tenancy/access.ts",
+          "test/tenancy/access.test.ts"
+        ]
+      },
+      "driftProbes": [
+        {
+          "caught": true,
+          "findingCodes": [
+            "stale-verification"
+          ],
+          "impactExitCode": 1,
+          "lintExitCode": 0,
+          "sourcePath": "src/tenancy/access.ts"
+        },
+        {
+          "caught": true,
+          "findingCodes": [
+            "stale-verification"
+          ],
+          "impactExitCode": 1,
+          "lintExitCode": 0,
+          "sourcePath": "test/tenancy/access.test.ts"
+        }
+      ],
+      "evaluation": {
+        "category": "invariant-controlled-change",
+        "commandSequence": [
+          "bun run wiki:search -- \"Allow support staff to inspect a tenant record without weakening tenant isolation.\" --json",
+          "bun run wiki:context -- \"Allow support staff to inspect a tenant record without weakening tenant isolation.\" --json",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change src/tenancy/access.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change test/tenancy/access.test.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "contractVersion": 1,
+        "driftEscapes": [],
+        "expectationsMet": true,
+        "irrelevantPages": [],
+        "metrics": {
+          "authorityLabelRecall": {
+            "found": 2,
+            "ratio": 1,
+            "required": 2
+          },
+          "commandCount": 10,
+          "conflictRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "contextBytes": 4188,
+          "currentPageRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "driftEscapeCount": 0,
+          "expectedChangeRecall": {
+            "found": 4,
+            "ratio": 1,
+            "required": 4
+          },
+          "implementationSourceRecall": {
+            "found": 2,
+            "ratio": 1,
+            "required": 2
+          },
+          "invariantRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "irrelevantPageCount": 0,
+          "nonCurrentAuthorityLabelRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "unmappedChangedFileCount": 0
+        },
+        "scenarioId": "primary-v1-invariant-controlled-change",
+        "unmappedChangedFiles": [],
+        "wikiActionMatches": true
+      },
+      "expectedWikiAction": "update",
+      "nonCurrentSeparation": {
+        "matches": true,
+        "misplacedAsCurrentPageIds": [],
+        "observedNonCurrentPageIds": [],
+        "requiredPageIds": []
+      },
+      "observation": {
+        "authorities": [
+          {
+            "authority": "normative",
+            "pageId": "product/tenant-isolation",
+            "status": "current"
+          },
+          {
+            "authority": "observed",
+            "pageId": "features/tenant-access",
+            "status": "current"
+          }
+        ],
+        "changedFiles": [
+          ".wiki/state.json",
+          "src/tenancy/access.ts",
+          "test/tenancy/access.test.ts",
+          "wiki/features/tenant-access.md"
+        ],
+        "commands": [
+          "bun run wiki:search -- \"Allow support staff to inspect a tenant record without weakening tenant isolation.\" --json",
+          "bun run wiki:context -- \"Allow support staff to inspect a tenant record without weakening tenant isolation.\" --json",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change src/tenancy/access.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change test/tenancy/access.test.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "conflicts": [],
+        "contextBytes": 4188,
+        "driftEscapes": [],
+        "sources": [
+          "src/tenancy/access.ts",
+          "test/tenancy/access.test.ts"
+        ],
+        "unmappedChangedFiles": [],
+        "wikiAction": "update"
+      },
+      "passes": true,
+      "scenarioId": "primary-v1-invariant-controlled-change",
+      "task": "Allow support staff to inspect a tenant record without weakening tenant isolation."
+    },
+    {
+      "candidate": {
+        "changedFiles": [
+          "wiki/conflicts/open/C-101.md"
+        ],
+        "findingCodes": [],
+        "gatesPass": true,
+        "impactExitCode": 0,
+        "lintExitCode": 0,
+        "observedWikiAction": "update"
+      },
+      "category": "code-wiki-disagreement",
+      "coverage": [
+        {
+          "coveredBy": [
+            "src/**/*.ts"
+          ],
+          "disposition": "mapped",
+          "exclusion": null,
+          "mappedCurrentPageIds": [
+            "features/pricing"
+          ],
+          "passes": true,
+          "path": "src/pricing/calculate.ts"
+        },
+        {
+          "coveredBy": [
+            "test/**/*.ts"
+          ],
+          "disposition": "mapped",
+          "exclusion": null,
+          "mappedCurrentPageIds": [
+            "features/pricing"
+          ],
+          "passes": true,
+          "path": "test/pricing/calculate.test.ts"
+        }
+      ],
+      "discovery": {
+        "contextConflictIds": [
+          "C-101"
+        ],
+        "contextCurrentPageIds": [
+          "features/pricing"
+        ],
+        "contextInvariantIds": [],
+        "contextNonCurrentPageIds": [],
+        "searchMatches": [
+          {
+            "id": "conflict/C-101",
+            "status": "conflicted"
+          },
+          {
+            "id": "features/pricing",
+            "status": "current"
+          }
+        ],
+        "surfacedSourceFiles": [
+          "src/pricing/calculate.ts",
+          "test/pricing/calculate.test.ts"
+        ]
+      },
+      "driftProbes": [
+        {
+          "caught": true,
+          "findingCodes": [
+            "stale-verification"
+          ],
+          "impactExitCode": 1,
+          "lintExitCode": 0,
+          "sourcePath": "src/pricing/calculate.ts"
+        },
+        {
+          "caught": true,
+          "findingCodes": [
+            "stale-verification"
+          ],
+          "impactExitCode": 1,
+          "lintExitCode": 0,
+          "sourcePath": "test/pricing/calculate.test.ts"
+        }
+      ],
+      "evaluation": {
+        "category": "code-wiki-disagreement",
+        "commandSequence": [
+          "bun run wiki:search -- \"Reconcile the documented pricing rounding rule with the contradictory implementation evidence.\" --json",
+          "bun run wiki:context -- \"Reconcile the documented pricing rounding rule with the contradictory implementation evidence.\" --json",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change src/pricing/calculate.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change test/pricing/calculate.test.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "contractVersion": 1,
+        "driftEscapes": [],
+        "expectationsMet": true,
+        "irrelevantPages": [],
+        "metrics": {
+          "authorityLabelRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "commandCount": 10,
+          "conflictRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "contextBytes": 4535,
+          "currentPageRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "driftEscapeCount": 0,
+          "expectedChangeRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "implementationSourceRecall": {
+            "found": 2,
+            "ratio": 1,
+            "required": 2
+          },
+          "invariantRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "irrelevantPageCount": 0,
+          "nonCurrentAuthorityLabelRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "unmappedChangedFileCount": 0
+        },
+        "scenarioId": "primary-v1-code-wiki-disagreement",
+        "unmappedChangedFiles": [],
+        "wikiActionMatches": true
+      },
+      "expectedWikiAction": "update",
+      "nonCurrentSeparation": {
+        "matches": true,
+        "misplacedAsCurrentPageIds": [],
+        "observedNonCurrentPageIds": [],
+        "requiredPageIds": []
+      },
+      "observation": {
+        "authorities": [
+          {
+            "authority": "normative",
+            "pageId": "features/pricing",
+            "status": "current"
+          }
+        ],
+        "changedFiles": [
+          "wiki/conflicts/open/C-101.md"
+        ],
+        "commands": [
+          "bun run wiki:search -- \"Reconcile the documented pricing rounding rule with the contradictory implementation evidence.\" --json",
+          "bun run wiki:context -- \"Reconcile the documented pricing rounding rule with the contradictory implementation evidence.\" --json",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change src/pricing/calculate.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change test/pricing/calculate.test.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "conflicts": [
+          "C-101"
+        ],
+        "contextBytes": 4535,
+        "driftEscapes": [],
+        "sources": [
+          "src/pricing/calculate.ts",
+          "test/pricing/calculate.test.ts"
+        ],
+        "unmappedChangedFiles": [],
+        "wikiAction": "update"
+      },
+      "passes": true,
+      "scenarioId": "primary-v1-code-wiki-disagreement",
+      "task": "Reconcile the documented pricing rounding rule with the contradictory implementation evidence."
+    },
+    {
+      "candidate": {
+        "changedFiles": [
+          ".wiki/conflict-map.json",
+          ".wiki/state.json",
+          "src/export/job.ts",
+          "test/export/job.test.ts",
+          "wiki/conflicts.md",
+          "wiki/conflicts/resolved/C-201.md",
+          "wiki/current-status.md",
+          "wiki/features/export.md",
+          "wiki/work-queue.md"
+        ],
+        "findingCodes": [],
+        "gatesPass": true,
+        "impactExitCode": 0,
+        "lintExitCode": 0,
+        "observedWikiAction": "update"
+      },
+      "category": "existing-conflict",
+      "coverage": [
+        {
+          "coveredBy": [
+            "src/**/*.ts"
+          ],
+          "disposition": "mapped",
+          "exclusion": null,
+          "mappedCurrentPageIds": [
+            "features/export",
+            "product/data-retention"
+          ],
+          "passes": true,
+          "path": "src/export/job.ts"
+        },
+        {
+          "coveredBy": [
+            "test/**/*.ts"
+          ],
+          "disposition": "mapped",
+          "exclusion": null,
+          "mappedCurrentPageIds": [
+            "features/export",
+            "product/data-retention"
+          ],
+          "passes": true,
+          "path": "test/export/job.test.ts"
+        }
+      ],
+      "discovery": {
+        "contextConflictIds": [
+          "C-201"
+        ],
+        "contextCurrentPageIds": [
+          "features/export"
+        ],
+        "contextInvariantIds": [
+          "product/data-retention"
+        ],
+        "contextNonCurrentPageIds": [],
+        "searchMatches": [
+          {
+            "id": "conflict/C-201",
+            "status": "conflicted"
+          },
+          {
+            "id": "features/export",
+            "status": "current"
+          },
+          {
+            "id": "product/data-retention",
+            "status": "current"
+          }
+        ],
+        "surfacedSourceFiles": [
+          "src/export/job.ts",
+          "test/export/job.test.ts"
+        ]
+      },
+      "driftProbes": [
+        {
+          "caught": true,
+          "findingCodes": [
+            "stale-verification"
+          ],
+          "impactExitCode": 1,
+          "lintExitCode": 0,
+          "sourcePath": "src/export/job.ts"
+        },
+        {
+          "caught": true,
+          "findingCodes": [
+            "stale-verification"
+          ],
+          "impactExitCode": 1,
+          "lintExitCode": 0,
+          "sourcePath": "test/export/job.test.ts"
+        }
+      ],
+      "evaluation": {
+        "category": "existing-conflict",
+        "commandSequence": [
+          "bun run wiki:search -- \"Change export retention behavior while preserving or resolving the recorded retention conflict.\" --json",
+          "bun run wiki:context -- \"Change export retention behavior while preserving or resolving the recorded retention conflict.\" --json",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change src/export/job.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change test/export/job.test.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "contractVersion": 1,
+        "driftEscapes": [],
+        "expectationsMet": true,
+        "irrelevantPages": [],
+        "metrics": {
+          "authorityLabelRecall": {
+            "found": 2,
+            "ratio": 1,
+            "required": 2
+          },
+          "commandCount": 10,
+          "conflictRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "contextBytes": 6240,
+          "currentPageRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "driftEscapeCount": 0,
+          "expectedChangeRecall": {
+            "found": 5,
+            "ratio": 1,
+            "required": 5
+          },
+          "implementationSourceRecall": {
+            "found": 2,
+            "ratio": 1,
+            "required": 2
+          },
+          "invariantRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "irrelevantPageCount": 0,
+          "nonCurrentAuthorityLabelRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "unmappedChangedFileCount": 0
+        },
+        "scenarioId": "primary-v1-existing-conflict",
+        "unmappedChangedFiles": [],
+        "wikiActionMatches": true
+      },
+      "expectedWikiAction": "update",
+      "nonCurrentSeparation": {
+        "matches": true,
+        "misplacedAsCurrentPageIds": [],
+        "observedNonCurrentPageIds": [],
+        "requiredPageIds": []
+      },
+      "observation": {
+        "authorities": [
+          {
+            "authority": "normative",
+            "pageId": "product/data-retention",
+            "status": "current"
+          },
+          {
+            "authority": "observed",
+            "pageId": "features/export",
+            "status": "current"
+          }
+        ],
+        "changedFiles": [
+          ".wiki/conflict-map.json",
+          ".wiki/state.json",
+          "src/export/job.ts",
+          "test/export/job.test.ts",
+          "wiki/conflicts.md",
+          "wiki/conflicts/resolved/C-201.md",
+          "wiki/current-status.md",
+          "wiki/features/export.md",
+          "wiki/work-queue.md"
+        ],
+        "commands": [
+          "bun run wiki:search -- \"Change export retention behavior while preserving or resolving the recorded retention conflict.\" --json",
+          "bun run wiki:context -- \"Change export retention behavior while preserving or resolving the recorded retention conflict.\" --json",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change src/export/job.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change test/export/job.test.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "conflicts": [
+          "C-201"
+        ],
+        "contextBytes": 6240,
+        "driftEscapes": [],
+        "sources": [
+          "src/export/job.ts",
+          "test/export/job.test.ts"
+        ],
+        "unmappedChangedFiles": [],
+        "wikiAction": "update"
+      },
+      "passes": true,
+      "scenarioId": "primary-v1-existing-conflict",
+      "task": "Change export retention behavior while preserving or resolving the recorded retention conflict."
+    },
+    {
+      "candidate": {
+        "changedFiles": [
+          ".wiki/state.json",
+          "db/migrations/0042_order_audit.sql",
+          "src/orders/service.ts",
+          "test/orders/audit.test.ts",
+          "wiki/architecture/data.md",
+          "wiki/features/orders.md"
+        ],
+        "findingCodes": [],
+        "gatesPass": true,
+        "impactExitCode": 0,
+        "lintExitCode": 0,
+        "observedWikiAction": "update"
+      },
+      "category": "multi-area-change",
+      "coverage": [
+        {
+          "coveredBy": [
+            "db/**/*.sql"
+          ],
+          "disposition": "mapped",
+          "exclusion": null,
+          "mappedCurrentPageIds": [
+            "architecture/data",
+            "features/orders"
+          ],
+          "passes": true,
+          "path": "db/migrations/0042_order_audit.sql"
+        },
+        {
+          "coveredBy": [
+            "src/**/*.ts"
+          ],
+          "disposition": "mapped",
+          "exclusion": null,
+          "mappedCurrentPageIds": [
+            "architecture/data",
+            "features/orders"
+          ],
+          "passes": true,
+          "path": "src/orders/service.ts"
+        },
+        {
+          "coveredBy": [
+            "test/**/*.ts"
+          ],
+          "disposition": "mapped",
+          "exclusion": null,
+          "mappedCurrentPageIds": [
+            "architecture/data",
+            "features/orders"
+          ],
+          "passes": true,
+          "path": "test/orders/audit.test.ts"
+        }
+      ],
+      "discovery": {
+        "contextConflictIds": [],
+        "contextCurrentPageIds": [
+          "architecture/data",
+          "features/orders"
+        ],
+        "contextInvariantIds": [],
+        "contextNonCurrentPageIds": [],
+        "searchMatches": [
+          {
+            "id": "architecture/data",
+            "status": "current"
+          },
+          {
+            "id": "features/orders",
+            "status": "current"
+          }
+        ],
+        "surfacedSourceFiles": [
+          "db/migrations/0042_order_audit.sql",
+          "src/orders/service.ts",
+          "test/orders/audit.test.ts"
+        ]
+      },
+      "driftProbes": [
+        {
+          "caught": true,
+          "findingCodes": [
+            "stale-verification"
+          ],
+          "impactExitCode": 1,
+          "lintExitCode": 0,
+          "sourcePath": "db/migrations/0042_order_audit.sql"
+        },
+        {
+          "caught": true,
+          "findingCodes": [
+            "stale-verification"
+          ],
+          "impactExitCode": 1,
+          "lintExitCode": 0,
+          "sourcePath": "src/orders/service.ts"
+        },
+        {
+          "caught": true,
+          "findingCodes": [
+            "stale-verification"
+          ],
+          "impactExitCode": 1,
+          "lintExitCode": 0,
+          "sourcePath": "test/orders/audit.test.ts"
+        }
+      ],
+      "evaluation": {
+        "category": "multi-area-change",
+        "commandSequence": [
+          "bun run wiki:search -- \"Persist order audit records while changing both the order service and the data model.\" --json",
+          "bun run wiki:context -- \"Persist order audit records while changing both the order service and the data model.\" --json",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change db/migrations/0042_order_audit.sql without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change src/orders/service.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change test/orders/audit.test.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "contractVersion": 1,
+        "driftEscapes": [],
+        "expectationsMet": true,
+        "irrelevantPages": [],
+        "metrics": {
+          "authorityLabelRecall": {
+            "found": 2,
+            "ratio": 1,
+            "required": 2
+          },
+          "commandCount": 13,
+          "conflictRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "contextBytes": 4993,
+          "currentPageRecall": {
+            "found": 2,
+            "ratio": 1,
+            "required": 2
+          },
+          "driftEscapeCount": 0,
+          "expectedChangeRecall": {
+            "found": 6,
+            "ratio": 1,
+            "required": 6
+          },
+          "implementationSourceRecall": {
+            "found": 3,
+            "ratio": 1,
+            "required": 3
+          },
+          "invariantRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "irrelevantPageCount": 0,
+          "nonCurrentAuthorityLabelRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "unmappedChangedFileCount": 0
+        },
+        "scenarioId": "primary-v1-multi-area-change",
+        "unmappedChangedFiles": [],
+        "wikiActionMatches": true
+      },
+      "expectedWikiAction": "update",
+      "nonCurrentSeparation": {
+        "matches": true,
+        "misplacedAsCurrentPageIds": [],
+        "observedNonCurrentPageIds": [],
+        "requiredPageIds": []
+      },
+      "observation": {
+        "authorities": [
+          {
+            "authority": "observed",
+            "pageId": "architecture/data",
+            "status": "current"
+          },
+          {
+            "authority": "observed",
+            "pageId": "features/orders",
+            "status": "current"
+          }
+        ],
+        "changedFiles": [
+          ".wiki/state.json",
+          "db/migrations/0042_order_audit.sql",
+          "src/orders/service.ts",
+          "test/orders/audit.test.ts",
+          "wiki/architecture/data.md",
+          "wiki/features/orders.md"
+        ],
+        "commands": [
+          "bun run wiki:search -- \"Persist order audit records while changing both the order service and the data model.\" --json",
+          "bun run wiki:context -- \"Persist order audit records while changing both the order service and the data model.\" --json",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change db/migrations/0042_order_audit.sql without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change src/orders/service.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change test/orders/audit.test.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "conflicts": [],
+        "contextBytes": 4993,
+        "driftEscapes": [],
+        "sources": [
+          "db/migrations/0042_order_audit.sql",
+          "src/orders/service.ts",
+          "test/orders/audit.test.ts"
+        ],
+        "unmappedChangedFiles": [],
+        "wikiAction": "update"
+      },
+      "passes": true,
+      "scenarioId": "primary-v1-multi-area-change",
+      "task": "Persist order audit records while changing both the order service and the data model."
+    },
+    {
+      "candidate": {
+        "changedFiles": [
+          ".wiki/state.json",
+          "src/search/query.ts",
+          "test/search/query.test.ts",
+          "wiki/product/search.md"
+        ],
+        "findingCodes": [],
+        "gatesPass": true,
+        "impactExitCode": 0,
+        "lintExitCode": 0,
+        "observedWikiAction": "update"
+      },
+      "category": "mixed-current-proposed-query",
+      "coverage": [
+        {
+          "coveredBy": [
+            "src/**/*.ts"
+          ],
+          "disposition": "mapped",
+          "exclusion": null,
+          "mappedCurrentPageIds": [
+            "product/search"
+          ],
+          "passes": true,
+          "path": "src/search/query.ts"
+        },
+        {
+          "coveredBy": [
+            "test/**/*.ts"
+          ],
+          "disposition": "mapped",
+          "exclusion": null,
+          "mappedCurrentPageIds": [
+            "product/search"
+          ],
+          "passes": true,
+          "path": "test/search/query.test.ts"
+        }
+      ],
+      "discovery": {
+        "contextConflictIds": [],
+        "contextCurrentPageIds": [
+          "product/search"
+        ],
+        "contextInvariantIds": [],
+        "contextNonCurrentPageIds": [
+          "proposal/search-ranking"
+        ],
+        "searchMatches": [
+          {
+            "id": "product/search",
+            "status": "current"
+          },
+          {
+            "id": "proposal/search-ranking",
+            "status": "proposed"
+          }
+        ],
+        "surfacedSourceFiles": [
+          "src/search/query.ts",
+          "test/search/query.test.ts"
+        ]
+      },
+      "driftProbes": [
+        {
+          "caught": true,
+          "findingCodes": [
+            "stale-verification"
+          ],
+          "impactExitCode": 1,
+          "lintExitCode": 0,
+          "sourcePath": "src/search/query.ts"
+        },
+        {
+          "caught": true,
+          "findingCodes": [
+            "stale-verification"
+          ],
+          "impactExitCode": 1,
+          "lintExitCode": 0,
+          "sourcePath": "test/search/query.test.ts"
+        }
+      ],
+      "evaluation": {
+        "category": "mixed-current-proposed-query",
+        "commandSequence": [
+          "bun run wiki:search -- \"Improve search relevance under the current search contract despite a similarly named future ranking proposal.\" --json",
+          "bun run wiki:context -- \"Improve search relevance under the current search contract despite a similarly named future ranking proposal.\" --json",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change src/search/query.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change test/search/query.test.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "contractVersion": 1,
+        "driftEscapes": [],
+        "expectationsMet": true,
+        "irrelevantPages": [],
+        "metrics": {
+          "authorityLabelRecall": {
+            "found": 2,
+            "ratio": 1,
+            "required": 2
+          },
+          "commandCount": 10,
+          "conflictRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "contextBytes": 3935,
+          "currentPageRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "driftEscapeCount": 0,
+          "expectedChangeRecall": {
+            "found": 4,
+            "ratio": 1,
+            "required": 4
+          },
+          "implementationSourceRecall": {
+            "found": 2,
+            "ratio": 1,
+            "required": 2
+          },
+          "invariantRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "irrelevantPageCount": 0,
+          "nonCurrentAuthorityLabelRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "unmappedChangedFileCount": 0
+        },
+        "scenarioId": "primary-v1-mixed-current-proposed-query",
+        "unmappedChangedFiles": [],
+        "wikiActionMatches": true
+      },
+      "expectedWikiAction": "update",
+      "nonCurrentSeparation": {
+        "matches": true,
+        "misplacedAsCurrentPageIds": [],
+        "observedNonCurrentPageIds": [
+          "proposal/search-ranking"
+        ],
+        "requiredPageIds": [
+          "proposal/search-ranking"
+        ]
+      },
+      "observation": {
+        "authorities": [
+          {
+            "authority": "normative",
+            "pageId": "product/search",
+            "status": "current"
+          },
+          {
+            "authority": "normative",
+            "pageId": "proposal/search-ranking",
+            "status": "proposed"
+          }
+        ],
+        "changedFiles": [
+          ".wiki/state.json",
+          "src/search/query.ts",
+          "test/search/query.test.ts",
+          "wiki/product/search.md"
+        ],
+        "commands": [
+          "bun run wiki:search -- \"Improve search relevance under the current search contract despite a similarly named future ranking proposal.\" --json",
+          "bun run wiki:context -- \"Improve search relevance under the current search contract despite a similarly named future ranking proposal.\" --json",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change src/search/query.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change test/search/query.test.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "conflicts": [],
+        "contextBytes": 3935,
+        "driftEscapes": [],
+        "sources": [
+          "src/search/query.ts",
+          "test/search/query.test.ts"
+        ],
+        "unmappedChangedFiles": [],
+        "wikiAction": "update"
+      },
+      "passes": true,
+      "scenarioId": "primary-v1-mixed-current-proposed-query",
+      "task": "Improve search relevance under the current search contract despite a similarly named future ranking proposal."
+    },
+    {
+      "candidate": {
+        "changedFiles": [
+          ".wiki/coverage.json",
+          ".wiki/state.json",
+          "scripts/wiki/parsers/edge.test.ts",
+          "scripts/wiki/parsers/edge.ts",
+          "wiki/architecture/engine.md"
+        ],
+        "findingCodes": [],
+        "gatesPass": true,
+        "impactExitCode": 0,
+        "lintExitCode": 0,
+        "observedWikiAction": "update"
+      },
+      "category": "coverage-edge",
+      "coverage": [
+        {
+          "coveredBy": [
+            "scripts/wiki/**/*.ts"
+          ],
+          "disposition": "mapped",
+          "exclusion": null,
+          "mappedCurrentPageIds": [
+            "architecture/engine"
+          ],
+          "passes": true,
+          "path": "scripts/wiki/parsers/edge.test.ts"
+        },
+        {
+          "coveredBy": [
+            "scripts/wiki/**/*.ts"
+          ],
+          "disposition": "mapped",
+          "exclusion": null,
+          "mappedCurrentPageIds": [
+            "architecture/engine"
+          ],
+          "passes": true,
+          "path": "scripts/wiki/parsers/edge.ts"
+        }
+      ],
+      "discovery": {
+        "contextConflictIds": [],
+        "contextCurrentPageIds": [
+          "architecture/engine"
+        ],
+        "contextInvariantIds": [
+          "product/invariants"
+        ],
+        "contextNonCurrentPageIds": [],
+        "searchMatches": [
+          {
+            "id": "architecture/engine",
+            "status": "current"
+          },
+          {
+            "id": "product/invariants",
+            "status": "current"
+          }
+        ],
+        "surfacedSourceFiles": [
+          ".wiki/coverage.json",
+          "scripts/wiki/parsers/edge.test.ts",
+          "scripts/wiki/parsers/edge.ts",
+          "scripts/wiki/root.ts"
+        ]
+      },
+      "driftProbes": [
+        {
+          "caught": true,
+          "findingCodes": [
+            "stale-verification"
+          ],
+          "impactExitCode": 1,
+          "lintExitCode": 0,
+          "sourcePath": "scripts/wiki/parsers/edge.test.ts"
+        },
+        {
+          "caught": true,
+          "findingCodes": [
+            "stale-verification"
+          ],
+          "impactExitCode": 1,
+          "lintExitCode": 0,
+          "sourcePath": "scripts/wiki/parsers/edge.ts"
+        }
+      ],
+      "evaluation": {
+        "category": "coverage-edge",
+        "commandSequence": [
+          "bun run wiki:search -- \"Add a nested wiki parser and close the coverage and source-mapping edge it exposes.\" --json",
+          "bun run wiki:context -- \"Add a nested wiki parser and close the coverage and source-mapping edge it exposes.\" --json",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change scripts/wiki/parsers/edge.test.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change scripts/wiki/parsers/edge.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "contractVersion": 1,
+        "driftEscapes": [],
+        "expectationsMet": true,
+        "irrelevantPages": [],
+        "metrics": {
+          "authorityLabelRecall": {
+            "found": 2,
+            "ratio": 1,
+            "required": 2
+          },
+          "commandCount": 10,
+          "conflictRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "contextBytes": 4458,
+          "currentPageRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "driftEscapeCount": 0,
+          "expectedChangeRecall": {
+            "found": 5,
+            "ratio": 1,
+            "required": 5
+          },
+          "implementationSourceRecall": {
+            "found": 3,
+            "ratio": 1,
+            "required": 3
+          },
+          "invariantRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "irrelevantPageCount": 0,
+          "nonCurrentAuthorityLabelRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "unmappedChangedFileCount": 0
+        },
+        "scenarioId": "primary-v1-coverage-edge",
+        "unmappedChangedFiles": [],
+        "wikiActionMatches": true
+      },
+      "expectedWikiAction": "update",
+      "nonCurrentSeparation": {
+        "matches": true,
+        "misplacedAsCurrentPageIds": [],
+        "observedNonCurrentPageIds": [],
+        "requiredPageIds": []
+      },
+      "observation": {
+        "authorities": [
+          {
+            "authority": "normative",
+            "pageId": "product/invariants",
+            "status": "current"
+          },
+          {
+            "authority": "observed",
+            "pageId": "architecture/engine",
+            "status": "current"
+          }
+        ],
+        "changedFiles": [
+          ".wiki/coverage.json",
+          ".wiki/state.json",
+          "scripts/wiki/parsers/edge.test.ts",
+          "scripts/wiki/parsers/edge.ts",
+          "wiki/architecture/engine.md"
+        ],
+        "commands": [
+          "bun run wiki:search -- \"Add a nested wiki parser and close the coverage and source-mapping edge it exposes.\" --json",
+          "bun run wiki:context -- \"Add a nested wiki parser and close the coverage and source-mapping edge it exposes.\" --json",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change scripts/wiki/parsers/edge.test.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json",
+          "change scripts/wiki/parsers/edge.ts without wiki reconciliation",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "conflicts": [],
+        "contextBytes": 4458,
+        "driftEscapes": [],
+        "sources": [
+          ".wiki/coverage.json",
+          "scripts/wiki/parsers/edge.test.ts",
+          "scripts/wiki/parsers/edge.ts",
+          "scripts/wiki/root.ts"
+        ],
+        "unmappedChangedFiles": [],
+        "wikiAction": "update"
+      },
+      "passes": true,
+      "scenarioId": "primary-v1-coverage-edge",
+      "task": "Add a nested wiki parser and close the coverage and source-mapping edge it exposes."
+    }
+  ],
+  "summary": {
+    "authorityLabelRecall": {
+      "found": 14,
+      "ratio": 1,
+      "required": 14
+    },
+    "candidateGatesPassing": 8,
+    "conflictRecall": {
+      "found": 2,
+      "ratio": 1,
+      "required": 2
+    },
+    "contextBytes": 34894,
+    "coveragePathCount": 17,
+    "currentPageRecall": {
+      "found": 9,
+      "ratio": 1,
+      "required": 9
+    },
+    "driftEscapeCount": 0,
+    "driftProbeCount": 17,
+    "driftProbesCaught": 17,
+    "expectedChangeRecall": {
+      "found": 32,
+      "ratio": 1,
+      "required": 32
+    },
+    "implementationSourceRecall": {
+      "found": 18,
+      "ratio": 1,
+      "required": 18
+    },
+    "invariantRecall": {
+      "found": 4,
+      "ratio": 1,
+      "required": 4
+    },
+    "irrelevantPageCount": 0,
+    "mappedCoveragePathCount": 17,
+    "nonCurrentAuthorityLabelRecall": {
+      "found": 1,
+      "ratio": 1,
+      "required": 1
+    },
+    "nonCurrentSeparationMatches": 8,
+    "reasonedExclusionPathCount": 0,
+    "scenarioCount": 8,
+    "scenariosPassing": 8,
+    "uncoveredPathCount": 0,
+    "wikiActionMatches": 8
+  }
+}

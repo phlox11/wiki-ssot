@@ -51,6 +51,22 @@ The engine is provider- and framework-agnostic. Three adapters stay outside its 
 
 `scripts/wiki/primary-scenarios.ts` is the repository-specific, versioned Primary-validation contract. Its eight synthetic scenarios declare tasks, required authorities and sources, relevant conflicts, expected changes, and wiki actions. A deterministic evaluator turns collected observations into recall, authority-labelling, irrelevant-context, coverage, context-size, command-sequence, and drift-escape metrics without invoking an LLM; `scripts/wiki/primary-scenarios.test.ts` locks category coverage, incomplete observations, and byte-stable results. `scripts/wiki/primary-baseline.ts` materializes those scenarios in a temporary git fixture, executes the unmodified default search/context path plus lint/impact drift probes, and reproduces the checked-in PV-05 JSON report and interpretation against immutable engine revision `58869b75dc23374b918a79d9731c601764018ead`. When the working engine no longer matches that revision, the runner clones the repository locally, detaches the clone at the pinned revision, reuses the installed dependency tree, and delegates measurement to that historical engine; current engine changes therefore cannot rewrite the evidence. That revision includes PV-08's kit-only adoption defaults; the measured Primary discovery and drift results remain unchanged. The runner removes ambient `GITHUB_EVENT_NAME` and `WIKI_PR_BODY` from fixture commands so GitHub Actions pull-request context cannot contaminate the synthetic measurements; its tests bind the evidence byte-for-byte, repeat the check under injected PR event metadata, and advance `origin/main` in an isolated clone to prove the historical evidence remains current after merge. These files intentionally stay outside `KIT_ENTRIES`: they validate this publishing repository's roadmap and are not part of the downstream toolkit.
 
+`scripts/wiki/primary-current.ts` re-evaluates the same eight-scenario contract
+against exact combined post-PV-16/PV-17/PV-18 revision
+`8b93a6f6e8026963b5cdd49cbb7a8b737e71b9ec`. Its synthetic fixture uses the
+recursive `scripts/wiki` coverage, source-mapping, and risk boundary, observes
+generic topic context through the shared JSON model, materializes every
+declared candidate, and probes every implementation/test source independently
+for code-only drift. The checked-in PV-19 JSON report records per-scenario
+authority, status, source, conflict, non-current separation, wiki action,
+coverage disposition, reconciled candidate gates, and drift-gate results;
+`scripts/wiki/primary-current.test.ts` binds it and its interpretation
+byte-for-byte to the evaluated revision. The coverage-edge implementation and
+test paths are each required to map to `architecture/engine` and fail enforced
+impact with stale verification when changed without reconciliation. Like the
+PV-05 measurement files, the PV-19 runner and report validate this publishing
+repository and stay outside `KIT_ENTRIES`.
+
 ## Kit distribution
 
 The engine also emits its own copy-paste distribution. `KIT_ENTRIES` in `scripts/wiki/core.ts` names every file the kit ships, how it is produced (verbatim copy, `kit:exclude` strip, literal template, or `package.json` fragment), and its placement; `wiki:kit` writes `kit/**` and `wiki:kit --check` fails on drift, deletes nothing silently, and reports a file under `kit/` the table no longer produces as an orphan. `kit/README.md` is hand-written and stays outside generator ownership.

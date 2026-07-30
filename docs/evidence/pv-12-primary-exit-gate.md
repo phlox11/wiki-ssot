@@ -5,9 +5,9 @@
 The owner selected **Primary needs another focused cycle**.
 
 This record is a decision contract, not evidence that Primary is validated.
-`PV-12` remains open and waiting only on `PV-19`. PV-16, PV-17, and PV-18 have
-closed their focused criteria, while the current-engine eight-scenario report
-still must close the remaining criterion below. The current product scope is
+`PV-12` remains open but becomes ready for a new owner evaluation now that
+PV-16 through PV-19 have closed every bounded focused criterion. This evidence
+update does not choose that owner outcome. The current product scope is
 unchanged, and `PV-13` through `PV-15` remain deferred.
 
 ## Evidence-backed criteria
@@ -33,15 +33,18 @@ unchanged, and `PV-13` through `PV-15` remain deferred.
   in text and JSON while explicitly separating non-current rationale. The
   current-kit existing-repository pilot also exercised that output over
   billing, delivery, and C-501.
+- PV-19 reran all eight scenarios against exact combined revision
+  `8b93a6f6e8026963b5cdd49cbb7a8b737e71b9ec`. Its report records complete
+  current-page, invariant, conflict, implementation-source,
+  status-plus-authority, non-current separation, expected-action, coverage, and
+  drift-gate results with no remaining measured miss.
 
 ### Failed or incomplete
 
-1. **There is no post-fix current-engine eight-scenario report.** PV-05 is
-   intentionally pinned to immutable engine revision
-   `58869b75dc23374b918a79d9731c601764018ead`. PV-06 and PV-07 preserve that
-   historical evidence rather than rewriting it, so it cannot demonstrate that
-   the current engine satisfies all eight exit-gate scenarios after PV-16,
-   PV-17, and the current-kit PV-18 pilot. PV-19 owns that reproducible report.
+None within the bounded focused cycle. PV-12 still requires a separate owner
+evaluation of its unchanged acceptance contract before the repository may
+claim Primary validated, select another focused cycle, or change product
+priority.
 
 ### Closed during the focused cycle
 
@@ -71,25 +74,30 @@ unchanged, and `PV-13` through `PV-15` remain deferred.
    a new context-isolated review returned `PASS` for exact pilot HEAD
    `29d91ed4414f44280042d68eec6f0dee9f63c988` and bundle digest
    `80196617fd51ab62d19727e1126562816d0019f083696ef6b77c2b4aecebd2ad`.
+- **The combined current engine passes all eight Primary scenarios.** PV-19
+  binds its byte-reproducible report to exact revision
+  `8b93a6f6e8026963b5cdd49cbb7a8b737e71b9ec`, preserves the immutable PV-05
+  baseline, maps every implementation/test path to current authority, and
+  records zero drift escape.
 
 ## Bounded follow-up graph
 
-The three independent lanes from completed PV-11 are now done:
+The complete bounded focused cycle is now done:
 
 - PV-16 closed recursive publishing boundaries.
 - PV-17 closed generic topic-context completeness.
 - PV-18 closed the existing-repository independent-review criterion and
   revalidated it against the combined current kit.
+- PV-19 closed the byte-reproducible current-engine scenario criterion.
 
-PV-19 is therefore ready and records the byte-reproducible current-engine
-evaluation of all eight Primary scenarios. PV-12 waits only for PV-19 before
-reevaluating the original exit-gate acceptance contract.
+PV-12 is therefore ready to reevaluate the original exit-gate acceptance
+contract. This evidence update deliberately leaves its owner outcome open.
 
 ## Non-goals
 
 - Do not mark `PV-12` done or claim Primary validated in this decision PR.
 - Do not change the current product scope.
-- Do not rewrite completed PV-16 through PV-18 evidence or implement PV-19 in
-  this evidence update.
+- Do not rewrite completed PV-16 through PV-19 evidence or choose the PV-12
+  owner outcome in this evidence update.
 - Do not activate `PV-13`, `PV-14`, or `PV-15` without their existing evidence
   triggers.
