@@ -61,13 +61,14 @@ describe("PV-05 Primary baseline", () => {
       .toBe(renderPrimaryBaselineInterpretation(report));
   });
 
-  test("ignores ambient CI pull-request metadata", () => {
+  test("ignores ambient CI pull-request event metadata", () => {
     const result = Bun.spawnSync(
       [process.execPath, resolve(import.meta.dir, "primary-baseline.ts"), "--check"],
       {
         cwd: root,
         env: {
           ...process.env,
+          GITHUB_EVENT_NAME: "pull_request",
           WIKI_PR_BODY: "ambient CI metadata must not change synthetic fixture measurements",
         },
         stdout: "pipe",

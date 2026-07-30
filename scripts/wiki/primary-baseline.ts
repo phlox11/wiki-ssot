@@ -126,6 +126,7 @@ function putAbsolute(path: string, content: string) {
 
 function commandEnvironment(): Record<string, string | undefined> {
   const environment = { ...process.env };
+  delete environment.GITHUB_EVENT_NAME;
   delete environment.WIKI_PR_BODY;
   return environment;
 }
