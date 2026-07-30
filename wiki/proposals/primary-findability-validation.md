@@ -21,6 +21,7 @@ sources:
   - path: scripts/wiki/primary-baseline.test.ts
   - path: docs/evidence/pv-05-primary-baseline.json
   - path: docs/evidence/pv-05-primary-baseline.md
+  - path: scripts/wiki/new-repository-adoption.test.ts
   - path: wiki/SCHEMA.md
   - path: wiki/WORKFLOW.md
   - path: docs/commands.md
@@ -142,7 +143,7 @@ work_items:
     evidence: []
   - id: PV-08
     title: Validate new-repository adoption and coverage growth
-    state: not-started
+    state: done
     priority: high
     depends_on: [PV-04]
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
@@ -150,7 +151,9 @@ work_items:
       - The empty repository starting state and expected point of becoming green are explicit.
       - The first feature adds code, a current page, source mapping, coverage, verification, and tests in one candidate.
       - Generated, lint, doctor, impact, typecheck, test, and applicable review preflight gates pass.
-    evidence: []
+    evidence:
+      - scripts/wiki/new-repository-adoption.test.ts
+      - docs/adopt-new-repo.md
   - id: PV-09
     title: Validate existing-repository bootstrap and coverage closure
     state: not-started

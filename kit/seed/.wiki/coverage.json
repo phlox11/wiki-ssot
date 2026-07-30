@@ -1,7 +1,5 @@
 {
   "exclusions": [],
-  "include": [
-    "src/**/*.ts"
-  ],
+  "include": [],
   "version": 1
 }

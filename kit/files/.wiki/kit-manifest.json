@@ -1,5 +1,5 @@
 {
-  "digest": "b09e89060e29f3f16ed7a65c1c2d5d0afc90c08883174cdfa8feebe80f69118a",
+  "digest": "e9e593b7334dfa39162152dd8a132cca4285e30715aa9e8fbafcacfae8ec9ea0",
   "files": {
     ".github/pull_request_template.md": {
       "ownership": "kit",
@@ -12,6 +12,10 @@
     ".github/workflows/wiki-audit.yml": {
       "ownership": "kit",
       "sha256": "33a3bf1dcf6482a293f137a4cfc332eb8804639bd3b8d950a9244fa6fdda97f4"
+    },
+    ".gitignore": {
+      "ownership": "seed",
+      "sha256": "2f9aebd7a15d0a9e62d69bff1c888bb93ec5eab506a9db272de622defda4735c"
     },
     ".husky/pre-commit": {
       "ownership": "kit",
@@ -27,7 +31,7 @@
     },
     ".wiki/coverage.json": {
       "ownership": "seed",
-      "sha256": "a5c460f39b33031b7c466ba7535498d24c451419eff1739d773379242077cdc6"
+      "sha256": "fa0de10e9cd5c3024bfaff43f7b272bf812558c048891a2cfdc337299b74cdf7"
     },
     ".wiki/state.json": {
       "ownership": "seed",
@@ -47,7 +51,7 @@
     },
     "scripts/wiki/core.ts": {
       "ownership": "kit",
-      "sha256": "a9613c2765fe3e02490d016f1f0aeafaf5a79d72c79d5951f7310bf499e2ec22"
+      "sha256": "e89ee19aac773131dc5c48a7498864585c529086d6bd4f4d69f4a03150f57380"
     },
     "scripts/wiki/fresh-context.test.ts": {
       "ownership": "kit",
