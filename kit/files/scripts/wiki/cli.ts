@@ -23,6 +23,7 @@ import {
   parseFreshContextPolicy,
   readConfig,
   reviewCheck,
+  searchWikiPages,
   validateIntegrationSeams,
   validatePages,
   validatePrMetadata,
@@ -327,12 +328,13 @@ async function main() {
   if (command === "search") {
     const query = parsed.positional.join(" ").trim() || one(parsed, "query")?.trim();
     if (!query) throw new UsageError("search requires a query");
-    const terms = query.toLowerCase().split(/\s+/);
-    const matches = loaded.pages.map((page) => {
-      const haystack = `${page.data.id} ${page.data.summary} ${(page.data.tags ?? []).join(" ")} ${page.body}`.toLowerCase();
-      const score = terms.reduce((total, term) => total + (haystack.includes(term) ? 1 : 0), 0);
-      return { id: page.data.id, path: page.path, summary: page.data.summary, status: page.data.status, score };
-    }).filter((item) => item.score > 0).sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
+    const matches = searchWikiPages(loaded.pages, query).map(({ page, score }) => ({
+      id: page.data.id,
+      path: page.path,
+      summary: page.data.summary,
+      status: page.data.status,
+      score,
+    }));
     if (json) emit({ query, matches }, true);
     else emit(matches.map((item) => `${item.id}\t${item.status}\t${item.path}\t${item.summary}`).join("\n") || "no matches", false);
     return;
@@ -461,10 +463,7 @@ async function main() {
       for (const id of page.data.affected_pages ?? []) ids.add(id);
       for (const id of page.data.affected_invariants ?? []) ids.add(id);
     } else if (query) {
-      const terms = query.toLowerCase().split(/\s+/);
-      for (const page of loaded.pages) {
-        const text = `${page.data.id} ${page.data.summary} ${(page.data.tags ?? []).join(" ")} ${page.body}`.toLowerCase();
-        if (!terms.some((term) => text.includes(term))) continue;
+      for (const { page } of searchWikiPages(loaded.pages, query)) {
         if (page.data.kind === "conflict") conflictIds.add(page.data.conflict_id!);
         else ids.add(page.data.id);
       }

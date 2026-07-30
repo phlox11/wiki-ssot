@@ -24,6 +24,7 @@ import {
   makeReviewBundle,
   parsePrMetadata,
   parseWikiPage,
+  searchWikiPages,
   validateMarkdownLinks,
   validatePages,
   validateCoverage,
@@ -193,6 +194,27 @@ describe("staged snapshot", () => {
     put(root, "new.md", "staged content\n");
     run(root, ["git", "add", "new.md"]);
     expect(createRepoView(root, true).read("new.md")).toBe("staged content\n");
+  });
+});
+
+describe("baseline-proven query relevance", () => {
+  test("keeps deterministic partial matches when no page contains every query term", () => {
+    const pages = [
+      parseWikiPage("wiki/features/checkout.md", `${frontmatter({
+        id: "features/checkout",
+        summary: "Refund checkout behavior.",
+        kind: "feature",
+      })}\nPartial refunds are supported.\n`),
+      parseWikiPage("wiki/features/orders.md", `${frontmatter({
+        id: "features/orders",
+        summary: "Order export behavior.",
+        kind: "feature",
+      })}\nOrder exports are supported.\n`),
+    ];
+    expect(searchWikiPages(pages, "refund order").map((item) => item.page.data.id)).toEqual([
+      "features/checkout",
+      "features/orders",
+    ]);
   });
 });
 

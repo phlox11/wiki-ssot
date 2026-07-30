@@ -17,7 +17,9 @@ import {
   jsonStable,
   loadWikiPages,
   mappedPages,
+  parseWikiPage,
   type WikiAuthority,
+  type WikiPage,
   type WikiSource,
   type WikiStatus,
 } from "./core";
@@ -293,6 +295,19 @@ function fixturePages(): FixturePage[] {
     }
   }
   return [...pages.values()].sort((a, b) => a.id.localeCompare(b.id));
+}
+
+export function materializePrimaryBaselineFixturePages(): WikiPage[] {
+  const rendered = new Map<string, string>();
+  for (const item of PRIMARY_SCENARIO_SUITE.scenarios) {
+    for (const conflict of item.requiredConflicts) {
+      rendered.set(`wiki/conflicts/open/${conflict}.md`, renderConflict(item, conflict));
+    }
+  }
+  for (const page of fixturePages()) rendered.set(pagePath(page.id), renderPage(page));
+  return [...rendered.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([path, raw]) => parseWikiPage(path, raw));
 }
 
 function createFixture(root: string) {

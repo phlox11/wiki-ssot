@@ -9,9 +9,10 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { jsonStable } from "./core";
+import { jsonStable, searchWikiPages, type WikiPage } from "./core";
 import {
   buildPrimaryBaselineReport,
+  materializePrimaryBaselineFixturePages,
   PRIMARY_BASELINE_ENGINE_REF,
   renderPrimaryBaselineInterpretation,
   type PrimaryBaselineReport,
@@ -20,6 +21,21 @@ import { PRIMARY_SCENARIO_SUITE } from "./primary-scenarios";
 
 const root = resolve(import.meta.dir, "../..");
 let report: PrimaryBaselineReport;
+
+function matchedTerms(page: WikiPage, query: string): string[] {
+  const haystack = `${page.data.id} ${page.data.summary} ${(page.data.tags ?? []).join(" ")} ${page.body}`.toLowerCase();
+  return query.toLowerCase().split(/\s+/).filter((term) => haystack.includes(term));
+}
+
+function originalAnyTermSearch(pages: WikiPage[], query: string) {
+  return pages.map((page) => ({
+    id: page.data.id,
+    status: page.data.status,
+    score: matchedTerms(page, query).length,
+  }))
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
+}
 
 beforeAll(() => {
   report = buildPrimaryBaselineReport();
@@ -63,6 +79,23 @@ describe("PV-05 Primary baseline", () => {
     expect(report.summary.wikiActionMatches).toBe(0);
     expect(report.interpretation.measuredFailures).not.toEqual([]);
     expect(report.interpretation.hypothesesNotEstablished).not.toEqual([]);
+  });
+
+  test("reproduces the feature-query noise and keeps every authority with complete-match preference", () => {
+    const scenario = PRIMARY_SCENARIO_SUITE.scenarios.find((item) => item.id === "primary-v1-feature-change")!;
+    const baseline = report.scenarios.find((item) => item.scenarioId === scenario.id)!;
+    const pages = materializePrimaryBaselineFixturePages();
+    const original = originalAnyTermSearch(pages, scenario.task);
+
+    expect(original.map(({ id, status }) => ({ id, status }))).toEqual(baseline.discovery.searchMatches);
+    expect(baseline.evaluation.irrelevantPages).toContain("features/orders");
+
+    const orders = pages.find((page) => page.data.id === "features/orders")!;
+    expect(matchedTerms(orders, scenario.task)).toEqual(["for", "while", "the", "and"]);
+
+    const candidateIds = searchWikiPages(pages, scenario.task).map((item) => item.page.data.id);
+    expect(candidateIds).toEqual(scenario.requiredAuthorities.map((item) => item.pageId).sort());
+    expect(candidateIds).not.toContain("features/orders");
   });
 
   test("keeps the committed JSON and interpretation byte-stable", () => {

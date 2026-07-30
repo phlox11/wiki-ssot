@@ -17,7 +17,7 @@ This is a deterministic view of structured `work_items` on proposal pages. It is
 
 **Recommended next:** `PV-11` — run `bun run wiki:context -- --work PV-11`.
 
-Outstanding work: 6. Completed work hidden: 10; run `bun run wiki:work -- --all` to inspect it.
+Outstanding work: 5. Completed work hidden: 11; run `bun run wiki:work -- --all` to inspect it.
 
 ## Active
 
@@ -30,7 +30,6 @@ Outstanding work: 6. Completed work hidden: 10; run `bun run wiki:work -- --all`
 | ID | Priority | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|
 | PV-11 | high | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | PV-06, PV-08, PV-09, PV-10 | Run fresh-session agent pilots over both adoption paths | `bun run wiki:context -- --work PV-11` |
-| PV-07 | normal | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | PV-05 | Improve wiki:search only for baseline-proven misses | `bun run wiki:context -- --work PV-07` |
 
 ## Waiting
 
