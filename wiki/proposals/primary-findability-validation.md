@@ -32,6 +32,7 @@ sources:
   - path: docs/evidence/pv-11-new-repository-agent-pilot.md
   - path: docs/evidence/pv-11-existing-repository-agent-pilot.md
   - path: docs/evidence/pv-12-primary-exit-gate.md
+  - path: docs/evidence/pv-16-recursive-wiki-boundary.md
 related: [product/scope, product/invariants, architecture/engine, operations/enforcement, proposal/protected-main]
 tags: [roadmap, primary, findability, fresh-session, context, adoption, dogfood]
 work_items:
@@ -268,7 +269,7 @@ work_items:
     deferred_reason: Reconsider only when Primary baseline evidence demonstrates harmful over-bundling.
   - id: PV-16
     title: Close recursive wiki-engine coverage and risk boundaries
-    state: not-started
+    state: done
     priority: high
     depends_on: [PV-11]
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
@@ -277,7 +278,12 @@ work_items:
       - Architecture source declarations, high-risk staleness, and Fresh-context changed-file selection cover the same nested wiki-engine boundary.
       - A focused regression proves that a nested implementation or test file cannot reproduce the PV-05 code/wiki drift escape through lint and enforced impact.
       - Current wiki, publishing policy, generated kit artifacts, and tests make the recursive boundary explicit and deterministic.
-    evidence: []
+    evidence:
+      - docs/evidence/pv-16-recursive-wiki-boundary.md
+      - scripts/wiki/publisher-boundary.test.ts
+      - .wiki/coverage.json
+      - .wiki/config.json
+      - wiki/architecture/engine.md
   - id: PV-17
     title: Make generic topic context authority- and source-complete
     state: not-started

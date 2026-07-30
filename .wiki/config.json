@@ -4,7 +4,7 @@
   "publishesKit": true,
   "highRisk": [
     ".github/workflows/checks.yml",
-    "scripts/wiki/*.ts"
+    "scripts/wiki/**"
   ],
   "freshContext": {
     "mode": "required",
@@ -20,7 +20,7 @@
         "README.md",
         "docs/design.md",
         "package.json",
-        "scripts/wiki/*.ts",
+        "scripts/wiki/**",
         "wiki/SCHEMA.md",
         "wiki/WORKFLOW.md",
         "wiki/operations/enforcement.md",

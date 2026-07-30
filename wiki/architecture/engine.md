@@ -6,7 +6,7 @@ status: current
 authority: observed
 owners: ["@phlox11"]
 sources:
-  - glob: scripts/wiki/*.ts
+  - glob: scripts/wiki/**/*.ts
 related: [operations/enforcement, product/invariants]
 tags: [architecture, engine]
 ---
@@ -14,6 +14,16 @@ tags: [architecture, engine]
 # Engine
 
 Provider-neutral logic lives in `scripts/wiki/core.ts`: frontmatter/schema/link checks, proposal work-graph validation and queue derivation, source→page mapping, coverage, blob-hash staleness (`.wiki/state.json`), diff impact, PR metadata and conflict lifecycle, provider-neutral integration-seam validation, deterministic risk classification, review manifests, and Fresh-context report validation over version 1 free-text findings or version 2 structured findings. The agent-entrypoint seam requires affirmative line-level clause shapes rather than a bag of marker and command tokens: index/current-status/invariant reading, no-query generic work discovery, selected-work context, topic search/context, and non-current authority labelling must all be present, and common explicit directive negations make the matching clause absent. This is a deterministic syntax contract, not a general semantic interpreter. `scripts/wiki/cli.ts` is a thin command layer exposing no-query `wiki:work`, selected `wiki:context -- --work`, pre-PR `wiki:review-preflight`, lower-level `wiki:review-bundle` / `wiki:review-check`, and `wiki:doctor` with stable machine-readable findings. Preflight returns `not-required`, `review-required`, `needs-reconcile`, or `pass`, prepares the exact bundle before a PR exists, and validates a separate review context's report without treating the still-pending PR-body mirror as evidence.
+
+The publishing repository treats the wiki engine as one recursive boundary. The
+current architecture declaration and `.wiki/coverage.json` include
+`scripts/wiki/**/*.ts`, so maintained TypeScript implementation and test files
+at any depth expand into the generated source map and must map to this page or a
+reasoned exclusion. `.wiki/config.json` uses the broader recursive
+`scripts/wiki/**` boundary for high-risk staleness and Fresh-context selection,
+so adding another engine file type cannot silently evade those risk rails.
+Changing a mapped nested source without updating or explicitly verifying this
+page therefore fails enforced impact even when structural lint remains green.
 
 Work records remain next to proposal rationale. `validateWorkItems` validates their repository-wide graph, and `buildWorkQueue` derives the execution view from validated records. Stored `not-started` becomes `ready` only when every dependency is done and `waiting` otherwise. Recommendation prefers active over ready, then `critical → high → normal → low`, then ID. The generated `wiki/work-queue.md` and JSON/text CLI views are deterministic projections; proposal frontmatter remains the SSOT. The generated queue carries inert archived/derived compatibility frontmatter so a trusted merge-base engine that does not yet recognize its generated path can parse the introducing PR without treating the queue as current authority.
 
