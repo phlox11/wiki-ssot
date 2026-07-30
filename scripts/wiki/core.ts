@@ -1451,7 +1451,7 @@ export function readConfig(view: RepoView): WikiConfig {
 function agentEntrypointContractGaps(agents: string): string[] {
   const lines = agents
     .split(/\r?\n/)
-    .map((line) => line.toLowerCase().replace(/[`*_]/g, "").replace(/\s+/g, " ").trim())
+    .map((line) => line.replace(/[‘’]/g, "'").toLowerCase().replace(/[`*_]/g, "").replace(/\s+/g, " ").trim())
     .filter((line) => line.length > 0);
   const gaps: string[] = [];
   const hasLine = (predicate: (line: string) => boolean) => lines.some(predicate);

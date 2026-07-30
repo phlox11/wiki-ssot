@@ -1358,6 +1358,26 @@ Do not label pages with status proposed, conflicted, deprecated, or archived as 
     if (workRoute) expect(codes).toContain("work-discovery-entrypoint-missing");
   }
 
+  test("core seam validation canonicalizes ASCII and typographic contraction negations for every route", () => {
+    for (const contraction of ["don't", "don’t", "can't", "can’t"]) {
+      expectScopedNegationRejected({
+        authority: `Agents ${contraction} start at wiki/index.md, then read wiki/current-status.md and every kind: invariant page.`,
+      }, "the wiki index/current-status/invariant read route");
+      expectScopedNegationRejected({
+        work: `If the user asks what remains, agents ${contraction} run bun run wiki:work; no known node, work ID, or search term is necessary.`,
+      }, "the no-query generic remaining-work route", true);
+      expectScopedNegationRejected({
+        selected: `After selecting a returned item, agents ${contraction} run the printed wiki:context -- --work <ID> command.`,
+      }, "the selected-work context route");
+      expectScopedNegationRejected({
+        topic: `Agents ${contraction} search before editing with wiki:search -- "<task terms>" and wiki:context -- "<task terms>".`,
+      }, "the topic search/context route");
+      expectScopedNegationRejected({
+        nonCurrent: `Agents ${contraction} label pages with status proposed, conflicted, deprecated, or archived as non-current.`,
+      }, "the non-current authority boundary");
+    }
+  });
+
   test("core seam validation scopes do-not-require/need negation to each required action", () => {
     expectScopedNegationRejected({
       authority: "Do not require agents to start at wiki/index.md, then read wiki/current-status.md and every kind: invariant page.",
@@ -1398,6 +1418,15 @@ Do not label pages with status proposed, conflicted, deprecated, or archived as 
     ]) {
       const agents = providerNeutralAgentEntrypoint({
         work: `If the user asks what remains, run bun run wiki:work; ${qualifier}.`,
+      });
+      expect(validateIntegrationSeams(coreIntegrationView(agents))).toEqual([]);
+    }
+  });
+
+  test("core seam validation keeps negation bounded by documented clause punctuation", () => {
+    for (const boundary of [".", ";", "—", "–"]) {
+      const agents = providerNeutralAgentEntrypoint({
+        work: `If the user asks what remains, never skip the optional explanatory note${boundary} run bun run wiki:work; do not require a known node, work ID, or search term.`,
       });
       expect(validateIntegrationSeams(coreIntegrationView(agents))).toEqual([]);
     }
