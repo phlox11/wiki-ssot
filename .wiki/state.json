@@ -12,11 +12,11 @@
         "scripts/wiki/kit-sync.ts": "1d8f77baa00a3bcea174d78537cdb7ac80aea680c0ac00154e5af5e94b4b6ac0",
         "scripts/wiki/kit.test.ts": "f35d29271a5d6e9ec7df62607bf49a8efaa3bd05d3c5a7c0884780035ebb191a",
         "scripts/wiki/new-repository-adoption.test.ts": "43bdd173b0347e52a9fd0e30f0eb418dbd25ab864b9e7ab6cf0ecbc15ddef9ca",
-        "scripts/wiki/primary-baseline.test.ts": "2892abe42b52d29ab3d77f4c7ddf07a6e0f9ed5f1fd802d1a3ebe709f9e311dc",
-        "scripts/wiki/primary-baseline.ts": "eed786753febe2bf1b9974aeaa7991cc822045d9378c6b4ffd602aaf09d0d9a5",
+        "scripts/wiki/primary-baseline.test.ts": "4a0df89a35bd811ffbca75865a3153abe869caae11d1f585c599c902ee4e16b7",
+        "scripts/wiki/primary-baseline.ts": "802da77badba5401bdae2e0836491ebb30d602d3b6701c97374da4c4b692d568",
         "scripts/wiki/primary-scenarios.test.ts": "b73743ef76a079a014bcc1eba26ea7740a31cc1d776e31db40ed3c03e996de5b",
         "scripts/wiki/primary-scenarios.ts": "8e8ba1de2abf551d0003f90637f58370f470c7ecdfb62a50a8d9993e1f273dec",
-        "scripts/wiki/wiki.test.ts": "576cae956de33a9d4fb69e99799506c73c30519bd146a60767f143467b9739c5",
+        "scripts/wiki/wiki.test.ts": "00c5762f2fa69bf6830c10f70ca63ad12baa822c0fc1506603f89ff6fe77f7a4",
         "scripts/wiki/work.test.ts": "776328e82224f58fd867e77d417a07273417644c30f6f03e91074860eca59242"
       },
       "verification": {

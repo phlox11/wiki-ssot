@@ -149,6 +149,8 @@ work_items:
       - Every selected search change starts from a failing baseline scenario and ends with focused passing evidence.
       - No ranking or search machinery is added without a reproduced miss.
     evidence:
+      - scripts/wiki/primary-baseline.test.ts
+      - scripts/wiki/primary-baseline.ts
       - scripts/wiki/wiki.test.ts
       - scripts/wiki/core.ts
       - scripts/wiki/cli.ts
@@ -397,17 +399,20 @@ Selected-work context now makes the truth model visible without requiring the ca
 
 ### `PV-07`: evidence-driven search changes
 
-PV-05's exact feature-change task was isolated as a focused regression: the relevant
-`features/checkout` authority contained the complete task, while unrelated
-`features/orders` was returned solely because its body contained `support`. The focused
-test failed against the original any-term behavior before the remedy was added.
+PV-05's exact feature-change task was isolated as a focused regression by materializing
+pages with the same renderer and scenario suite as the immutable baseline. The test
+reproduces the complete recorded legacy search result before exercising the candidate.
+The irrelevant `features/orders` page carries the multi-area task and matches the feature
+query on `for`, `while`, `the`, and `and`; matching uses literal substrings without token
+boundaries.
 
 `wiki:search` and generic query-based `wiki:context` now share one provider-neutral
 matcher. It prefers the complete-match set whenever at least one page contains every
 lowercase whitespace-delimited query term. If there is no complete match, it
 preserves partial recall and orders matches by matched-term count and page ID. The same
-focused test now proves that the PV-05 noise is removed, and a second test locks the
-partial-match fallback.
+focused test proves that every required feature authority remains while
+`features/orders` is removed, and a second test locks the partial-match fallback. The
+immutable PV-05 byte-stability tests continue to bind the historical evidence.
 
 No current-first ranking, current/non-current grouping, field weighting, source-path
 search, or focused-context link was added because PV-05 did not establish those as the
