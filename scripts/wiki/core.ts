@@ -1456,35 +1456,47 @@ function agentEntrypointContractGaps(agents: string): string[] {
   const gaps: string[] = [];
   const hasLine = (predicate: (line: string) => boolean) => lines.some(predicate);
   const hasWorkCommand = (line: string) => /(?:^|\s)bun run wiki:work(?=$|[\s,.;:—–])/.test(line);
+  const explicitlyNegatesRequiredAction = (line: string) => {
+    const withoutNoQueryQualifier = line
+      .replace(/\bdo not require\b/g, "")
+      .replace(/\b(?:does|do) not need\b/g, "");
+    return /\b(?:do not|don't|never|avoid|ignore|skip|must not|should not|cannot|can't|refuse to|not to)\b/.test(withoutNoQueryQualifier);
+  };
 
   if (!hasLine((line) =>
-    /\b(start|begin|open|read|consult)\b/.test(line)
+    !explicitlyNegatesRequiredAction(line)
+    && /\b(start|begin|open|read|consult)\b/.test(line)
     && line.includes("wiki/index.md")
     && line.includes("wiki/current-status.md")
     && line.includes("kind: invariant"))) {
     gaps.push("the wiki index/current-status/invariant read route");
   }
   if (!hasLine((line) =>
-    hasWorkCommand(line)
+    !explicitlyNegatesRequiredAction(line)
+    && hasWorkCommand(line)
     && /(what remains|unfinished|what should (?:we|you) do next|what should happen next|remaining[- ]work|next[- ]work)/.test(line)
     && /(without|do not require|no (?:known )?(?:node|id|search term)|before topic search)/.test(line))) {
     gaps.push("the no-query generic remaining-work route");
   }
   if (!hasLine((line) =>
-    /\bselect(?:ed|ing)?\b/.test(line)
+    !explicitlyNegatesRequiredAction(line)
+    && /\bselect(?:ed|ing)?\b/.test(line)
     && /(returned|result|printed)/.test(line)
+    && /\b(run|execute|follow|use|open)\b/.test(line)
     && line.includes("wiki:context -- --work <id>"))) {
     gaps.push("the selected-work context route");
   }
   if (!hasLine((line) =>
-    /\b(search|topic)\b/.test(line)
+    !explicitlyNegatesRequiredAction(line)
+    && /\b(search|topic)\b/.test(line)
     && /\b(edit|editing|implement|implementation)\b/.test(line)
     && line.includes('wiki:search -- "<task terms>"')
     && line.includes('wiki:context -- "<task terms>"'))) {
     gaps.push("the topic search/context route");
   }
   if (!hasLine((line) =>
-    ["proposed", "conflicted", "deprecated", "archived"].every((status) => line.includes(status))
+    !explicitlyNegatesRequiredAction(line)
+    && ["proposed", "conflicted", "deprecated", "archived"].every((status) => line.includes(status))
     && /\b(label|present|state|status|treat)\w*\b/.test(line)
     && /(not current|non-current)/.test(line))) {
     gaps.push("the non-current authority boundary");

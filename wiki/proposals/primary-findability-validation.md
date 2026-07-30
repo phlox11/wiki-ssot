@@ -408,9 +408,9 @@ Every selected remedy requires a failing scenario before the change and a passin
 
 ### `PV-10`: session entrypoint integrity
 
-The provider-neutral integration doctor no longer treats marker and command tokens as sufficient evidence that an agent can find the wiki workflow. It validates meaningful line-level routes to the wiki index, current status, invariants, no-query repository-wide work discovery, selected-work context, topic search/context, and non-current authority labels. Focused regressions reject marker-only, marker-plus-command placeholder, and command-name-only entrypoints, while the generated-kit test validates the installed downstream entrypoint against the same core contract.
+The provider-neutral integration doctor no longer treats marker and command tokens as sufficient evidence that an agent can find the wiki workflow. It requires affirmative line-level clause shapes for the wiki index, current status, invariants, no-query repository-wide work discovery, selected-work context, topic search/context, and non-current authority labels, and rejects common explicit directive negations of those actions. Focused regressions reject marker-only, marker-plus-command placeholder, command-name-only, and explicitly negated entrypoints, while the generated-kit test validates the installed downstream entrypoint against the same core contract.
 
-This work improves discoverability. It does not claim proof that the agent cognitively read the returned material or make the engine interpret arbitrary natural-language requests.
+This work improves discoverability. Its deterministic syntax checks do not claim proof that the agent cognitively read the returned material, interpret arbitrary natural-language requests, or detect every possible contradiction.
 
 ## Phase D — validate adoption
 

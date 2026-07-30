@@ -1308,6 +1308,27 @@ proposed conflicted deprecated archived non-current
     expect(codes).toContain("agent-entrypoint-contract-incomplete");
   });
 
+  test("core seam validation rejects route-shaped clauses that negate every required action", () => {
+    const view = coreIntegrationView(`<!-- wiki-ssot:fresh-context-guardrail -->
+<!-- wiki-ssot:work-discovery -->
+Do not start at wiki/index.md, and never read wiki/current-status.md or any kind: invariant page.
+If the user asks what remains without naming a task, never run bun run wiki:work before topic search; do not require a known node, work ID, or search term.
+After selecting a returned item, ignore the printed wiki:context -- --work <ID> command.
+Avoid search before editing with wiki:search -- "<task terms>" and wiki:context -- "<task terms>".
+Do not label pages with status proposed, conflicted, deprecated, or archived as non-current; treat them as current.
+`);
+    const findings = validateIntegrationSeams(view);
+    const codes = findings.map((finding) => finding.code);
+    const contract = findings.find((finding) => finding.code === "agent-entrypoint-contract-incomplete");
+    expect(codes).toContain("work-discovery-entrypoint-missing");
+    expect(codes).toContain("agent-entrypoint-contract-incomplete");
+    expect(contract?.message).toContain("the wiki index/current-status/invariant read route");
+    expect(contract?.message).toContain("the no-query generic remaining-work route");
+    expect(contract?.message).toContain("the selected-work context route");
+    expect(contract?.message).toContain("the topic search/context route");
+    expect(contract?.message).toContain("the non-current authority boundary");
+  });
+
   test("core seam validation accepts a complete provider-neutral agent entrypoint", () => {
     expect(validateIntegrationSeams(coreIntegrationView(providerNeutralAgentEntrypoint()))).toEqual([]);
   });
