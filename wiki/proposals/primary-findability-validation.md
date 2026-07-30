@@ -29,6 +29,8 @@ sources:
   - path: docs/adopt-existing-repo.md
   - path: docs/adopt-new-repo.md
   - path: docs/evidence/pv-09-existing-repository-bootstrap.md
+  - path: docs/evidence/pv-11-new-repository-agent-pilot.md
+  - path: docs/evidence/pv-11-existing-repository-agent-pilot.md
 related: [product/scope, product/invariants, architecture/engine, operations/enforcement, proposal/protected-main]
 tags: [roadmap, primary, findability, fresh-session, context, adoption, dogfood]
 work_items:
@@ -201,7 +203,7 @@ work_items:
       - wiki/operations/enforcement.md
   - id: PV-11
     title: Run fresh-session agent pilots over both adoption paths
-    state: not-started
+    state: done
     priority: high
     depends_on: [PV-06, PV-08, PV-09, PV-10]
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
@@ -209,7 +211,9 @@ work_items:
       - Versioned pilot records preserve the exact task, repository and base, commands, surfaced authorities and sources, changes, misses, and gate result.
       - Both new- and existing-repository adoption paths are exercised in isolated sessions.
       - PV-07 evidence is included when the baseline made search work applicable.
-    evidence: []
+    evidence:
+      - docs/evidence/pv-11-new-repository-agent-pilot.md
+      - docs/evidence/pv-11-existing-repository-agent-pilot.md
   - id: PV-12
     title: Evaluate the Primary exit gate and decide the next investment
     state: not-started
@@ -448,7 +452,10 @@ The full reproduction contract is recorded in
 
 ### `PV-11`: fresh-session agent pilots
 
-Run isolated sessions against the versioned scenarios. Preserve:
+The new- and existing-repository adoption paths were each run by a separate
+child agent created with `fork_turns: none`, against disjoint temporary Git
+repositories pinned to exact starting and publisher commits. Their versioned
+records preserve:
 
 - the exact task prompt;
 - repository and base commit;
@@ -458,7 +465,28 @@ Run isolated sessions against the versioned scenarios. Preserve:
 - missed authority or unnecessary context;
 - deterministic gate result.
 
-The pilot measures whether the provided path is usable. It does not turn subjective reviewer quality into a deterministic claim.
+The
+[new-repository record](../../docs/evidence/pv-11-new-repository-agent-pilot.md)
+starts from an empty commit, reaches a green adoption commit, then adds a
+covered and verified greeting feature as a separate candidate. Its complete
+all-term PV-07 query returns only the new current page, and preflight correctly
+returns `not-required`.
+
+The
+[existing-repository record](../../docs/evidence/pv-11-existing-repository-agent-pilot.md)
+starts from a service with two code areas, an existing agent entrypoint,
+generated code, and a delivery implementation/contract mismatch. It preserves
+the host instructions, surfaces the sync conflict, maps maintained sources,
+records the mismatch as baseline conflict C-501 without changing behavior, and
+stops at the required independent-review bundle. Its PV-07 partial-fallback
+query retains both current pages and C-501 without unrelated results.
+
+Both records include incidental and expected command failures instead of
+silently polishing them out. Authoring-context replays bind the final HEADs,
+changed files, gate outcomes, and preflight digests. The procedural isolation is
+an orchestrator trust claim rather than cryptographic proof, matching current
+product scope. The pilot measures whether the provided path is usable; it does
+not turn subjective reviewer quality into a deterministic claim.
 
 ## Primary exit gate
 
@@ -521,7 +549,7 @@ Record decisions here when they concern proposed sequencing or evaluation. If a 
 | Prioritize Primary validation over new Secondary review features | proposed | Approve this roadmap or revise its priority |
 | Zero-knowledge re-entry | decided | A user may ask only what work remains; no proposal ID, task ID, or search term is required |
 | Workflow protection boundary | decided | Trust repository developers/admins; leave required workflows, CODEOWNERS, rulesets, and bypass policy to deployments |
-| Pilot repositories/fixtures | pending | Select at least one new-repository and one existing-repository target |
+| Pilot repositories/fixtures | decided | Use an empty Git repository followed by a first greeting feature, plus an existing two-area TypeScript service with one baseline implementation conflict and one reasoned generated-code exclusion |
 | Search work after baseline | applicable | PV-05 reproduced 91 irrelevant page occurrences from substring matching; PV-07 must still select remedies from focused failing evidence |
 | Resume Secondary feature investment | pending | Decide at `PV-12` from exit-gate evidence |
 
