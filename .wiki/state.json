@@ -3,13 +3,14 @@
     "architecture/engine": {
       "sources": {
         "scripts/wiki/cli.ts": "26cf169770f36afaedd456a300b6a7b5f7ec20d834ae852b344ac55df727e390",
-        "scripts/wiki/core.ts": "a9613c2765fe3e02490d016f1f0aeafaf5a79d72c79d5951f7310bf499e2ec22",
+        "scripts/wiki/core.ts": "e89ee19aac773131dc5c48a7498864585c529086d6bd4f4d69f4a03150f57380",
         "scripts/wiki/fresh-context.test.ts": "00f4e0ad1d225cb6e01579024ef3414088592b1d343afedba515a68835611522",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c",
         "scripts/wiki/inventories.example.ts": "c77492bf25a8e89d6c5f2de5d1238bb426e41b81cd255d7c153e05d295e91c4e",
         "scripts/wiki/inventories.ts": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca",
         "scripts/wiki/kit-sync.ts": "1d8f77baa00a3bcea174d78537cdb7ac80aea680c0ac00154e5af5e94b4b6ac0",
         "scripts/wiki/kit.test.ts": "45a845a874c5ebf4b0dece30c1bf4bed23a04e343fdddfc46673ccf4af09315f",
+        "scripts/wiki/new-repository-adoption.test.ts": "c596c8e34434d07822e5b363d40ca1a3736cbed27109e9abc04d86225c206769",
         "scripts/wiki/primary-baseline.test.ts": "2892abe42b52d29ab3d77f4c7ddf07a6e0f9ed5f1fd802d1a3ebe709f9e311dc",
         "scripts/wiki/primary-baseline.ts": "4e720177e4d9d55bed1ab65d6d5f48223c8a050ba9335e1e2318d8ca7b79cdd0",
         "scripts/wiki/primary-scenarios.test.ts": "b73743ef76a079a014bcc1eba26ea7740a31cc1d776e31db40ed3c03e996de5b",
@@ -33,21 +34,23 @@
         "AGENTS.md": "c8b27b3e362c11d1f85c12b0ed1af9ce706dcfe1955255b404461754a4c34712",
         "package.json": "df071fab971a1e88e77e575449f76921f83244bffbf9b756ae36797032bffeaf",
         "scripts/wiki/cli.ts": "26cf169770f36afaedd456a300b6a7b5f7ec20d834ae852b344ac55df727e390",
-        "scripts/wiki/core.ts": "a9613c2765fe3e02490d016f1f0aeafaf5a79d72c79d5951f7310bf499e2ec22",
+        "scripts/wiki/core.ts": "e89ee19aac773131dc5c48a7498864585c529086d6bd4f4d69f4a03150f57380",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "PV-08 changes new-repository adoption defaults and fixtures without changing enforcement or product invariant semantics."
       }
     },
     "product/invariants": {
       "sources": {
         "AGENTS.md": "c8b27b3e362c11d1f85c12b0ed1af9ce706dcfe1955255b404461754a4c34712",
         "scripts/wiki/cli.ts": "26cf169770f36afaedd456a300b6a7b5f7ec20d834ae852b344ac55df727e390",
-        "scripts/wiki/core.ts": "a9613c2765fe3e02490d016f1f0aeafaf5a79d72c79d5951f7310bf499e2ec22"
+        "scripts/wiki/core.ts": "e89ee19aac773131dc5c48a7498864585c529086d6bd4f4d69f4a03150f57380"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "PV-08 changes new-repository adoption defaults and fixtures without changing enforcement or product invariant semantics."
       }
     },
     "product/scope": {

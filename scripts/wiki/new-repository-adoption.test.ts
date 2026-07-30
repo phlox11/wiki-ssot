@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -10,12 +10,9 @@ type CommandResult = {
 
 const temporary: string[] = [];
 const publisherRoot = process.cwd();
-const publisherNodeModules = join(publisherRoot, "node_modules");
 const commandEnvironment = {
   ...process.env,
   HUSKY: "0",
-  NODE_PATH: publisherNodeModules,
-  PATH: `${join(publisherNodeModules, ".bin")}:${process.env.PATH ?? ""}`,
 };
 
 afterEach(() => {
@@ -34,10 +31,14 @@ function put(root: string, path: string, content: string): void {
   writeFileSync(target, content);
 }
 
-function run(root: string, command: string[]): CommandResult {
+function run(
+  root: string,
+  command: string[],
+  environment: Record<string, string | undefined> = commandEnvironment,
+): CommandResult {
   const result = Bun.spawnSync(command, {
     cwd: root,
-    env: commandEnvironment,
+    env: environment,
     stdout: "pipe",
     stderr: "pipe",
   });
@@ -61,6 +62,48 @@ function mergeKitPackage(repo: string): void {
     devDependencies: Record<string, string>;
   };
   put(repo, "package.json", `${JSON.stringify(incoming, null, 2)}\n`);
+}
+
+function materializeCachedDependencies(repo: string): void {
+  const cacheRoot = run(publisherRoot, [process.execPath, "pm", "cache"]).stdout.trim();
+  const lock = readFileSync(join(publisherRoot, "bun.lock"), "utf8");
+  const packages = [...lock.matchAll(/^ {4}"([^"]+)": \["([^"]+)"/gm)]
+    .map((match) => ({ name: match[1], resolved: match[2] }));
+  if (packages.length === 0) throw new Error("publisher bun.lock contains no resolved packages");
+
+  const bins = join(repo, "node_modules/.bin");
+  mkdirSync(bins, { recursive: true });
+  for (const { name, resolved } of packages) {
+    const version = resolved.startsWith(`${name}@`) ? resolved.slice(name.length + 1) : "";
+    if (version.length === 0) throw new Error(`cannot derive cached version for ${name}: ${resolved}`);
+
+    const segments = name.split("/");
+    const basename = segments.pop()!;
+    const cacheParent = join(cacheRoot, ...segments);
+    const prefix = `${basename}@${version}`;
+    const candidates = readdirSync(cacheParent, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && (entry.name === prefix || entry.name.startsWith(`${prefix}@`)))
+      .map((entry) => entry.name)
+      .sort();
+    if (candidates.length === 0) {
+      throw new Error(`publisher install cache is missing ${resolved}; run bun install before the test`);
+    }
+
+    const source = join(cacheParent, candidates[0]);
+    const target = join(repo, "node_modules", name);
+    mkdirSync(dirname(target), { recursive: true });
+    cpSync(source, target, { recursive: true });
+
+    const packageJson = JSON.parse(readFileSync(join(source, "package.json"), "utf8")) as {
+      bin?: string | Record<string, string>;
+    };
+    const packageBins = typeof packageJson.bin === "string"
+      ? { [basename]: packageJson.bin }
+      : packageJson.bin ?? {};
+    for (const [command, path] of Object.entries(packageBins)) {
+      symlinkSync(join(target, path), join(bins, command));
+    }
+  }
 }
 
 function writeMetadata(path: string): void {
@@ -108,11 +151,10 @@ describe("new-repository adoption", () => {
     config.name = "adoption-fixture";
     config.highRisk = [];
     put(repo, ".wiki/config.json", `${JSON.stringify(config, null, 2)}\n`);
-    // The fixture is deliberately offline. Link the publisher's lockfile-backed
-    // install to represent the documented `bun install`, and keep that harness
-    // detail out of both adoption commits.
-    symlinkSync(publisherNodeModules, join(repo, "node_modules"), "dir");
-    writeFileSync(join(repo, ".git/info/exclude"), "node_modules\n");
+    // The fixture is intentionally network-free. Materialize the exact packages
+    // selected by the publisher lockfile from Bun's local cache, which the
+    // outer repository's normal install populates before its test gate runs.
+    materializeCachedDependencies(repo);
 
     expect(JSON.parse(readFileSync(join(repo, ".wiki/coverage.json"), "utf8"))).toEqual({
       exclusions: [],
