@@ -96,7 +96,7 @@ Commit the wiki, `.wiki/`, and generated files together.
 ## 6. Turn on the rails
 
 - Hooks activate on `bun install` (via the `prepare` script). Confirm a bad staged page blocks a commit.
-- Keep the root `AGENTS.md` markers `wiki-ssot:fresh-context-guardrail` and `wiki-ssot:work-discovery`, canonical `wiki:work` and review/doctor scripts, structured PR `fresh_context` block, and stable `wiki-review-attestation` workflow job. `wiki:doctor` detects accidental omission when adoption rewrites these files.
+- Keep the root `AGENTS.md` markers and their complete provider-neutral routing guidance: index/current-status/invariant reading, no-query generic work discovery, selected-work context, topic search/context, and non-current authority labels. Also preserve canonical `wiki:work` and review/doctor scripts, the structured PR `fresh_context` block, and the stable `wiki-review-attestation` workflow job. `wiki:doctor` rejects marker-only, placeholder, or command-name-only entrypoints when adoption rewrites these files.
 - CI: the workflows in `.github/workflows/` run code, structure/doctor, generated, impact, and Ready-only review-attestation checks. The attestation check skips Drafts, uses trusted base code/policy, and never executes PR-head code.
 - Trust boundary: wiki-ssot assumes repository write/admin actors are trusted. Branch protection, required workflows, CODEOWNERS, and administrator-bypass rules are optional deployment governance; the toolkit neither configures nor audits them.
 

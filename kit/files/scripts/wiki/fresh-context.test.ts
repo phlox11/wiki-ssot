@@ -59,6 +59,43 @@ function policy(overrides: Partial<FreshContextPolicy> = {}): FreshContextPolicy
   };
 }
 
+function providerNeutralAgentEntrypoint(): string {
+  return `<!-- wiki-ssot:fresh-context-guardrail -->
+# Agent instructions
+
+Start at wiki/index.md, then read wiki/current-status.md and every kind: invariant page.
+<!-- wiki-ssot:work-discovery -->
+If the user asks what remains or what is unfinished without naming a task, run bun run wiki:work before topic search; do not require a known node, work ID, or search term.
+After selecting a returned item, run the printed wiki:context -- --work <ID> command.
+Search before editing with wiki:search -- "<task terms>" and wiki:context -- "<task terms>".
+Pages with status proposed, conflicted, deprecated, or archived must be labelled non-current.
+`;
+}
+
+function coreIntegrationView(agents: string, scripts: Record<string, string> = {
+  "wiki:review-preflight": "bun scripts/wiki/cli.ts review-preflight",
+  "wiki:review-check": "bun scripts/wiki/cli.ts review-check",
+  "wiki:doctor": "bun scripts/wiki/cli.ts doctor",
+  "wiki:work": "bun scripts/wiki/cli.ts work",
+}) {
+  return {
+    root: "/memory",
+    mode: "working" as const,
+    listFiles: () => [".wiki/config.json", "AGENTS.md", "package.json"],
+    exists: (path: string) => [".wiki/config.json", "AGENTS.md", "package.json"].includes(path),
+    read: (path: string) => ({
+      ".wiki/config.json": jsonStable({
+        version: 1,
+        name: "x",
+        highRisk: [],
+        freshContext: policy(),
+      }),
+      "AGENTS.md": agents,
+      "package.json": jsonStable({ scripts }),
+    })[path] ?? "",
+  };
+}
+
 function page(source = "source.ts", body = "The current contract is version two.", kind = "product"): string {
   return `---
 id: product/test
@@ -1208,58 +1245,71 @@ touched_conflicts: []
   });
 
   test("core seam validation rejects inert package script placeholders", () => {
-    const view = {
-      root: "/memory",
-      mode: "working" as const,
-      listFiles: () => [".wiki/config.json", "AGENTS.md", "package.json"],
-      exists: (path: string) => [".wiki/config.json", "AGENTS.md", "package.json"].includes(path),
-      read: (path: string) => ({
-        ".wiki/config.json": jsonStable({
-          version: 1,
-          name: "x",
-          highRisk: [],
-          freshContext: policy(),
-        }),
-        "AGENTS.md": "wiki-ssot:fresh-context-guardrail\nwiki-ssot:work-discovery\nbun run wiki:work",
-        "package.json": jsonStable({ scripts: {
-          "wiki:work": "bun scripts/wiki/cli.ts work",
-          "wiki:review-check": "true",
-          "wiki:doctor": "true",
-        } }),
-      })[path] ?? "",
-    };
+    const view = coreIntegrationView(providerNeutralAgentEntrypoint(), {
+      "wiki:work": "bun scripts/wiki/cli.ts work",
+      "wiki:review-check": "true",
+      "wiki:doctor": "true",
+    });
     const codes = validateIntegrationSeams(view).map((finding) => finding.code);
     expect(codes).toContain("fresh-context-command-missing");
     expect(codes).not.toContain("work-command-missing");
     expect(codes).not.toContain("work-discovery-entrypoint-missing");
+    expect(codes).not.toContain("agent-entrypoint-contract-incomplete");
   });
 
   test("core seam validation rejects a missing work command token and noncanonical package script", () => {
-    const view = {
-      root: "/memory",
-      mode: "working" as const,
-      listFiles: () => [".wiki/config.json", "AGENTS.md", "package.json"],
-      exists: (path: string) => [".wiki/config.json", "AGENTS.md", "package.json"].includes(path),
-      read: (path: string) => ({
-        ".wiki/config.json": jsonStable({
-          version: 1,
-          name: "x",
-          highRisk: [],
-          freshContext: policy(),
-        }),
-        "AGENTS.md": "wiki-ssot:fresh-context-guardrail\nwiki-ssot:work-discovery",
-        "package.json": jsonStable({ scripts: {
-          "wiki:review-preflight": "bun scripts/wiki/cli.ts review-preflight",
-          "wiki:review-check": "bun scripts/wiki/cli.ts review-check",
-          "wiki:doctor": "bun scripts/wiki/cli.ts doctor",
-          "wiki:work": "true",
-        } }),
-      })[path] ?? "",
-    };
+    const agents = providerNeutralAgentEntrypoint().replace("bun run wiki:work", "bun run wiki:works");
+    const view = coreIntegrationView(agents, {
+      "wiki:review-preflight": "bun scripts/wiki/cli.ts review-preflight",
+      "wiki:review-check": "bun scripts/wiki/cli.ts review-check",
+      "wiki:doctor": "bun scripts/wiki/cli.ts doctor",
+      "wiki:work": "true",
+    });
     const codes = validateIntegrationSeams(view).map((finding) => finding.code);
     expect(codes).toContain("work-discovery-entrypoint-missing");
     expect(codes).toContain("work-command-missing");
     expect(codes).not.toContain("fresh-context-command-missing");
+  });
+
+  test("core seam validation rejects a marker-only agent entrypoint", () => {
+    const view = coreIntegrationView(`<!-- wiki-ssot:fresh-context-guardrail -->
+<!-- wiki-ssot:work-discovery -->
+`);
+    const codes = validateIntegrationSeams(view).map((finding) => finding.code);
+    expect(codes).toContain("work-discovery-entrypoint-missing");
+    expect(codes).toContain("agent-entrypoint-contract-incomplete");
+  });
+
+  test("core seam validation rejects a marker-plus-command placeholder", () => {
+    const view = coreIntegrationView(`<!-- wiki-ssot:fresh-context-guardrail -->
+<!-- wiki-ssot:work-discovery -->
+TODO: document the wiki workflow.
+bun run wiki:work
+`);
+    const codes = validateIntegrationSeams(view).map((finding) => finding.code);
+    expect(codes).toContain("work-discovery-entrypoint-missing");
+    expect(codes).toContain("agent-entrypoint-contract-incomplete");
+  });
+
+  test("core seam validation rejects command-name-only agent entrypoints", () => {
+    const view = coreIntegrationView(`<!-- wiki-ssot:fresh-context-guardrail -->
+<!-- wiki-ssot:work-discovery -->
+wiki/index.md
+wiki/current-status.md
+kind: invariant
+bun run wiki:work
+wiki:context -- --work <ID>
+wiki:search -- "<task terms>"
+wiki:context -- "<task terms>"
+proposed conflicted deprecated archived non-current
+`);
+    const codes = validateIntegrationSeams(view).map((finding) => finding.code);
+    expect(codes).toContain("work-discovery-entrypoint-missing");
+    expect(codes).toContain("agent-entrypoint-contract-incomplete");
+  });
+
+  test("core seam validation accepts a complete provider-neutral agent entrypoint", () => {
+    expect(validateIntegrationSeams(coreIntegrationView(providerNeutralAgentEntrypoint()))).toEqual([]);
   });
 
   test("GitHub reference workflow skips Drafts and validates Ready PRs", () => {
