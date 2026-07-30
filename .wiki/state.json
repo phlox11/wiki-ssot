@@ -10,12 +10,13 @@
         "scripts/wiki/inventories.ts": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca",
         "scripts/wiki/kit-sync.ts": "1d8f77baa00a3bcea174d78537cdb7ac80aea680c0ac00154e5af5e94b4b6ac0",
         "scripts/wiki/kit.test.ts": "45a845a874c5ebf4b0dece30c1bf4bed23a04e343fdddfc46673ccf4af09315f",
+        "scripts/wiki/primary-scenarios.test.ts": "b73743ef76a079a014bcc1eba26ea7740a31cc1d776e31db40ed3c03e996de5b",
+        "scripts/wiki/primary-scenarios.ts": "8e8ba1de2abf551d0003f90637f58370f470c7ecdfb62a50a8d9993e1f273dec",
         "scripts/wiki/wiki.test.ts": "539712a8f680522a3ade618190db3b7392fe273961ebe8c8e00c4a56e1524646",
         "scripts/wiki/work.test.ts": "ca6daaa45c15556a2da45688ada714db193e38b276b7d32218c6c781f8d7ba9c"
       },
       "verification": {
-        "kind": "unchanged",
-        "reason": "Publishing-policy regression coverage changed tests only; engine behavior and architecture remain unchanged."
+        "kind": "updated"
       }
     },
     "operations/enforcement": {

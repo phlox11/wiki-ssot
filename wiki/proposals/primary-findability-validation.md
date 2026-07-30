@@ -15,6 +15,8 @@ sources:
   - path: scripts/wiki/core.ts
   - path: scripts/wiki/cli.ts
   - path: scripts/wiki/work.test.ts
+  - path: scripts/wiki/primary-scenarios.ts
+  - path: scripts/wiki/primary-scenarios.test.ts
   - path: wiki/SCHEMA.md
   - path: wiki/WORKFLOW.md
   - path: docs/commands.md
@@ -86,7 +88,7 @@ work_items:
       - AGENTS.md
   - id: PV-04
     title: Define deterministic Primary scenarios, expected context, and metrics
-    state: not-started
+    state: done
     priority: high
     depends_on: [PV-03]
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
@@ -94,7 +96,9 @@ work_items:
       - Versioned scenarios cover feature changes, refactors, invariants, conflicts, multi-area work, mixed current and proposed matches, and coverage edges.
       - Each scenario declares its task, required authorities, sources, conflicts, expected changes, and wiki action.
       - A deterministic runner or test contract evaluates scenario context without an LLM.
-    evidence: []
+    evidence:
+      - scripts/wiki/primary-scenarios.ts
+      - scripts/wiki/primary-scenarios.test.ts
   - id: PV-05
     title: Capture the unmodified Primary baseline
     state: not-started
@@ -314,6 +318,8 @@ Each scenario declares:
 - expected wiki action.
 
 The scenario contract must be usable without an LLM so deterministic context output can be tested separately from agent behavior.
+
+Version 1 lives in `scripts/wiki/primary-scenarios.ts`. It uses a controlled synthetic contract rather than treating this repository's current page set as the fixture, so later baseline and isolated-agent runs can share stable expectations. The deterministic evaluator records current-page, invariant, conflict, implementation-source, authority-label, non-current-label, and expected-change recall together with irrelevant pages, unmapped files, context bytes, command sequence, drift escapes, and the expected wiki action. `scripts/wiki/primary-scenarios.test.ts` locks the eight categories, required declarations, incomplete-observation behavior, and byte-stable output. This contract defines what `PV-05` measures; it does not record the baseline result itself.
 
 ### `PV-05`: baseline report
 
