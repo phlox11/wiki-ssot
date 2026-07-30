@@ -326,3 +326,66 @@ assertions. The publisher fix passed generated and kit freshness, lint, doctor,
 audit, metadata-enforced impact against `origin/main`, typecheck, and all 289
 tests with 1,408 assertions. Both worktrees were clean at the reviewed
 bindings.
+
+## Current-kit revalidation after PV-16 and PV-17
+
+After PV-16 and PV-17 merged, PV-18 rebased its publisher on
+`ffaa1fc37f9974f3f864ebffa8cf2300f0496bb2` and regenerated the distribution.
+The current kit digest is
+`0a56c1edf904d07a1069d8de233e24ee1346ab2ebe58adedd962f0ed7c531664`.
+Its dry-run over the existing pilot planned three kit-owned updates and no
+conflicts; the subsequent sync and second dry-run converged to only
+`unchanged`, `customized`, and `seed-present` actions.
+
+The upgrade from reconciled pilot
+`914f56804ff034b10f3019fdbb8b27afc5b7bbd5` to current-kit pilot
+`29d91ed4414f44280042d68eec6f0dee9f63c988` changes exactly:
+
+- `.wiki/kit-manifest.json`;
+- `scripts/wiki/cli.ts`;
+- `scripts/wiki/core.ts`;
+- `scripts/wiki/work.test.ts`.
+
+The first file binds the current distribution. The other three implement and
+test PV-17's authority- and source-complete generic topic context. Their hashes
+match the publisher kit entries. The installed workflow remains SHA-256
+`200ac0e53e48561050591a6f3b5c8273cae9c5e04eb88b14814d16d00dbed046`,
+contains no `wiki:kit` token, and every documented `bun run` command resolves
+to an adopter package script.
+
+Before and after hashes prove that the upgrade did not change host
+instructions, adopter config or coverage, package policy, inventory
+customization, any of the five existing `src` files, either current product
+page, or C-501. In particular, delivery still returns `accepted`, its adjacent
+contract still declares `queued`, and the exact baseline conflict remains open
+without an invented resolution.
+
+The current engine's `billing delivery` topic context returns C-501 before the
+two current pages, then the four exact primary sources. It labels C-501
+`conflicted`/`observed`, both product pages `current`/`observed`, and gives
+`product/delivery` the open-conflict link. This directly exercises PV-17 in the
+adopter rather than relying only on publisher tests.
+
+A new context-isolated reviewer independently regenerated the exact pilot
+bundle and returned `PASS` for:
+
+- reviewed HEAD:
+  `29d91ed4414f44280042d68eec6f0dee9f63c988`;
+- immutable base:
+  `45d4bd6fb8dccfb2c7f43546950ba66573dc6179`;
+- diff digest:
+  `cca569a90ac400fab066d249f13b3f0dbf46cbca5d398bb1d565c9452d2fbef1`;
+- bundle digest:
+  `80196617fd51ab62d19727e1126562816d0019f083696ef6b77c2b4aecebd2ad`;
+- reviewer publisher identity: `phlox11`.
+
+The exact report is preserved at
+[`pv-18-existing-repository-current-kit-review-pass.json`](./pv-18-existing-repository-current-kit-review-pass.json),
+with file SHA-256
+`92f94f4aac87e455e1416a8e943303cd64cb58ae109017fb4084e1f759ffe9ac`.
+Local `wiki:review-preflight --report` validation returned `status: pass` and
+`ready: true`; the pilot metadata mirror carries the identical eight-element
+evidence array. The reviewed exact HEAD passed generated freshness, lint,
+doctor, audit, `wiki:check`, metadata-enforced impact, typecheck, the focused
+15-test topic/work suite, and the full 116-test suite with 547 assertions. The
+reviewer modified no tracked pilot file.
