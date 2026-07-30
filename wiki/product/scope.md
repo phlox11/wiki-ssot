@@ -1,6 +1,6 @@
 ---
 id: product/scope
-summary: wiki-ssot is a portable enforced SSOT toolkit with zero-knowledge work discovery and provider-neutral Fresh-context attestation validation; it is not a documentation site, hosted reviewer, or decision-maker.
+summary: wiki-ssot's Primary findability and adoption path is validated within configured coverage and trusted-maintainer bounds; it remains a portable toolkit, not a hosted reviewer or decision-maker.
 kind: product
 status: current
 authority: normative
@@ -20,12 +20,37 @@ wiki-ssot turns a repository's development knowledge into a small set of `status
 
 - A page schema and frontmatter contract (`wiki/SCHEMA.md`).
 - A repository-wide, offline work graph stored with proposal rationale, plus a no-query command and generated queue that let a fresh session discover and select outstanding work without knowing a wiki node or task ID.
-- Deterministic CLI checks: structure lint, generated-file freshness, code→page impact, source staleness, coverage, and a conflict lifecycle.
+- Deterministic CLI checks: structure lint, generated-file freshness, code→page impact, source staleness, configured coverage, and a conflict lifecycle. Coverage applies to files matched by `.wiki/coverage.json`, each of which must map to current authority or a reasoned exclusion.
 - A pre-PR command that deterministically classifies risk, prepares an independent-review bundle, and validates the returned structured Fresh-context report before publication.
 - Explicit solo and team trust policies: separate review context is always procedural, while distinct GitHub actors are optional and machine-enforced only when configured.
 - Enforcement rails within a trusted repository-developer boundary: a provider-neutral agent entrypoint (`AGENTS.md`) with machine-checked affirmative authority, work-discovery, and focused-context clause shapes; local git hooks; CI jobs; and downstream integration seams.
 - Two adoption paths: bootstrap a wiki into an existing repository, or grow one from an empty repository.
 - A generated `kit/` distribution and a sync tool, so another repository can adopt the toolkit by copy and later take an upgrade without losing its own configuration. This repository's own wiki pages, conflicts, and proposals are instance content and are not part of it.
+
+## Validated boundary
+
+The Primary exit gate is validated by the checked-in PV-18 and PV-19 evidence.
+Against the exact PV-19 current-engine revision, all eight versioned scenarios
+passed: current pages, invariants, conflicts, implementation sources, authority
+labels, non-current separation, expected wiki actions, configured coverage,
+candidate gates, and code-only drift probes met their declared expectations.
+PV-18 and the adoption fixtures preserve both documented starting paths to
+green, including an existing-repository review defect that was reconciled
+before exact PASS.
+
+The validated user expectation is that a fresh session can discover
+repository-wide work without an internal ID, load a selected item's controlling
+current authority and sources, trace every configured covered file to a current
+page or exclusion, and complete the installed review path when deterministic
+risk policy selects it. The required installation seam is the affirmative root
+`AGENTS.md` routing contract, structured PR metadata, canonical package
+commands, and the Ready-only CI attestation job; `wiki:doctor` validates those
+surfaces.
+
+This validation does not extend beyond the explicit limits below. In
+particular, it does not claim coverage of arbitrary files outside
+`.wiki/coverage.json`, model comprehension, cryptographically fresh reasoning,
+automatic authorization, or protection against a hostile maintainer.
 
 ## Not in scope
 

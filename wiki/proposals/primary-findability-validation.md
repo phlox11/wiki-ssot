@@ -226,7 +226,7 @@ work_items:
       - docs/evidence/pv-11-existing-repository-agent-pilot.md
   - id: PV-12
     title: Evaluate the Primary exit gate and decide the next investment
-    state: not-started
+    state: done
     priority: high
     depends_on: [PV-18, PV-19]
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
@@ -252,7 +252,7 @@ work_items:
       - Accepted reference syntax, existence policy, provider ownership, and offline behavior are explicit.
       - Adversarial tests prove the selected contract cannot be satisfied by meaningless prose.
     evidence: []
-    deferred_reason: Reconsider after the Primary exit gate or a reproduced disposition escape.
+    deferred_reason: Keep deferred after Primary validation unless a reproduced disposition escape justifies the contract work.
   - id: PV-14
     title: Decide whether a reviewer claim-audit artifact is needed
     state: deferred
@@ -263,7 +263,7 @@ work_items:
       - A concrete false-claim incident identifies which claim must become checkable.
       - The selected artifact contract states what it can and cannot prove.
     evidence: []
-    deferred_reason: Reconsider after a reproduced false-claim incident or the Primary exit gate.
+    deferred_reason: Keep deferred after Primary validation unless a reproduced false-claim incident identifies a checkable claim.
   - id: PV-15
     title: Reconsider source-map and bootstrap review breadth
     state: deferred
@@ -364,13 +364,13 @@ The target re-entry request is deliberately ordinary: a user starting a new sess
 
 ## Strategy
 
-- Treat the existing Secondary enforcement path as mature enough to freeze for feature work. Fix security or contract-integrity defects, but do not expand review machinery without a reproduced failure.
+- Treat the existing Secondary enforcement path as mature. Add review machinery only for a reproduced failure, and do not automatically activate deferred PV-13 through PV-15.
 - Resolve known trust-boundary questions before relying on the system, either by closing a gap or explicitly recording an accepted limit.
 - Make outstanding work repository-wide and machine-discoverable before relying on a human-readable roadmap table.
 - Measure the current Primary path before changing search or context behavior.
 - Improve `wiki:context`, search, coverage/bootstrap, and the session entrypoint only where the baseline exposes a failure.
 - Validate both deterministic context completeness and real fresh-session adoption flows.
-- Resume Secondary feature work only after the Primary exit gate is met or an owner explicitly changes this priority.
+- Resume balanced product work now that the Primary exit gate is met, while keeping activation of any specific follow-up an explicit owner choice.
 
 ## Work queue
 
@@ -569,27 +569,25 @@ an orchestrator trust claim rather than cryptographic proof, matching current
 product scope. The pilot measures whether the provided path is usable; it does
 not turn subjective reviewer quality into a deterministic claim.
 
-## Phase E — bounded focused cycle
+## Phase E — bounded focused cycle and final exit
 
-At the PV-12 decision point, the owner selected **Primary needs another focused cycle**. The supporting
-exit-gate record is
+The first PV-12 decision selected **Primary needs another focused cycle**. That
+historical owner outcome is retained rather than rewritten: it bounded the
+follow-up to PV-16 through PV-19. After those items completed, the owner
+reevaluated the unchanged exit-gate acceptance contract and selected
+**Primary validated**. The durable final decision and exact evidence boundaries
+are recorded in
 [`docs/evidence/pv-12-primary-exit-gate.md`](../../docs/evidence/pv-12-primary-exit-gate.md).
-It does not declare Primary validated. PV-16 has closed recursive engine
-coverage/risk alignment, PV-17 has closed generic topic-context completeness,
-and PV-18 has closed and current-kit-revalidated the independent
-existing-repository pilot. PV-19 now records the eight-scenario rerun against
-that combined current state, closing the final focused criterion without
-declaring the separate PV-12 owner outcome.
 
-The focused cycle is deliberately bounded:
+The completed focused cycle closed recursive engine coverage/risk alignment
+(PV-16), generic topic-context completeness (PV-17), the independent
+existing-repository pilot and current-kit replay (PV-18), and the fixed
+current-engine eight-scenario evaluation (PV-19). PV-12 is now done.
 
-1. `PV-16`, `PV-17`, and `PV-18` are done.
-2. `PV-19` is done against their combined current state.
-3. `PV-12` becomes ready to reevaluate the unchanged exit-gate acceptance
-   contract; PV-19 does not choose that owner outcome.
-
-`PV-13` through `PV-15` remain deferred. This decision does not revive
-Secondary feature investment or broaden the focused cycle into those items.
+Balanced product work may resume within the current product scope. That outcome
+does not authorize or activate a particular next item: `PV-13` through `PV-15`
+remain deferred under their existing evidence triggers, and this decision
+creates no new work record.
 
 ### `PV-17`: generic topic context completeness
 
@@ -638,13 +636,13 @@ unchanged.
 
 `PV-12` may pass only when its frontmatter acceptance contract is satisfied with durable evidence.
 
-The owner has recorded **Primary needs another focused cycle** for the current
-evaluation. After the focused dependencies finish, `PV-12` reevaluates and
-records a new outcome:
-
-1. **Primary validated:** resume balanced product work.
-2. **Primary needs another focused cycle:** name the failed criteria and next bounded changes.
-3. **Product priority changed:** update the current product scope and rationale in the same PR.
+The owner has recorded the final outcome **Primary validated** after PV-16
+through PV-19 closed the prior focused cycle. The exit-gate evidence maps every
+acceptance criterion to durable Primary scenario, adoption, work-discovery, and
+review records and preserves the configured-coverage, model-cognition,
+reviewer-trust, and trusted-maintainer limits. Balanced product work may resume,
+but queue ordering is not authorization and no deferred item is activated by
+this outcome.
 
 ## Secondary backlog disposition
 
@@ -683,10 +681,10 @@ The intended critical path is:
 6. `PV-07` runs only if the baseline proves search failures.
 7. `PV-08`, `PV-09`, and `PV-10` make adoption and entrypoint behavior reproducible.
 8. `PV-11` runs isolated agent pilots.
-9. `PV-12` records the owner decision that Primary needs another focused cycle.
+9. `PV-12` records the historical owner decision that Primary needs another focused cycle.
 10. `PV-16`, `PV-17`, and `PV-18` run as independent parallel lanes.
 11. `PV-19` reruns all eight scenarios after `PV-16` and `PV-17`.
-12. `PV-12` reevaluates after `PV-18` and `PV-19`.
+12. `PV-12` reevaluates after `PV-18` and `PV-19`, records Primary validated, and completes.
 13. `PV-13`–`PV-15` remain deferred until their existing evidence triggers are met.
 
 Primary validation may claim the deterministic rails only within the trusted-developer boundary. It must not claim protection against a hostile maintainer or organization-level security guarantees.
@@ -697,13 +695,13 @@ Record decisions here when they concern proposed sequencing or evaluation. If a 
 
 | Decision | State | Result or required owner input |
 |---|---|---|
-| Prioritize Primary validation over new Secondary review features | decided | Continue the bounded Primary focused cycle before resuming Secondary feature investment |
+| Prioritize Primary validation over new Secondary review features | decided | The bounded Primary cycle and exit gate are complete; balanced product work may resume |
 | Zero-knowledge re-entry | decided | A user may ask only what work remains; no proposal ID, task ID, or search term is required |
 | Workflow protection boundary | decided | Trust repository developers/admins; leave required workflows, CODEOWNERS, rulesets, and bypass policy to deployments |
 | Pilot repositories/fixtures | decided | Use an empty Git repository followed by a first greeting feature, plus an existing two-area TypeScript service with one baseline implementation conflict and one reasoned generated-code exclusion |
 | Search work after baseline | applicable | PV-05 reproduced 91 irrelevant page occurrences from substring matching; PV-07 must still select remedies from focused failing evidence |
-| Primary exit-gate outcome | decided | Primary needs another focused cycle; `PV-16`–`PV-19` are complete, so reevaluate `PV-12` without preselecting its owner outcome |
-| Resume Secondary feature investment | decided | Do not resume yet; `PV-12` is ready but must record the next owner outcome first |
+| Primary exit-gate outcome | decided | Primary validated after `PV-16`–`PV-19` satisfied the unchanged acceptance contract; `PV-12` is done |
+| Resume balanced product work | decided | Balanced work may resume, while `PV-13`–`PV-15` remain deferred and no new work is activated by this decision |
 
 ## Per-PR update protocol
 

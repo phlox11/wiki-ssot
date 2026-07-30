@@ -15,7 +15,7 @@ Pages with `status: current` are the single source of truth for current developm
 ## product
 
 - [product/invariants](./product/invariants.md) — Non-negotiable rules — discoverable validated work, deterministic attestation enforcement, source-traced current pages, ambiguity as conflicts, no wiki_action none on code, and no authoring-session self-PASS.
-- [product/scope](./product/scope.md) — wiki-ssot is a portable enforced SSOT toolkit with zero-knowledge work discovery and provider-neutral Fresh-context attestation validation; it is not a documentation site, hosted reviewer, or decision-maker.
+- [product/scope](./product/scope.md) — wiki-ssot's Primary findability and adoption path is validated within configured coverage and trusted-maintainer bounds; it remains a portable toolkit, not a hosted reviewer or decision-maker.
 
 - [Outstanding work](./work-queue.md)
 - [Open conflicts](./conflicts.md)

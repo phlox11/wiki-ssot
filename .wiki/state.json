@@ -57,12 +57,11 @@
     },
     "product/scope": {
       "sources": {
-        "docs/design.md": "364e63fe1521b60c5ea8cd97b00d7b214da7896058bffdcb7f74c1f75f8c1d85",
-        "README.md": "33124882b1397aa05247d24c5d4fc20b4462c4c7a5fe47fda52b488c90992916"
+        "docs/design.md": "337ad26501463d95692b394b9021564a1d592971e79019264aa5676757dc6d96",
+        "README.md": "740c28b859c875bc071e0a5063d922b706ac8f5a0c43c3f1d105a68680640b6a"
       },
       "verification": {
-        "kind": "unchanged",
-        "reason": "FC-005 closes direct work-command negations within the already-current syntax contract"
+        "kind": "updated"
       }
     }
   },

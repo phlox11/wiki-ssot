@@ -15,12 +15,36 @@ It is derived from Andrej Karpathy's [LLM wiki](https://gist.github.com/karpathy
 
 - **`wiki/**` pages with `status: current` are the SSOT** for intent, architecture, contracts, invariants, and operations. Code and tests are *implementation evidence*.
 - Each page's frontmatter lists its **`sources`** (real paths / globs). The engine builds a reverse index and **hashes those sources**. When a source changes, its page goes *stale* and must be updated or explicitly verified — in the same PR.
-- A **coverage** gate ensures every major code file maps to some page, so there is no "unfindable" code.
+- A **configured coverage** gate ensures every file matched by `.wiki/coverage.json` maps to a current page or a reasoned exclusion, so the repository can make its declared code boundary findable without pretending to cover files outside that boundary.
 - When intent is unclear or code and wiki disagree, you open a **conflict** — a first-class, machine-tracked record with acceptance criteria — instead of guessing.
 - Proposal frontmatter carries a validated, repository-wide **work queue**. A fresh session can run `wiki:work` with no topic, node, or task ID, then load a selected item's current invariants, context pages, conflicts, sources, and non-current proposal owner.
 - `wiki:review-preflight` decides whether independent reconciliation is required before a PR exists, prepares the exact bundle, and validates the separate review context's report. Draft PRs do not emit an expected Fresh-context failure; applicable Ready PRs reject missing, non-PASS, stale, malformed, empty-evidence, or untrusted reports.
 
 Full rationale: [docs/design.md](docs/design.md).
+
+## What is validated
+
+The Primary findability and adoption exit gate is validated within the
+configured product boundary. The checked-in
+[PV-19 current-engine evaluation](docs/evidence/pv-19-primary-current.md)
+passes all 8 versioned scenarios: 9/9 current pages, 4/4 invariants, 2/2
+conflicts, and 18/18 implementation sources were recalled; all 14/14 authority
+labels were correct; all 17 configured implementation/test paths mapped to
+current authority; all 8 reconciled candidates passed lint and enforced impact;
+and all 17 code-only drift probes were caught. The
+[new-repository pilot](docs/evidence/pv-11-new-repository-agent-pilot.md)
+reached green and correctly returned `not-required`, while the
+[PV-18 current-kit review](docs/evidence/pv-18-existing-repository-current-kit-review-pass.json)
+binds the existing-repository path after it exposed a real downstream workflow
+defect, fixed it, and reached exact context-isolated `PASS`.
+
+A user should expect a fresh coding-agent session to begin with an ordinary
+question such as “what work remains?”, receive the repository-wide queue,
+select active or ready work, and then receive its controlling current pages,
+invariants, conflicts, and sources. They should also expect every file inside
+their configured coverage to be mapped or explicitly excluded, and every
+risk-selected candidate to complete independent reconciliation before
+publication.
 
 ## Requirements
 
@@ -63,14 +87,8 @@ bun run wiki:context -- "enforcement"   # what an agent reads before touching en
 ## What's in the box
 
 ```
-scripts/wiki/
-  core.ts                # the whole engine (framework-agnostic)
-  cli.ts                 # thin CLI over core
-  github-attestation.ts  # authenticated GitHub review/comment adapter
-  inventories.ts         # project-owned adapter for code-derived pages (default: none)
-  inventories.example.ts # a real inventory adapter to read and adapt (not delivered)
-  kit-sync.ts            # adopt the kit into another repo, or upgrade it
-  wiki.test.ts / fresh-context.test.ts / work.test.ts / kit.test.ts  # engine regression suites
+scripts/wiki/            # engine, CLI, provider/project adapters, kit tooling,
+                         # and grouped regression/adoption/validation fixtures
 wiki/                    # the SSOT pages + SCHEMA.md + WORKFLOW.md
 .wiki/                   # machine config + generated indexes + verification ledger
 .husky/                  # pre-commit (lint) + pre-push (block main)
@@ -84,16 +102,30 @@ That is this repository's layout. Nothing outside [`kit/`](kit/README.md) travel
 
 ## Configure it for your repo
 
-Two seams make it yours; everything else is generic:
+Three project seams make it yours; everything else is generic:
 
 - **`.wiki/config.json`** — your wiki's `name`, stale-page `highRisk` globs, and explicit Fresh-context mode/scope/evidence/reviewer trust policy.
+- **`.wiki/coverage.json`** — the implementation/test globs that must map to current pages, plus any narrowly reasoned exclusions.
 - **`scripts/wiki/inventories.ts`** — optional. Teach the engine to emit deterministic `wiki/_generated/**` pages from your stack; read `kit/scripts/wiki/inventories.example.ts` in a wiki-ssot checkout for a worked adapter.
 
 Omit `freshContext.requiredWhen` to require review for every PR. A `risk-based` selector can instead require it for trusted changed-file globs, affected invariants/conflicts, and current-page removals. For a solo-maintainer repository, set `trust.requireDifferentActor` to `false`: before opening the PR, the authoring agent must still use a separate context-isolated reviewer or sub-agent, but the authenticated publisher may be the PR author. Teams with a provisioned reviewer account or bot can set it to `true` to make distinct GitHub identities a CI-validated requirement.
 
-## Trust boundary
+## Required integration seam
 
-wiki-ssot assumes that people with repository write or administration access are trusted. Its deterministic gates catch accidental drift and validate the declared review process; they do not defend against a maintainer who intentionally rewrites GitHub Actions or weakens repository settings. Organization-level controls such as required workflows, CODEOWNERS staffing, and administrator-bypass policy are deployment choices outside the product contract.
+Adoption is complete only while the installed repository keeps the full seam:
+a root `AGENTS.md` with the affirmative current-authority, no-query work, and
+focused/topic context routes; the structured PR metadata template; the
+Ready-only `wiki-review-attestation` CI job and required events; and the
+canonical package commands. `wiki:doctor` checks these provider-neutral and
+GitHub reference surfaces together and fails when one is missing or reduced to
+a marker, placeholder, command list, or explicitly negated route.
+
+## Non-guarantees and trust boundary
+
+- wiki-ssot does not host or run an LLM/reviewer; the invoking agent or orchestrator supplies the separate review context.
+- Queue recommendations and review dispositions do not authorize work or make product decisions. Ambiguity remains an owner decision or conflict.
+- Exact report bindings prove which artifact was attested, not cryptographic freshness, independence, or quality of the reviewer's reasoning.
+- Repository write/admin actors are trusted. The gates catch accidental drift and validate the declared process, but do not defend against a maintainer who intentionally rewrites workflows or weakens settings. Required workflows, CODEOWNERS staffing, rulesets, and administrator-bypass policy remain deployment choices.
 
 ## License
 
