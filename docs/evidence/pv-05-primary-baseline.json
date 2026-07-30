@@ -1,0 +1,2059 @@
+{
+  "contractVersion": 1,
+  "engine": {
+    "baseRef": "origin/main",
+    "baseSha": "fa21d350935d7d16c21734e0a25f84ff29f3e41e",
+    "unchangedPaths": [
+      "scripts/wiki/cli.ts",
+      "scripts/wiki/core.ts",
+      "scripts/wiki/primary-scenarios.ts"
+    ]
+  },
+  "fixtureVersion": 1,
+  "interpretation": {
+    "hypothesesNotEstablished": [
+      "This deterministic fixture does not measure whether an LLM reads or understands surfaced context.",
+      "It does not establish runtime or model-token cost, nor whether new- and existing-repository adoption defaults diverge; those require PV-08, PV-09, and PV-11 evidence.",
+      "It identifies search over-return but does not establish that ranking is the correct remedy; PV-07 remains evidence-driven."
+    ],
+    "measuredFailures": [
+      "Exact status+authority labelling was present for 0/14 required authorities; the default text context omits both labels and search omits authority.",
+      "The default text context surfaced 0/18 required implementation sources.",
+      "Substring query matching returned 91 irrelevant page occurrences across 8 scenarios.",
+      "2 expected implementation/test files lacked a baseline current-page mapping, and 1 code-only probe passed both deterministic drift gates.",
+      "The default discovery path stated the required update/verify wiki action in 0/8 scenarios."
+    ],
+    "measuredPasses": [
+      "The default query context recalled 9/9 controlling current pages, 4/4 invariants, and 2/2 required conflicts.",
+      "Synthetic candidate diffs contained 32/32 declared expected changes."
+    ]
+  },
+  "method": {
+    "discoveryPath": [
+      "bun run wiki:search -- \"<task>\"",
+      "bun run wiki:context -- \"<task>\""
+    ],
+    "driftProbePath": [
+      "change one declared implementation source without a wiki update or verification",
+      "bun run wiki:lint -- --json",
+      "bun run wiki:impact -- --base main --enforce --json"
+    ],
+    "notes": [
+      "Each expected candidate is materialized and committed in a synthetic git fixture; changedFiles comes from git diff.",
+      "Unmapped changed files are implementation/test expectations with no current-page source mapping at the baseline.",
+      "Context bytes are exact UTF-8 bytes from the default text context output; runtime and model-token cost are not claimed."
+    ]
+  },
+  "reportVersion": 1,
+  "scenarios": [
+    {
+      "category": "feature-change",
+      "discovery": {
+        "contextConflictIds": [
+          "C-101",
+          "C-201"
+        ],
+        "contextPageIds": [
+          "architecture/contracts",
+          "architecture/data",
+          "architecture/engine",
+          "features/checkout",
+          "features/export",
+          "features/orders",
+          "features/pricing",
+          "features/tenant-access",
+          "product/data-retention",
+          "product/invariants",
+          "product/money-invariants",
+          "product/search",
+          "product/tenant-isolation",
+          "proposal/search-ranking"
+        ],
+        "searchMatches": [
+          {
+            "id": "features/checkout",
+            "status": "current"
+          },
+          {
+            "id": "product/money-invariants",
+            "status": "current"
+          },
+          {
+            "id": "architecture/data",
+            "status": "current"
+          },
+          {
+            "id": "architecture/engine",
+            "status": "current"
+          },
+          {
+            "id": "features/export",
+            "status": "current"
+          },
+          {
+            "id": "features/orders",
+            "status": "current"
+          },
+          {
+            "id": "product/data-retention",
+            "status": "current"
+          },
+          {
+            "id": "product/invariants",
+            "status": "current"
+          },
+          {
+            "id": "conflict/C-201",
+            "status": "conflicted"
+          },
+          {
+            "id": "features/tenant-access",
+            "status": "current"
+          },
+          {
+            "id": "product/tenant-isolation",
+            "status": "current"
+          },
+          {
+            "id": "architecture/contracts",
+            "status": "current"
+          },
+          {
+            "id": "features/pricing",
+            "status": "current"
+          },
+          {
+            "id": "product/search",
+            "status": "current"
+          },
+          {
+            "id": "proposal/search-ranking",
+            "status": "proposed"
+          },
+          {
+            "id": "conflict/C-101",
+            "status": "conflicted"
+          }
+        ]
+      },
+      "driftProbe": {
+        "caught": true,
+        "findingCodes": [
+          "stale-verification"
+        ],
+        "impactExitCode": 1,
+        "lintExitCode": 0,
+        "sourcePath": "src/checkout/refunds.ts"
+      },
+      "evaluation": {
+        "category": "feature-change",
+        "commandSequence": [
+          "bun run wiki:search -- \"Add support for partial refunds while preserving the checkout total and currency rules.\"",
+          "bun run wiki:context -- \"Add support for partial refunds while preserving the checkout total and currency rules.\"",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "contractVersion": 1,
+        "driftEscapes": [],
+        "expectationsMet": false,
+        "irrelevantPages": [
+          "architecture/contracts",
+          "architecture/data",
+          "architecture/engine",
+          "features/export",
+          "features/orders",
+          "features/pricing",
+          "features/tenant-access",
+          "product/data-retention",
+          "product/invariants",
+          "product/search",
+          "product/tenant-isolation",
+          "proposal/search-ranking"
+        ],
+        "metrics": {
+          "authorityLabelRecall": {
+            "found": 0,
+            "ratio": 0,
+            "required": 2
+          },
+          "commandCount": 4,
+          "conflictRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "contextBytes": 4109,
+          "currentPageRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "driftEscapeCount": 0,
+          "expectedChangeRecall": {
+            "found": 4,
+            "ratio": 1,
+            "required": 4
+          },
+          "implementationSourceRecall": {
+            "found": 0,
+            "ratio": 0,
+            "required": 2
+          },
+          "invariantRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "irrelevantPageCount": 12,
+          "nonCurrentAuthorityLabelRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "unmappedChangedFileCount": 0
+        },
+        "scenarioId": "primary-v1-feature-change",
+        "unmappedChangedFiles": [],
+        "wikiActionMatches": false
+      },
+      "observation": {
+        "authorities": [
+          {
+            "pageId": "architecture/contracts",
+            "status": "current"
+          },
+          {
+            "pageId": "architecture/data",
+            "status": "current"
+          },
+          {
+            "pageId": "architecture/engine",
+            "status": "current"
+          },
+          {
+            "pageId": "features/checkout",
+            "status": "current"
+          },
+          {
+            "pageId": "features/export",
+            "status": "current"
+          },
+          {
+            "pageId": "features/orders",
+            "status": "current"
+          },
+          {
+            "pageId": "features/pricing",
+            "status": "current"
+          },
+          {
+            "pageId": "features/tenant-access",
+            "status": "current"
+          },
+          {
+            "pageId": "product/data-retention",
+            "status": "current"
+          },
+          {
+            "pageId": "product/invariants",
+            "status": "current"
+          },
+          {
+            "pageId": "product/money-invariants",
+            "status": "current"
+          },
+          {
+            "pageId": "product/search",
+            "status": "current"
+          },
+          {
+            "pageId": "product/tenant-isolation",
+            "status": "current"
+          },
+          {
+            "pageId": "proposal/search-ranking",
+            "status": "proposed"
+          }
+        ],
+        "changedFiles": [
+          ".wiki/state.json",
+          "src/checkout/refunds.ts",
+          "test/checkout/refunds.test.ts",
+          "wiki/features/checkout.md"
+        ],
+        "commands": [
+          "bun run wiki:search -- \"Add support for partial refunds while preserving the checkout total and currency rules.\"",
+          "bun run wiki:context -- \"Add support for partial refunds while preserving the checkout total and currency rules.\"",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "conflicts": [
+          "C-101",
+          "C-201"
+        ],
+        "contextBytes": 4109,
+        "driftEscapes": [],
+        "sources": [],
+        "unmappedChangedFiles": [],
+        "wikiAction": null
+      },
+      "scenarioId": "primary-v1-feature-change",
+      "task": "Add support for partial refunds while preserving the checkout total and currency rules."
+    },
+    {
+      "category": "semantics-preserving-refactor",
+      "discovery": {
+        "contextConflictIds": [],
+        "contextPageIds": [
+          "architecture/contracts",
+          "architecture/data",
+          "features/orders",
+          "features/tenant-access",
+          "product/search",
+          "product/tenant-isolation",
+          "proposal/search-ranking"
+        ],
+        "searchMatches": [
+          {
+            "id": "architecture/contracts",
+            "status": "current"
+          },
+          {
+            "id": "architecture/data",
+            "status": "current"
+          },
+          {
+            "id": "features/orders",
+            "status": "current"
+          },
+          {
+            "id": "features/tenant-access",
+            "status": "current"
+          },
+          {
+            "id": "product/search",
+            "status": "current"
+          },
+          {
+            "id": "product/tenant-isolation",
+            "status": "current"
+          },
+          {
+            "id": "proposal/search-ranking",
+            "status": "proposed"
+          }
+        ]
+      },
+      "driftProbe": {
+        "caught": true,
+        "findingCodes": [
+          "stale-verification"
+        ],
+        "impactExitCode": 1,
+        "lintExitCode": 0,
+        "sourcePath": "src/contracts/order.ts"
+      },
+      "evaluation": {
+        "category": "semantics-preserving-refactor",
+        "commandSequence": [
+          "bun run wiki:search -- \"Split order contract parsing into helpers without changing its exported behavior.\"",
+          "bun run wiki:context -- \"Split order contract parsing into helpers without changing its exported behavior.\"",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "contractVersion": 1,
+        "driftEscapes": [],
+        "expectationsMet": false,
+        "irrelevantPages": [
+          "architecture/data",
+          "features/orders",
+          "features/tenant-access",
+          "product/search",
+          "product/tenant-isolation",
+          "proposal/search-ranking"
+        ],
+        "metrics": {
+          "authorityLabelRecall": {
+            "found": 0,
+            "ratio": 0,
+            "required": 1
+          },
+          "commandCount": 4,
+          "conflictRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "contextBytes": 1843,
+          "currentPageRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "driftEscapeCount": 0,
+          "expectedChangeRecall": {
+            "found": 3,
+            "ratio": 1,
+            "required": 3
+          },
+          "implementationSourceRecall": {
+            "found": 0,
+            "ratio": 0,
+            "required": 2
+          },
+          "invariantRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "irrelevantPageCount": 6,
+          "nonCurrentAuthorityLabelRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "unmappedChangedFileCount": 0
+        },
+        "scenarioId": "primary-v1-semantics-preserving-refactor",
+        "unmappedChangedFiles": [],
+        "wikiActionMatches": false
+      },
+      "observation": {
+        "authorities": [
+          {
+            "pageId": "architecture/contracts",
+            "status": "current"
+          },
+          {
+            "pageId": "architecture/data",
+            "status": "current"
+          },
+          {
+            "pageId": "features/orders",
+            "status": "current"
+          },
+          {
+            "pageId": "features/tenant-access",
+            "status": "current"
+          },
+          {
+            "pageId": "product/search",
+            "status": "current"
+          },
+          {
+            "pageId": "product/tenant-isolation",
+            "status": "current"
+          },
+          {
+            "pageId": "proposal/search-ranking",
+            "status": "proposed"
+          }
+        ],
+        "changedFiles": [
+          ".wiki/state.json",
+          "src/contracts/order.ts",
+          "test/contracts/order.test.ts"
+        ],
+        "commands": [
+          "bun run wiki:search -- \"Split order contract parsing into helpers without changing its exported behavior.\"",
+          "bun run wiki:context -- \"Split order contract parsing into helpers without changing its exported behavior.\"",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "conflicts": [],
+        "contextBytes": 1843,
+        "driftEscapes": [],
+        "sources": [],
+        "unmappedChangedFiles": [],
+        "wikiAction": null
+      },
+      "scenarioId": "primary-v1-semantics-preserving-refactor",
+      "task": "Split order contract parsing into helpers without changing its exported behavior."
+    },
+    {
+      "category": "invariant-controlled-change",
+      "discovery": {
+        "contextConflictIds": [
+          "C-101",
+          "C-201"
+        ],
+        "contextPageIds": [
+          "architecture/contracts",
+          "architecture/data",
+          "architecture/engine",
+          "features/checkout",
+          "features/export",
+          "features/orders",
+          "features/pricing",
+          "features/tenant-access",
+          "product/data-retention",
+          "product/invariants",
+          "product/money-invariants",
+          "product/search",
+          "product/tenant-isolation",
+          "proposal/search-ranking"
+        ],
+        "searchMatches": [
+          {
+            "id": "features/tenant-access",
+            "status": "current"
+          },
+          {
+            "id": "product/tenant-isolation",
+            "status": "current"
+          },
+          {
+            "id": "architecture/contracts",
+            "status": "current"
+          },
+          {
+            "id": "features/checkout",
+            "status": "current"
+          },
+          {
+            "id": "product/money-invariants",
+            "status": "current"
+          },
+          {
+            "id": "architecture/data",
+            "status": "current"
+          },
+          {
+            "id": "conflict/C-101",
+            "status": "conflicted"
+          },
+          {
+            "id": "conflict/C-201",
+            "status": "conflicted"
+          },
+          {
+            "id": "features/export",
+            "status": "current"
+          },
+          {
+            "id": "features/orders",
+            "status": "current"
+          },
+          {
+            "id": "features/pricing",
+            "status": "current"
+          },
+          {
+            "id": "product/data-retention",
+            "status": "current"
+          },
+          {
+            "id": "architecture/engine",
+            "status": "current"
+          },
+          {
+            "id": "product/invariants",
+            "status": "current"
+          },
+          {
+            "id": "product/search",
+            "status": "current"
+          },
+          {
+            "id": "proposal/search-ranking",
+            "status": "proposed"
+          }
+        ]
+      },
+      "driftProbe": {
+        "caught": true,
+        "findingCodes": [
+          "stale-verification"
+        ],
+        "impactExitCode": 1,
+        "lintExitCode": 0,
+        "sourcePath": "src/tenancy/access.ts"
+      },
+      "evaluation": {
+        "category": "invariant-controlled-change",
+        "commandSequence": [
+          "bun run wiki:search -- \"Allow support staff to inspect a tenant record without weakening tenant isolation.\"",
+          "bun run wiki:context -- \"Allow support staff to inspect a tenant record without weakening tenant isolation.\"",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "contractVersion": 1,
+        "driftEscapes": [],
+        "expectationsMet": false,
+        "irrelevantPages": [
+          "architecture/contracts",
+          "architecture/data",
+          "architecture/engine",
+          "features/checkout",
+          "features/export",
+          "features/orders",
+          "features/pricing",
+          "product/data-retention",
+          "product/invariants",
+          "product/money-invariants",
+          "product/search",
+          "proposal/search-ranking"
+        ],
+        "metrics": {
+          "authorityLabelRecall": {
+            "found": 0,
+            "ratio": 0,
+            "required": 2
+          },
+          "commandCount": 4,
+          "conflictRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "contextBytes": 4109,
+          "currentPageRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "driftEscapeCount": 0,
+          "expectedChangeRecall": {
+            "found": 4,
+            "ratio": 1,
+            "required": 4
+          },
+          "implementationSourceRecall": {
+            "found": 0,
+            "ratio": 0,
+            "required": 2
+          },
+          "invariantRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "irrelevantPageCount": 12,
+          "nonCurrentAuthorityLabelRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "unmappedChangedFileCount": 0
+        },
+        "scenarioId": "primary-v1-invariant-controlled-change",
+        "unmappedChangedFiles": [],
+        "wikiActionMatches": false
+      },
+      "observation": {
+        "authorities": [
+          {
+            "pageId": "architecture/contracts",
+            "status": "current"
+          },
+          {
+            "pageId": "architecture/data",
+            "status": "current"
+          },
+          {
+            "pageId": "architecture/engine",
+            "status": "current"
+          },
+          {
+            "pageId": "features/checkout",
+            "status": "current"
+          },
+          {
+            "pageId": "features/export",
+            "status": "current"
+          },
+          {
+            "pageId": "features/orders",
+            "status": "current"
+          },
+          {
+            "pageId": "features/pricing",
+            "status": "current"
+          },
+          {
+            "pageId": "features/tenant-access",
+            "status": "current"
+          },
+          {
+            "pageId": "product/data-retention",
+            "status": "current"
+          },
+          {
+            "pageId": "product/invariants",
+            "status": "current"
+          },
+          {
+            "pageId": "product/money-invariants",
+            "status": "current"
+          },
+          {
+            "pageId": "product/search",
+            "status": "current"
+          },
+          {
+            "pageId": "product/tenant-isolation",
+            "status": "current"
+          },
+          {
+            "pageId": "proposal/search-ranking",
+            "status": "proposed"
+          }
+        ],
+        "changedFiles": [
+          ".wiki/state.json",
+          "src/tenancy/access.ts",
+          "test/tenancy/access.test.ts",
+          "wiki/features/tenant-access.md"
+        ],
+        "commands": [
+          "bun run wiki:search -- \"Allow support staff to inspect a tenant record without weakening tenant isolation.\"",
+          "bun run wiki:context -- \"Allow support staff to inspect a tenant record without weakening tenant isolation.\"",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "conflicts": [
+          "C-101",
+          "C-201"
+        ],
+        "contextBytes": 4109,
+        "driftEscapes": [],
+        "sources": [],
+        "unmappedChangedFiles": [],
+        "wikiAction": null
+      },
+      "scenarioId": "primary-v1-invariant-controlled-change",
+      "task": "Allow support staff to inspect a tenant record without weakening tenant isolation."
+    },
+    {
+      "category": "code-wiki-disagreement",
+      "discovery": {
+        "contextConflictIds": [
+          "C-101",
+          "C-201"
+        ],
+        "contextPageIds": [
+          "architecture/contracts",
+          "architecture/data",
+          "architecture/engine",
+          "features/checkout",
+          "features/export",
+          "features/orders",
+          "features/pricing",
+          "features/tenant-access",
+          "product/data-retention",
+          "product/invariants",
+          "product/money-invariants",
+          "product/search",
+          "product/tenant-isolation",
+          "proposal/search-ranking"
+        ],
+        "searchMatches": [
+          {
+            "id": "conflict/C-101",
+            "status": "conflicted"
+          },
+          {
+            "id": "features/pricing",
+            "status": "current"
+          },
+          {
+            "id": "features/checkout",
+            "status": "current"
+          },
+          {
+            "id": "product/money-invariants",
+            "status": "current"
+          },
+          {
+            "id": "architecture/contracts",
+            "status": "current"
+          },
+          {
+            "id": "architecture/data",
+            "status": "current"
+          },
+          {
+            "id": "architecture/engine",
+            "status": "current"
+          },
+          {
+            "id": "features/export",
+            "status": "current"
+          },
+          {
+            "id": "features/orders",
+            "status": "current"
+          },
+          {
+            "id": "features/tenant-access",
+            "status": "current"
+          },
+          {
+            "id": "product/data-retention",
+            "status": "current"
+          },
+          {
+            "id": "product/invariants",
+            "status": "current"
+          },
+          {
+            "id": "product/search",
+            "status": "current"
+          },
+          {
+            "id": "product/tenant-isolation",
+            "status": "current"
+          },
+          {
+            "id": "proposal/search-ranking",
+            "status": "proposed"
+          },
+          {
+            "id": "conflict/C-201",
+            "status": "conflicted"
+          }
+        ]
+      },
+      "driftProbe": {
+        "caught": true,
+        "findingCodes": [
+          "stale-verification"
+        ],
+        "impactExitCode": 1,
+        "lintExitCode": 0,
+        "sourcePath": "src/pricing/calculate.ts"
+      },
+      "evaluation": {
+        "category": "code-wiki-disagreement",
+        "commandSequence": [
+          "bun run wiki:search -- \"Reconcile the documented pricing rounding rule with the contradictory implementation evidence.\"",
+          "bun run wiki:context -- \"Reconcile the documented pricing rounding rule with the contradictory implementation evidence.\"",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "contractVersion": 1,
+        "driftEscapes": [],
+        "expectationsMet": false,
+        "irrelevantPages": [
+          "architecture/contracts",
+          "architecture/data",
+          "architecture/engine",
+          "features/checkout",
+          "features/export",
+          "features/orders",
+          "features/tenant-access",
+          "product/data-retention",
+          "product/invariants",
+          "product/money-invariants",
+          "product/search",
+          "product/tenant-isolation",
+          "proposal/search-ranking"
+        ],
+        "metrics": {
+          "authorityLabelRecall": {
+            "found": 0,
+            "ratio": 0,
+            "required": 1
+          },
+          "commandCount": 4,
+          "conflictRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "contextBytes": 4109,
+          "currentPageRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "driftEscapeCount": 0,
+          "expectedChangeRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "implementationSourceRecall": {
+            "found": 0,
+            "ratio": 0,
+            "required": 2
+          },
+          "invariantRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "irrelevantPageCount": 13,
+          "nonCurrentAuthorityLabelRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "unmappedChangedFileCount": 0
+        },
+        "scenarioId": "primary-v1-code-wiki-disagreement",
+        "unmappedChangedFiles": [],
+        "wikiActionMatches": false
+      },
+      "observation": {
+        "authorities": [
+          {
+            "pageId": "architecture/contracts",
+            "status": "current"
+          },
+          {
+            "pageId": "architecture/data",
+            "status": "current"
+          },
+          {
+            "pageId": "architecture/engine",
+            "status": "current"
+          },
+          {
+            "pageId": "features/checkout",
+            "status": "current"
+          },
+          {
+            "pageId": "features/export",
+            "status": "current"
+          },
+          {
+            "pageId": "features/orders",
+            "status": "current"
+          },
+          {
+            "pageId": "features/pricing",
+            "status": "current"
+          },
+          {
+            "pageId": "features/tenant-access",
+            "status": "current"
+          },
+          {
+            "pageId": "product/data-retention",
+            "status": "current"
+          },
+          {
+            "pageId": "product/invariants",
+            "status": "current"
+          },
+          {
+            "pageId": "product/money-invariants",
+            "status": "current"
+          },
+          {
+            "pageId": "product/search",
+            "status": "current"
+          },
+          {
+            "pageId": "product/tenant-isolation",
+            "status": "current"
+          },
+          {
+            "pageId": "proposal/search-ranking",
+            "status": "proposed"
+          }
+        ],
+        "changedFiles": [
+          "wiki/conflicts/open/C-101.md"
+        ],
+        "commands": [
+          "bun run wiki:search -- \"Reconcile the documented pricing rounding rule with the contradictory implementation evidence.\"",
+          "bun run wiki:context -- \"Reconcile the documented pricing rounding rule with the contradictory implementation evidence.\"",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "conflicts": [
+          "C-101",
+          "C-201"
+        ],
+        "contextBytes": 4109,
+        "driftEscapes": [],
+        "sources": [],
+        "unmappedChangedFiles": [],
+        "wikiAction": null
+      },
+      "scenarioId": "primary-v1-code-wiki-disagreement",
+      "task": "Reconcile the documented pricing rounding rule with the contradictory implementation evidence."
+    },
+    {
+      "category": "existing-conflict",
+      "discovery": {
+        "contextConflictIds": [
+          "C-101",
+          "C-201"
+        ],
+        "contextPageIds": [
+          "architecture/contracts",
+          "architecture/data",
+          "architecture/engine",
+          "features/checkout",
+          "features/export",
+          "features/orders",
+          "features/pricing",
+          "features/tenant-access",
+          "product/data-retention",
+          "product/invariants",
+          "product/money-invariants",
+          "product/search",
+          "product/tenant-isolation",
+          "proposal/search-ranking"
+        ],
+        "searchMatches": [
+          {
+            "id": "conflict/C-201",
+            "status": "conflicted"
+          },
+          {
+            "id": "features/export",
+            "status": "current"
+          },
+          {
+            "id": "product/data-retention",
+            "status": "current"
+          },
+          {
+            "id": "architecture/contracts",
+            "status": "current"
+          },
+          {
+            "id": "features/checkout",
+            "status": "current"
+          },
+          {
+            "id": "product/money-invariants",
+            "status": "current"
+          },
+          {
+            "id": "architecture/data",
+            "status": "current"
+          },
+          {
+            "id": "features/orders",
+            "status": "current"
+          },
+          {
+            "id": "architecture/engine",
+            "status": "current"
+          },
+          {
+            "id": "conflict/C-101",
+            "status": "conflicted"
+          },
+          {
+            "id": "features/pricing",
+            "status": "current"
+          },
+          {
+            "id": "features/tenant-access",
+            "status": "current"
+          },
+          {
+            "id": "product/invariants",
+            "status": "current"
+          },
+          {
+            "id": "product/search",
+            "status": "current"
+          },
+          {
+            "id": "product/tenant-isolation",
+            "status": "current"
+          },
+          {
+            "id": "proposal/search-ranking",
+            "status": "proposed"
+          }
+        ]
+      },
+      "driftProbe": {
+        "caught": true,
+        "findingCodes": [
+          "stale-verification"
+        ],
+        "impactExitCode": 1,
+        "lintExitCode": 0,
+        "sourcePath": "src/export/job.ts"
+      },
+      "evaluation": {
+        "category": "existing-conflict",
+        "commandSequence": [
+          "bun run wiki:search -- \"Change export retention behavior while preserving or resolving the recorded retention conflict.\"",
+          "bun run wiki:context -- \"Change export retention behavior while preserving or resolving the recorded retention conflict.\"",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "contractVersion": 1,
+        "driftEscapes": [],
+        "expectationsMet": false,
+        "irrelevantPages": [
+          "architecture/contracts",
+          "architecture/data",
+          "architecture/engine",
+          "features/checkout",
+          "features/orders",
+          "features/pricing",
+          "features/tenant-access",
+          "product/invariants",
+          "product/money-invariants",
+          "product/search",
+          "product/tenant-isolation",
+          "proposal/search-ranking"
+        ],
+        "metrics": {
+          "authorityLabelRecall": {
+            "found": 0,
+            "ratio": 0,
+            "required": 2
+          },
+          "commandCount": 4,
+          "conflictRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "contextBytes": 4109,
+          "currentPageRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "driftEscapeCount": 0,
+          "expectedChangeRecall": {
+            "found": 5,
+            "ratio": 1,
+            "required": 5
+          },
+          "implementationSourceRecall": {
+            "found": 0,
+            "ratio": 0,
+            "required": 2
+          },
+          "invariantRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "irrelevantPageCount": 12,
+          "nonCurrentAuthorityLabelRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "unmappedChangedFileCount": 0
+        },
+        "scenarioId": "primary-v1-existing-conflict",
+        "unmappedChangedFiles": [],
+        "wikiActionMatches": false
+      },
+      "observation": {
+        "authorities": [
+          {
+            "pageId": "architecture/contracts",
+            "status": "current"
+          },
+          {
+            "pageId": "architecture/data",
+            "status": "current"
+          },
+          {
+            "pageId": "architecture/engine",
+            "status": "current"
+          },
+          {
+            "pageId": "features/checkout",
+            "status": "current"
+          },
+          {
+            "pageId": "features/export",
+            "status": "current"
+          },
+          {
+            "pageId": "features/orders",
+            "status": "current"
+          },
+          {
+            "pageId": "features/pricing",
+            "status": "current"
+          },
+          {
+            "pageId": "features/tenant-access",
+            "status": "current"
+          },
+          {
+            "pageId": "product/data-retention",
+            "status": "current"
+          },
+          {
+            "pageId": "product/invariants",
+            "status": "current"
+          },
+          {
+            "pageId": "product/money-invariants",
+            "status": "current"
+          },
+          {
+            "pageId": "product/search",
+            "status": "current"
+          },
+          {
+            "pageId": "product/tenant-isolation",
+            "status": "current"
+          },
+          {
+            "pageId": "proposal/search-ranking",
+            "status": "proposed"
+          }
+        ],
+        "changedFiles": [
+          ".wiki/conflict-map.json",
+          ".wiki/state.json",
+          "src/export/job.ts",
+          "test/export/job.test.ts",
+          "wiki/conflicts.md",
+          "wiki/conflicts/resolved/C-201.md",
+          "wiki/current-status.md",
+          "wiki/features/export.md",
+          "wiki/work-queue.md"
+        ],
+        "commands": [
+          "bun run wiki:search -- \"Change export retention behavior while preserving or resolving the recorded retention conflict.\"",
+          "bun run wiki:context -- \"Change export retention behavior while preserving or resolving the recorded retention conflict.\"",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "conflicts": [
+          "C-101",
+          "C-201"
+        ],
+        "contextBytes": 4109,
+        "driftEscapes": [],
+        "sources": [],
+        "unmappedChangedFiles": [],
+        "wikiAction": null
+      },
+      "scenarioId": "primary-v1-existing-conflict",
+      "task": "Change export retention behavior while preserving or resolving the recorded retention conflict."
+    },
+    {
+      "category": "multi-area-change",
+      "discovery": {
+        "contextConflictIds": [
+          "C-101",
+          "C-201"
+        ],
+        "contextPageIds": [
+          "architecture/contracts",
+          "architecture/data",
+          "architecture/engine",
+          "features/checkout",
+          "features/export",
+          "features/orders",
+          "features/pricing",
+          "features/tenant-access",
+          "product/data-retention",
+          "product/invariants",
+          "product/money-invariants",
+          "product/search",
+          "product/tenant-isolation",
+          "proposal/search-ranking"
+        ],
+        "searchMatches": [
+          {
+            "id": "architecture/data",
+            "status": "current"
+          },
+          {
+            "id": "features/orders",
+            "status": "current"
+          },
+          {
+            "id": "architecture/contracts",
+            "status": "current"
+          },
+          {
+            "id": "features/checkout",
+            "status": "current"
+          },
+          {
+            "id": "product/data-retention",
+            "status": "current"
+          },
+          {
+            "id": "product/money-invariants",
+            "status": "current"
+          },
+          {
+            "id": "architecture/engine",
+            "status": "current"
+          },
+          {
+            "id": "conflict/C-201",
+            "status": "conflicted"
+          },
+          {
+            "id": "features/export",
+            "status": "current"
+          },
+          {
+            "id": "product/invariants",
+            "status": "current"
+          },
+          {
+            "id": "conflict/C-101",
+            "status": "conflicted"
+          },
+          {
+            "id": "features/pricing",
+            "status": "current"
+          },
+          {
+            "id": "features/tenant-access",
+            "status": "current"
+          },
+          {
+            "id": "product/search",
+            "status": "current"
+          },
+          {
+            "id": "product/tenant-isolation",
+            "status": "current"
+          },
+          {
+            "id": "proposal/search-ranking",
+            "status": "proposed"
+          }
+        ]
+      },
+      "driftProbe": {
+        "caught": true,
+        "findingCodes": [
+          "stale-verification"
+        ],
+        "impactExitCode": 1,
+        "lintExitCode": 0,
+        "sourcePath": "src/orders/service.ts"
+      },
+      "evaluation": {
+        "category": "multi-area-change",
+        "commandSequence": [
+          "bun run wiki:search -- \"Persist order audit records while changing both the order service and the data model.\"",
+          "bun run wiki:context -- \"Persist order audit records while changing both the order service and the data model.\"",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "contractVersion": 1,
+        "driftEscapes": [],
+        "expectationsMet": false,
+        "irrelevantPages": [
+          "architecture/contracts",
+          "architecture/engine",
+          "features/checkout",
+          "features/export",
+          "features/pricing",
+          "features/tenant-access",
+          "product/data-retention",
+          "product/invariants",
+          "product/money-invariants",
+          "product/search",
+          "product/tenant-isolation",
+          "proposal/search-ranking"
+        ],
+        "metrics": {
+          "authorityLabelRecall": {
+            "found": 0,
+            "ratio": 0,
+            "required": 2
+          },
+          "commandCount": 4,
+          "conflictRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "contextBytes": 4109,
+          "currentPageRecall": {
+            "found": 2,
+            "ratio": 1,
+            "required": 2
+          },
+          "driftEscapeCount": 0,
+          "expectedChangeRecall": {
+            "found": 6,
+            "ratio": 1,
+            "required": 6
+          },
+          "implementationSourceRecall": {
+            "found": 0,
+            "ratio": 0,
+            "required": 3
+          },
+          "invariantRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "irrelevantPageCount": 12,
+          "nonCurrentAuthorityLabelRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "unmappedChangedFileCount": 0
+        },
+        "scenarioId": "primary-v1-multi-area-change",
+        "unmappedChangedFiles": [],
+        "wikiActionMatches": false
+      },
+      "observation": {
+        "authorities": [
+          {
+            "pageId": "architecture/contracts",
+            "status": "current"
+          },
+          {
+            "pageId": "architecture/data",
+            "status": "current"
+          },
+          {
+            "pageId": "architecture/engine",
+            "status": "current"
+          },
+          {
+            "pageId": "features/checkout",
+            "status": "current"
+          },
+          {
+            "pageId": "features/export",
+            "status": "current"
+          },
+          {
+            "pageId": "features/orders",
+            "status": "current"
+          },
+          {
+            "pageId": "features/pricing",
+            "status": "current"
+          },
+          {
+            "pageId": "features/tenant-access",
+            "status": "current"
+          },
+          {
+            "pageId": "product/data-retention",
+            "status": "current"
+          },
+          {
+            "pageId": "product/invariants",
+            "status": "current"
+          },
+          {
+            "pageId": "product/money-invariants",
+            "status": "current"
+          },
+          {
+            "pageId": "product/search",
+            "status": "current"
+          },
+          {
+            "pageId": "product/tenant-isolation",
+            "status": "current"
+          },
+          {
+            "pageId": "proposal/search-ranking",
+            "status": "proposed"
+          }
+        ],
+        "changedFiles": [
+          ".wiki/state.json",
+          "db/migrations/0042_order_audit.sql",
+          "src/orders/service.ts",
+          "test/orders/audit.test.ts",
+          "wiki/architecture/data.md",
+          "wiki/features/orders.md"
+        ],
+        "commands": [
+          "bun run wiki:search -- \"Persist order audit records while changing both the order service and the data model.\"",
+          "bun run wiki:context -- \"Persist order audit records while changing both the order service and the data model.\"",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "conflicts": [
+          "C-101",
+          "C-201"
+        ],
+        "contextBytes": 4109,
+        "driftEscapes": [],
+        "sources": [],
+        "unmappedChangedFiles": [],
+        "wikiAction": null
+      },
+      "scenarioId": "primary-v1-multi-area-change",
+      "task": "Persist order audit records while changing both the order service and the data model."
+    },
+    {
+      "category": "mixed-current-proposed-query",
+      "discovery": {
+        "contextConflictIds": [
+          "C-101",
+          "C-201"
+        ],
+        "contextPageIds": [
+          "architecture/contracts",
+          "architecture/data",
+          "architecture/engine",
+          "features/checkout",
+          "features/export",
+          "features/orders",
+          "features/pricing",
+          "features/tenant-access",
+          "product/data-retention",
+          "product/invariants",
+          "product/money-invariants",
+          "product/search",
+          "product/tenant-isolation",
+          "proposal/search-ranking"
+        ],
+        "searchMatches": [
+          {
+            "id": "product/search",
+            "status": "current"
+          },
+          {
+            "id": "proposal/search-ranking",
+            "status": "proposed"
+          },
+          {
+            "id": "architecture/contracts",
+            "status": "current"
+          },
+          {
+            "id": "conflict/C-101",
+            "status": "conflicted"
+          },
+          {
+            "id": "architecture/data",
+            "status": "current"
+          },
+          {
+            "id": "architecture/engine",
+            "status": "current"
+          },
+          {
+            "id": "conflict/C-201",
+            "status": "conflicted"
+          },
+          {
+            "id": "features/checkout",
+            "status": "current"
+          },
+          {
+            "id": "features/export",
+            "status": "current"
+          },
+          {
+            "id": "features/orders",
+            "status": "current"
+          },
+          {
+            "id": "features/pricing",
+            "status": "current"
+          },
+          {
+            "id": "features/tenant-access",
+            "status": "current"
+          },
+          {
+            "id": "product/data-retention",
+            "status": "current"
+          },
+          {
+            "id": "product/invariants",
+            "status": "current"
+          },
+          {
+            "id": "product/money-invariants",
+            "status": "current"
+          },
+          {
+            "id": "product/tenant-isolation",
+            "status": "current"
+          }
+        ]
+      },
+      "driftProbe": {
+        "caught": true,
+        "findingCodes": [
+          "stale-verification"
+        ],
+        "impactExitCode": 1,
+        "lintExitCode": 0,
+        "sourcePath": "src/search/query.ts"
+      },
+      "evaluation": {
+        "category": "mixed-current-proposed-query",
+        "commandSequence": [
+          "bun run wiki:search -- \"Improve search relevance under the current search contract despite a similarly named future ranking proposal.\"",
+          "bun run wiki:context -- \"Improve search relevance under the current search contract despite a similarly named future ranking proposal.\"",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "contractVersion": 1,
+        "driftEscapes": [],
+        "expectationsMet": false,
+        "irrelevantPages": [
+          "architecture/contracts",
+          "architecture/data",
+          "architecture/engine",
+          "features/checkout",
+          "features/export",
+          "features/orders",
+          "features/pricing",
+          "features/tenant-access",
+          "product/data-retention",
+          "product/invariants",
+          "product/money-invariants",
+          "product/tenant-isolation"
+        ],
+        "metrics": {
+          "authorityLabelRecall": {
+            "found": 0,
+            "ratio": 0,
+            "required": 2
+          },
+          "commandCount": 4,
+          "conflictRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "contextBytes": 4109,
+          "currentPageRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "driftEscapeCount": 0,
+          "expectedChangeRecall": {
+            "found": 4,
+            "ratio": 1,
+            "required": 4
+          },
+          "implementationSourceRecall": {
+            "found": 0,
+            "ratio": 0,
+            "required": 2
+          },
+          "invariantRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "irrelevantPageCount": 12,
+          "nonCurrentAuthorityLabelRecall": {
+            "found": 0,
+            "ratio": 0,
+            "required": 1
+          },
+          "unmappedChangedFileCount": 0
+        },
+        "scenarioId": "primary-v1-mixed-current-proposed-query",
+        "unmappedChangedFiles": [],
+        "wikiActionMatches": false
+      },
+      "observation": {
+        "authorities": [
+          {
+            "pageId": "architecture/contracts",
+            "status": "current"
+          },
+          {
+            "pageId": "architecture/data",
+            "status": "current"
+          },
+          {
+            "pageId": "architecture/engine",
+            "status": "current"
+          },
+          {
+            "pageId": "features/checkout",
+            "status": "current"
+          },
+          {
+            "pageId": "features/export",
+            "status": "current"
+          },
+          {
+            "pageId": "features/orders",
+            "status": "current"
+          },
+          {
+            "pageId": "features/pricing",
+            "status": "current"
+          },
+          {
+            "pageId": "features/tenant-access",
+            "status": "current"
+          },
+          {
+            "pageId": "product/data-retention",
+            "status": "current"
+          },
+          {
+            "pageId": "product/invariants",
+            "status": "current"
+          },
+          {
+            "pageId": "product/money-invariants",
+            "status": "current"
+          },
+          {
+            "pageId": "product/search",
+            "status": "current"
+          },
+          {
+            "pageId": "product/tenant-isolation",
+            "status": "current"
+          },
+          {
+            "pageId": "proposal/search-ranking",
+            "status": "proposed"
+          }
+        ],
+        "changedFiles": [
+          ".wiki/state.json",
+          "src/search/query.ts",
+          "test/search/query.test.ts",
+          "wiki/product/search.md"
+        ],
+        "commands": [
+          "bun run wiki:search -- \"Improve search relevance under the current search contract despite a similarly named future ranking proposal.\"",
+          "bun run wiki:context -- \"Improve search relevance under the current search contract despite a similarly named future ranking proposal.\"",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "conflicts": [
+          "C-101",
+          "C-201"
+        ],
+        "contextBytes": 4109,
+        "driftEscapes": [],
+        "sources": [],
+        "unmappedChangedFiles": [],
+        "wikiAction": null
+      },
+      "scenarioId": "primary-v1-mixed-current-proposed-query",
+      "task": "Improve search relevance under the current search contract despite a similarly named future ranking proposal."
+    },
+    {
+      "category": "coverage-edge",
+      "discovery": {
+        "contextConflictIds": [
+          "C-101",
+          "C-201"
+        ],
+        "contextPageIds": [
+          "architecture/contracts",
+          "architecture/data",
+          "architecture/engine",
+          "features/checkout",
+          "features/export",
+          "features/orders",
+          "features/pricing",
+          "features/tenant-access",
+          "product/data-retention",
+          "product/invariants",
+          "product/money-invariants",
+          "product/search",
+          "product/tenant-isolation",
+          "proposal/search-ranking"
+        ],
+        "searchMatches": [
+          {
+            "id": "architecture/engine",
+            "status": "current"
+          },
+          {
+            "id": "product/invariants",
+            "status": "current"
+          },
+          {
+            "id": "features/checkout",
+            "status": "current"
+          },
+          {
+            "id": "product/money-invariants",
+            "status": "current"
+          },
+          {
+            "id": "architecture/data",
+            "status": "current"
+          },
+          {
+            "id": "features/orders",
+            "status": "current"
+          },
+          {
+            "id": "architecture/contracts",
+            "status": "current"
+          },
+          {
+            "id": "conflict/C-101",
+            "status": "conflicted"
+          },
+          {
+            "id": "features/export",
+            "status": "current"
+          },
+          {
+            "id": "features/pricing",
+            "status": "current"
+          },
+          {
+            "id": "features/tenant-access",
+            "status": "current"
+          },
+          {
+            "id": "product/data-retention",
+            "status": "current"
+          },
+          {
+            "id": "product/search",
+            "status": "current"
+          },
+          {
+            "id": "product/tenant-isolation",
+            "status": "current"
+          },
+          {
+            "id": "proposal/search-ranking",
+            "status": "proposed"
+          },
+          {
+            "id": "conflict/C-201",
+            "status": "conflicted"
+          }
+        ]
+      },
+      "driftProbe": {
+        "caught": false,
+        "findingCodes": [],
+        "impactExitCode": 0,
+        "lintExitCode": 0,
+        "sourcePath": "scripts/wiki/parsers/edge.ts"
+      },
+      "evaluation": {
+        "category": "coverage-edge",
+        "commandSequence": [
+          "bun run wiki:search -- \"Add a nested wiki parser and close the coverage and source-mapping edge it exposes.\"",
+          "bun run wiki:context -- \"Add a nested wiki parser and close the coverage and source-mapping edge it exposes.\"",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "contractVersion": 1,
+        "driftEscapes": [
+          "scripts/wiki/parsers/edge.ts changed without wiki update or verification, but wiki:lint and wiki:impact --enforce both passed."
+        ],
+        "expectationsMet": false,
+        "irrelevantPages": [
+          "architecture/contracts",
+          "architecture/data",
+          "features/checkout",
+          "features/export",
+          "features/orders",
+          "features/pricing",
+          "features/tenant-access",
+          "product/data-retention",
+          "product/money-invariants",
+          "product/search",
+          "product/tenant-isolation",
+          "proposal/search-ranking"
+        ],
+        "metrics": {
+          "authorityLabelRecall": {
+            "found": 0,
+            "ratio": 0,
+            "required": 2
+          },
+          "commandCount": 4,
+          "conflictRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "contextBytes": 4109,
+          "currentPageRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "driftEscapeCount": 1,
+          "expectedChangeRecall": {
+            "found": 5,
+            "ratio": 1,
+            "required": 5
+          },
+          "implementationSourceRecall": {
+            "found": 0,
+            "ratio": 0,
+            "required": 3
+          },
+          "invariantRecall": {
+            "found": 1,
+            "ratio": 1,
+            "required": 1
+          },
+          "irrelevantPageCount": 12,
+          "nonCurrentAuthorityLabelRecall": {
+            "found": 0,
+            "ratio": 1,
+            "required": 0
+          },
+          "unmappedChangedFileCount": 2
+        },
+        "scenarioId": "primary-v1-coverage-edge",
+        "unmappedChangedFiles": [
+          "scripts/wiki/parsers/edge.test.ts",
+          "scripts/wiki/parsers/edge.ts"
+        ],
+        "wikiActionMatches": false
+      },
+      "observation": {
+        "authorities": [
+          {
+            "pageId": "architecture/contracts",
+            "status": "current"
+          },
+          {
+            "pageId": "architecture/data",
+            "status": "current"
+          },
+          {
+            "pageId": "architecture/engine",
+            "status": "current"
+          },
+          {
+            "pageId": "features/checkout",
+            "status": "current"
+          },
+          {
+            "pageId": "features/export",
+            "status": "current"
+          },
+          {
+            "pageId": "features/orders",
+            "status": "current"
+          },
+          {
+            "pageId": "features/pricing",
+            "status": "current"
+          },
+          {
+            "pageId": "features/tenant-access",
+            "status": "current"
+          },
+          {
+            "pageId": "product/data-retention",
+            "status": "current"
+          },
+          {
+            "pageId": "product/invariants",
+            "status": "current"
+          },
+          {
+            "pageId": "product/money-invariants",
+            "status": "current"
+          },
+          {
+            "pageId": "product/search",
+            "status": "current"
+          },
+          {
+            "pageId": "product/tenant-isolation",
+            "status": "current"
+          },
+          {
+            "pageId": "proposal/search-ranking",
+            "status": "proposed"
+          }
+        ],
+        "changedFiles": [
+          ".wiki/coverage.json",
+          ".wiki/source-map.json",
+          ".wiki/state.json",
+          "scripts/wiki/parsers/edge.test.ts",
+          "scripts/wiki/parsers/edge.ts",
+          "wiki/architecture/engine.md",
+          "wiki/current-status.md"
+        ],
+        "commands": [
+          "bun run wiki:search -- \"Add a nested wiki parser and close the coverage and source-mapping edge it exposes.\"",
+          "bun run wiki:context -- \"Add a nested wiki parser and close the coverage and source-mapping edge it exposes.\"",
+          "bun run wiki:lint -- --json",
+          "bun run wiki:impact -- --base main --enforce --json"
+        ],
+        "conflicts": [
+          "C-101",
+          "C-201"
+        ],
+        "contextBytes": 4109,
+        "driftEscapes": [
+          "scripts/wiki/parsers/edge.ts changed without wiki update or verification, but wiki:lint and wiki:impact --enforce both passed."
+        ],
+        "sources": [],
+        "unmappedChangedFiles": [
+          "scripts/wiki/parsers/edge.test.ts",
+          "scripts/wiki/parsers/edge.ts"
+        ],
+        "wikiAction": null
+      },
+      "scenarioId": "primary-v1-coverage-edge",
+      "task": "Add a nested wiki parser and close the coverage and source-mapping edge it exposes."
+    }
+  ],
+  "summary": {
+    "authorityLabelRecall": {
+      "found": 0,
+      "ratio": 0,
+      "required": 14
+    },
+    "commandCount": 32,
+    "conflictRecall": {
+      "found": 2,
+      "ratio": 1,
+      "required": 2
+    },
+    "contextBytes": 30606,
+    "currentPageRecall": {
+      "found": 9,
+      "ratio": 1,
+      "required": 9
+    },
+    "driftEscapeCount": 1,
+    "expectedChangeRecall": {
+      "found": 32,
+      "ratio": 1,
+      "required": 32
+    },
+    "implementationSourceRecall": {
+      "found": 0,
+      "ratio": 0,
+      "required": 18
+    },
+    "invariantRecall": {
+      "found": 4,
+      "ratio": 1,
+      "required": 4
+    },
+    "irrelevantPageCount": 91,
+    "nonCurrentAuthorityLabelRecall": {
+      "found": 0,
+      "ratio": 0,
+      "required": 1
+    },
+    "scenarioCount": 8,
+    "scenariosMeetingAllExpectations": 0,
+    "unmappedChangedFileCount": 2,
+    "wikiActionMatches": 0
+  }
+}
