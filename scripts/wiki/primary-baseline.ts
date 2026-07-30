@@ -32,7 +32,7 @@ const PROJECT_ROOT = resolve(import.meta.dir, "../..");
 const CLI_PATH = join(PROJECT_ROOT, "scripts/wiki/cli.ts");
 const DEFAULT_REPORT_PATH = join(PROJECT_ROOT, "docs/evidence/pv-05-primary-baseline.json");
 const DEFAULT_INTERPRETATION_PATH = join(PROJECT_ROOT, "docs/evidence/pv-05-primary-baseline.md");
-export const PRIMARY_BASELINE_ENGINE_REF = "fa21d350935d7d16c21734e0a25f84ff29f3e41e" as const;
+export const PRIMARY_BASELINE_ENGINE_REF = "58869b75dc23374b918a79d9731c601764018ead" as const;
 
 type CommandResult = {
   exitCode: number;

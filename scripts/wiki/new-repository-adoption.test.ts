@@ -10,10 +10,12 @@ type CommandResult = {
 
 const temporary: string[] = [];
 const publisherRoot = process.cwd();
-const commandEnvironment = {
+const commandEnvironment: Record<string, string | undefined> = {
   ...process.env,
   HUSKY: "0",
 };
+delete commandEnvironment.GITHUB_EVENT_NAME;
+delete commandEnvironment.WIKI_PR_BODY;
 
 afterEach(() => {
   for (const path of temporary.splice(0)) rmSync(path, { recursive: true, force: true });

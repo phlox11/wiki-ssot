@@ -359,8 +359,10 @@ The version 1 baseline is recorded in
 with measured results separated from untested hypotheses in the adjacent
 [`pv-05-primary-baseline.md`](../../docs/evidence/pv-05-primary-baseline.md).
 The evidence is pinned to immutable engine revision
-`fa21d350935d7d16c21734e0a25f84ff29f3e41e`, so advancing `origin/main` does not
-rewrite the historical measurement. Against that unmodified engine, the default text discovery path recalled all 9 controlling
+`58869b75dc23374b918a79d9731c601764018ead`, which includes PV-08's kit-only
+adoption defaults without changing the measured Primary discovery or drift results.
+Advancing `origin/main` therefore does not rewrite the historical measurement. Against
+that engine, the default text discovery path recalled all 9 controlling
 current-page expectations, all 4 invariant expectations, and both required conflicts. It
 exposed 0 of 18 declared implementation sources and 0 of 14 exact status-plus-authority
 labels, returned 91 irrelevant page occurrences, stated no expected wiki action, and left

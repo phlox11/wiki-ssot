@@ -1,8 +1,8 @@
 {
   "contractVersion": 1,
   "engine": {
-    "baseRef": "fa21d350935d7d16c21734e0a25f84ff29f3e41e",
-    "baseSha": "fa21d350935d7d16c21734e0a25f84ff29f3e41e",
+    "baseRef": "58869b75dc23374b918a79d9731c601764018ead",
+    "baseSha": "58869b75dc23374b918a79d9731c601764018ead",
     "unchangedPaths": [
       "scripts/wiki/cli.ts",
       "scripts/wiki/core.ts",
@@ -39,7 +39,7 @@
       "bun run wiki:impact -- --base main --enforce --json"
     ],
     "notes": [
-      "Engine identity is pinned to immutable commit fa21d350935d7d16c21734e0a25f84ff29f3e41e; advancing a branch ref does not rewrite historical PV-05 evidence.",
+      "Engine identity is pinned to immutable commit 58869b75dc23374b918a79d9731c601764018ead; advancing a branch ref does not rewrite historical PV-05 evidence.",
       "Each expected candidate is materialized and committed in a synthetic git fixture; changedFiles comes from git diff.",
       "Unmapped changed files are implementation/test expectations with no current-page source mapping at the baseline.",
       "Context bytes are exact UTF-8 bytes from the default text context output; runtime and model-token cost are not claimed."
