@@ -9,7 +9,7 @@
 | [product/invariants](./product/invariants.md) | invariant | normative | @phlox11 | 3 |
 | [product/scope](./product/scope.md) | product | normative | @phlox11 | 2 |
 
-## Outstanding work (9)
+## Outstanding work (8)
 
 Recommended next: `PV-06`. Run `bun run wiki:context -- --work PV-06`.
 

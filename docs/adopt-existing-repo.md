@@ -2,6 +2,10 @@
 
 Goal: stand up an enforced SSOT wiki over a codebase that already exists, then keep it in sync. This is the "bootstrap from the code you already have" path.
 
+The repository carries a deterministic end-to-end reproduction of this path,
+including multiple code areas, ambiguity handling, initial review disposition,
+and a later upgrade: [PV-09 existing-repository bootstrap evidence](./evidence/pv-09-existing-repository-bootstrap.md).
+
 ## 0. Prerequisites
 
 - Bun ≥ 1.1 and git.

@@ -22,11 +22,13 @@ sources:
   - path: docs/evidence/pv-05-primary-baseline.json
   - path: docs/evidence/pv-05-primary-baseline.md
   - path: scripts/wiki/new-repository-adoption.test.ts
+  - path: scripts/wiki/existing-repo-bootstrap.test.ts
   - path: wiki/SCHEMA.md
   - path: wiki/WORKFLOW.md
   - path: docs/commands.md
   - path: docs/adopt-existing-repo.md
   - path: docs/adopt-new-repo.md
+  - path: docs/evidence/pv-09-existing-repository-bootstrap.md
 related: [product/scope, product/invariants, architecture/engine, operations/enforcement, proposal/protected-main]
 tags: [roadmap, primary, findability, fresh-session, context, adoption, dogfood]
 work_items:
@@ -156,7 +158,7 @@ work_items:
       - docs/adopt-new-repo.md
   - id: PV-09
     title: Validate existing-repository bootstrap and coverage closure
-    state: not-started
+    state: done
     priority: high
     depends_on: [PV-04]
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
@@ -165,7 +167,9 @@ work_items:
       - Confirmed behavior is compiled from primary sources and ambiguity becomes a conflict.
       - Initial review can disposition pre-existing mismatches without expanding the bootstrap candidate.
       - A later kit upgrade preserves adopter-owned policy, state, inventories, and local customizations.
-    evidence: []
+    evidence:
+      - scripts/wiki/existing-repo-bootstrap.test.ts
+      - docs/evidence/pv-09-existing-repository-bootstrap.md
   - id: PV-10
     title: Strengthen the agent-entrypoint integration contract
     state: not-started
@@ -407,6 +411,18 @@ Validate the documented empty-repository path from kit sync through the first fe
 ### `PV-09`: existing repository
 
 Validate bootstrap over a repository that already contains multiple code areas and at least one ambiguous intent.
+
+The deterministic fixture in
+[`scripts/wiki/existing-repo-bootstrap.test.ts`](../../scripts/wiki/existing-repo-bootstrap.test.ts)
+starts from two code areas and an implementation/contract mismatch. It proves
+coverage closure through current-page mappings plus one reasoned generated-code
+exclusion, verifies that the mismatch becomes a baseline conflict which an
+initial Fresh-context report can disposition without changing the implementation,
+and runs a later content-addressed kit upgrade. That upgrade preserves the
+adopter's policy, coverage policy, verification state, inventory implementation,
+and hand-merged agent customization while updating an untouched kit-owned file.
+The full reproduction contract is recorded in
+[`docs/evidence/pv-09-existing-repository-bootstrap.md`](../../docs/evidence/pv-09-existing-repository-bootstrap.md).
 
 ### `PV-11`: fresh-session agent pilots
 
