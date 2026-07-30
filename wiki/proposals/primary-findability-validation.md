@@ -121,7 +121,7 @@ work_items:
       - scripts/wiki/primary-baseline.test.ts
   - id: PV-06
     title: Make selected-work context authority- and source-complete
-    state: not-started
+    state: done
     priority: high
     depends_on: [PV-05]
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
@@ -132,7 +132,13 @@ work_items:
       - Deterministic glob expansion and a stable invariant-conflict-page-source read order are available.
       - Text and JSON outputs express the same semantic fields.
       - Existing impact-based context remains deterministic.
-    evidence: []
+    evidence:
+      - scripts/wiki/core.ts
+      - scripts/wiki/cli.ts
+      - scripts/wiki/work.test.ts
+      - scripts/wiki/primary-baseline.ts
+      - scripts/wiki/primary-baseline.test.ts
+      - docs/commands.md
   - id: PV-07
     title: Improve wiki:search only for baseline-proven misses
     state: not-started
@@ -379,7 +385,7 @@ runtime cost, or the correct search remedy.
 
 ### `PV-06`: authoritative context output
 
-Default context output should make the truth model visible without requiring the caller to remember hidden conventions.
+Selected-work context now makes the truth model visible without requiring the caller to remember hidden conventions. One shared semantic model drives text and JSON. It keeps current pages as authority, returns the owning proposal separately as non-current rationale, exposes status, authority, wiki path, exact sources, path-sorted glob matches, expanded source files, and page-local open conflicts, and publishes a stable invariant → conflict → current-page → source read order. Focused CLI tests cover glob expansion, ordering, authority separation, text/JSON fields, and unchanged impact-context determinism. Because this is the first engine change after the immutable PV-05 measurement, the baseline runner now executes that historical revision from an isolated checkout when current engine files differ, keeping the pinned evidence reproducible instead of requiring future engines to remain byte-identical.
 
 ### `PV-07`: evidence-driven search changes
 

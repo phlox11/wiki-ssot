@@ -4,13 +4,13 @@ import { isAbsolute, relative, resolve } from "node:path";
 import {
   UsageError,
   allLintFindings,
+  buildSelectedWorkContext,
   auditReport,
   buildWorkQueue,
   compareGenerated,
   compareKit,
   conflictSummary,
   createRepoView,
-  currentPages,
   generatedCoreFiles,
   impactReport,
   isConflictGuardFinding,
@@ -31,7 +31,8 @@ import {
   writeKit,
   type Finding,
   type PrMetadata,
-  type WikiPage,
+  type SelectedWorkContextConflict,
+  type SelectedWorkContextPage,
   type WikiSource,
   type WorkQueueItem,
 } from "./core";
@@ -110,16 +111,54 @@ function workText(item: WorkQueueItem): string {
   return details.join("\n");
 }
 
-function contextPageText(page: WikiPage, label: string): string {
+function exactSourceText(sources: SelectedWorkContextPage["exactSources"]): string {
+  if (sources.length === 0) return "- none";
+  return sources.map((source) => `- ${source.path}${source.symbols?.length ? ` (symbols: ${source.symbols.join(", ")})` : ""}`).join("\n");
+}
+
+function sourceGlobText(globs: SelectedWorkContextPage["sourceGlobs"]): string {
+  if (globs.length === 0) return "- none";
+  return globs.map((source) => [
+    `- ${source.glob}`,
+    ...(source.matchedFiles.length > 0 ? source.matchedFiles.map((path) => `  - ${path}`) : ["  - no matches"]),
+  ].join("\n")).join("\n");
+}
+
+function stringListText(values: string[]): string {
+  return values.length > 0 ? values.map((value) => `- ${value}`).join("\n") : "- none";
+}
+
+function contextSourceText(page: SelectedWorkContextPage | SelectedWorkContextConflict): string[] {
   return [
-    `# ${label} ${page.data.id}`,
-    "",
-    `Status: ${page.data.status}`,
-    `Authority: ${page.data.authority}`,
-    `Wiki page: ${page.path}`,
+    "Relevant open conflicts:",
+    stringListText(page.relevantOpenConflicts),
     "",
     "Declared sources:",
-    sourceText(page.data.sources),
+    sourceText(page.sources),
+    "",
+    "Exact sources:",
+    exactSourceText(page.exactSources),
+    "",
+    "Source globs and deterministic matches:",
+    sourceGlobText(page.sourceGlobs),
+    "",
+    "Expanded source files:",
+    stringListText(page.sourceFiles),
+  ];
+}
+
+function contextPageText(page: SelectedWorkContextPage, label: string): string {
+  return [
+    `# ${label} ${page.id}`,
+    "",
+    `Kind: ${page.kind}`,
+    `Status: ${page.status}`,
+    `Authority: ${page.authority}`,
+    `Owners: ${page.owners.join(", ")}`,
+    `Wiki page: ${page.path}`,
+    `Summary: ${page.summary}`,
+    "",
+    ...contextSourceText(page),
     "",
     page.body.trim(),
     "",
@@ -346,50 +385,9 @@ async function main() {
       const work = workItems.find((item) => item.id === requestedWorkInput)
         ?? workItems.find((item) => item.id.toLowerCase() === requestedWorkInput.toLowerCase());
       if (!work) throw new UsageError(`unknown work item: ${requestedWorkInput}`);
-      const ownerPage = loaded.pages.find((page) => page.data.id === work.owner_page.id)!;
-      const requestedPageIds = new Set(work.context_pages);
-      for (const page of currentPages(loaded.pages)) if (page.data.kind === "invariant") requestedPageIds.add(page.data.id);
-      const selectedPages = currentPages(loaded.pages).filter((page) => requestedPageIds.has(page.data.id));
-      const invariantPages = selectedPages.filter((page) => page.data.kind === "invariant");
-      const otherPages = selectedPages.filter((page) => page.data.kind !== "invariant");
-      const conflicts = openConflicts(loaded.pages)
-        .filter((page) => (page.data.affected_pages ?? []).some((id) => requestedPageIds.has(id))
-          || (page.data.affected_invariants ?? []).some((id) => requestedPageIds.has(id)))
-        .map(conflictSummary);
-      const pages = [...invariantPages, ...otherPages].map((page) => ({
-        id: page.data.id,
-        path: page.path,
-        summary: page.data.summary,
-        status: page.data.status,
-        authority: page.data.authority,
-        sources: page.data.sources,
-        body: page.body,
-      }));
-      const owner = {
-        id: ownerPage.data.id,
-        path: ownerPage.path,
-        summary: ownerPage.data.summary,
-        status: ownerPage.data.status,
-        authority: ownerPage.data.authority,
-        owners: ownerPage.data.owners,
-        sources: ownerPage.data.sources,
-        body: ownerPage.body,
-      };
-      const sources = [
-        ...pages.map((page) => ({ pageId: page.id, path: page.path, status: page.status, authority: page.authority, declared: page.sources })),
-        { pageId: owner.id, path: owner.path, status: owner.status, authority: owner.authority, declared: owner.sources },
-      ];
+      const context = buildSelectedWorkContext(view, loaded.pages, work);
       if (json) {
-        emit({
-          query: null,
-          requestedConflict: null,
-          requestedWork: work.id,
-          work,
-          pages,
-          conflicts,
-          ownerPage: owner,
-          sources,
-        }, true);
+        emit(context, true);
       } else {
         const workSection = [
           `# WORK ${work.id} [${work.queue_state}, ${work.priority}]`,
@@ -409,26 +407,48 @@ async function main() {
           ...work.acceptance.map((criterion) => `- ${criterion}`),
           "",
         ].join("\n");
+        const readOrderSection = [
+          "# AUTHORITATIVE READ ORDER",
+          "",
+          "Current authority is read before non-current proposal rationale:",
+          ...context.readOrder.map((entry, index) => entry.kind === "source"
+            ? `${index + 1}. SOURCE ${entry.path} (declared by ${entry.declaredBy.join(", ")})`
+            : `${index + 1}. ${entry.kind.toUpperCase()} ${entry.id} (${entry.path})`),
+          "",
+        ].join("\n");
         const currentSections = [
-          ...invariantPages.map((page) => contextPageText(page, "CURRENT INVARIANT")),
-          ...otherPages.map((page) => contextPageText(page, "CURRENT PAGE")),
+          ...context.pages.filter((page) => page.kind === "invariant").map((page) => contextPageText(page, "CURRENT INVARIANT")),
         ];
-        const conflictSections = conflicts.map((item) => [
+        const conflictSections = context.conflicts.map((item) => [
           `# OPEN CONFLICT ${item.id} [${item.severity}, ${item.type}, ${item.state}]`,
           "",
           item.summary,
           "",
+          `Kind: ${item.kind}`,
+          `Status: ${item.status}`,
+          `Authority: ${item.authority}`,
+          `Owners: ${item.owner.join(", ")}`,
           `Wiki page: ${item.path}`,
           "",
-          "Declared sources:",
-          sourceText(item.sources),
+          ...contextSourceText(item),
           "",
           "Acceptance:",
           ...item.acceptance.map((criterion) => `- ${criterion}`),
           "",
+          item.body.trim(),
+          "",
         ].join("\n"));
-        const ownerSection = contextPageText(ownerPage, "NON-CURRENT WORK OWNER");
-        emit([workSection, ...currentSections, ...conflictSections, ownerSection].join("\n---\n\n"), false);
+        const pageSections = context.pages
+          .filter((page) => page.kind !== "invariant")
+          .map((page) => contextPageText(page, "CURRENT PAGE"));
+        const sourceSection = [
+          "# SOURCE READ ORDER",
+          "",
+          ...context.readOrder.filter((entry) => entry.kind === "source").map((entry) => `- ${entry.path} (declared by ${entry.declaredBy.join(", ")})`),
+          "",
+        ].join("\n");
+        const ownerSection = contextPageText(context.ownerPage, "NON-CURRENT WORK OWNER");
+        emit([workSection, readOrderSection, ...currentSections, ...conflictSections, ...pageSections, sourceSection, ownerSection].join("\n---\n\n"), false);
       }
       return;
     }

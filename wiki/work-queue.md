@@ -15,9 +15,9 @@ tags: [generated, work, queue]
 
 This is a deterministic view of structured `work_items` on proposal pages. It is not current product authority; open the owning proposal and then the returned current context.
 
-**Recommended next:** `PV-06` — run `bun run wiki:context -- --work PV-06`.
+**Recommended next:** `PV-10` — run `bun run wiki:context -- --work PV-10`.
 
-Outstanding work: 8. Completed work hidden: 8; run `bun run wiki:work -- --all` to inspect it.
+Outstanding work: 7. Completed work hidden: 9; run `bun run wiki:work -- --all` to inspect it.
 
 ## Active
 
@@ -29,7 +29,6 @@ Outstanding work: 8. Completed work hidden: 8; run `bun run wiki:work -- --all` 
 
 | ID | Priority | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|
-| PV-06 | high | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | PV-05 | Make selected-work context authority- and source-complete | `bun run wiki:context -- --work PV-06` |
 | PV-10 | high | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | PV-03, PV-05 | Strengthen the agent-entrypoint integration contract | `bun run wiki:context -- --work PV-10` |
 | PV-07 | normal | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | PV-05 | Improve wiki:search only for baseline-proven misses | `bun run wiki:context -- --work PV-07` |
 
@@ -37,7 +36,7 @@ Outstanding work: 8. Completed work hidden: 8; run `bun run wiki:work -- --all` 
 
 | ID | Priority | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|
-| PV-11 | high | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | PV-06, PV-08, PV-09, PV-10 | Run fresh-session agent pilots over both adoption paths — Waiting on: PV-06, PV-10 | `bun run wiki:context -- --work PV-11` |
+| PV-11 | high | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | PV-06, PV-08, PV-09, PV-10 | Run fresh-session agent pilots over both adoption paths — Waiting on: PV-10 | `bun run wiki:context -- --work PV-11` |
 | PV-12 | high | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | PV-11 | Evaluate the Primary exit gate and decide the next investment — Waiting on: PV-11 | `bun run wiki:context -- --work PV-12` |
 
 ## Blocked

@@ -1,10 +1,12 @@
 #!/usr/bin/env bun
 import {
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
   renameSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -33,6 +35,11 @@ const CLI_PATH = join(PROJECT_ROOT, "scripts/wiki/cli.ts");
 const DEFAULT_REPORT_PATH = join(PROJECT_ROOT, "docs/evidence/pv-05-primary-baseline.json");
 const DEFAULT_INTERPRETATION_PATH = join(PROJECT_ROOT, "docs/evidence/pv-05-primary-baseline.md");
 export const PRIMARY_BASELINE_ENGINE_REF = "58869b75dc23374b918a79d9731c601764018ead" as const;
+const PRIMARY_BASELINE_ENGINE_PATHS = [
+  "scripts/wiki/core.ts",
+  "scripts/wiki/cli.ts",
+  "scripts/wiki/primary-scenarios.ts",
+] as const;
 
 type CommandResult = {
   exitCode: number;
@@ -132,10 +139,10 @@ function commandEnvironment(): Record<string, string | undefined> {
   return environment;
 }
 
-function run(command: string[], cwd: string): CommandResult {
+function run(command: string[], cwd: string, extraEnvironment: Record<string, string> = {}): CommandResult {
   const result = Bun.spawnSync(command, {
     cwd,
-    env: commandEnvironment(),
+    env: { ...commandEnvironment(), ...extraEnvironment },
     stdout: "pipe",
     stderr: "pipe",
   });
@@ -146,8 +153,8 @@ function run(command: string[], cwd: string): CommandResult {
   };
 }
 
-function required(command: string[], cwd: string): CommandResult {
-  const result = run(command, cwd);
+function required(command: string[], cwd: string, extraEnvironment: Record<string, string> = {}): CommandResult {
+  const result = run(command, cwd, extraEnvironment);
   if (result.exitCode !== 0) {
     throw new Error(`${command.join(" ")} failed\n${result.stderr || result.stdout}`);
   }
@@ -498,11 +505,6 @@ function sumMetric(
 }
 
 function engineBaseSha(): string {
-  const unchangedPaths = [
-    "scripts/wiki/core.ts",
-    "scripts/wiki/cli.ts",
-    "scripts/wiki/primary-scenarios.ts",
-  ];
   const resolved = required(
     ["git", "rev-parse", `${PRIMARY_BASELINE_ENGINE_REF}^{commit}`],
     PROJECT_ROOT,
@@ -510,18 +512,60 @@ function engineBaseSha(): string {
   if (resolved !== PRIMARY_BASELINE_ENGINE_REF) {
     throw new Error(`PV-05 baseline engine ref did not resolve exactly: ${PRIMARY_BASELINE_ENGINE_REF}`);
   }
+  return resolved;
+}
+
+function engineMatchesBaseline(): boolean {
   const diff = run(
-    ["git", "diff", "--quiet", PRIMARY_BASELINE_ENGINE_REF, "--", ...unchangedPaths],
+    ["git", "diff", "--quiet", PRIMARY_BASELINE_ENGINE_REF, "--", ...PRIMARY_BASELINE_ENGINE_PATHS],
     PROJECT_ROOT,
   );
-  if (diff.exitCode !== 0) {
-    throw new Error(`PV-05 baseline requires the unmodified engine and scenario contract: ${unchangedPaths.join(", ")}`);
+  if (process.env.WIKI_PRIMARY_BASELINE_PINNED_ROOT === PRIMARY_BASELINE_ENGINE_REF) {
+    const head = required(["git", "rev-parse", "HEAD"], PROJECT_ROOT).stdout.trim();
+    if (head !== PRIMARY_BASELINE_ENGINE_REF || diff.exitCode !== 0) {
+      throw new Error("PV-05 pinned runner did not receive a clean checkout of the immutable engine");
+    }
+    return true;
   }
-  return resolved;
+  return diff.exitCode === 0;
+}
+
+function buildHistoricalPrimaryBaselineReport(): PrimaryBaselineReport {
+  const temporaryRoot = mkdtempSync(join(tmpdir(), "wiki-ssot-primary-engine-"));
+  const checkoutRoot = join(temporaryRoot, "repo");
+  const reportPath = join(temporaryRoot, "report.json");
+  const interpretationPath = join(temporaryRoot, "interpretation.md");
+  try {
+    required(["git", "clone", "--quiet", "--shared", "--no-checkout", PROJECT_ROOT, checkoutRoot], PROJECT_ROOT);
+    required(["git", "checkout", "--quiet", "--detach", PRIMARY_BASELINE_ENGINE_REF], checkoutRoot);
+    writeFileSync(
+      join(checkoutRoot, "scripts/wiki/primary-baseline.ts"),
+      readFileSync(join(import.meta.dir, "primary-baseline.ts"), "utf8"),
+    );
+    const nodeModules = join(PROJECT_ROOT, "node_modules");
+    if (!existsSync(nodeModules)) throw new Error("PV-05 historical baseline requires the repository node_modules");
+    symlinkSync(nodeModules, join(checkoutRoot, "node_modules"), "dir");
+    required([
+      process.execPath,
+      join(checkoutRoot, "scripts/wiki/primary-baseline.ts"),
+      "--output",
+      reportPath,
+      "--interpretation",
+      interpretationPath,
+    ], checkoutRoot, { WIKI_PRIMARY_BASELINE_PINNED_ROOT: PRIMARY_BASELINE_ENGINE_REF });
+    const report = JSON.parse(readFileSync(reportPath, "utf8")) as PrimaryBaselineReport;
+    if (report.engine.baseSha !== PRIMARY_BASELINE_ENGINE_REF) {
+      throw new Error(`historical PV-05 runner returned the wrong engine: ${report.engine.baseSha}`);
+    }
+    return report;
+  } finally {
+    rmSync(temporaryRoot, { recursive: true, force: true });
+  }
 }
 
 export function buildPrimaryBaselineReport(): PrimaryBaselineReport {
   const baseSha = engineBaseSha();
+  if (!engineMatchesBaseline()) return buildHistoricalPrimaryBaselineReport();
   const root = mkdtempSync(join(tmpdir(), "wiki-ssot-primary-baseline-"));
   try {
     createFixture(root);
@@ -603,11 +647,7 @@ export function buildPrimaryBaselineReport(): PrimaryBaselineReport {
       engine: {
         baseRef: PRIMARY_BASELINE_ENGINE_REF,
         baseSha,
-        unchangedPaths: [
-          "scripts/wiki/cli.ts",
-          "scripts/wiki/core.ts",
-          "scripts/wiki/primary-scenarios.ts",
-        ],
+        unchangedPaths: [...PRIMARY_BASELINE_ENGINE_PATHS].sort((a, b) => a.localeCompare(b)),
       },
       method: {
         discoveryPath: [
