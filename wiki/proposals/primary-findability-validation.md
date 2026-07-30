@@ -21,6 +21,7 @@ sources:
   - path: scripts/wiki/primary-baseline.test.ts
   - path: docs/evidence/pv-05-primary-baseline.json
   - path: docs/evidence/pv-05-primary-baseline.md
+  - path: scripts/wiki/new-repository-adoption.test.ts
   - path: wiki/SCHEMA.md
   - path: wiki/WORKFLOW.md
   - path: docs/commands.md
@@ -142,7 +143,7 @@ work_items:
     evidence: []
   - id: PV-08
     title: Validate new-repository adoption and coverage growth
-    state: not-started
+    state: done
     priority: high
     depends_on: [PV-04]
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
@@ -150,7 +151,9 @@ work_items:
       - The empty repository starting state and expected point of becoming green are explicit.
       - The first feature adds code, a current page, source mapping, coverage, verification, and tests in one candidate.
       - Generated, lint, doctor, impact, typecheck, test, and applicable review preflight gates pass.
-    evidence: []
+    evidence:
+      - scripts/wiki/new-repository-adoption.test.ts
+      - docs/adopt-new-repo.md
   - id: PV-09
     title: Validate existing-repository bootstrap and coverage closure
     state: not-started
@@ -356,8 +359,10 @@ The version 1 baseline is recorded in
 with measured results separated from untested hypotheses in the adjacent
 [`pv-05-primary-baseline.md`](../../docs/evidence/pv-05-primary-baseline.md).
 The evidence is pinned to immutable engine revision
-`fa21d350935d7d16c21734e0a25f84ff29f3e41e`, so advancing `origin/main` does not
-rewrite the historical measurement. Against that unmodified engine, the default text discovery path recalled all 9 controlling
+`58869b75dc23374b918a79d9731c601764018ead`, which includes PV-08's kit-only
+adoption defaults without changing the measured Primary discovery or drift results.
+Advancing `origin/main` therefore does not rewrite the historical measurement. Against
+that engine, the default text discovery path recalled all 9 controlling
 current-page expectations, all 4 invariant expectations, and both required conflicts. It
 exposed 0 of 18 declared implementation sources and 0 of 14 exact status-plus-authority
 labels, returned 91 irrelevant page occurrences, stated no expected wiki action, and left

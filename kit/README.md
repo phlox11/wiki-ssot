@@ -67,6 +67,7 @@ Whatever it prints under **kept yours** is now your job: those scripts exist in 
 
 Now make it yours — these are the `seed/` files, and nothing upstream will overwrite them:
 
+- `.gitignore` — keeps the installed dependency tree and ordinary local artifacts out of the adoption candidate; an existing ignore file is preserved.
 - `.wiki/config.json` — set `name`, your `highRisk` globs, and the `freshContext` policy. The shipped `changedFileGlobs` covers the toolkit's own trust boundary; add your security, schema, and migration paths.
 - `.wiki/coverage.json` — set `include` to the code that must always map to a page. Start narrow.
 - `scripts/wiki/inventories.ts` — leave the stub until you want code-derived pages. The patterns live in `kit/scripts/wiki/inventories.example.ts` in this checkout; it is never copied into your repository, so there is nothing to delete afterwards.
@@ -83,7 +84,7 @@ bun run wiki:work
 bun run typecheck && bun run test
 ```
 
-`wiki:doctor` passes immediately — it checks that the rails arrived intact. `wiki:work` also succeeds with "No remaining work" until you add proposal work records; later it becomes the no-query entrypoint for generic remaining-work requests. `wiki:lint` is supposed to fail at this point, and its errors are the to-do list: first that `coverage.json`'s `include` matches nothing, then, once it does, one `coverage-unmapped` error per code file that no page claims yet. Driving that list to zero is the adoption.
+`wiki:doctor` passes immediately — it checks that the rails arrived intact. `wiki:work` also succeeds with "No remaining work" until you add proposal work records; later it becomes the no-query entrypoint for generic remaining-work requests. The shipped coverage `include` is empty and the seeded `.gitignore` excludes `node_modules/`, so after generation and verification the empty repository is green without dependency noise in the candidate. Commit that adoption baseline. In the first feature candidate, add a real coverage pattern together with the code, test, current page, source mapping, and verification update. From then on, `coverage-unmapped` names any covered code file that no current page claims.
 
 Writing the first pages is the real work, and it is not a copy step. `wiki/SCHEMA.md` defines the page contract; the playbook for recompiling pages from code you already have is in this repository's [docs/adopt-existing-repo.md](../docs/adopt-existing-repo.md), starting at section 3.
 

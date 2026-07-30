@@ -888,7 +888,7 @@ const KIT_CONFIG_TEMPLATE = jsonStable({
   },
 });
 
-const KIT_COVERAGE_TEMPLATE = jsonStable({ version: 1, include: ["src/**/*.ts"], exclusions: [] });
+const KIT_COVERAGE_TEMPLATE = jsonStable({ version: 1, include: [], exclusions: [] });
 
 const KIT_STATE_TEMPLATE = jsonStable({ version: 1, pages: {} });
 
@@ -926,6 +926,7 @@ export const KIT_ENTRIES: KitEntry[] = [
   { target: "wiki/SCHEMA.md", placement: "files", source: { kind: "strip", from: "wiki/SCHEMA.md" } },
   { target: "wiki/WORKFLOW.md", placement: "files", source: { kind: "strip", from: "wiki/WORKFLOW.md" } },
   { target: "CLAUDE.md", placement: "seed", source: { kind: "strip", from: "CLAUDE.md" } },
+  { target: ".gitignore", placement: "seed", source: { kind: "copy", from: ".gitignore" } },
   { target: "tsconfig.json", placement: "seed", source: { kind: "copy", from: "tsconfig.json" } },
   { target: "scripts/wiki/inventories.ts", placement: "seed", source: { kind: "copy", from: "scripts/wiki/inventories.ts" } },
   { target: ".wiki/config.json", placement: "seed", source: { kind: "literal", content: KIT_CONFIG_TEMPLATE } },
