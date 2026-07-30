@@ -245,6 +245,20 @@ describe("emitted kit", () => {
     expect(fragment.scripts["wiki:work"]).toBe("bun scripts/wiki/cli.ts work");
   });
 
+  test("keeps publisher-only kit commands out of the downstream workflow", () => {
+    const { view, files } = realKit();
+    const publisherWorkflow = view.read("wiki/WORKFLOW.md");
+    const downstreamWorkflow = files["kit/files/wiki/WORKFLOW.md"];
+    const fragment = JSON.parse(files["kit/package.kit.json"]) as {
+      scripts: Record<string, string>;
+    };
+
+    expect(publisherWorkflow).toContain("bun run wiki:kit");
+    expect(publisherWorkflow).toContain("bun run wiki:kit -- --check");
+    expect(fragment.scripts["wiki:kit"]).toBeUndefined();
+    expect(downstreamWorkflow).not.toContain("wiki:kit");
+  });
+
   test("drops guidance that points at pages only this repository has", () => {
     const { files } = realKit();
     expect(readFileSync("AGENTS.md", "utf8")).toContain("protected-main");
