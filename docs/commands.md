@@ -16,7 +16,7 @@ All commands are `bun run wiki:<name>`; each maps to `bun scripts/wiki/cli.ts <n
 | `wiki:review-preflight -- --base <ref> --metadata <file> [--output <dir>] [--report <file>]` | Before opening a PR, classify risk, prepare the exact independent-review bundle, or validate the returned report while the PR mirror is still pending. | pre-PR |
 | `wiki:review-bundle -- --base <ref> --metadata <file>` | Write a deterministic bundle with `manifest.json`, reviewer instructions, and a report example. | review input |
 | `wiki:review-check -- --base <ref> --metadata <file> [--report <file>]` | Evaluate trusted risk policy and return `required`/reasons. When required, recompute the current manifest and validate report schema, PASS, evidence, SHA/digests, and reviewer trust. | CI (`required` mode) |
-| `wiki:doctor` | Validate required downstream seams: explicit config, AGENTS marker, PR template, commands, and GitHub job/events. | pre-commit + CI |
+| `wiki:doctor` | Validate required downstream seams: explicit config, affirmative provider-neutral AGENTS authority/work/context clause shapes, canonical commands, PR template, and GitHub job/events. | pre-commit + CI |
 | `wiki:check -- --base <ref>` | Everything at once: lint + generated + impact. | local convenience |
 | `wiki:audit` | Repo-wide: structure + generated + every current page's source hashes. | weekly CI |
 | `wiki:index` / `wiki:inventory` | Write just the core generated files / just the inventories. | — |

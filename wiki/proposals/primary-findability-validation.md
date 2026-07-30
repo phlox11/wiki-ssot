@@ -178,7 +178,7 @@ work_items:
       - docs/evidence/pv-09-existing-repository-bootstrap.md
   - id: PV-10
     title: Strengthen the agent-entrypoint integration contract
-    state: not-started
+    state: done
     priority: high
     depends_on: [PV-03, PV-05]
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
@@ -188,7 +188,11 @@ work_items:
       - The entrypoint directs agents to invariants, search, and selected context while preserving non-current authority labels.
       - Marker-only, placeholder, and command-name-only entrypoints fail tests.
       - The contract remains provider-neutral.
-    evidence: []
+    evidence:
+      - scripts/wiki/core.ts
+      - scripts/wiki/fresh-context.test.ts
+      - scripts/wiki/kit.test.ts
+      - wiki/operations/enforcement.md
   - id: PV-11
     title: Run fresh-session agent pilots over both adoption paths
     state: not-started
@@ -404,9 +408,9 @@ Every selected remedy requires a failing scenario before the change and a passin
 
 ### `PV-10`: session entrypoint integrity
 
-The integration doctor currently must not treat the marker alone as sufficient evidence that an agent can find the wiki workflow.
+The provider-neutral integration doctor no longer treats marker and command tokens as sufficient evidence that an agent can find the wiki workflow. It requires affirmative line-level clause shapes for the wiki index, current status, invariants, no-query repository-wide work discovery, selected-work context, topic search/context, and non-current authority labels, and rejects common explicit directive negations of those actions. Focused regressions reject marker-only, marker-plus-command placeholder, command-name-only, and explicitly negated entrypoints, while the generated-kit test validates the installed downstream entrypoint against the same core contract.
 
-This work improves discoverability. It does not claim proof that the agent cognitively read the returned material.
+This work improves discoverability. Its deterministic syntax checks do not claim proof that the agent cognitively read the returned material, interpret arbitrary natural-language requests, or detect every possible contradiction.
 
 ## Phase D — validate adoption
 

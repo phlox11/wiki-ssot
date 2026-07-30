@@ -18,6 +18,7 @@ import {
   parseFreshContextPolicy,
   readConfig,
   stripKitExclusions,
+  validateIntegrationSeams,
   writeKit,
   type ImpactReport,
   type ReviewManifest,
@@ -220,13 +221,21 @@ describe("emitted kit", () => {
     expect(shrunk.length).toBeGreaterThan(0);
   });
 
-  test("keeps the integration markers and work route that doctor requires downstream", () => {
-    // core.ts fails a repository whose AGENTS.md lost this marker, so stripping
-    // instance-only guidance must never take the marker with it.
-    const agents = realKit().files["kit/files/AGENTS.md"];
-    expect(agents).toContain("wiki-ssot:fresh-context-guardrail");
-    expect(agents).toContain("wiki-ssot:work-discovery");
-    expect(agents).toContain("bun run wiki:work");
+  test("keeps a complete provider-neutral agent entrypoint contract downstream", () => {
+    const { files } = realKit();
+    const installed = {
+      ".wiki/config.json": files["kit/seed/.wiki/config.json"],
+      "AGENTS.md": files["kit/files/AGENTS.md"],
+      "package.json": files["kit/package.kit.json"],
+    };
+    const view = {
+      root: "/memory",
+      mode: "working" as const,
+      listFiles: () => Object.keys(installed).sort(),
+      exists: (path: string) => path in installed,
+      read: (path: string) => installed[path as keyof typeof installed] ?? "",
+    };
+    expect(validateIntegrationSeams(view)).toEqual([]);
   });
 
   test("ships the work command and its dedicated regression suite", () => {
