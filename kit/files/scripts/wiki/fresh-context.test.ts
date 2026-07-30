@@ -1378,6 +1378,35 @@ Do not label pages with status proposed, conflicted, deprecated, or archived as 
     }
   });
 
+  test("core seam validation rejects the full work-route negation vocabulary across supported action shapes", () => {
+    for (const directive of [
+      "avoid bun run wiki:work",
+      "ignore bun run wiki:work",
+      "skip bun run wiki:work",
+      "do not run bun run wiki:work",
+      "the agent does not run bun run wiki:work",
+      "don't run bun run wiki:work",
+      "never run bun run wiki:work",
+      "agents must not run bun run wiki:work",
+      "agents should not run bun run wiki:work",
+      "agents cannot run bun run wiki:work",
+      "agents can't run bun run wiki:work",
+      "agents refuse to run bun run wiki:work",
+      "tell agents not to run bun run wiki:work",
+      "avoid running bun run wiki:work",
+      "ignore running bun run wiki:work",
+      "skip running bun run wiki:work",
+      "never invoke bun run wiki:work",
+      "agents refuse to invoke bun run wiki:work",
+      "avoid executing bun run wiki:work",
+      "never use bun run wiki:work",
+    ]) {
+      expectScopedNegationRejected({
+        work: `If the user asks what remains, ${directive}; no known node, work ID, or search term is necessary.`,
+      }, "the no-query generic remaining-work route", true);
+    }
+  });
+
   test("core seam validation scopes do-not-require/need negation to each required action", () => {
     expectScopedNegationRejected({
       authority: "Do not require agents to start at wiki/index.md, then read wiki/current-status.md and every kind: invariant page.",
@@ -1420,6 +1449,15 @@ Do not label pages with status proposed, conflicted, deprecated, or archived as 
         work: `If the user asks what remains, run bun run wiki:work; ${qualifier}.`,
       });
       expect(validateIntegrationSeams(coreIntegrationView(agents))).toEqual([]);
+    }
+  });
+
+  test("core seam validation accepts typographic apostrophes in affirmative work clauses", () => {
+    for (const work of [
+      "If the user asks what remains, follow the project’s work rule and run bun run wiki:work; no known node, work ID, or search term is necessary.",
+      "If the user asks what remains, use the ‘provider-neutral’ route to invoke bun run wiki:work; no known node, work ID, or search term is necessary.",
+    ]) {
+      expect(validateIntegrationSeams(coreIntegrationView(providerNeutralAgentEntrypoint({ work })))).toEqual([]);
     }
   });
 

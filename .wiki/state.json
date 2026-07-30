@@ -3,9 +3,9 @@
     "architecture/engine": {
       "sources": {
         "scripts/wiki/cli.ts": "490e62efc76880d16d3f72ecd91a5b24288f5c26665c6da991c22a25083ecfe6",
-        "scripts/wiki/core.ts": "4ca2f32c7be0c0e2005d28c999be3f163ee4123349deebf76c5f34335920a6ed",
+        "scripts/wiki/core.ts": "66015547b950569a9ece293a80f2f9a79116c22e0b45d2247dbed4ff6d759146",
         "scripts/wiki/existing-repo-bootstrap.test.ts": "2c305b2939473cd5e23fa948348fbc9c18019b29acb8e9684c61bc8feb26fdcd",
-        "scripts/wiki/fresh-context.test.ts": "b1b3131fb3a3814ac8e4b7f208cc8e5686c6d6bacf07e424df4a4722d92a16d6",
+        "scripts/wiki/fresh-context.test.ts": "763c8ea1d161b56afe79ea4a23125636ddf34b4158c31122baf981a6b1bb1ca5",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c",
         "scripts/wiki/inventories.example.ts": "c77492bf25a8e89d6c5f2de5d1238bb426e41b81cd255d7c153e05d295e91c4e",
         "scripts/wiki/inventories.ts": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca",
@@ -21,7 +21,7 @@
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "FC-004 canonicalizes ordinary apostrophes within the already-current syntax contract"
+        "reason": "FC-005 closes direct work-command negations within the already-current syntax contract"
       }
     },
     "operations/enforcement": {
@@ -36,23 +36,23 @@
         "AGENTS.md": "c8b27b3e362c11d1f85c12b0ed1af9ce706dcfe1955255b404461754a4c34712",
         "package.json": "df071fab971a1e88e77e575449f76921f83244bffbf9b756ae36797032bffeaf",
         "scripts/wiki/cli.ts": "490e62efc76880d16d3f72ecd91a5b24288f5c26665c6da991c22a25083ecfe6",
-        "scripts/wiki/core.ts": "4ca2f32c7be0c0e2005d28c999be3f163ee4123349deebf76c5f34335920a6ed",
+        "scripts/wiki/core.ts": "66015547b950569a9ece293a80f2f9a79116c22e0b45d2247dbed4ff6d759146",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c"
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "FC-004 canonicalizes ordinary apostrophes within the already-current syntax contract"
+        "reason": "FC-005 closes direct work-command negations within the already-current syntax contract"
       }
     },
     "product/invariants": {
       "sources": {
         "AGENTS.md": "c8b27b3e362c11d1f85c12b0ed1af9ce706dcfe1955255b404461754a4c34712",
         "scripts/wiki/cli.ts": "490e62efc76880d16d3f72ecd91a5b24288f5c26665c6da991c22a25083ecfe6",
-        "scripts/wiki/core.ts": "4ca2f32c7be0c0e2005d28c999be3f163ee4123349deebf76c5f34335920a6ed"
+        "scripts/wiki/core.ts": "66015547b950569a9ece293a80f2f9a79116c22e0b45d2247dbed4ff6d759146"
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "FC-004 canonicalizes ordinary apostrophes within the already-current syntax contract"
+        "reason": "FC-005 closes direct work-command negations within the already-current syntax contract"
       }
     },
     "product/scope": {
@@ -61,7 +61,8 @@
         "README.md": "33124882b1397aa05247d24c5d4fc20b4462c4c7a5fe47fda52b488c90992916"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "FC-005 closes direct work-command negations within the already-current syntax contract"
       }
     }
   },

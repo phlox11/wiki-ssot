@@ -1464,6 +1464,10 @@ function agentEntrypointContractGaps(agents: string): string[] {
     }
     return false;
   };
+  const hasNegatedWorkAction = (line: string) => explicitlyNegatesAction(
+    line,
+    /(?:^\s*bun run wiki:work\b|\b(?:run(?:ning)?|execut(?:e|ing)|us(?:e|ing)|invok(?:e|ing))\b[^.;]*\bbun run wiki:work\b)/,
+  );
   const hasNoQueryPrerequisite = (line: string) =>
     /(without|no (?:known )?(?:node|id|search term)|before topic search)/.test(line)
     || /\b(?:do not require|(?:do|does) not need)\s+(?:(?:a|an|any|the)\s+)?(?:known\s+)?(?:node|proposal id|work id|search term)\b/.test(line);
@@ -1477,7 +1481,7 @@ function agentEntrypointContractGaps(agents: string): string[] {
     gaps.push("the wiki index/current-status/invariant read route");
   }
   if (!hasLine((line) =>
-    !explicitlyNegatesAction(line, /\b(run|execute|use)\b[^.;]*\bbun run wiki:work\b/)
+    !hasNegatedWorkAction(line)
     && hasWorkCommand(line)
     && /(what remains|unfinished|what should (?:we|you) do next|what should happen next|remaining[- ]work|next[- ]work)/.test(line)
     && hasNoQueryPrerequisite(line))) {
