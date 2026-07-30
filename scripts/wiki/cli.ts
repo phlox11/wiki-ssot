@@ -5,6 +5,7 @@ import {
   UsageError,
   allLintFindings,
   buildSelectedWorkContext,
+  buildTopicContext,
   auditReport,
   buildWorkQueue,
   compareGenerated,
@@ -454,6 +455,76 @@ async function main() {
       }
       return;
     }
+    if (query) {
+      const context = buildTopicContext(view, loaded.pages, query);
+      if (json) {
+        emit(context, true);
+      } else {
+        const topicSection = [
+          "# TOPIC CONTEXT",
+          "",
+          `Query: ${query}`,
+          "",
+        ].join("\n");
+        const readOrderSection = [
+          "# AUTHORITATIVE READ ORDER",
+          "",
+          "Current authority and open conflict resolution contracts are read before non-current rationale:",
+          ...(context.readOrder.length > 0
+            ? context.readOrder.map((entry, index) => entry.kind === "source"
+              ? `${index + 1}. SOURCE ${entry.path} (declared by ${entry.declaredBy.join(", ")})`
+              : `${index + 1}. ${entry.kind.toUpperCase()} ${entry.id} (${entry.path})`)
+            : ["- none"]),
+          "",
+        ].join("\n");
+        const currentSections = [
+          ...context.pages.filter((page) => page.kind === "invariant").map((page) => contextPageText(page, "CURRENT INVARIANT")),
+        ];
+        const conflictSections = context.conflicts.map((item) => [
+          `# OPEN CONFLICT ${item.id} [${item.severity}, ${item.type}, ${item.state}]`,
+          "",
+          item.summary,
+          "",
+          `Kind: ${item.kind}`,
+          `Status: ${item.status}`,
+          `Authority: ${item.authority}`,
+          `Owners: ${item.owner.join(", ")}`,
+          `Wiki page: ${item.path}`,
+          "",
+          ...contextSourceText(item),
+          "",
+          "Acceptance:",
+          ...item.acceptance.map((criterion) => `- ${criterion}`),
+          "",
+          item.body.trim(),
+          "",
+        ].join("\n"));
+        const pageSections = context.pages
+          .filter((page) => page.kind !== "invariant")
+          .map((page) => contextPageText(page, "CURRENT PAGE"));
+        const sourceEntries = context.readOrder.filter((entry) => entry.kind === "source");
+        const sourceSection = [
+          "# SOURCE READ ORDER",
+          "",
+          ...(sourceEntries.length > 0
+            ? sourceEntries.map((entry) => `- ${entry.path} (declared by ${entry.declaredBy.join(", ")})`)
+            : ["- none"]),
+          "",
+        ].join("\n");
+        const rationaleSections = context.nonCurrentPages
+          .map((page) => contextPageText(page, `NON-CURRENT RATIONALE [${page.status.toUpperCase()}]`));
+        emit([
+          topicSection,
+          readOrderSection,
+          ...currentSections,
+          ...conflictSections,
+          ...pageSections,
+          sourceSection,
+          ...rationaleSections,
+        ].join("\n---\n\n"), false);
+      }
+      return;
+    }
     const ids = new Set<string>();
     const conflictIds = new Set<string>();
     if (requestedConflict) {
@@ -462,11 +533,6 @@ async function main() {
       conflictIds.add(page.data.conflict_id!);
       for (const id of page.data.affected_pages ?? []) ids.add(id);
       for (const id of page.data.affected_invariants ?? []) ids.add(id);
-    } else if (query) {
-      for (const { page } of searchWikiPages(loaded.pages, query)) {
-        if (page.data.kind === "conflict") conflictIds.add(page.data.conflict_id!);
-        else ids.add(page.data.id);
-      }
     } else {
       const report = impactReport(view, loaded.pages, { base: one(parsed, "base") });
       for (const id of report.affectedPages) ids.add(id);
@@ -484,7 +550,7 @@ async function main() {
     }
     const pages = loaded.pages.filter((page) => page.data.kind !== "conflict" && ids.has(page.data.id)).map((page) => ({ id: page.data.id, path: page.path, summary: page.data.summary, sources: page.data.sources, body: page.body }));
     const conflicts = openConflicts(loaded.pages).filter((page) => conflictIds.has(page.data.conflict_id!)).map(conflictSummary);
-    if (json) emit({ query: query ?? null, requestedConflict: requestedConflict ?? null, conflicts, pages }, true);
+    if (json) emit({ query: null, requestedConflict: requestedConflict ?? null, conflicts, pages }, true);
     else {
       const conflictText = conflicts.map((item) => `# OPEN CONFLICT ${item.id} [${item.severity}, ${item.type}, ${item.state}]\n\n${item.summary}\n\nSource file: ${item.path}\n\nAcceptance:\n${item.acceptance.map((criterion) => `- ${criterion}`).join("\n")}\n`).join("\n---\n\n");
       const pageText = pages.map((page) => `# ${page.id}\n\nSource file: ${page.path}\n\n${page.body.trim()}\n`).join("\n---\n\n");

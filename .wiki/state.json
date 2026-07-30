@@ -2,8 +2,8 @@
   "pages": {
     "architecture/engine": {
       "sources": {
-        "scripts/wiki/cli.ts": "ecb1ec3e539c04e52d2e072886345d7ea5aa1f7c8b69a5d9e2765e3cabc77581",
-        "scripts/wiki/core.ts": "12eb7b65d9a6bea5b0251972a56655321b37a40f28bb8cd762e3ff2b9bb4f30d",
+        "scripts/wiki/cli.ts": "e827375422ebb9dc1ca3705534cc5d1afcd6853b89d5ea1586534ede81b742e7",
+        "scripts/wiki/core.ts": "eb6c0bdb8dd24cb40e13bd341de5285c6021ef026f12ed1c69f671fd120fda0f",
         "scripts/wiki/existing-repo-bootstrap.test.ts": "2c305b2939473cd5e23fa948348fbc9c18019b29acb8e9684c61bc8feb26fdcd",
         "scripts/wiki/fresh-context.test.ts": "763c8ea1d161b56afe79ea4a23125636ddf34b4158c31122baf981a6b1bb1ca5",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c",
@@ -18,11 +18,10 @@
         "scripts/wiki/primary-scenarios.ts": "8e8ba1de2abf551d0003f90637f58370f470c7ecdfb62a50a8d9993e1f273dec",
         "scripts/wiki/publisher-boundary.test.ts": "bfdcebbeb54c42933cc97aba9a59ee02de8c0080826c3f52a3df2578bd335d77",
         "scripts/wiki/wiki.test.ts": "00c5762f2fa69bf6830c10f70ca63ad12baa822c0fc1506603f89ff6fe77f7a4",
-        "scripts/wiki/work.test.ts": "776328e82224f58fd867e77d417a07273417644c30f6f03e91074860eca59242"
+        "scripts/wiki/work.test.ts": "192ce7a1884b735472d35fc0aa2a7fc96033056fd279d3225badd8ef1e5638d7"
       },
       "verification": {
-        "kind": "unchanged",
-        "reason": "Only fixture PR-environment isolation changed; production behavior remains unchanged."
+        "kind": "updated"
       }
     },
     "operations/enforcement": {
@@ -36,8 +35,8 @@
         ".wiki/config.json": "fd7f3e08ea2a853cae2e7664c7b605a4ceef169fc6cfb24b92a19919a17bc5b8",
         "AGENTS.md": "c8b27b3e362c11d1f85c12b0ed1af9ce706dcfe1955255b404461754a4c34712",
         "package.json": "df071fab971a1e88e77e575449f76921f83244bffbf9b756ae36797032bffeaf",
-        "scripts/wiki/cli.ts": "ecb1ec3e539c04e52d2e072886345d7ea5aa1f7c8b69a5d9e2765e3cabc77581",
-        "scripts/wiki/core.ts": "12eb7b65d9a6bea5b0251972a56655321b37a40f28bb8cd762e3ff2b9bb4f30d",
+        "scripts/wiki/cli.ts": "e827375422ebb9dc1ca3705534cc5d1afcd6853b89d5ea1586534ede81b742e7",
+        "scripts/wiki/core.ts": "eb6c0bdb8dd24cb40e13bd341de5285c6021ef026f12ed1c69f671fd120fda0f",
         "scripts/wiki/github-attestation.ts": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c"
       },
       "verification": {
@@ -47,12 +46,11 @@
     "product/invariants": {
       "sources": {
         "AGENTS.md": "c8b27b3e362c11d1f85c12b0ed1af9ce706dcfe1955255b404461754a4c34712",
-        "scripts/wiki/cli.ts": "ecb1ec3e539c04e52d2e072886345d7ea5aa1f7c8b69a5d9e2765e3cabc77581",
-        "scripts/wiki/core.ts": "12eb7b65d9a6bea5b0251972a56655321b37a40f28bb8cd762e3ff2b9bb4f30d"
+        "scripts/wiki/cli.ts": "e827375422ebb9dc1ca3705534cc5d1afcd6853b89d5ea1586534ede81b742e7",
+        "scripts/wiki/core.ts": "eb6c0bdb8dd24cb40e13bd341de5285c6021ef026f12ed1c69f671fd120fda0f"
       },
       "verification": {
-        "kind": "unchanged",
-        "reason": "Search matching changed, but the repository invariants remain semantically unchanged."
+        "kind": "updated"
       }
     },
     "product/scope": {

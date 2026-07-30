@@ -652,6 +652,18 @@ export type SelectedWorkContext = {
   sources: SelectedWorkContextSourceSummary[];
 };
 
+export type TopicContext = {
+  version: 1;
+  query: string;
+  requestedConflict: null;
+  requestedWork: null;
+  readOrder: SelectedWorkContextReadEntry[];
+  pages: SelectedWorkContextPage[];
+  conflicts: SelectedWorkContextConflict[];
+  nonCurrentPages: SelectedWorkContextPage[];
+  sources: SelectedWorkContextSourceSummary[];
+};
+
 const WORK_PRIORITY_ORDER: Record<WorkPriority, number> = { critical: 0, high: 1, normal: 2, low: 3 };
 
 export function buildWorkQueue(pages: WikiPage[]): WorkQueue {
@@ -722,6 +734,57 @@ function selectedWorkContextPage(view: RepoView, page: WikiPage, conflicts: Wiki
   };
 }
 
+function selectedWorkContextConflict(view: RepoView, page: WikiPage): SelectedWorkContextConflict {
+  return {
+    ...conflictSummary(page),
+    kind: "conflict",
+    status: "conflicted",
+    authority: page.data.authority,
+    ...contextSourceFields(view, page.data.sources),
+    relevantOpenConflicts: [page.data.conflict_id!],
+    body: page.body,
+  };
+}
+
+function contextReadOrder(
+  pages: SelectedWorkContextPage[],
+  conflicts: SelectedWorkContextConflict[],
+): SelectedWorkContextReadEntry[] {
+  const declarations = new Map<string, Set<string>>();
+  const addSourceDeclarations = (id: string, sourceFiles: string[]) => {
+    for (const path of sourceFiles) {
+      const declaredBy = declarations.get(path) ?? new Set<string>();
+      declaredBy.add(id);
+      declarations.set(path, declaredBy);
+    }
+  };
+  for (const page of pages) addSourceDeclarations(page.id, page.sourceFiles);
+  for (const conflict of conflicts) addSourceDeclarations(conflict.id, conflict.sourceFiles);
+
+  return [
+    ...pages.filter((page) => page.kind === "invariant").map((page) => ({ kind: "invariant" as const, id: page.id, path: page.path })),
+    ...conflicts.map((conflict) => ({ kind: "conflict" as const, id: conflict.id, path: conflict.path })),
+    ...pages.filter((page) => page.kind !== "invariant").map((page) => ({ kind: "page" as const, id: page.id, path: page.path })),
+    ...[...declarations.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([path, declaredBy]) => ({ kind: "source" as const, path, declaredBy: [...declaredBy].sort((a, b) => a.localeCompare(b)) })),
+  ];
+}
+
+function contextSourceSummary(page: SelectedWorkContextPage | SelectedWorkContextConflict): SelectedWorkContextSourceSummary {
+  return {
+    pageId: "pageId" in page ? page.pageId : page.id,
+    path: page.path,
+    status: page.status,
+    authority: page.authority,
+    declared: page.sources,
+    exactSources: page.exactSources,
+    sourceGlobs: page.sourceGlobs,
+    sourceFiles: page.sourceFiles,
+    relevantOpenConflicts: page.relevantOpenConflicts,
+  };
+}
+
 export function buildSelectedWorkContext(view: RepoView, pages: WikiPage[], work: WorkQueueItem): SelectedWorkContext {
   const ownerPage = pages.find((page) => page.data.id === work.owner_page.id);
   if (!ownerPage) throw new Error(`work owner page is missing: ${work.owner_page.id}`);
@@ -737,48 +800,8 @@ export function buildSelectedWorkContext(view: RepoView, pages: WikiPage[], work
 
   const contextPages = [...invariantPages, ...otherPages]
     .map((page) => selectedWorkContextPage(view, page, relevantConflictPages));
-  const conflicts: SelectedWorkContextConflict[] = relevantConflictPages.map((page) => ({
-    ...conflictSummary(page),
-    kind: "conflict",
-    status: "conflicted",
-    authority: page.data.authority,
-    ...contextSourceFields(view, page.data.sources),
-    relevantOpenConflicts: [page.data.conflict_id!],
-    body: page.body,
-  }));
+  const conflicts = relevantConflictPages.map((page) => selectedWorkContextConflict(view, page));
   const owner = selectedWorkContextPage(view, ownerPage, relevantConflictPages);
-
-  const declarations = new Map<string, Set<string>>();
-  const addSourceDeclarations = (id: string, sourceFiles: string[]) => {
-    for (const path of sourceFiles) {
-      const declaredBy = declarations.get(path) ?? new Set<string>();
-      declaredBy.add(id);
-      declarations.set(path, declaredBy);
-    }
-  };
-  for (const page of contextPages) addSourceDeclarations(page.id, page.sourceFiles);
-  for (const conflict of conflicts) addSourceDeclarations(conflict.id, conflict.sourceFiles);
-
-  const readOrder: SelectedWorkContextReadEntry[] = [
-    ...contextPages.filter((page) => page.kind === "invariant").map((page) => ({ kind: "invariant" as const, id: page.id, path: page.path })),
-    ...conflicts.map((conflict) => ({ kind: "conflict" as const, id: conflict.id, path: conflict.path })),
-    ...contextPages.filter((page) => page.kind !== "invariant").map((page) => ({ kind: "page" as const, id: page.id, path: page.path })),
-    ...[...declarations.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([path, declaredBy]) => ({ kind: "source" as const, path, declaredBy: [...declaredBy].sort((a, b) => a.localeCompare(b)) })),
-  ];
-
-  const sourceSummary = (page: SelectedWorkContextPage | SelectedWorkContextConflict): SelectedWorkContextSourceSummary => ({
-    pageId: "pageId" in page ? page.pageId : page.id,
-    path: page.path,
-    status: page.status,
-    authority: page.authority,
-    declared: page.sources,
-    exactSources: page.exactSources,
-    sourceGlobs: page.sourceGlobs,
-    sourceFiles: page.sourceFiles,
-    relevantOpenConflicts: page.relevantOpenConflicts,
-  });
 
   return {
     version: 1,
@@ -786,11 +809,70 @@ export function buildSelectedWorkContext(view: RepoView, pages: WikiPage[], work
     requestedConflict: null,
     requestedWork: work.id,
     work,
-    readOrder,
+    readOrder: contextReadOrder(contextPages, conflicts),
     pages: contextPages,
     conflicts,
     ownerPage: owner,
-    sources: [...contextPages.map(sourceSummary), ...conflicts.map(sourceSummary), sourceSummary(owner)],
+    sources: [...contextPages.map(contextSourceSummary), ...conflicts.map(contextSourceSummary), contextSourceSummary(owner)],
+  };
+}
+
+export function buildTopicContext(view: RepoView, pages: WikiPage[], query: string): TopicContext {
+  const matches = searchWikiPages(pages, query).map(({ page }) => page);
+  const matchedCurrentIds = new Set(matches
+    .filter((page) => page.data.status === "current" && page.data.kind !== "conflict")
+    .map((page) => page.data.id));
+  const selectedConflictIds = new Set(matches
+    .filter((page) => page.data.kind === "conflict" && page.data.status === "conflicted")
+    .map((page) => page.data.conflict_id!));
+  const conflictPages = openConflicts(pages);
+
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const page of conflictPages) {
+      const conflictId = page.data.conflict_id!;
+      const relevant = selectedConflictIds.has(conflictId)
+        || (page.data.affected_pages ?? []).some((id) => matchedCurrentIds.has(id))
+        || (page.data.affected_invariants ?? []).some((id) => matchedCurrentIds.has(id));
+      if (!relevant) continue;
+      if (!selectedConflictIds.has(conflictId)) {
+        selectedConflictIds.add(conflictId);
+        changed = true;
+      }
+      for (const id of [...(page.data.affected_pages ?? []), ...(page.data.affected_invariants ?? [])]) {
+        const affected = pages.find((candidate) => candidate.data.id === id);
+        if (affected?.data.status === "current" && affected.data.kind !== "conflict" && !matchedCurrentIds.has(id)) {
+          matchedCurrentIds.add(id);
+          changed = true;
+        }
+      }
+    }
+  }
+
+  const selectedConflictPages = conflictPages.filter((page) => selectedConflictIds.has(page.data.conflict_id!));
+  const selectedCurrentPages = currentPages(pages).filter((page) => matchedCurrentIds.has(page.data.id));
+  const contextPages = [
+    ...selectedCurrentPages.filter((page) => page.data.kind === "invariant"),
+    ...selectedCurrentPages.filter((page) => page.data.kind !== "invariant"),
+  ].map((page) => selectedWorkContextPage(view, page, selectedConflictPages));
+  const conflicts = selectedConflictPages.map((page) => selectedWorkContextConflict(view, page));
+  const nonCurrentPages = matches
+    .filter((page) => page.data.status !== "current"
+      && !(page.data.kind === "conflict" && page.data.status === "conflicted"))
+    .sort((a, b) => a.data.id.localeCompare(b.data.id))
+    .map((page) => selectedWorkContextPage(view, page, selectedConflictPages));
+
+  return {
+    version: 1,
+    query,
+    requestedConflict: null,
+    requestedWork: null,
+    readOrder: contextReadOrder(contextPages, conflicts),
+    pages: contextPages,
+    conflicts,
+    nonCurrentPages,
+    sources: [...contextPages, ...conflicts, ...nonCurrentPages].map(contextSourceSummary),
   };
 }
 

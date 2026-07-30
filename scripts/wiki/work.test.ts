@@ -269,6 +269,30 @@ describe("work CLI and selected context", () => {
     return root;
   }
 
+  function topicCliRepo(): string {
+    const root = tempRepo();
+    put(root, "source.ts", "export const value = true;\n");
+    put(root, "src/a.ts", "export const a = true;\n");
+    put(root, "src/z.ts", "export const z = true;\n");
+    put(root, "wiki/product/test.md", currentPage("product/test", "product", "  - path: source.ts\n  - glob: src/*.ts")
+      .replace("summary: Current product/test.", "summary: Shared topic current contract.")
+      .replace("Current contract body.", "Shared topic current behavior."));
+    put(root, "wiki/product/invariant.md", currentPage("product/invariant", "invariant"));
+    put(root, "wiki/conflicts/open/C-900.md", conflictPage()
+      .replace("summary: Owner decision is required.", "summary: Shared topic owner decision is required."));
+    put(root, "wiki/proposals/topic.md", proposalPage([], "proposal/topic")
+      .replace("summary: Work proposal.", "summary: Shared topic proposed rationale."));
+    put(root, "wiki/product/deprecated-topic.md", currentPage("product/deprecated-topic")
+      .replace("summary: Current product/deprecated-topic.", "summary: Shared topic deprecated rationale.")
+      .replace("status: current", "status: deprecated"));
+    put(root, "wiki/product/archived-topic.md", currentPage("product/archived-topic")
+      .replace("summary: Current product/archived-topic.", "summary: Shared topic archived rationale.")
+      .replace("status: current", "status: archived"));
+    run(root, ["git", "add", "."]);
+    run(root, ["git", "commit", "-qm", "topic fixture"]);
+    return root;
+  }
+
   test("lists repository work without a query and hides done unless --all is used", () => {
     const root = cliRepo([
       work({ id: "WK-00", state: "done", priority: "critical", evidence: ["source.ts"] }),
@@ -337,6 +361,124 @@ describe("work CLI and selected context", () => {
     expect(text.indexOf("# SOURCE READ ORDER")).toBeLessThan(text.indexOf("# NON-CURRENT WORK OWNER"));
     expect(text).toContain("Declared sources:");
     expect(text).not.toContain("# CURRENT PAGE proposal/work");
+  });
+
+  test("makes generic topic context authority-, source-, and conflict-complete", () => {
+    const root = topicCliRepo();
+    const cli = join(process.cwd(), "scripts/wiki/cli.ts");
+    const search = JSON.parse(run(root, [process.execPath, cli, "search", "shared topic", "--json"]));
+    expect(search.matches.map((match: { id: string }) => match.id)).toEqual([
+      "conflict/C-900",
+      "product/archived-topic",
+      "product/deprecated-topic",
+      "product/test",
+      "proposal/topic",
+    ]);
+
+    const first = run(root, [process.execPath, cli, "context", "shared topic", "--json"]);
+    expect(run(root, [process.execPath, cli, "context", "shared topic", "--json"])).toBe(first);
+    const context = JSON.parse(first);
+    expect(context).toMatchObject({
+      version: 1,
+      query: "shared topic",
+      requestedConflict: null,
+      requestedWork: null,
+    });
+    expect(context.pages.map((page: { id: string }) => page.id)).toEqual([
+      "product/invariant",
+      "product/test",
+    ]);
+    expect(context.conflicts.map((conflict: { id: string }) => conflict.id)).toEqual(["C-900"]);
+    expect(context.nonCurrentPages.map((page: { id: string; status: string }) => [page.id, page.status])).toEqual([
+      ["product/archived-topic", "archived"],
+      ["product/deprecated-topic", "deprecated"],
+      ["proposal/topic", "proposed"],
+    ]);
+    expect(context.pages[0]).toMatchObject({
+      id: "product/invariant",
+      status: "current",
+      authority: "normative",
+      path: "wiki/product/invariant.md",
+      exactSources: [{ path: "source.ts" }],
+      sourceGlobs: [],
+      sourceFiles: ["source.ts"],
+      relevantOpenConflicts: ["C-900"],
+    });
+    expect(context.pages[1]).toMatchObject({
+      id: "product/test",
+      status: "current",
+      authority: "normative",
+      path: "wiki/product/test.md",
+      exactSources: [{ path: "source.ts" }],
+      sourceGlobs: [{ glob: "src/*.ts", matchedFiles: ["src/a.ts", "src/z.ts"] }],
+      sourceFiles: ["source.ts", "src/a.ts", "src/z.ts"],
+      relevantOpenConflicts: ["C-900"],
+    });
+    expect(context.conflicts[0]).toMatchObject({
+      pageId: "conflict/C-900",
+      status: "conflicted",
+      authority: "observed",
+      path: "wiki/conflicts/open/C-900.md",
+      exactSources: [{ path: "source.ts" }],
+      sourceFiles: ["source.ts"],
+      relevantOpenConflicts: ["C-900"],
+    });
+    for (const page of context.nonCurrentPages) {
+      expect(page).toMatchObject({
+        authority: "normative",
+        exactSources: [{ path: "source.ts" }],
+        sourceGlobs: [],
+        sourceFiles: ["source.ts"],
+        relevantOpenConflicts: [],
+      });
+    }
+    expect(context.readOrder).toEqual([
+      { kind: "invariant", id: "product/invariant", path: "wiki/product/invariant.md" },
+      { kind: "conflict", id: "C-900", path: "wiki/conflicts/open/C-900.md" },
+      { kind: "page", id: "product/test", path: "wiki/product/test.md" },
+      { kind: "source", path: "source.ts", declaredBy: ["C-900", "product/invariant", "product/test"] },
+      { kind: "source", path: "src/a.ts", declaredBy: ["product/test"] },
+      { kind: "source", path: "src/z.ts", declaredBy: ["product/test"] },
+    ]);
+    expect(context.sources.map((source: { pageId: string }) => source.pageId)).toEqual([
+      "product/invariant",
+      "product/test",
+      "conflict/C-900",
+      "product/archived-topic",
+      "product/deprecated-topic",
+      "proposal/topic",
+    ]);
+
+    const text = run(root, [process.execPath, cli, "context", "shared topic"]);
+    expect(text).toContain("# TOPIC CONTEXT\n\nQuery: shared topic");
+    expect(text).toContain("# CURRENT INVARIANT product/invariant");
+    expect(text).toContain("# OPEN CONFLICT C-900 [high, decision, decision_pending]");
+    expect(text).toContain("# CURRENT PAGE product/test");
+    expect(text).toContain("# NON-CURRENT RATIONALE [ARCHIVED] product/archived-topic");
+    expect(text).toContain("# NON-CURRENT RATIONALE [DEPRECATED] product/deprecated-topic");
+    expect(text).toContain("# NON-CURRENT RATIONALE [PROPOSED] proposal/topic");
+    expect(text).toContain("Source globs and deterministic matches:\n- src/*.ts\n  - src/a.ts\n  - src/z.ts");
+    expect(text).toContain("Relevant open conflicts:\n- C-900");
+    expect(text.indexOf("# CURRENT INVARIANT")).toBeLessThan(text.indexOf("# OPEN CONFLICT"));
+    expect(text.indexOf("# OPEN CONFLICT")).toBeLessThan(text.indexOf("# CURRENT PAGE"));
+    expect(text.indexOf("# CURRENT PAGE")).toBeLessThan(text.indexOf("# SOURCE READ ORDER"));
+    expect(text.indexOf("# SOURCE READ ORDER")).toBeLessThan(text.indexOf("# NON-CURRENT RATIONALE"));
+  });
+
+  test("keeps PV-07 partial-fallback matching unchanged in generic context", () => {
+    const root = cliRepo([work()], false);
+    const cli = join(process.cwd(), "scripts/wiki/cli.ts");
+    const search = JSON.parse(run(root, [process.execPath, cli, "search", "test work", "--json"]));
+    expect(search.matches.map((match: { id: string; score: number }) => [match.id, match.score])).toEqual([
+      ["product/test", 1],
+      ["proposal/work", 1],
+    ]);
+    const context = JSON.parse(run(root, [process.execPath, cli, "context", "test work", "--json"]));
+    expect(context.pages.map((page: { id: string }) => page.id)).toEqual(["product/test"]);
+    expect(context.conflicts).toEqual([]);
+    expect(context.nonCurrentPages.map((page: { id: string; status: string }) => [page.id, page.status])).toEqual([
+      ["proposal/work", "proposed"],
+    ]);
   });
 
   test("keeps impact-based context byte-stable", () => {
