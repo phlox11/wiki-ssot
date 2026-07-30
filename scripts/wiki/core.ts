@@ -1456,15 +1456,20 @@ function agentEntrypointContractGaps(agents: string): string[] {
   const gaps: string[] = [];
   const hasLine = (predicate: (line: string) => boolean) => lines.some(predicate);
   const hasWorkCommand = (line: string) => /(?:^|\s)bun run wiki:work(?=$|[\s,.;:—–])/.test(line);
-  const explicitlyNegatesRequiredAction = (line: string) => {
-    const withoutNoQueryQualifier = line
-      .replace(/\bdo not require\b/g, "")
-      .replace(/\b(?:does|do) not need\b/g, "");
-    return /\b(?:do not|don't|never|avoid|ignore|skip|must not|should not|cannot|can't|refuse to|not to)\b/.test(withoutNoQueryQualifier);
+  const explicitlyNegatesAction = (line: string, action: RegExp) => {
+    const negation = /\b(?:do not|does not|don't|never|avoid|ignore|skip|must not|should not|cannot|can't|refuse to|not to)\b/g;
+    for (const match of line.matchAll(negation)) {
+      const sameClause = line.slice((match.index ?? 0) + match[0].length).split(/[.;—–]/, 1)[0];
+      if (action.test(sameClause)) return true;
+    }
+    return false;
   };
+  const hasNoQueryPrerequisite = (line: string) =>
+    /(without|no (?:known )?(?:node|id|search term)|before topic search)/.test(line)
+    || /\b(?:do not require|(?:do|does) not need)\s+(?:(?:a|an|any|the)\s+)?(?:known\s+)?(?:node|proposal id|work id|search term)\b/.test(line);
 
   if (!hasLine((line) =>
-    !explicitlyNegatesRequiredAction(line)
+    !explicitlyNegatesAction(line, /\b(start|begin|open|read|consult)\b/)
     && /\b(start|begin|open|read|consult)\b/.test(line)
     && line.includes("wiki/index.md")
     && line.includes("wiki/current-status.md")
@@ -1472,14 +1477,14 @@ function agentEntrypointContractGaps(agents: string): string[] {
     gaps.push("the wiki index/current-status/invariant read route");
   }
   if (!hasLine((line) =>
-    !explicitlyNegatesRequiredAction(line)
+    !explicitlyNegatesAction(line, /\b(run|execute|use)\b[^.;]{0,40}\bbun run wiki:work\b/)
     && hasWorkCommand(line)
     && /(what remains|unfinished|what should (?:we|you) do next|what should happen next|remaining[- ]work|next[- ]work)/.test(line)
-    && /(without|do not require|no (?:known )?(?:node|id|search term)|before topic search)/.test(line))) {
+    && hasNoQueryPrerequisite(line))) {
     gaps.push("the no-query generic remaining-work route");
   }
   if (!hasLine((line) =>
-    !explicitlyNegatesRequiredAction(line)
+    !explicitlyNegatesAction(line, /\b(run|execute|follow|use|open)\b/)
     && /\bselect(?:ed|ing)?\b/.test(line)
     && /(returned|result|printed)/.test(line)
     && /\b(run|execute|follow|use|open)\b/.test(line)
@@ -1487,7 +1492,7 @@ function agentEntrypointContractGaps(agents: string): string[] {
     gaps.push("the selected-work context route");
   }
   if (!hasLine((line) =>
-    !explicitlyNegatesRequiredAction(line)
+    !explicitlyNegatesAction(line, /\b(search|run|execute|use|open|consult)\b/)
     && /\b(search|topic)\b/.test(line)
     && /\b(edit|editing|implement|implementation)\b/.test(line)
     && line.includes('wiki:search -- "<task terms>"')
@@ -1495,7 +1500,7 @@ function agentEntrypointContractGaps(agents: string): string[] {
     gaps.push("the topic search/context route");
   }
   if (!hasLine((line) =>
-    !explicitlyNegatesRequiredAction(line)
+    !explicitlyNegatesAction(line, /\b(label|present|state|treat|keep)\w*\b/)
     && ["proposed", "conflicted", "deprecated", "archived"].every((status) => line.includes(status))
     && /\b(label|present|state|status|treat)\w*\b/.test(line)
     && /(not current|non-current)/.test(line))) {

@@ -59,16 +59,32 @@ function policy(overrides: Partial<FreshContextPolicy> = {}): FreshContextPolicy
   };
 }
 
-function providerNeutralAgentEntrypoint(): string {
+type AgentEntrypointClauses = {
+  authority: string;
+  work: string;
+  selected: string;
+  topic: string;
+  nonCurrent: string;
+};
+
+function providerNeutralAgentEntrypoint(overrides: Partial<AgentEntrypointClauses> = {}): string {
+  const clauses: AgentEntrypointClauses = {
+    authority: "Start at wiki/index.md, then read wiki/current-status.md and every kind: invariant page.",
+    work: "If the user asks what remains or what is unfinished without naming a task, run bun run wiki:work before topic search; do not require a known node, work ID, or search term.",
+    selected: "After selecting a returned item, run the printed wiki:context -- --work <ID> command.",
+    topic: `Search before editing with wiki:search -- "<task terms>" and wiki:context -- "<task terms>".`,
+    nonCurrent: "Pages with status proposed, conflicted, deprecated, or archived must be labelled non-current.",
+    ...overrides,
+  };
   return `<!-- wiki-ssot:fresh-context-guardrail -->
 # Agent instructions
 
-Start at wiki/index.md, then read wiki/current-status.md and every kind: invariant page.
+${clauses.authority}
 <!-- wiki-ssot:work-discovery -->
-If the user asks what remains or what is unfinished without naming a task, run bun run wiki:work before topic search; do not require a known node, work ID, or search term.
-After selecting a returned item, run the printed wiki:context -- --work <ID> command.
-Search before editing with wiki:search -- "<task terms>" and wiki:context -- "<task terms>".
-Pages with status proposed, conflicted, deprecated, or archived must be labelled non-current.
+${clauses.work}
+${clauses.selected}
+${clauses.topic}
+${clauses.nonCurrent}
 `;
 }
 
@@ -1327,6 +1343,64 @@ Do not label pages with status proposed, conflicted, deprecated, or archived as 
     expect(contract?.message).toContain("the selected-work context route");
     expect(contract?.message).toContain("the topic search/context route");
     expect(contract?.message).toContain("the non-current authority boundary");
+  });
+
+  function expectScopedNegationRejected(
+    overrides: Partial<AgentEntrypointClauses>,
+    gap: string,
+    workRoute = false,
+  ): void {
+    const findings = validateIntegrationSeams(coreIntegrationView(providerNeutralAgentEntrypoint(overrides)));
+    const codes = findings.map((finding) => finding.code);
+    const contract = findings.find((finding) => finding.code === "agent-entrypoint-contract-incomplete");
+    expect(codes).toContain("agent-entrypoint-contract-incomplete");
+    expect(contract?.message).toContain(gap);
+    if (workRoute) expect(codes).toContain("work-discovery-entrypoint-missing");
+  }
+
+  test("core seam validation scopes do-not-require/need negation to each required action", () => {
+    expectScopedNegationRejected({
+      authority: "Do not require agents to start at wiki/index.md, then read wiki/current-status.md and every kind: invariant page.",
+    }, "the wiki index/current-status/invariant read route");
+    expectScopedNegationRejected({
+      authority: "Agents do not need to start at wiki/index.md, then read wiki/current-status.md and every kind: invariant page.",
+    }, "the wiki index/current-status/invariant read route");
+    expectScopedNegationRejected({
+      work: "If the user asks what remains, agents do not need to run bun run wiki:work; do not require a known node, work ID, or search term.",
+    }, "the no-query generic remaining-work route", true);
+    expectScopedNegationRejected({
+      work: "If the user asks what remains, do not require agents to run bun run wiki:work; do not need a known node, work ID, or search term.",
+    }, "the no-query generic remaining-work route", true);
+    expectScopedNegationRejected({
+      selected: "After selecting a returned item, do not require agents to run the printed wiki:context -- --work <ID> command.",
+    }, "the selected-work context route");
+    expectScopedNegationRejected({
+      selected: "After selecting a returned item, agents do not need to run the printed wiki:context -- --work <ID> command.",
+    }, "the selected-work context route");
+    expectScopedNegationRejected({
+      topic: `Agents do not need to search before editing with wiki:search -- "<task terms>" and wiki:context -- "<task terms>".`,
+    }, "the topic search/context route");
+    expectScopedNegationRejected({
+      topic: `Do not require agents to search before editing with wiki:search -- "<task terms>" and wiki:context -- "<task terms>".`,
+    }, "the topic search/context route");
+    expectScopedNegationRejected({
+      nonCurrent: "Do not require agents to label pages with status proposed, conflicted, deprecated, or archived as non-current.",
+    }, "the non-current authority boundary");
+    expectScopedNegationRejected({
+      nonCurrent: "Agents do not need to label pages with status proposed, conflicted, deprecated, or archived as non-current.",
+    }, "the non-current authority boundary");
+  });
+
+  test("core seam validation accepts standalone do-not-require and do-not-need no-query prerequisites", () => {
+    for (const qualifier of [
+      "do not require a known node, work ID, or search term",
+      "do not need a known node, work ID, or search term",
+    ]) {
+      const agents = providerNeutralAgentEntrypoint({
+        work: `If the user asks what remains, run bun run wiki:work; ${qualifier}.`,
+      });
+      expect(validateIntegrationSeams(coreIntegrationView(agents))).toEqual([]);
+    }
   });
 
   test("core seam validation accepts a complete provider-neutral agent entrypoint", () => {
