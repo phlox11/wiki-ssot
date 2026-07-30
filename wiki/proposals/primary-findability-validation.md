@@ -21,6 +21,10 @@ sources:
   - path: scripts/wiki/primary-baseline.test.ts
   - path: docs/evidence/pv-05-primary-baseline.json
   - path: docs/evidence/pv-05-primary-baseline.md
+  - path: scripts/wiki/primary-current.ts
+  - path: scripts/wiki/primary-current.test.ts
+  - path: docs/evidence/pv-19-primary-current.json
+  - path: docs/evidence/pv-19-primary-current.md
   - path: scripts/wiki/new-repository-adoption.test.ts
   - path: scripts/wiki/existing-repo-bootstrap.test.ts
   - path: wiki/SCHEMA.md
@@ -323,7 +327,7 @@ work_items:
       - docs/evidence/pv-18-existing-repository-current-kit-review-pass.json
   - id: PV-19
     title: Re-evaluate all eight Primary scenarios against the fixed current engine
-    state: not-started
+    state: done
     priority: high
     depends_on: [PV-16, PV-17]
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
@@ -333,7 +337,10 @@ work_items:
       - The coverage-edge scenario proves nested implementation and test changes map to current authority or a reasoned exclusion and cannot pass the deterministic gates while drifting.
       - A checked-in interpretation classifies every remaining miss as a concrete defect, owner decision, or explicitly accepted limitation without rewriting the immutable PV-05 baseline.
       - Tests reproduce the current-engine report byte-for-byte and bind it to the evaluated revision.
-    evidence: []
+    evidence:
+      - docs/evidence/pv-19-primary-current.json
+      - docs/evidence/pv-19-primary-current.md
+      - scripts/wiki/primary-current.test.ts
 ---
 
 # Primary findability validation roadmap
@@ -564,21 +571,22 @@ not turn subjective reviewer quality into a deterministic claim.
 
 ## Phase E — bounded focused cycle
 
-The owner selected **Primary needs another focused cycle**. The supporting
+At the PV-12 decision point, the owner selected **Primary needs another focused cycle**. The supporting
 exit-gate record is
 [`docs/evidence/pv-12-primary-exit-gate.md`](../../docs/evidence/pv-12-primary-exit-gate.md).
 It does not declare Primary validated. PV-16 has closed recursive engine
 coverage/risk alignment, PV-17 has closed generic topic-context completeness,
 and PV-18 has closed and current-kit-revalidated the independent
-existing-repository pilot. The eight scenarios still have not been rerun
-against that combined current engine; PV-19 owns that final focused criterion.
+existing-repository pilot. PV-19 now records the eight-scenario rerun against
+that combined current state, closing the final focused criterion without
+declaring the separate PV-12 owner outcome.
 
 The focused cycle is deliberately bounded:
 
 1. `PV-16`, `PV-17`, and `PV-18` are done.
-2. `PV-19` is ready against their combined current engine.
-3. `PV-12` stays open and waiting only on `PV-19`, then reevaluates the unchanged
-   exit-gate acceptance contract.
+2. `PV-19` is done against their combined current state.
+3. `PV-12` becomes ready to reevaluate the unchanged exit-gate acceptance
+   contract; PV-19 does not choose that owner outcome.
 
 `PV-13` through `PV-15` remain deferred. This decision does not revive
 Secondary feature investment or broaden the focused cycle into those items.
@@ -599,6 +607,32 @@ explicit status-specific non-current labels. Focused synthetic CLI evidence in
 `scripts/wiki/work.test.ts` binds mixed current/proposed results, conflicted and
 other non-current statuses, exact and glob sources, text/JSON parity, and
 byte-stable ordering.
+
+### `PV-19`: fixed current-engine scenario evaluation
+
+The eight version 1 scenarios were rerun against exact combined revision
+`8b93a6f6e8026963b5cdd49cbb7a8b737e71b9ec`, whose history contains PV-16,
+PV-17, and PV-18. The machine-readable
+[`pv-19-primary-current.json`](../../docs/evidence/pv-19-primary-current.json)
+records the generic topic-context authorities, sources, conflicts,
+current/non-current separation, expected action, candidate gates, coverage
+dispositions, and independent per-source drift probes for every scenario.
+
+All eight scenarios pass. Current-page, invariant, conflict, implementation
+source, status-plus-authority, non-current label, expected-change, and wiki
+action recall are complete; all 17 implementation/test paths map to current
+authority; all eight reconciled candidates pass lint and enforced impact; and
+all 17 code-only probes are caught with no drift escape. The coverage-edge
+implementation and test paths each match the recursive boundary, map to
+`architecture/engine`, and fail enforced impact with stale verification when
+changed without reconciliation.
+
+The checked-in
+[`pv-19-primary-current.md`](../../docs/evidence/pv-19-primary-current.md)
+classifies no remaining measured miss because the report has none, while
+retaining the explicit product limits around model cognition, trusted
+maintainers, and token/runtime cost. The immutable PV-05 report remains
+unchanged.
 
 ## Primary exit gate
 
@@ -668,8 +702,8 @@ Record decisions here when they concern proposed sequencing or evaluation. If a 
 | Workflow protection boundary | decided | Trust repository developers/admins; leave required workflows, CODEOWNERS, rulesets, and bypass policy to deployments |
 | Pilot repositories/fixtures | decided | Use an empty Git repository followed by a first greeting feature, plus an existing two-area TypeScript service with one baseline implementation conflict and one reasoned generated-code exclusion |
 | Search work after baseline | applicable | PV-05 reproduced 91 irrelevant page occurrences from substring matching; PV-07 must still select remedies from focused failing evidence |
-| Primary exit-gate outcome | decided | Primary needs another focused cycle; `PV-16`–`PV-18` are complete, so run `PV-19` and then reevaluate `PV-12` |
-| Resume Secondary feature investment | decided | Do not resume yet; `PV-12` remains waiting only on `PV-19` |
+| Primary exit-gate outcome | decided | Primary needs another focused cycle; `PV-16`–`PV-19` are complete, so reevaluate `PV-12` without preselecting its owner outcome |
+| Resume Secondary feature investment | decided | Do not resume yet; `PV-12` is ready but must record the next owner outcome first |
 
 ## Per-PR update protocol
 
