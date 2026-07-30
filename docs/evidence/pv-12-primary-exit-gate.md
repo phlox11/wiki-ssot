@@ -5,9 +5,10 @@
 The owner selected **Primary needs another focused cycle**.
 
 This record is a decision contract, not evidence that Primary is validated.
-`PV-12` remains open and waiting while the bounded follow-up graph closes the
-failed criteria below. The current product scope is unchanged, and `PV-13`
-through `PV-15` remain deferred.
+`PV-12` remains open and waiting on `PV-19`. PV-18 has closed the independent
+existing-repository pilot review criterion, while the bounded follow-up graph
+still must close the remaining criteria below. The current product scope is
+unchanged, and `PV-13` through `PV-15` remain deferred.
 
 ## Evidence-backed criteria
 
@@ -20,8 +21,9 @@ through `PV-15` remain deferred.
   pilots exercise that route.
 - Both documented adoption paths reached committed candidates with passing
   deterministic gates. The new-repository feature correctly returned
-  `not-required`; the existing-repository bootstrap correctly stopped at
-  `review-required` rather than self-attesting.
+  `not-required`. The existing-repository author correctly stopped at
+  `review-required`, and PV-18 subsequently completed context-isolated review
+  and locally validated the corrected exact candidate as `PASS`.
 
 ### Failed or incomplete
 
@@ -54,14 +56,22 @@ through `PV-15` remain deferred.
    the current engine satisfies all eight exit-gate scenarios after the focused
    fixes.
 
-4. **The existing-repository fresh-session pilot has not reached independent
-   PASS.** Its exact candidate
-   `d5f3087e0312d85dc8e419bd1f02ae2921a06310` passed generated freshness,
-   verification, lint, doctor, audit, impact, typecheck, and 114 tests. Its
-   preflight correctly emitted `review-required` with bundle digest
-   `bf7b650276af60b386417770cf932cf9b8281a179d3122d0adda47b196e6b03b`,
-   and the isolated author stopped. The stricter exit-gate evidence contract
-   requires a context-isolated reviewer report that validates as PASS.
+### Closed during the focused cycle
+
+4. **The existing-repository fresh-session pilot reached independent PASS.**
+   The first context-isolated review of predecessor candidate
+   `d5f3087e0312d85dc8e419bd1f02ae2921a06310` returned
+   `NEEDS_RECONCILE` because the generated adopter workflow required an
+   unsupported publishing-only `wiki:kit` command. The publisher fixed that
+   contract with focused regression coverage, the corrected pilot changed only
+   its workflow and content-addressed manifest, and a second isolated review
+   returned `PASS` for exact pilot HEAD
+   `914f56804ff034b10f3019fdbb8b27afc5b7bbd5`, immutable base
+   `45d4bd6fb8dccfb2c7f43546950ba66573dc6179`, and bundle digest
+   `5c72fbc66812bfb75196c5c84c1894ea079dc40d7549b3d1e308bada0ba0007f`.
+   The exact failed and passing reports, fixed disposition, command results,
+   and context-isolation boundary are preserved in the
+   [PV-11 existing-repository record](./pv-11-existing-repository-agent-pilot.md).
 
 ## Bounded follow-up graph
 
@@ -73,13 +83,14 @@ Three lanes can start from completed `PV-11`:
 - `PV-17` gives generic topic context the status, authority, source expansion,
   conflict, ordering, and current/non-current separation contract already
   established for selected-work context.
-- `PV-18` extends the existing-repository fresh-session pilot through
-  context-isolated review and a locally validated exact PASS report.
+- `PV-18` is complete: it extended the existing-repository fresh-session pilot
+  through context-isolated review, dispositioned the reproduced contract
+  violation, and locally validated an exact `PASS` report.
 
 `PV-19` depends on `PV-16` and `PV-17` and records a byte-reproducible
-current-engine evaluation of all eight Primary scenarios. `PV-12` depends on
-`PV-18` and `PV-19`; it reevaluates the original exit-gate acceptance contract
-only after both are done.
+current-engine evaluation of all eight Primary scenarios. With PV-18 done,
+`PV-12` is now waiting only for PV-19 before it reevaluates the original
+exit-gate acceptance contract.
 
 ## Non-goals
 

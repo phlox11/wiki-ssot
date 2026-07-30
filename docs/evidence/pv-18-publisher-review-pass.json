@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "verdict": "PASS",
+  "reviewer": "phlox11",
+  "reviewed_head_sha": "f5c1a1d840c0b2fe08d322722ae9682587e589be",
+  "merge_base_sha": "7389e2d81f1b8e79abae1dc9684ca1a84ef453f2",
+  "bundle_digest": "d39f7ce0aa971c8b4cac9b72d615c32840feddc64f951236b0431b00784c4ed1",
+  "summary": "PASS: the publishing repository retains its supported wiki:kit gates while the generated downstream workflow omits those unsupported adopter commands, and the current architecture contract, generated kit, manifest, focused regression, metadata, and full deterministic suite agree.",
+  "evidence": [
+    "Independently regenerated the bundle with the merge-base engine and reproduced exact HEAD f5c1a1d840c0b2fe08d322722ae9682587e589be, merge base 7389e2d81f1b8e79abae1dc9684ca1a84ef453f2, diff digest 82e5201e3f24b7344fef034e25affcbf5aaa48979f9d93e5f7f3f6f9b44f05ef, and bundle digest d39f7ce0aa971c8b4cac9b72d615c32840feddc64f951236b0431b00784c4ed1.",
+    "Read AGENTS.md, the wiki entrypoint/current status/invariant, PV-18 selected-work context, architecture/engine, publisher and generated wiki/WORKFLOW.md, publisher package.json, downstream package fragment, .wiki/config.json, kit manifest, generator sources, metadata, impact, and exact bundle.",
+    "Applied the new focused regression to the merge-base repository and reproduced its intended failure because generated downstream workflow still contained wiki:kit; at the reviewed HEAD the complete focused kit suite passed 49 tests and proved publisher workflow keeps both wiki:kit commands, publisher package exposes wiki:kit with publishesKit true, and downstream workflow/package omit it.",
+    "The reviewed exact HEAD passed wiki:generated --check, wiki:kit --check, wiki:lint, wiki:doctor, wiki:audit, metadata-enforced wiki:impact against origin/main, typecheck, and the complete 289-test suite with 1,408 assertions.",
+    "The generated downstream workflow hash 200ac0e53e48561050591a6f3b5c8273cae9c5e04eb88b14814d16d00dbed046 matches the content-addressed kit manifest, while the current architecture page explicitly describes publishing-only kit exclusions and downstream non-publisher policy."
+  ]
+}
