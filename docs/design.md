@@ -48,6 +48,25 @@ Enforcement is only real if it fires on events that always happen:
 2. **Local commit** — a pre-commit hook runs the cheap structural lint on staged files; a pre-push hook blocks direct pushes to `main`. Bypassable feedback.
 3. **Pre-PR / pull request / CI** — `wiki:review-preflight` prepares and validates risk-selected independent reconciliation before publication. Structural, generated-freshness, impact, integration-seam, and Ready-only review-attestation checks then reject invalid candidates; deployments that make those jobs required checks also use them to block merges. A weekly job re-audits everything.
 
+## Validation status
+
+The Primary findability and adoption exit gate is validated within the
+configured coverage and trusted-maintainer boundary. The checked-in PV-19
+current-engine report passes all eight versioned scenarios, including complete
+authority/source recall, current versus non-current separation, mapped
+configured implementation/test paths, reconciled candidate gates, and
+per-source drift rejection. PV-18 preserves reproducible new- and
+existing-repository adoption evidence, including the existing path's initial
+review finding, focused fix, and exact context-isolated PASS.
+
+This status is evidence for the declared product experience: a fresh session
+can discover work and controlling context, configured code can be traced to
+current authority, and risk-selected changes can complete the installed review
+workflow. It is not evidence that arbitrary repository files outside configured
+coverage are mapped, that a model understood the context, that reviewer
+freshness is cryptographically proven, or that hostile maintainers are
+contained.
+
 ## What rejects an invalid candidate (all deterministic)
 
 These checks block a GitHub merge only when deployment policy makes their jobs required; otherwise they still fail deterministically and provide evidence to trusted maintainers.
@@ -94,9 +113,11 @@ This still has a bootstrap boundary. The engine and trust policy are pinned to t
 
 ## What it is not
 
-- Not a docs-site generator or a hosted service.
+- Not a docs-site generator, hosted service, or hosted LLM/reviewer.
 - Not an auto-generated API reference that replaces written intent.
-- Not a decision-maker: ambiguity becomes a conflict for a human to resolve.
+- Not an authorizer or decision-maker: queue ordering does not approve work,
+  and ambiguity becomes a conflict for an owner to resolve.
+- Not cryptographic proof that a reviewer started fresh or reasoned correctly.
 - Not an organization-security policy that governs trusted repository developers or administrators.
 
 ## Credit

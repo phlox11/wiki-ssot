@@ -15,9 +15,9 @@ tags: [generated, work, queue]
 
 This is a deterministic view of structured `work_items` on proposal pages. It is not current product authority; open the owning proposal and then the returned current context.
 
-**Recommended next:** `PV-12` — run `bun run wiki:context -- --work PV-12`.
+**Recommended next:** none. Do not invent work; inspect blockers and open decisions below.
 
-Outstanding work: 4. Completed work hidden: 16; run `bun run wiki:work -- --all` to inspect it.
+Outstanding work: 3. Completed work hidden: 17; run `bun run wiki:work -- --all` to inspect it.
 
 ## Active
 
@@ -29,7 +29,7 @@ Outstanding work: 4. Completed work hidden: 16; run `bun run wiki:work -- --all`
 
 | ID | Priority | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|
-| PV-12 | high | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | PV-18, PV-19 | Evaluate the Primary exit gate and decide the next investment | `bun run wiki:context -- --work PV-12` |
+| — | — | — | — | None | — |
 
 ## Waiting
 
@@ -51,6 +51,6 @@ No open conflicts.
 
 | ID | Priority | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|
-| PV-13 | low | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | — | Define and validate a meaningful followup_ref contract — Deferred: Reconsider after the Primary exit gate or a reproduced disposition escape. | `bun run wiki:context -- --work PV-13` |
-| PV-14 | low | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | — | Decide whether a reviewer claim-audit artifact is needed — Deferred: Reconsider after a reproduced false-claim incident or the Primary exit gate. | `bun run wiki:context -- --work PV-14` |
+| PV-13 | low | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | — | Define and validate a meaningful followup_ref contract — Deferred: Keep deferred after Primary validation unless a reproduced disposition escape justifies the contract work. | `bun run wiki:context -- --work PV-13` |
+| PV-14 | low | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | — | Decide whether a reviewer claim-audit artifact is needed — Deferred: Keep deferred after Primary validation unless a reproduced false-claim incident identifies a checkable claim. | `bun run wiki:context -- --work PV-14` |
 | PV-15 | low | [proposal/primary-findability-validation](./proposals/primary-findability-validation.md) | PV-05 | Reconsider source-map and bootstrap review breadth — Deferred: Reconsider only when Primary baseline evidence demonstrates harmful over-bundling. | `bun run wiki:context -- --work PV-15` |
