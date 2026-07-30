@@ -18,6 +18,13 @@ import {
 } from "./core";
 
 const temporary: string[] = [];
+const AMBIENT_PULL_REQUEST_KEYS = [
+  "GITHUB_EVENT_NAME",
+  "GITHUB_EVENT_PATH",
+  "GITHUB_HEAD_REF",
+  "GITHUB_BASE_REF",
+  "WIKI_PR_BODY",
+] as const;
 
 afterEach(() => {
   for (const path of temporary.splice(0)) rmSync(path, { recursive: true, force: true });
@@ -43,8 +50,41 @@ function put(root: string, path: string, content: string) {
   writeFileSync(join(root, path), content);
 }
 
-function spawn(root: string, command: string[]) {
-  return Bun.spawnSync(command, { cwd: root, stdout: "pipe", stderr: "pipe" });
+function isolatedFixtureEnvironment(environment: Record<string, string | undefined>) {
+  const isolated = { ...environment };
+  for (const key of AMBIENT_PULL_REQUEST_KEYS) delete isolated[key];
+  return isolated;
+}
+
+function ambientPullRequestEnvironment() {
+  return {
+    ...process.env,
+    GITHUB_EVENT_NAME: "pull_request",
+    GITHUB_EVENT_PATH: "/tmp/publisher-pull-request-event.json",
+    GITHUB_HEAD_REF: "codex/pv-16-recursive-coverage",
+    GITHUB_BASE_REF: "main",
+    WIKI_PR_BODY: [
+      "```yaml",
+      "change_type: fix",
+      "semantic_change: true",
+      "wiki_action: update",
+      "affected_pages:",
+      "  - architecture/engine",
+      "  - operations/enforcement",
+      "affected_invariants: []",
+      "touched_conflicts: []",
+      "```",
+    ].join("\n"),
+  };
+}
+
+function spawn(root: string, command: string[], environment: Record<string, string | undefined> = process.env) {
+  return Bun.spawnSync(command, {
+    cwd: root,
+    stdout: "pipe",
+    stderr: "pipe",
+    env: isolatedFixtureEnvironment(environment),
+  });
 }
 
 function page(): string {
@@ -200,9 +240,11 @@ describe("PV-16 recursive publisher boundary", () => {
   });
 
   for (const target of ["scripts/wiki/parsers/edge.ts", "scripts/wiki/parsers/edge.test.ts"]) {
-    test(`a code-only ${target} change cannot pass both lint and enforced impact`, () => {
+    test(`a code-only ${target} change cannot pass both lint and enforced impact under ambient PR metadata`, () => {
       const { root, cliPath } = prepareFixture(target);
-      const lint = spawn(root, [process.execPath, cliPath, "lint", "--root", root, "--json"]);
+      const ambient = ambientPullRequestEnvironment();
+      expect(AMBIENT_PULL_REQUEST_KEYS.every((key) => !(key in isolatedFixtureEnvironment(ambient)))).toBe(true);
+      const lint = spawn(root, [process.execPath, cliPath, "lint", "--root", root, "--json"], ambient);
       expect(lint.exitCode).toBe(0);
 
       const impact = spawn(root, [
@@ -215,7 +257,7 @@ describe("PV-16 recursive publisher boundary", () => {
         "HEAD~1",
         "--enforce",
         "--json",
-      ]);
+      ], ambient);
       expect(impact.exitCode).toBe(1);
       const report = JSON.parse(impact.stdout.toString()) as ImpactReport;
       expect(report.affectedPages).toEqual(["architecture/engine"]);
@@ -233,7 +275,7 @@ describe("PV-16 recursive publisher boundary", () => {
         "architecture/engine",
         "--unchanged",
         "This fixture change preserves the declared recursive engine contract.",
-      ]);
+      ], ambient);
       expect(verify.exitCode).toBe(0);
       const reconciled = spawn(root, [
         process.execPath,
@@ -245,7 +287,10 @@ describe("PV-16 recursive publisher boundary", () => {
         "HEAD~1",
         "--enforce",
         "--json",
-      ]);
+      ], ambient);
+      if (reconciled.exitCode !== 0) {
+        throw new Error(`reconciled fixture impact failed:\n${reconciled.stdout.toString()}\n${reconciled.stderr.toString()}`);
+      }
       expect(reconciled.exitCode).toBe(0);
     });
   }
