@@ -31,6 +31,7 @@ sources:
   - path: docs/evidence/pv-09-existing-repository-bootstrap.md
   - path: docs/evidence/pv-11-new-repository-agent-pilot.md
   - path: docs/evidence/pv-11-existing-repository-agent-pilot.md
+  - path: docs/evidence/pv-12-primary-exit-gate.md
 related: [product/scope, product/invariants, architecture/engine, operations/enforcement, proposal/protected-main]
 tags: [roadmap, primary, findability, fresh-session, context, adoption, dogfood]
 work_items:
@@ -218,7 +219,7 @@ work_items:
     title: Evaluate the Primary exit gate and decide the next investment
     state: not-started
     priority: high
-    depends_on: [PV-11]
+    depends_on: [PV-18, PV-19]
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
     acceptance:
       - A fresh session can enumerate remaining work from a generic request without knowing any internal node or ID.
@@ -230,7 +231,8 @@ work_items:
       - Both adoption paths run reproducibly from their documented starting state to green.
       - Remaining misses are classified as a concrete defect, owner decision, or explicitly accepted limitation.
       - The owner records Primary validated, another focused cycle, or changed product priority with supporting evidence.
-    evidence: []
+    evidence:
+      - docs/evidence/pv-12-primary-exit-gate.md
   - id: PV-13
     title: Define and validate a meaningful followup_ref contract
     state: deferred
@@ -264,6 +266,54 @@ work_items:
       - Any redesign preserves deterministic source tracing and review completeness.
     evidence: []
     deferred_reason: Reconsider only when Primary baseline evidence demonstrates harmful over-bundling.
+  - id: PV-16
+    title: Close recursive wiki-engine coverage and risk boundaries
+    state: not-started
+    priority: high
+    depends_on: [PV-11]
+    context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
+    acceptance:
+      - Maintained nested scripts/wiki TypeScript files are included by repository coverage and mapped by a current page or a reasoned exclusion.
+      - Architecture source declarations, high-risk staleness, and Fresh-context changed-file selection cover the same nested wiki-engine boundary.
+      - A focused regression proves that a nested implementation or test file cannot reproduce the PV-05 code/wiki drift escape through lint and enforced impact.
+      - Current wiki, publishing policy, generated kit artifacts, and tests make the recursive boundary explicit and deterministic.
+    evidence: []
+  - id: PV-17
+    title: Make generic topic context authority- and source-complete
+    state: not-started
+    priority: high
+    depends_on: [PV-11]
+    context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
+    acceptance:
+      - Generic query context text and JSON expose status, authority, wiki path, source declarations, deterministic glob matches, expanded source files, and relevant open conflicts for every returned page.
+      - Current authority and non-current rationale are explicitly separated so a proposed, conflicted, deprecated, or archived page cannot masquerade as current authority.
+      - The generic output publishes a deterministic authority and source read order consistent with the selected-work truth model.
+      - Focused tests cover mixed current and proposed matches, conflict-bearing pages, exact paths, glob expansion, text and JSON parity, and deterministic ordering.
+    evidence: []
+  - id: PV-18
+    title: Complete independent PASS for the existing-repository fresh-session pilot
+    state: not-started
+    priority: high
+    depends_on: [PV-11]
+    context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
+    acceptance:
+      - A context-isolated reviewer reconciles the existing-repository pilot candidate against its current wiki, code, tests, conflict, metadata, and exact review bundle.
+      - The pilot reaches a locally validated PASS report bound to an exact HEAD, merge base, bundle digest, and authenticated reviewer without authoring-session self-attestation.
+      - Any reviewer finding is dispositioned under the installed contract, and the durable pilot record preserves the final report binding and verification result.
+    evidence: []
+  - id: PV-19
+    title: Re-evaluate all eight Primary scenarios against the fixed current engine
+    state: not-started
+    priority: high
+    depends_on: [PV-16, PV-17]
+    context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
+    acceptance:
+      - A machine-readable report evaluates all eight versioned Primary scenarios against one exact current-engine revision after PV-16 and PV-17.
+      - The report records current-page, invariant, conflict, implementation-source, status and authority, non-current separation, expected wiki action, coverage, and drift-gate results for every scenario.
+      - The coverage-edge scenario proves nested implementation and test changes map to current authority or a reasoned exclusion and cannot pass the deterministic gates while drifting.
+      - A checked-in interpretation classifies every remaining miss as a concrete defect, owner decision, or explicitly accepted limitation without rewriting the immutable PV-05 baseline.
+      - Tests reproduce the current-engine report byte-for-byte and bind it to the evaluated revision.
+    evidence: []
 ---
 
 # Primary findability validation roadmap
@@ -488,11 +538,35 @@ an orchestrator trust claim rather than cryptographic proof, matching current
 product scope. The pilot measures whether the provided path is usable; it does
 not turn subjective reviewer quality into a deterministic claim.
 
+## Phase E — bounded focused cycle
+
+The owner selected **Primary needs another focused cycle**. The supporting
+exit-gate record is
+[`docs/evidence/pv-12-primary-exit-gate.md`](../../docs/evidence/pv-12-primary-exit-gate.md).
+It does not declare Primary validated: generic topic context still lacks the
+selected-work authority and source contract, nested `scripts/wiki` paths can
+escape the publishing repository's one-level coverage and risk globs, the
+existing-repository fresh-session pilot stopped at `review-required`, and the
+eight scenarios have not been rerun against the post-fix current engine.
+
+The focused cycle is deliberately bounded:
+
+1. `PV-16`, `PV-17`, and `PV-18` may run in parallel.
+2. `PV-19` starts only after the two engine/policy changes, `PV-16` and
+   `PV-17`, are done.
+3. `PV-12` stays open and waiting until both `PV-18` and `PV-19` are done, then
+   reevaluates the unchanged exit-gate acceptance contract.
+
+`PV-13` through `PV-15` remain deferred. This decision does not revive
+Secondary feature investment or broaden the focused cycle into those items.
+
 ## Primary exit gate
 
 `PV-12` may pass only when its frontmatter acceptance contract is satisfied with durable evidence.
 
-The owner then records one outcome:
+The owner has recorded **Primary needs another focused cycle** for the current
+evaluation. After the focused dependencies finish, `PV-12` reevaluates and
+records a new outcome:
 
 1. **Primary validated:** resume balanced product work.
 2. **Primary needs another focused cycle:** name the failed criteria and next bounded changes.
@@ -535,8 +609,11 @@ The intended critical path is:
 6. `PV-07` runs only if the baseline proves search failures.
 7. `PV-08`, `PV-09`, and `PV-10` make adoption and entrypoint behavior reproducible.
 8. `PV-11` runs isolated agent pilots.
-9. `PV-12` records the owner decision at the Primary exit gate.
-10. `PV-13`–`PV-15` are reconsidered from evidence rather than momentum.
+9. `PV-12` records the owner decision that Primary needs another focused cycle.
+10. `PV-16`, `PV-17`, and `PV-18` run as independent parallel lanes.
+11. `PV-19` reruns all eight scenarios after `PV-16` and `PV-17`.
+12. `PV-12` reevaluates after `PV-18` and `PV-19`.
+13. `PV-13`–`PV-15` remain deferred until their existing evidence triggers are met.
 
 Primary validation may claim the deterministic rails only within the trusted-developer boundary. It must not claim protection against a hostile maintainer or organization-level security guarantees.
 
@@ -546,12 +623,13 @@ Record decisions here when they concern proposed sequencing or evaluation. If a 
 
 | Decision | State | Result or required owner input |
 |---|---|---|
-| Prioritize Primary validation over new Secondary review features | proposed | Approve this roadmap or revise its priority |
+| Prioritize Primary validation over new Secondary review features | decided | Continue the bounded Primary focused cycle before resuming Secondary feature investment |
 | Zero-knowledge re-entry | decided | A user may ask only what work remains; no proposal ID, task ID, or search term is required |
 | Workflow protection boundary | decided | Trust repository developers/admins; leave required workflows, CODEOWNERS, rulesets, and bypass policy to deployments |
 | Pilot repositories/fixtures | decided | Use an empty Git repository followed by a first greeting feature, plus an existing two-area TypeScript service with one baseline implementation conflict and one reasoned generated-code exclusion |
 | Search work after baseline | applicable | PV-05 reproduced 91 irrelevant page occurrences from substring matching; PV-07 must still select remedies from focused failing evidence |
-| Resume Secondary feature investment | pending | Decide at `PV-12` from exit-gate evidence |
+| Primary exit-gate outcome | decided | Primary needs another focused cycle; execute `PV-16`–`PV-19`, then reevaluate `PV-12` |
+| Resume Secondary feature investment | decided | Do not resume yet; `PV-12` remains waiting on `PV-18` and `PV-19` |
 
 ## Per-PR update protocol
 
