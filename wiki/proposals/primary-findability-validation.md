@@ -286,7 +286,7 @@ work_items:
       - wiki/architecture/engine.md
   - id: PV-17
     title: Make generic topic context authority- and source-complete
-    state: not-started
+    state: done
     priority: high
     depends_on: [PV-11]
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
@@ -295,7 +295,12 @@ work_items:
       - Current authority and non-current rationale are explicitly separated so a proposed, conflicted, deprecated, or archived page cannot masquerade as current authority.
       - The generic output publishes a deterministic authority and source read order consistent with the selected-work truth model.
       - Focused tests cover mixed current and proposed matches, conflict-bearing pages, exact paths, glob expansion, text and JSON parity, and deterministic ordering.
-    evidence: []
+    evidence:
+      - scripts/wiki/core.ts
+      - scripts/wiki/cli.ts
+      - scripts/wiki/work.test.ts
+      - wiki/architecture/engine.md
+      - docs/commands.md
   - id: PV-18
     title: Complete independent PASS for the existing-repository fresh-session pilot
     state: not-started
@@ -565,6 +570,23 @@ The focused cycle is deliberately bounded:
 
 `PV-13` through `PV-15` remain deferred. This decision does not revive
 Secondary feature investment or broaden the focused cycle into those items.
+
+### `PV-17`: generic topic context completeness
+
+Generic topic-query context now uses a provider-neutral semantic model shared by
+text and JSON. It preserves PV-07's complete-match preference and partial-match
+fallback, then separates returned current pages, relevant open conflict
+resolution contracts, and directly matched non-current rationale. Every group
+exposes status, authority, wiki path, source declarations, deterministic glob
+matches, expanded source files, and page-local open conflicts.
+
+The authoritative read order remains invariant → conflict → current page →
+expanded authority source. Proposed, deprecated, archived, and resolved-conflict
+pages retain complete source information but appear only after that order under
+explicit status-specific non-current labels. Focused synthetic CLI evidence in
+`scripts/wiki/work.test.ts` binds mixed current/proposed results, conflicted and
+other non-current statuses, exact and glob sources, text/JSON parity, and
+byte-stable ordering.
 
 ## Primary exit gate
 
