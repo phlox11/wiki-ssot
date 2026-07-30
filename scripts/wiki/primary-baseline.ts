@@ -124,8 +124,19 @@ function putAbsolute(path: string, content: string) {
   writeFileSync(path, content);
 }
 
+function commandEnvironment(): Record<string, string | undefined> {
+  const environment = { ...process.env };
+  delete environment.WIKI_PR_BODY;
+  return environment;
+}
+
 function run(command: string[], cwd: string): CommandResult {
-  const result = Bun.spawnSync(command, { cwd, stdout: "pipe", stderr: "pipe" });
+  const result = Bun.spawnSync(command, {
+    cwd,
+    env: commandEnvironment(),
+    stdout: "pipe",
+    stderr: "pipe",
+  });
   return {
     exitCode: result.exitCode,
     stdout: result.stdout.toString(),

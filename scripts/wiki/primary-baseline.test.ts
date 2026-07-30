@@ -60,4 +60,20 @@ describe("PV-05 Primary baseline", () => {
     expect(readFileSync(resolve(root, "docs/evidence/pv-05-primary-baseline.md"), "utf8"))
       .toBe(renderPrimaryBaselineInterpretation(report));
   });
+
+  test("ignores ambient CI pull-request metadata", () => {
+    const result = Bun.spawnSync(
+      [process.execPath, resolve(import.meta.dir, "primary-baseline.ts"), "--check"],
+      {
+        cwd: root,
+        env: {
+          ...process.env,
+          WIKI_PR_BODY: "ambient CI metadata must not change synthetic fixture measurements",
+        },
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    );
+    expect(result.exitCode, result.stderr.toString() || result.stdout.toString()).toBe(0);
+  }, 30_000);
 });
