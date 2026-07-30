@@ -46,7 +46,7 @@ function memoryView(files: Record<string, string>): RepoView {
   return { root: "/memory", mode: "working", listFiles: () => paths, exists: (path) => path in files, read: (path) => files[path] };
 }
 
-function currentPage(id: string, kind = "product"): string {
+function currentPage(id: string, kind = "product", sources = "  - path: source.ts"): string {
   return `---
 id: ${id}
 summary: Current ${id}.
@@ -54,7 +54,8 @@ kind: ${kind}
 status: current
 authority: normative
 owners: ["@owner"]
-sources: [{path: source.ts}]
+sources:
+${sources}
 ---
 
 # ${id}
@@ -257,7 +258,9 @@ describe("work CLI and selected context", () => {
   function cliRepo(items: WorkItem[], includeConflict = true): string {
     const root = tempRepo();
     put(root, "source.ts", "export const value = true;\n");
-    put(root, "wiki/product/test.md", currentPage("product/test"));
+    put(root, "src/a.ts", "export const a = true;\n");
+    put(root, "src/z.ts", "export const z = true;\n");
+    put(root, "wiki/product/test.md", currentPage("product/test", "product", "  - path: source.ts\n  - glob: src/*.ts"));
     put(root, "wiki/product/invariant.md", currentPage("product/invariant", "invariant"));
     put(root, "wiki/proposals/work.md", proposalPage(items));
     if (includeConflict) put(root, "wiki/conflicts/open/C-900.md", conflictPage());
@@ -290,17 +293,62 @@ describe("work CLI and selected context", () => {
     const root = cliRepo([work({ id: "WK-01", context_pages: ["product/test"] })]);
     const cli = join(process.cwd(), "scripts/wiki/cli.ts");
     const json = JSON.parse(run(root, [process.execPath, cli, "context", "--work", "WK-01", "--json"]));
+    expect(json.version).toBe(1);
     expect(json.requestedWork).toBe("WK-01");
     expect(json.pages.map((page: { id: string }) => page.id)).toEqual(["product/invariant", "product/test"]);
     expect(json.ownerPage).toMatchObject({ id: "proposal/work", status: "proposed", authority: "normative" });
     expect(json.conflicts[0].id).toBe("C-900");
+    expect(json.conflicts[0]).toMatchObject({
+      pageId: "conflict/C-900",
+      status: "conflicted",
+      authority: "observed",
+      sourceFiles: ["source.ts"],
+      relevantOpenConflicts: ["C-900"],
+    });
+    expect(json.pages[0].relevantOpenConflicts).toEqual(["C-900"]);
+    expect(json.pages[1]).toMatchObject({
+      id: "product/test",
+      kind: "product",
+      status: "current",
+      authority: "normative",
+      exactSources: [{ path: "source.ts" }],
+      sourceGlobs: [{ glob: "src/*.ts", matchedFiles: ["src/a.ts", "src/z.ts"] }],
+      sourceFiles: ["source.ts", "src/a.ts", "src/z.ts"],
+      relevantOpenConflicts: ["C-900"],
+    });
+    expect(json.readOrder.slice(0, 3).map((entry: { kind: string }) => entry.kind)).toEqual(["invariant", "conflict", "page"]);
+    expect(json.readOrder.slice(3)).toEqual([
+      { kind: "source", path: "source.ts", declaredBy: ["C-900", "product/invariant", "product/test"] },
+      { kind: "source", path: "src/a.ts", declaredBy: ["product/test"] },
+      { kind: "source", path: "src/z.ts", declaredBy: ["product/test"] },
+    ]);
     expect(json.sources.find((item: { pageId: string }) => item.pageId === "proposal/work").declared).toEqual([{ path: "source.ts" }]);
     const text = run(root, [process.execPath, cli, "context", "--work", "WK-01"]);
     expect(text).toContain("# CURRENT INVARIANT product/invariant");
     expect(text).toContain("# CURRENT PAGE product/test");
     expect(text).toContain("# NON-CURRENT WORK OWNER proposal/work");
+    expect(text).toContain("# AUTHORITATIVE READ ORDER");
+    expect(text).toContain("Source globs and deterministic matches:");
+    expect(text).toContain("- src/*.ts\n  - src/a.ts\n  - src/z.ts");
+    expect(text).toContain("Relevant open conflicts:\n- C-900");
+    expect(text.indexOf("# CURRENT INVARIANT")).toBeLessThan(text.indexOf("# OPEN CONFLICT"));
+    expect(text.indexOf("# OPEN CONFLICT")).toBeLessThan(text.indexOf("# CURRENT PAGE"));
+    expect(text.indexOf("# CURRENT PAGE")).toBeLessThan(text.indexOf("# SOURCE READ ORDER"));
+    expect(text.indexOf("# SOURCE READ ORDER")).toBeLessThan(text.indexOf("# NON-CURRENT WORK OWNER"));
     expect(text).toContain("Declared sources:");
     expect(text).not.toContain("# CURRENT PAGE proposal/work");
+  });
+
+  test("keeps impact-based context byte-stable", () => {
+    const root = cliRepo([work({ id: "WK-01" })], false);
+    put(root, "source.ts", "export const value = false;\n");
+    run(root, ["git", "add", "source.ts"]);
+    run(root, ["git", "commit", "-qm", "change source"]);
+    const cli = join(process.cwd(), "scripts/wiki/cli.ts");
+    const first = run(root, [process.execPath, cli, "context", "--base", "HEAD~1", "--json"]);
+    const second = run(root, [process.execPath, cli, "context", "--base", "HEAD~1", "--json"]);
+    expect(second).toBe(first);
+    expect(JSON.parse(first).pages.map((page: { id: string }) => page.id)).toEqual(["product/invariant", "product/test"]);
   });
 
   test("returns a valid empty queue and a conflict-only queue", () => {

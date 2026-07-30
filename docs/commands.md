@@ -11,7 +11,7 @@ All commands are `bun run wiki:<name>`; each maps to `bun scripts/wiki/cli.ts <n
 | `wiki:verify -- --page <id>` | Record current source hashes for a page you updated. Add `--unchanged "<20+ char reason>"` when meaning did not change. With no `--page`, re-verifies every current page. | — |
 | `wiki:search -- "<terms>"` | Keyword search across pages. | — |
 | `wiki:work` | With no query or ID, list every proposal work item and open conflict, derive ready/waiting state, and recommend the highest-priority active or ready item. Add `-- --all` for completed work or `-- --json` for versioned output. | — |
-| `wiki:context -- "<terms>"` | The pages + open conflicts + sources an agent should read for a task. Also `-- --work <ID>`, `-- --conflict C-NNN`, or `-- --base <ref>`; selectors cannot be combined. | — |
+| `wiki:context -- "<terms>"` | The pages + open conflicts + sources an agent should read for a task. `-- --work <ID>` adds authority labels, exact sources, deterministically expanded globs, page-local conflict IDs, and an invariant → conflict → current-page → source read order in text or JSON. Also accepts `-- --conflict C-NNN` or `-- --base <ref>`; selectors cannot be combined. | — |
 | `wiki:conflicts` | List open conflicts. `-- C-NNN` prints one resolution contract; `-- --all` includes resolved. | — |
 | `wiki:review-preflight -- --base <ref> --metadata <file> [--output <dir>] [--report <file>]` | Before opening a PR, classify risk, prepare the exact independent-review bundle, or validate the returned report while the PR mirror is still pending. | pre-PR |
 | `wiki:review-bundle -- --base <ref> --metadata <file>` | Write a deterministic bundle with `manifest.json`, reviewer instructions, and a report example. | review input |
@@ -31,7 +31,7 @@ bun run wiki:work
 bun run wiki:context -- --work PV-02
 ```
 
-`wiki:work` never recommends waiting, blocked, deferred, or conflict records. Each row identifies its proposal owner, dependencies, unmet dependencies, state-specific reason/evidence, and exact selected-context command. An empty repository returns success with "No remaining work."
+`wiki:work` never recommends waiting, blocked, deferred, or conflict records. Each row identifies its proposal owner, dependencies, unmet dependencies, state-specific reason/evidence, and exact selected-context command. Selected-work context presents current authority first, expands each source glob into a path-sorted file list, deduplicates those files into the source read order, and places the owning proposal last under `NON-CURRENT WORK OWNER`. `--json` exposes the same fields through `readOrder`, `pages`, `conflicts`, `ownerPage`, and `sources`. An empty repository returns success with "No remaining work."
 
 Before a PR:
 
