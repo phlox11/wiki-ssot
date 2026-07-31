@@ -56,6 +56,7 @@ work_items:
     depends_on: [PV-22]
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
     acceptance:
+      - A context-isolated reviewer separate from the authoring context produces the post-implementation conformance review and final PASS; the authoring context cannot issue that PASS.
       - Final review compares the actual diff and evidence with the approved Interpretation Contract and reports intended, preserved, prohibited, path, and acceptance-case conformance.
       - The Decision Brief is derived from the actual candidate and distinctly presents computed facts, author claims, and reviewer escalations.
       - The final review and Decision Brief are bound to the exact candidate HEAD and Interpretation Contract digest.
@@ -219,8 +220,11 @@ own Interpretation PASS. Actionable discrepancies are reconciled before
 implementation; ambiguous product intent is escalated to an owner decision or
 recorded conflict.
 
-The post-implementation review answers whether the actual diff conforms to the
-same Interpretation Contract. It checks:
+The post-implementation review must be produced by a context-isolated reviewer
+separate from the authoring context. The authoring context may reconcile
+findings and prepare a new candidate, but it cannot issue the final
+interpretation or conformance PASS. The isolated final reviewer answers whether
+the actual diff conforms to the same Interpretation Contract. It checks:
 
 - intended behavior is implemented and covered;
 - preserved behavior has not drifted;
