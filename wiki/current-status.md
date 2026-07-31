@@ -9,7 +9,7 @@
 | [product/invariants](./product/invariants.md) | invariant | normative | @phlox11 | 3 |
 | [product/scope](./product/scope.md) | product | normative | @phlox11 | 2 |
 
-## Outstanding work (3)
+## Outstanding work (11)
 
 No active or ready work is available; do not infer a task from blocked or deferred records.
 
