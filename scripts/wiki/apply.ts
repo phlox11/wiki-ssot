@@ -393,7 +393,8 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
   const legacyPath = join(repo, legacyWorkflow);
   const removedLegacy = plan.entries.some((entry) => entry.target === legacyWorkflow && entry.action === "removed-upstream");
   const acceptedLegacy = options.accept?.includes(legacyWorkflow) ?? false;
-  const legacyContent = removedLegacy && legacyEntry != null && existsSync(legacyPath)
+  const untrackedLegacy = mode === "upgrade" && legacyEntry == null && existsSync(legacyPath);
+  const legacyContent = (removedLegacy || untrackedLegacy) && existsSync(legacyPath)
     ? readFileSync(legacyPath, "utf8")
     : undefined;
   const customizedLegacy = removedLegacy && legacyEntry != null && existsSync(legacyPath)
@@ -403,12 +404,14 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
     : undefined;
   const knownV1Pristine = legacyContent != null && legacyContent === knownV1CombinedWorkflow;
   const manualLegacyMerge = legacyContent != null && !knownV1Pristine
-    && (containsLegacyWikiJobs(legacyContent) || (customizedLegacy && !acceptedLegacy));
+    && (containsLegacyWikiJobs(legacyContent) || ((customizedLegacy || untrackedLegacy) && !acceptedLegacy));
   if (manualLegacyMerge) {
     addConflict(legacyWorkflow, containsLegacyWikiJobs(legacyContent!)
       ? "legacy workflow must retain host jobs and remove duplicate Wiki jobs before it can be accepted"
-      : "customized legacy workflow must be explicitly accepted after preserving its host jobs");
-    plan.nextManifest.files[legacyWorkflow] = legacyEntry!;
+      : untrackedLegacy
+        ? "untracked legacy workflow must be explicitly accepted after inspection confirms it contains only host jobs"
+        : "customized legacy workflow must be explicitly accepted after preserving its host jobs");
+    if (legacyEntry != null) plan.nextManifest.files[legacyWorkflow] = legacyEntry;
   }
 
   const previewChanges = plan.entries

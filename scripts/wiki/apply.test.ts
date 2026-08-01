@@ -313,6 +313,60 @@ This document must not satisfy current-page bootstrap readiness.
     expect(acceptedManifest.files[".github/workflows/checks.yml"]).toBeUndefined();
   }, 30_000);
 
+  test("legacy workflows without a complete manifest stay fail closed until host-only acceptance", () => {
+    const repo = fixture();
+    git(repo, "init", "-q");
+    const oldWorkflow = readFileSync(join(process.cwd(), "kit/migrations/v1/checks.yml"), "utf8");
+    const hostWorkflow = readFileSync(join(process.cwd(), "kit/migrations/v1/host-checks.yml"), "utf8");
+    put(repo, "AGENTS.md", readFileSync(join(process.cwd(), "kit/managed/AGENTS.md"), "utf8"));
+    put(repo, ".github/workflows/checks.yml", oldWorkflow);
+
+    const preview = jsonOutput(runApply(repo, "--dry-run", "--json"));
+    expect(preview).toMatchObject({ mode: "upgrade", status: "needs-merge" });
+    expect(readFileSync(join(repo, ".github/workflows/checks.yml"), "utf8")).toBe(oldWorkflow);
+    expect(existsSync(join(repo, ".github/workflows/wiki-ssot.yml"))).toBe(false);
+
+    const missingManifest = jsonOutput(runApply(repo, "--skip-install", "--json"));
+    expect(missingManifest).toMatchObject({
+      mode: "upgrade",
+      status: "needs-merge",
+      conflicts: expect.arrayContaining([expect.objectContaining({
+        path: ".github/workflows/checks.yml",
+        reason: "legacy workflow must retain host jobs and remove duplicate Wiki jobs before it can be accepted",
+      })]),
+    });
+    expect(readFileSync(join(repo, ".github/workflows/checks.yml"), "utf8")).toBe(oldWorkflow);
+    expect(existsSync(join(repo, ".github/workflows/wiki-ssot.yml"))).toBe(true);
+
+    const inspectedHostOnly = `${hostWorkflow}# inspected host jobs retained\n`;
+    put(repo, ".github/workflows/checks.yml", inspectedHostOnly);
+    const incompleteManifest = jsonOutput(runApply(repo, "--skip-install", "--json"));
+    expect(incompleteManifest).toMatchObject({
+      mode: "upgrade",
+      status: "needs-merge",
+      conflicts: expect.arrayContaining([expect.objectContaining({
+        path: ".github/workflows/checks.yml",
+        reason: "untracked legacy workflow must be explicitly accepted after inspection confirms it contains only host jobs",
+      })]),
+    });
+    expect(readFileSync(join(repo, ".github/workflows/checks.yml"), "utf8")).toBe(inspectedHostOnly);
+
+    const accepted = jsonOutput(runApply(
+      repo,
+      "--skip-install",
+      "--json",
+      "--accept",
+      ".github/workflows/checks.yml",
+    ));
+    expect(accepted.status).not.toBe("needs-merge");
+    const retainedWorkflow = readFileSync(join(repo, ".github/workflows/checks.yml"), "utf8");
+    expect(retainedWorkflow).toBe(inspectedHostOnly);
+    expect(retainedWorkflow).toContain("code-check:");
+    expect(retainedWorkflow).not.toMatch(/^ {2}wiki-[A-Za-z0-9_-]+:/m);
+    const manifest = JSON.parse(readFileSync(join(repo, ".wiki/kit-manifest.json"), "utf8")) as { files: Record<string, unknown> };
+    expect(manifest.files[".github/workflows/checks.yml"]).toBeUndefined();
+  }, 30_000);
+
   test("an existing code repository adopts through the same loop and reaches ready", () => {
     const repo = fixture();
     const kit = fastKit();
