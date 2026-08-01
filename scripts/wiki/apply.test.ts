@@ -279,6 +279,11 @@ This document must not satisfy current-page bootstrap readiness.
     expect(hostWorkflow).toContain("bun run test");
     expect(hostWorkflow).not.toContain("wiki-structure:");
     expect(existsSync(join(pristine, ".github/workflows/wiki-ssot.yml"))).toBe(true);
+    const pristineRerun = jsonOutput(runApply(pristine, "--skip-install", "--json"));
+    expect(pristineRerun.status).not.toBe("needs-merge");
+    expect(readFileSync(join(pristine, ".github/workflows/checks.yml"), "utf8")).toBe(hostWorkflow);
+    const pristineManifest = JSON.parse(readFileSync(join(pristine, ".wiki/kit-manifest.json"), "utf8")) as { hostFiles?: string[] };
+    expect(pristineManifest.hostFiles).toContain(".github/workflows/checks.yml");
 
     const customized = fixture();
     git(customized, "init", "-q");
@@ -309,8 +314,15 @@ This document must not satisfy current-page bootstrap readiness.
     expect(retainedWorkflow).toContain("host jobs retained");
     expect(retainedWorkflow).toContain("code-check:");
     expect(retainedWorkflow).not.toContain("wiki-structure:");
-    const acceptedManifest = JSON.parse(readFileSync(join(customWorkflow, ".wiki/kit-manifest.json"), "utf8")) as { files: Record<string, unknown> };
+    const acceptedManifest = JSON.parse(readFileSync(join(customWorkflow, ".wiki/kit-manifest.json"), "utf8")) as {
+      files: Record<string, unknown>;
+      hostFiles?: string[];
+    };
     expect(acceptedManifest.files[".github/workflows/checks.yml"]).toBeUndefined();
+    expect(acceptedManifest.hostFiles).toContain(".github/workflows/checks.yml");
+    const acceptedRerun = jsonOutput(runApply(customWorkflow, "--skip-install", "--json"));
+    expect(acceptedRerun.status).not.toBe("needs-merge");
+    expect(readFileSync(join(customWorkflow, ".github/workflows/checks.yml"), "utf8")).toBe(retainedWorkflow);
   }, 30_000);
 
   test("legacy workflows without a complete manifest stay fail closed until host-only acceptance", () => {
@@ -326,7 +338,13 @@ This document must not satisfy current-page bootstrap readiness.
     expect(readFileSync(join(repo, ".github/workflows/checks.yml"), "utf8")).toBe(oldWorkflow);
     expect(existsSync(join(repo, ".github/workflows/wiki-ssot.yml"))).toBe(false);
 
-    const missingManifest = jsonOutput(runApply(repo, "--skip-install", "--json"));
+    const missingManifest = jsonOutput(runApply(
+      repo,
+      "--skip-install",
+      "--json",
+      "--accept",
+      ".github/workflows/checks.yml",
+    ));
     expect(missingManifest).toMatchObject({
       mode: "upgrade",
       status: "needs-merge",
@@ -363,8 +381,15 @@ This document must not satisfy current-page bootstrap readiness.
     expect(retainedWorkflow).toBe(inspectedHostOnly);
     expect(retainedWorkflow).toContain("code-check:");
     expect(retainedWorkflow).not.toMatch(/^ {2}wiki-[A-Za-z0-9_-]+:/m);
-    const manifest = JSON.parse(readFileSync(join(repo, ".wiki/kit-manifest.json"), "utf8")) as { files: Record<string, unknown> };
+    const manifest = JSON.parse(readFileSync(join(repo, ".wiki/kit-manifest.json"), "utf8")) as {
+      files: Record<string, unknown>;
+      hostFiles?: string[];
+    };
     expect(manifest.files[".github/workflows/checks.yml"]).toBeUndefined();
+    expect(manifest.hostFiles).toContain(".github/workflows/checks.yml");
+    const converged = jsonOutput(runApply(repo, "--skip-install", "--json"));
+    expect(converged.status).not.toBe("needs-merge");
+    expect(readFileSync(join(repo, ".github/workflows/checks.yml"), "utf8")).toBe(inspectedHostOnly);
   }, 30_000);
 
   test("an existing code repository adopts through the same loop and reaches ready", () => {

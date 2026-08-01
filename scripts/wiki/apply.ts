@@ -393,8 +393,9 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
   const legacyPath = join(repo, legacyWorkflow);
   const removedLegacy = plan.entries.some((entry) => entry.target === legacyWorkflow && entry.action === "removed-upstream");
   const acceptedLegacy = options.accept?.includes(legacyWorkflow) ?? false;
-  const untrackedLegacy = mode === "upgrade" && legacyEntry == null && existsSync(legacyPath);
-  const legacyContent = (removedLegacy || untrackedLegacy) && existsSync(legacyPath)
+  const trackedHostLegacy = previousManifest?.hostFiles?.includes(legacyWorkflow) === true && existsSync(legacyPath);
+  const untrackedLegacy = mode === "upgrade" && legacyEntry == null && !trackedHostLegacy && existsSync(legacyPath);
+  const legacyContent = (removedLegacy || untrackedLegacy || trackedHostLegacy) && existsSync(legacyPath)
     ? readFileSync(legacyPath, "utf8")
     : undefined;
   const customizedLegacy = removedLegacy && legacyEntry != null && existsSync(legacyPath)
@@ -412,6 +413,13 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
         ? "untracked legacy workflow must be explicitly accepted after inspection confirms it contains only host jobs"
         : "customized legacy workflow must be explicitly accepted after preserving its host jobs");
     if (legacyEntry != null) plan.nextManifest.files[legacyWorkflow] = legacyEntry;
+  }
+  const acceptedHostOnlyLegacy = legacyContent != null
+    && !containsLegacyWikiJobs(legacyContent)
+    && acceptedLegacy
+    && (untrackedLegacy || customizedLegacy);
+  if (knownV1Pristine || acceptedHostOnlyLegacy) {
+    plan.nextManifest.hostFiles = [...new Set([...(plan.nextManifest.hostFiles ?? []), legacyWorkflow])].sort();
   }
 
   const previewChanges = plan.entries
