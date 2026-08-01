@@ -19,6 +19,7 @@ import {
 } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { parse as parseYaml } from "yaml";
 import {
   MANIFEST_TARGET,
   applySync,
@@ -358,8 +359,16 @@ function kitReference(kitRoot: string, manifest: ApplyKitManifest, target: strin
   return content;
 }
 
-function containsLegacyWikiJobs(content: string): boolean {
-  return /^ {2}wiki-[A-Za-z0-9_-]+:\s*(?:#.*)?$/m.test(content);
+function inspectLegacyWorkflow(content: string): { valid: boolean; wikiJobs: string[] } {
+  try {
+    const parsed = parseYaml(content) as unknown;
+    if (parsed == null || typeof parsed !== "object" || Array.isArray(parsed)) return { valid: false, wikiJobs: [] };
+    const jobs = (parsed as { jobs?: unknown }).jobs;
+    if (jobs == null || typeof jobs !== "object" || Array.isArray(jobs)) return { valid: false, wikiJobs: [] };
+    return { valid: true, wikiJobs: Object.keys(jobs as Record<string, unknown>).filter((id) => id.startsWith("wiki-")).sort() };
+  } catch {
+    return { valid: false, wikiJobs: [] };
+  }
 }
 
 export function planApply(options: ApplyOptions): { mode: ApplyMode; sync: SyncPlan; manifest: ApplyKitManifest } {
@@ -404,18 +413,23 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
     ? kitReference(kitRoot, incomingManifest, "migrations/v1/checks.yml")
     : undefined;
   const knownV1Pristine = legacyContent != null && legacyContent === knownV1CombinedWorkflow;
+  const legacyInspection = legacyContent == null ? undefined : inspectLegacyWorkflow(legacyContent);
+  const legacyHasWikiJobs = (legacyInspection?.wikiJobs.length ?? 0) > 0;
   const manualLegacyMerge = legacyContent != null && !knownV1Pristine
-    && (containsLegacyWikiJobs(legacyContent) || ((customizedLegacy || untrackedLegacy) && !acceptedLegacy));
+    && (legacyInspection?.valid !== true || legacyHasWikiJobs || ((customizedLegacy || untrackedLegacy) && !acceptedLegacy));
   if (manualLegacyMerge) {
-    addConflict(legacyWorkflow, containsLegacyWikiJobs(legacyContent!)
+    addConflict(legacyWorkflow, legacyHasWikiJobs
       ? "legacy workflow must retain host jobs and remove duplicate Wiki jobs before it can be accepted"
-      : untrackedLegacy
-        ? "untracked legacy workflow must be explicitly accepted after inspection confirms it contains only host jobs"
-        : "customized legacy workflow must be explicitly accepted after preserving its host jobs");
+      : legacyInspection?.valid !== true
+        ? "legacy workflow must be valid YAML with a top-level jobs mapping before it can be accepted"
+        : untrackedLegacy
+          ? "untracked legacy workflow must be explicitly accepted after inspection confirms it contains only host jobs"
+          : "customized legacy workflow must be explicitly accepted after preserving its host jobs");
     if (legacyEntry != null) plan.nextManifest.files[legacyWorkflow] = legacyEntry;
   }
   const acceptedHostOnlyLegacy = legacyContent != null
-    && !containsLegacyWikiJobs(legacyContent)
+    && legacyInspection?.valid === true
+    && !legacyHasWikiJobs
     && acceptedLegacy
     && (untrackedLegacy || customizedLegacy);
   if (knownV1Pristine || acceptedHostOnlyLegacy) {

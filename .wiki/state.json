@@ -2,8 +2,8 @@
   "pages": {
     "architecture/engine": {
       "sources": {
-        "scripts/wiki/apply.test.ts": "90a5c7880b84bf319e43130a9bd2054d9bbc2b9dccc90146d9b470fee502e497",
-        "scripts/wiki/apply.ts": "5f6effa87c47b1454eeb8ee20f7ba53aad5beac9c8c69aa88aa3daead2157244",
+        "scripts/wiki/apply.test.ts": "ab318b04cd21cc4e191066261e2c6cf8a09776d37635415032c30a66b2dc5dc2",
+        "scripts/wiki/apply.ts": "5a273691372ff6fcfdd63214da513fa8b71b9fe8730ff2e49cdfec0793ad2c15",
         "scripts/wiki/cli.ts": "e827375422ebb9dc1ca3705534cc5d1afcd6853b89d5ea1586534ede81b742e7",
         "scripts/wiki/core.ts": "6a39612179bb56f86fd7c0f1df36c7fdebdd53686a7d82c1f4620b46cb617b2d",
         "scripts/wiki/existing-repo-bootstrap.test.ts": "90d75082e33ccdb3fe195b1bbbcbbc6be7646a55a948e1359be2d001e79e5eb2",
@@ -27,7 +27,8 @@
         "scripts/wiki/work.test.ts": "192ce7a1884b735472d35fc0aa2a7fc96033056fd279d3225badd8ef1e5638d7"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "Structured YAML job inspection enforces the existing legacy-workflow fail-closed contract without changing current semantics."
       }
     },
     "operations/enforcement": {
@@ -42,26 +43,26 @@
         ".wiki/config.json": "0c546d40f0fd8b49b189c559156650e6804a36889cf341d564c4869bdf1827d1",
         "AGENTS.md": "f62e0c1bca4174c3e856d93387c966510845fc7ec481c67923ce385ac4606be7",
         "package.json": "e73eac7e5e309f816f1e35df44a8f11362282fee931c4db24e0a3a409da23934",
-        "scripts/wiki/apply.ts": "5f6effa87c47b1454eeb8ee20f7ba53aad5beac9c8c69aa88aa3daead2157244",
+        "scripts/wiki/apply.ts": "5a273691372ff6fcfdd63214da513fa8b71b9fe8730ff2e49cdfec0793ad2c15",
         "scripts/wiki/cli.ts": "e827375422ebb9dc1ca3705534cc5d1afcd6853b89d5ea1586534ede81b742e7",
         "scripts/wiki/core.ts": "6a39612179bb56f86fd7c0f1df36c7fdebdd53686a7d82c1f4620b46cb617b2d",
         "scripts/wiki/github-attestation.ts": "cad5290748265f5b5cd1a5503f075cfb837283ca0e8b4e7c004567deb33139cb"
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "Durable host-workflow classification implements the existing one-time acceptance and convergence contract without changing its meaning."
+        "reason": "Structured YAML job inspection enforces the existing legacy-workflow fail-closed contract without changing current semantics."
       }
     },
     "product/invariants": {
       "sources": {
         "AGENTS.md": "f62e0c1bca4174c3e856d93387c966510845fc7ec481c67923ce385ac4606be7",
-        "scripts/wiki/apply.ts": "5f6effa87c47b1454eeb8ee20f7ba53aad5beac9c8c69aa88aa3daead2157244",
+        "scripts/wiki/apply.ts": "5a273691372ff6fcfdd63214da513fa8b71b9fe8730ff2e49cdfec0793ad2c15",
         "scripts/wiki/cli.ts": "e827375422ebb9dc1ca3705534cc5d1afcd6853b89d5ea1586534ede81b742e7",
         "scripts/wiki/core.ts": "6a39612179bb56f86fd7c0f1df36c7fdebdd53686a7d82c1f4620b46cb617b2d"
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "Durable host-workflow classification implements the existing one-time acceptance and convergence contract without changing its meaning."
+        "reason": "Structured YAML job inspection enforces the existing legacy-workflow fail-closed contract without changing current semantics."
       }
     },
     "product/scope": {

@@ -392,6 +392,96 @@ This document must not satisfy current-page bootstrap readiness.
     expect(readFileSync(join(repo, ".github/workflows/checks.yml"), "utf8")).toBe(inspectedHostOnly);
   }, 30_000);
 
+  test("legacy Wiki job detection follows YAML structure before and after host tracking", () => {
+    const hostWorkflow = readFileSync(join(process.cwd(), "kit/migrations/v1/host-checks.yml"), "utf8");
+    const managedAgents = readFileSync(join(process.cwd(), "kit/managed/AGENTS.md"), "utf8");
+    const variants = [
+      {
+        name: "four-space job key",
+        content: `name: legacy-four-space
+on: [pull_request]
+jobs:
+    wiki-lint:
+      runs-on: ubuntu-latest
+      steps:
+        - run: bun run wiki:lint
+    code-check:
+      runs-on: ubuntu-latest
+      steps:
+        - run: bun run test
+`,
+      },
+      {
+        name: "quoted job key",
+        content: `name: legacy-quoted
+on: [pull_request]
+jobs:
+  "wiki-lint":
+    runs-on: ubuntu-latest
+    steps:
+      - run: bun run wiki:lint
+  code-check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: bun run test
+`,
+      },
+    ];
+
+    for (const variant of variants) {
+      const untracked = fixture(`wiki-apply-${variant.name.replaceAll(" ", "-")}-`);
+      git(untracked, "init", "-q");
+      put(untracked, "AGENTS.md", managedAgents);
+      put(untracked, ".github/workflows/checks.yml", variant.content);
+      const blocked = jsonOutput(runApply(
+        untracked,
+        "--dry-run",
+        "--json",
+        "--accept",
+        ".github/workflows/checks.yml",
+      ));
+      expect(blocked).toMatchObject({
+        mode: "upgrade",
+        status: "needs-merge",
+        conflicts: expect.arrayContaining([expect.objectContaining({
+          path: ".github/workflows/checks.yml",
+          reason: "legacy workflow must retain host jobs and remove duplicate Wiki jobs before it can be accepted",
+        })]),
+      });
+      expect(readFileSync(join(untracked, ".github/workflows/checks.yml"), "utf8")).toBe(variant.content);
+
+      const tracked = fixture(`wiki-apply-tracked-${variant.name.replaceAll(" ", "-")}-`);
+      git(tracked, "init", "-q");
+      put(tracked, "AGENTS.md", managedAgents);
+      put(tracked, ".github/workflows/checks.yml", hostWorkflow);
+      const accepted = jsonOutput(runApply(
+        tracked,
+        "--skip-install",
+        "--json",
+        "--accept",
+        ".github/workflows/checks.yml",
+      ));
+      expect(accepted.status).not.toBe("needs-merge");
+      put(tracked, ".github/workflows/checks.yml", variant.content);
+      const rescanned = jsonOutput(runApply(
+        tracked,
+        "--dry-run",
+        "--json",
+        "--accept",
+        ".github/workflows/checks.yml",
+      ));
+      expect(rescanned).toMatchObject({
+        mode: "upgrade",
+        status: "needs-merge",
+        conflicts: expect.arrayContaining([expect.objectContaining({
+          path: ".github/workflows/checks.yml",
+          reason: "legacy workflow must retain host jobs and remove duplicate Wiki jobs before it can be accepted",
+        })]),
+      });
+      expect(readFileSync(join(tracked, ".github/workflows/checks.yml"), "utf8")).toBe(variant.content);
+    }
+  }, 30_000);
+
   test("an existing code repository adopts through the same loop and reaches ready", () => {
     const repo = fixture();
     const kit = fastKit();
