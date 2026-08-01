@@ -16,7 +16,7 @@
         "scripts/wiki/new-repository-adoption.test.ts": "86d8bb2bccaa23f8f71602b26aa3ae60a908611fc663180ad4dec0a0cb08d190",
         "scripts/wiki/primary-baseline.test.ts": "4a0df89a35bd811ffbca75865a3153abe869caae11d1f585c599c902ee4e16b7",
         "scripts/wiki/primary-baseline.ts": "033bcbee20adfd6c306cb4e345d5a2d1b4051e211e9a8411877ade78f1dbf1b3",
-        "scripts/wiki/primary-current.test.ts": "53fbbc158eb97e86d4401ae8ae53a3bb3ea1ca42100268f5a322092d7b055798",
+        "scripts/wiki/primary-current.test.ts": "8de5039be9d9ed14a771b5df5e6fc230eae588f860aaff5a3cda641f4e980b03",
         "scripts/wiki/primary-current.ts": "3e096b9fd89e1c250c94f211dba06e35739a3d8053e986b262a0fac71c114f1f",
         "scripts/wiki/primary-scenarios.test.ts": "b73743ef76a079a014bcc1eba26ea7740a31cc1d776e31db40ed3c03e996de5b",
         "scripts/wiki/primary-scenarios.ts": "8e8ba1de2abf551d0003f90637f58370f470c7ecdfb62a50a8d9993e1f273dec",
@@ -28,7 +28,7 @@
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "Structured YAML job inspection enforces the existing legacy-workflow fail-closed contract without changing current semantics."
+        "reason": "CI resource contention only; production behavior and engine semantics remain unchanged."
       }
     },
     "operations/enforcement": {

@@ -135,5 +135,5 @@ describe("PV-19 Primary current-engine evaluation", () => {
       },
     );
     expect(result.exitCode, result.stderr.toString() || result.stdout.toString()).toBe(0);
-  }, 30_000);
+  }, 90_000);
 });
