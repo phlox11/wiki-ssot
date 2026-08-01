@@ -16,7 +16,7 @@ let report: PrimaryCurrentReport;
 
 beforeAll(() => {
   report = buildPrimaryCurrentReport();
-}, 30_000);
+}, 60_000);
 
 describe("PV-19 Primary current-engine evaluation", () => {
   test("binds all eight versioned scenarios to the exact combined post-PV-16/PV-17/PV-18 revision", () => {

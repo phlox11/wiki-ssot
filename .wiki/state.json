@@ -2,7 +2,7 @@
   "pages": {
     "architecture/engine": {
       "sources": {
-        "scripts/wiki/apply.test.ts": "589066135ead5adeabf8745b4c1095dd5b48f930a556cb37990e7c78dc301a71",
+        "scripts/wiki/apply.test.ts": "1ffe0d0359884429e7c4b4961f9787ca141535bcb2ff34820e33d775cd14e284",
         "scripts/wiki/apply.ts": "02fe2f7c090bbf40aa272cc04cc3bb1eddbc242946501de976030099a3a3a11d",
         "scripts/wiki/cli.ts": "e827375422ebb9dc1ca3705534cc5d1afcd6853b89d5ea1586534ede81b742e7",
         "scripts/wiki/core.ts": "6a39612179bb56f86fd7c0f1df36c7fdebdd53686a7d82c1f4620b46cb617b2d",
@@ -16,7 +16,7 @@
         "scripts/wiki/new-repository-adoption.test.ts": "86d8bb2bccaa23f8f71602b26aa3ae60a908611fc663180ad4dec0a0cb08d190",
         "scripts/wiki/primary-baseline.test.ts": "4a0df89a35bd811ffbca75865a3153abe869caae11d1f585c599c902ee4e16b7",
         "scripts/wiki/primary-baseline.ts": "033bcbee20adfd6c306cb4e345d5a2d1b4051e211e9a8411877ade78f1dbf1b3",
-        "scripts/wiki/primary-current.test.ts": "2c4483c7562cab6e1cc9b9d03433dbbddff51419c7cd41de1d7d905663fbd3a8",
+        "scripts/wiki/primary-current.test.ts": "53fbbc158eb97e86d4401ae8ae53a3bb3ea1ca42100268f5a322092d7b055798",
         "scripts/wiki/primary-current.ts": "3e096b9fd89e1c250c94f211dba06e35739a3d8053e986b262a0fac71c114f1f",
         "scripts/wiki/primary-scenarios.test.ts": "b73743ef76a079a014bcc1eba26ea7740a31cc1d776e31db40ed3c03e996de5b",
         "scripts/wiki/primary-scenarios.ts": "8e8ba1de2abf551d0003f90637f58370f470c7ecdfb62a50a8d9993e1f273dec",
@@ -27,7 +27,8 @@
         "scripts/wiki/work.test.ts": "192ce7a1884b735472d35fc0aa2a7fc96033056fd279d3225badd8ef1e5638d7"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "Only integration test time budgets changed; engine behavior and contracts are unchanged."
       }
     },
     "operations/enforcement": {

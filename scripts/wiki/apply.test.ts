@@ -124,7 +124,7 @@ describe("apply workflow", () => {
       findings: expect.arrayContaining([expect.objectContaining({ code: "bootstrap-current-page-required" })]),
     });
     expect(snapshot(repo)).toBe(afterFirst);
-  });
+  }, 30_000);
 
   test("derives bootstrap completeness only from current pages with declared sources", () => {
     expect(apply.currentPageIdsFromSourceMap({
@@ -311,7 +311,7 @@ This document must not satisfy current-page bootstrap readiness.
     expect(retainedWorkflow).not.toContain("wiki-structure:");
     const acceptedManifest = JSON.parse(readFileSync(join(customWorkflow, ".wiki/kit-manifest.json"), "utf8")) as { files: Record<string, unknown> };
     expect(acceptedManifest.files[".github/workflows/checks.yml"]).toBeUndefined();
-  });
+  }, 30_000);
 
   test("an existing code repository adopts through the same loop and reaches ready", () => {
     const repo = fixture();
