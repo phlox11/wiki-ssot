@@ -11,6 +11,8 @@ git -C /path/to/your-repo init
 bun /path/to/WikiSsot/scripts/wiki/apply.ts --into /path/to/your-repo
 ```
 
+An initial `--dry-run` writes nothing and intentionally exits 1 with `needs-reconcile`, because the project does not yet have its first source-backed current page or maintained coverage. A dry-run never reports `ready`; that status is reserved for the installed checks passing after reconciliation.
+
 The first report identifies mode `new` and intentionally returns `needs-reconcile` until the project has real source-backed current intent and non-empty maintained coverage. The command installs dependencies and hooks, preserves host package lifecycle commands, and can be rerun unchanged after each finding is resolved.
 
 You arrive with an empty verification ledger, an empty coverage `include`, an adopter-owned `.gitignore` that keeps installed dependencies out of the first candidate, and no pages to delete: the kit contains only the toolkit, never this repository's own wiki pages, conflicts, or proposals. Within `scripts/wiki/`, `wiki.test.ts`, `work.test.ts`, and `fresh-context.test.ts` are kit-owned — they are the engine's regression suites and run in CI. `inventories.example.ts` is never copied into your repository at all; read its patterns from `kit/scripts/wiki/inventories.example.ts` in this checkout when you write your own `inventories.ts`.

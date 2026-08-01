@@ -69,15 +69,31 @@ describe("apply workflow", () => {
     const newRepo = fixture();
     git(newRepo, "init", "-q");
     const newResult = runApply(newRepo, "--dry-run", "--json");
-    expect(newResult.exitCode).toBe(0);
-    expect(jsonOutput(newResult)).toMatchObject({ mode: "new", status: "ready", dryRun: true });
+    expect(newResult.exitCode).toBe(1);
+    expect(jsonOutput(newResult)).toMatchObject({
+      mode: "new",
+      status: "needs-reconcile",
+      dryRun: true,
+      findings: expect.arrayContaining([
+        expect.objectContaining({ code: "bootstrap-current-page-required" }),
+        expect.objectContaining({ code: "bootstrap-coverage-required" }),
+      ]),
+    });
 
     const existingRepo = fixture();
     git(existingRepo, "init", "-q");
     put(existingRepo, "README.md", "existing project\n");
     commitFixture(existingRepo);
-    const adopted = jsonOutput(runApply(existingRepo, "--dry-run", "--json"));
-    expect(adopted.mode).toBe("adopt");
+    const adoptResult = runApply(existingRepo, "--dry-run", "--json");
+    expect(adoptResult.exitCode).toBe(1);
+    expect(jsonOutput(adoptResult)).toMatchObject({
+      mode: "adopt",
+      status: "needs-reconcile",
+      findings: expect.arrayContaining([
+        expect.objectContaining({ code: "bootstrap-current-page-required" }),
+        expect.objectContaining({ code: "bootstrap-coverage-required" }),
+      ]),
+    });
 
     const oldWikiRepo = fixture();
     git(oldWikiRepo, "init", "-q");
@@ -90,7 +106,9 @@ describe("apply workflow", () => {
     const repo = fixture();
     git(repo, "init", "-q");
     const before = Bun.spawnSync(["find", repo, "-type", "f", "-print"], { stdout: "pipe" }).stdout.toString();
-    expect(runApply(repo, "--dry-run", "--json").exitCode).toBe(0);
+    const preview = runApply(repo, "--dry-run", "--json");
+    expect(preview.exitCode).toBe(1);
+    expect(jsonOutput(preview)).toMatchObject({ status: "needs-reconcile", dryRun: true });
     expect(Bun.spawnSync(["find", repo, "-type", "f", "-print"], { stdout: "pipe" }).stdout.toString()).toBe(before);
 
     const first = runApply(repo, "--skip-install", "--json");
@@ -163,13 +181,13 @@ This document must not satisfy current-page bootstrap readiness.
     expect(apply.commandEnvironment({ HUSKY: "0", KEEP: "yes" }, false)).toEqual({ KEEP: "yes" });
   });
 
-  test("an already-applied current manifest is a dry-run no-op", () => {
+  test("an incomplete installed manifest stays needs-reconcile in a dry-run no-op", () => {
     const repo = fixture();
     git(repo, "init", "-q");
     expect(runApply(repo, "--skip-install", "--json").exitCode).toBe(1);
     const result = runApply(repo, "--dry-run", "--json");
-    expect(result.exitCode).toBe(0);
-    expect(jsonOutput(result)).toMatchObject({ mode: "upgrade", status: "ready", changes: [] });
+    expect(result.exitCode).toBe(1);
+    expect(jsonOutput(result)).toMatchObject({ mode: "upgrade", status: "needs-reconcile", changes: [] });
   });
 
   test("managed block appends and replaces while malformed or duplicate blocks need merge", () => {
@@ -363,6 +381,9 @@ The maintained source exports the current fixture value.
     const ready = runApply(repo, "--kit", kit, "--skip-install", "--json");
     expect(jsonOutput(ready)).toMatchObject({ mode: "upgrade", status: "ready" });
     expect(ready.exitCode).toBe(0);
+    const preview = runApply(repo, "--kit", kit, "--dry-run", "--json");
+    expect(preview.exitCode).toBe(0);
+    expect(jsonOutput(preview)).toMatchObject({ mode: "upgrade", status: "preview", dryRun: true, changes: [] });
     const pkg = JSON.parse(readFileSync(join(repo, "package.json"), "utf8")) as { scripts: Record<string, string> };
     expect(pkg.scripts).toMatchObject({ test: "host-test", typecheck: "host-types", prepare: "host-prepare" });
   }, 60_000);

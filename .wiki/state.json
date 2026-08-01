@@ -2,8 +2,8 @@
   "pages": {
     "architecture/engine": {
       "sources": {
-        "scripts/wiki/apply.test.ts": "c9c706cd55d13a275a93b58bb94667b5add16c111e72669489920971e48fb075",
-        "scripts/wiki/apply.ts": "ab73faf83c038f2d02f1e02a1ccd876387e3abff2d67328e37abb1f912671e78",
+        "scripts/wiki/apply.test.ts": "589066135ead5adeabf8745b4c1095dd5b48f930a556cb37990e7c78dc301a71",
+        "scripts/wiki/apply.ts": "02fe2f7c090bbf40aa272cc04cc3bb1eddbc242946501de976030099a3a3a11d",
         "scripts/wiki/cli.ts": "e827375422ebb9dc1ca3705534cc5d1afcd6853b89d5ea1586534ede81b742e7",
         "scripts/wiki/core.ts": "6a39612179bb56f86fd7c0f1df36c7fdebdd53686a7d82c1f4620b46cb617b2d",
         "scripts/wiki/existing-repo-bootstrap.test.ts": "90d75082e33ccdb3fe195b1bbbcbbc6be7646a55a948e1359be2d001e79e5eb2",
@@ -42,7 +42,7 @@
         ".wiki/config.json": "0c546d40f0fd8b49b189c559156650e6804a36889cf341d564c4869bdf1827d1",
         "AGENTS.md": "f62e0c1bca4174c3e856d93387c966510845fc7ec481c67923ce385ac4606be7",
         "package.json": "e73eac7e5e309f816f1e35df44a8f11362282fee931c4db24e0a3a409da23934",
-        "scripts/wiki/apply.ts": "ab73faf83c038f2d02f1e02a1ccd876387e3abff2d67328e37abb1f912671e78",
+        "scripts/wiki/apply.ts": "02fe2f7c090bbf40aa272cc04cc3bb1eddbc242946501de976030099a3a3a11d",
         "scripts/wiki/cli.ts": "e827375422ebb9dc1ca3705534cc5d1afcd6853b89d5ea1586534ede81b742e7",
         "scripts/wiki/core.ts": "6a39612179bb56f86fd7c0f1df36c7fdebdd53686a7d82c1f4620b46cb617b2d",
         "scripts/wiki/github-attestation.ts": "cad5290748265f5b5cd1a5503f075cfb837283ca0e8b4e7c004567deb33139cb"
@@ -54,7 +54,7 @@
     "product/invariants": {
       "sources": {
         "AGENTS.md": "f62e0c1bca4174c3e856d93387c966510845fc7ec481c67923ce385ac4606be7",
-        "scripts/wiki/apply.ts": "ab73faf83c038f2d02f1e02a1ccd876387e3abff2d67328e37abb1f912671e78",
+        "scripts/wiki/apply.ts": "02fe2f7c090bbf40aa272cc04cc3bb1eddbc242946501de976030099a3a3a11d",
         "scripts/wiki/cli.ts": "e827375422ebb9dc1ca3705534cc5d1afcd6853b89d5ea1586534ede81b742e7",
         "scripts/wiki/core.ts": "6a39612179bb56f86fd7c0f1df36c7fdebdd53686a7d82c1f4620b46cb617b2d"
       },

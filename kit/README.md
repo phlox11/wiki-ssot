@@ -38,7 +38,9 @@ bun /path/to/WikiSsot/scripts/wiki/apply.ts --into /path/to/project --skip-insta
 bun /path/to/WikiSsot/scripts/wiki/apply.ts --into /path/to/project --accept path/to/file
 ```
 
-Exit codes are `0` for `ready`, `1` for expected `needs-merge`/`needs-reconcile` work, and `2` for a fatal execution error.
+Dry-run is byte-preserving and never claims checks it did not run. A mechanically safe, already-bootstrapped plan returns `preview` with exit 0; missing current-page/coverage bootstrap work returns `needs-reconcile` with the same findings and exit 1; unsafe merges return `needs-merge`.
+
+Exit codes are `0` for `preview` or fully checked `ready`, `1` for expected `needs-merge`/`needs-reconcile` work, and `2` for a fatal execution error.
 
 ## What is owned by whom
 

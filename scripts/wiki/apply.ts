@@ -37,7 +37,7 @@ export const MANAGED_SHELL_START = "# wiki-ssot:managed:start";
 export const MANAGED_SHELL_END = "# wiki-ssot:managed:end";
 
 export type ApplyMode = "new" | "adopt" | "upgrade";
-export type ApplyStatus = "ready" | "needs-merge" | "needs-reconcile" | "failed";
+export type ApplyStatus = "preview" | "ready" | "needs-merge" | "needs-reconcile" | "failed";
 export type ApplyFinding = { code: string; path?: string; page?: string; action: string };
 export type ApplyReport = {
   version: 1;
@@ -323,6 +323,20 @@ export function currentPageIdsFromSourceMap(value: unknown): string[] {
   return [...ids].sort();
 }
 
+function bootstrapFindings(repo: string): ApplyFinding[] {
+  const findings: ApplyFinding[] = [];
+  const sourceMap = readJson(join(repo, ".wiki/source-map.json"), { version: 1, exact: {}, globs: [] });
+  if (currentPageIdsFromSourceMap(sourceMap).length === 0) {
+    findings.push({ code: "bootstrap-current-page-required", path: "wiki/", action: "inspect the project and create at least one source-backed status: current page" });
+  }
+  const coverage = readJson(join(repo, ".wiki/coverage.json"), { version: 1, include: [], exclusions: [] });
+  const include = Array.isArray(coverage.include) ? coverage.include : [];
+  if (include.length === 0) {
+    findings.push({ code: "bootstrap-coverage-required", path: ".wiki/coverage.json", action: "select the maintained implementation globs and map or reason-exclude every matched file" });
+  }
+  return findings;
+}
+
 function findingObjects(raw: string): { code?: string; path?: string; message?: string }[] {
   try {
     const parsed = JSON.parse(raw) as { findings?: { code?: string; path?: string; message?: string }[] };
@@ -428,10 +442,11 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
   for (const path of packageMerge.conflicts) addConflict(`package.json#${path}`, "host value is incompatible with the toolkit minimum");
 
   if (options.dryRun) {
+    findings.push(...bootstrapFindings(repo));
     return {
       version: 1,
       mode,
-      status: conflicts.length === 0 ? "ready" : "needs-merge",
+      status: conflicts.length > 0 ? "needs-merge" : findings.length > 0 ? "needs-reconcile" : "preview",
       dryRun: true,
       kitDigest: plan.digest,
       applied,
@@ -548,15 +563,7 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
     }
   }
 
-  const coverage = readJson(join(repo, ".wiki/coverage.json"), { version: 1, include: [], exclusions: [] });
-  const include = Array.isArray(coverage.include) ? coverage.include : [];
-  const sourceMap = readJson(join(repo, ".wiki/source-map.json"), { version: 1, exact: {}, globs: [] });
-  if (currentPageIdsFromSourceMap(sourceMap).length === 0) {
-    findings.push({ code: "bootstrap-current-page-required", path: "wiki/", action: "inspect the project and create at least one source-backed status: current page" });
-  }
-  if (include.length === 0) {
-    findings.push({ code: "bootstrap-coverage-required", path: ".wiki/coverage.json", action: "select the maintained implementation globs and map or reason-exclude every matched file" });
-  }
+  findings.push(...bootstrapFindings(repo));
   if (!generated.ok) findings.push({ code: "generated-failed", action: generated.stderr.trim() || generated.stdout.trim() || "rerun wiki:generated" });
 
   const status: ApplyStatus = findings.length === 0 && Object.values(checks).every((value) => value !== "fail") ? "ready" : "needs-reconcile";
@@ -595,7 +602,7 @@ function printReport(report: ApplyReport, json: boolean): void {
   if (report.applied.length > 0) console.log(`applied: ${report.applied.join(", ")}`);
   for (const conflict of report.conflicts) console.log(`merge: ${conflict.path} — ${conflict.reason}`);
   for (const finding of report.findings) console.log(`reconcile: ${finding.code}${finding.path ? ` (${finding.path})` : ""} — ${finding.action}`);
-  if (report.status !== "ready") console.log(`rerun: ${report.nextCommand}`);
+  if (report.status !== "ready" && report.status !== "preview") console.log(`rerun: ${report.nextCommand}`);
 }
 
 async function main(): Promise<void> {
@@ -611,7 +618,7 @@ async function main(): Promise<void> {
     accept: flags(argv, "accept"),
   });
   printReport(report, argv.includes("--json"));
-  process.exitCode = report.status === "ready" ? 0 : report.status === "failed" ? 2 : 1;
+  process.exitCode = report.status === "ready" || report.status === "preview" ? 0 : report.status === "failed" ? 2 : 1;
 }
 
 if (import.meta.main) {

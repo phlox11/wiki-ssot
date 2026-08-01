@@ -29,7 +29,7 @@ All commands are `bun run wiki:<name>`; each maps to `bun scripts/wiki/cli.ts <n
 bun /path/to/WikiSsot/scripts/wiki/apply.ts --into /path/to/git-project [--dry-run] [--json] [--skip-install] [--accept <path>]
 ```
 
-It detects `new`, `adopt`, or `upgrade`, performs every safe mechanical integration and Wiki check, and returns `ready`, `needs-merge`, `needs-reconcile`, or `failed`. Resolve the named merge/semantic work and rerun the same command. Exit codes are 0, 1, and 2 respectively for ready, expected action, and fatal failure. The command never creates Git history or performs semantic review itself.
+It detects `new`, `adopt`, or `upgrade`, performs every safe mechanical integration and Wiki check, and returns `ready`, `needs-merge`, `needs-reconcile`, or `failed`. `--dry-run` is byte-preserving: a safe bootstrapped plan is `preview`, while missing current-page/coverage work is still `needs-reconcile`; dry-run never returns `ready` because it did not run the installed checks. Resolve the named merge/semantic work and rerun the same command. Exit codes are 0 for `preview`/`ready`, 1 for expected action, and 2 for fatal failure. The command never creates Git history or performs semantic review itself.
 
 ## Common flows
 

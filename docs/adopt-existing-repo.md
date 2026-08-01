@@ -20,6 +20,8 @@ bun /path/to/WikiSsot/scripts/wiki/apply.ts --into /path/to/your-repo --dry-run
 bun /path/to/WikiSsot/scripts/wiki/apply.ts --into /path/to/your-repo
 ```
 
+For an unbootstrapped repository, the dry-run is still byte-preserving but intentionally exits 1 with `needs-reconcile` plus the missing current-page/coverage findings. `preview` with exit 0 means only that an already-bootstrapped mechanical plan is safe; only the non-dry run can report fully checked `ready`.
+
 The command detects `adopt`, installs the kit, merges only Wiki-owned package entries, runs install/generation/checks, and reports the semantic reconciliation still required. It preserves host `test`, `typecheck`, `prepare`, `type`, dependencies, CI, and content outside the managed blocks in `AGENTS.md`, the PR template, and hooks.
 
 Unsafe double edits and ambiguous legacy integrations return `needs-merge` without overwriting the project. Merge ordinary `.kit-new` files and use the printed `--accept` flag; repair managed files to contain one marked block. Then rerun the same command.
