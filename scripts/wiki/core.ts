@@ -1134,6 +1134,7 @@ type KitSource =
   | { kind: "copy"; from: string }
   | { kind: "strip"; from: string }
   | { kind: "managed-block"; from: string; start: string; end: string; legacyMarkers?: string[] }
+  | { kind: "legacy-v1-workflow"; host: string; wiki: string }
   | { kind: "literal"; content: string }
   | { kind: "package-fragment"; from: string };
 
@@ -1190,6 +1191,16 @@ export const KIT_ENTRIES: KitEntry[] = [
   { target: "scripts/wiki/tsconfig.json", placement: "files", source: { kind: "copy", from: "scripts/wiki/tsconfig.json" } },
   { target: ".github/workflows/wiki-ssot.yml", placement: "files", source: { kind: "copy", from: ".github/workflows/wiki-ssot.yml" } },
   { target: ".github/workflows/wiki-audit.yml", placement: "files", source: { kind: "copy", from: ".github/workflows/wiki-audit.yml" } },
+  {
+    target: "migrations/v1/checks.yml",
+    placement: "reference",
+    source: { kind: "legacy-v1-workflow", host: ".github/workflows/checks.yml", wiki: ".github/workflows/wiki-ssot.yml" },
+  },
+  {
+    target: "migrations/v1/host-checks.yml",
+    placement: "reference",
+    source: { kind: "copy", from: ".github/workflows/checks.yml" },
+  },
   {
     target: ".github/pull_request_template.md",
     placement: "managed",
@@ -1297,6 +1308,26 @@ function extractManagedBlock(raw: string, source: Extract<KitSource, { kind: "ma
 function renderKitEntry(view: RepoView, entry: KitEntry, findings: Finding[]): string | null {
   const source = entry.source;
   if (source.kind === "literal") return source.content;
+  if (source.kind === "legacy-v1-workflow") {
+    const missing = [source.host, source.wiki].filter((path) => !view.exists(path));
+    if (missing.length > 0) {
+      for (const path of missing) pushFinding(findings, path, "kit-source-missing", `kit entry ${entry.target} has no source file`);
+      return null;
+    }
+    const host = view.read(source.host);
+    const wiki = view.read(source.wiki);
+    const delimiter = "jobs:\n";
+    const hostJobsAt = host.indexOf(delimiter);
+    const wikiJobsAt = wiki.indexOf(delimiter);
+    if (hostJobsAt < 0 || wikiJobsAt < 0) {
+      pushFinding(findings, source.wiki, "kit-source-invalid", `kit entry ${entry.target} cannot reconstruct the version 1 combined workflow`);
+      return null;
+    }
+    const combinedHeader = wiki.slice(0, wikiJobsAt).replace(/^name: wiki-ssot$/m, "name: checks");
+    const hostJobs = host.slice(hostJobsAt + delimiter.length).trimEnd();
+    const wikiJobs = wiki.slice(wikiJobsAt + delimiter.length);
+    return `${combinedHeader}${delimiter}${hostJobs}\n\n${wikiJobs}`;
+  }
   if (!view.exists(source.from)) {
     pushFinding(findings, source.from, "kit-source-missing", `kit entry ${entry.target} has no source file`);
     return null;

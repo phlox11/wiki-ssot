@@ -14,7 +14,6 @@ import {
   mkdirSync,
   readFileSync,
   realpathSync,
-  rmSync,
   statSync,
   writeFileSync,
 } from "node:fs";
@@ -337,6 +336,18 @@ function managedEntries(manifest: ApplyKitManifest): [string, ManagedManifestEnt
   return Object.entries(manifest.managed ?? {}).sort(([a], [b]) => a.localeCompare(b));
 }
 
+function kitReference(kitRoot: string, manifest: ApplyKitManifest, target: string): string {
+  const path = join(kitRoot, target);
+  if (!existsSync(path)) throw new Error(`kit reference entry is missing: ${target}`);
+  const content = readFileSync(path, "utf8");
+  if (manifest.reference?.[target] !== sha256(content)) throw new Error(`kit reference entry hash does not match manifest: ${target}`);
+  return content;
+}
+
+function containsLegacyWikiJobs(content: string): boolean {
+  return /^ {2}wiki-[A-Za-z0-9_-]+:\s*(?:#.*)?$/m.test(content);
+}
+
 export function planApply(options: ApplyOptions): { mode: ApplyMode; sync: SyncPlan; manifest: ApplyKitManifest } {
   const repo = resolve(options.into);
   const kitRoot = resolve(options.kit ?? defaultKitRoot());
@@ -368,10 +379,21 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
   const legacyPath = join(repo, legacyWorkflow);
   const removedLegacy = plan.entries.some((entry) => entry.target === legacyWorkflow && entry.action === "removed-upstream");
   const acceptedLegacy = options.accept?.includes(legacyWorkflow) ?? false;
+  const legacyContent = removedLegacy && legacyEntry != null && existsSync(legacyPath)
+    ? readFileSync(legacyPath, "utf8")
+    : undefined;
   const customizedLegacy = removedLegacy && legacyEntry != null && existsSync(legacyPath)
-    && sha256(readFileSync(legacyPath, "utf8")) !== legacyEntry.sha256;
-  if (customizedLegacy && !acceptedLegacy) {
-    addConflict(legacyWorkflow, "customized legacy workflow must retain host jobs while removing duplicate wiki jobs");
+    && sha256(legacyContent!) !== legacyEntry.sha256;
+  const knownV1CombinedWorkflow = removedLegacy
+    ? kitReference(kitRoot, incomingManifest, "migrations/v1/checks.yml")
+    : undefined;
+  const knownV1Pristine = legacyContent != null && legacyContent === knownV1CombinedWorkflow;
+  const manualLegacyMerge = legacyContent != null && !knownV1Pristine
+    && (containsLegacyWikiJobs(legacyContent) || (customizedLegacy && !acceptedLegacy));
+  if (manualLegacyMerge) {
+    addConflict(legacyWorkflow, containsLegacyWikiJobs(legacyContent!)
+      ? "legacy workflow must retain host jobs and remove duplicate Wiki jobs before it can be accepted"
+      : "customized legacy workflow must be explicitly accepted after preserving its host jobs");
     plan.nextManifest.files[legacyWorkflow] = legacyEntry!;
   }
 
@@ -423,14 +445,14 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
 
   applied.push(...applySync(kitRoot, repo, plan));
 
-  // A dedicated downstream workflow replaces the legacy all-in-one workflow.
-  // Delete the old file only when its content still matches the baseline this
-  // target recorded; customized workflows require an explicit merge.
-  if (removedLegacy && legacyEntry && existsSync(legacyPath)) {
-    if (!customizedLegacy) {
-      rmSync(legacyPath);
-      applied.push(legacyWorkflow);
-    }
+  // The exact version 1 workflow bundled host code checks and Wiki jobs. Split
+  // that known payload automatically: retain the host-only workflow in place
+  // and let the new dedicated workflow own Wiki checks. Unknown/custom legacy
+  // workflows are never deleted; their host form must be reconciled explicitly.
+  if (knownV1Pristine && existsSync(legacyPath)) {
+    const hostWorkflow = kitReference(kitRoot, incomingManifest, "migrations/v1/host-checks.yml");
+    if (readFileSync(legacyPath, "utf8") !== hostWorkflow) write(legacyPath, hostWorkflow);
+    applied.push(legacyWorkflow);
   }
 
   for (const [target, meta] of managedEntries(incomingManifest)) {

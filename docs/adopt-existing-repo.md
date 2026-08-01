@@ -24,7 +24,7 @@ The command detects `adopt`, installs the kit, merges only Wiki-owned package en
 
 Unsafe double edits and ambiguous legacy integrations return `needs-merge` without overwriting the project. Merge ordinary `.kit-new` files and use the printed `--accept` flag; repair managed files to contain one marked block. Then rerun the same command.
 
-Wiki jobs live in the dedicated `.github/workflows/wiki-ssot.yml`; existing build/test workflows remain independent.
+Wiki jobs live in the dedicated `.github/workflows/wiki-ssot.yml`; existing build/test workflows remain independent. When upgrading the exact version 1 combined `checks.yml`, apply keeps its `code-check` as the host workflow and moves only the Wiki jobs. If that legacy workflow was customized or is not a recognized payload, apply returns `needs-merge`: remove its duplicate `wiki-*` jobs, retain every host job, and rerun with the printed `--accept .github/workflows/checks.yml` only after inspecting that retained form.
 
 The kit ships only the toolkit. This repository's own wiki pages, conflicts, and proposals are instance content and are never part of it, so there is nothing to delete afterwards. [`kit/README.md`](../kit/README.md) documents the full file list, the kit-owned/seed split, and how to take a later upgrade without losing your configuration.
 

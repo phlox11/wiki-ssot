@@ -48,7 +48,7 @@ Exit codes are `0` for `ready`, `1` for expected `needs-merge`/`needs-reconcile`
 | `managed/**` | Only the marked Wiki SSOT block is owned. Content outside the block in `AGENTS.md`, the PR template, and hooks is preserved. Missing blocks are appended; malformed, duplicate, or ambiguous legacy blocks require a merge. |
 | `seed/**` | Project-owned after first creation. Existing files and later project edits are never replaced. This includes policy, coverage, verification state, inventory adapter, `.gitignore`, and root `tsconfig.json`. |
 | `package.kit.json` | Merge input, never copied. Only `wiki:*` scripts, compatible toolkit development dependencies, and the Bun minimum are managed. Host `test`, `typecheck`, `prepare`, `type`, and unrelated dependencies survive unchanged. |
-| `scripts/wiki/inventories.example.ts` | Reference read from the WikiSsot checkout, never copied. |
+| `scripts/wiki/inventories.example.ts`, `migrations/v1/**` | References read from the WikiSsot checkout, never copied. The migration references identify the exact former combined workflow and its host-only result. |
 | `files/.wiki/kit-manifest.json` | Version 2 ownership map, managed-block metadata, per-item hashes, and the roll-up kit digest. |
 
 The kit has no release-number identity. Its `digest` covers file, managed-block, and reference content, so equal digests mean equal distributions.
@@ -88,7 +88,9 @@ Kit-owned files use the recorded three-way baseline:
 
 After hand-merging an ordinary kit conflict, delete `.kit-new` and rerun with `--accept <path>`. Managed blocks need no acceptance flag: put exactly one valid marked block in the host file and rerun.
 
-Version 1 installations migrate automatically when their recorded full-file copy is still pristine. Customized legacy integration files fail closed. The old combined `.github/workflows/checks.yml` is replaced by the dedicated `.github/workflows/wiki-ssot.yml`; if the old file also contains host jobs, remove its Wiki jobs, retain the host jobs, and acknowledge that one-time split with:
+The exact version 1 combined `.github/workflows/checks.yml` migrates automatically: apply rewrites that file to its host-only `code-check` and installs the Wiki jobs in `.github/workflows/wiki-ssot.yml`. The regression fixture is byte-locked to the former shipped payload, so “recognized” does not mean merely trusting a local manifest hash.
+
+An unknown or customized legacy workflow is never deleted. Apply returns `needs-merge`; remove its Wiki jobs, retain every host job, and acknowledge that one-time split only after inspecting the result:
 
 ```sh
 bun /path/to/WikiSsot/scripts/wiki/apply.ts --into /path/to/project \

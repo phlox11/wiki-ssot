@@ -99,8 +99,13 @@ describe("kit:exclude stripping", () => {
 describe("kit entry table", () => {
   test("every entry names a source that exists", () => {
     const view = createRepoView(process.cwd());
-    const missing = KIT_ENTRIES.filter((entry) => entry.source.kind !== "literal" && !view.exists((entry.source as { from: string }).from));
-    expect(missing.map((entry) => entry.target)).toEqual([]);
+    const missing = KIT_ENTRIES.flatMap((entry) => {
+      const paths = entry.source.kind === "literal" ? []
+        : entry.source.kind === "legacy-v1-workflow" ? [entry.source.host, entry.source.wiki]
+          : [entry.source.from];
+      return paths.filter((path) => !view.exists(path)).map((path) => `${entry.target} <- ${path}`);
+    });
+    expect(missing).toEqual([]);
   });
 
   test("targets and emitted paths are unique", () => {
@@ -305,8 +310,21 @@ describe("kit manifest", () => {
     expect(KIT_MANIFEST_TARGET in parsed.files).toBe(false);
     expect("package.kit.json" in parsed.files).toBe(false);
     expect("package.kit.json" in parsed.reference).toBe(true);
+    expect("migrations/v1/checks.yml" in parsed.reference).toBe(true);
+    expect("migrations/v1/host-checks.yml" in parsed.reference).toBe(true);
     expect(Object.keys(parsed.files).length).toBe(KIT_ENTRIES.filter((entry) => entry.placement === "files" || entry.placement === "seed").length);
     expect(Object.keys(parsed.managed).length).toBe(KIT_ENTRIES.filter((entry) => entry.placement === "managed").length);
+  });
+
+  test("locks the exact version 1 workflow and its host-only migration result", () => {
+    const { files } = realKit();
+    const legacy = files["kit/migrations/v1/checks.yml"];
+    const host = files["kit/migrations/v1/host-checks.yml"];
+    expect(sha256(legacy)).toBe("53d46f240a5f4ee78327cae0d1e221ded01bd7b36b714c16121dd1256b1d92d5");
+    expect(legacy).toContain("code-check:");
+    expect(legacy).toContain("wiki-structure:");
+    expect(host).toContain("code-check:");
+    expect(host).not.toContain("wiki-structure:");
   });
 
   test("the digest covers reference files too", () => {

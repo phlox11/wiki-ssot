@@ -241,11 +241,12 @@ This document must not satisfy current-page bootstrap readiness.
     const pristine = fixture();
     git(pristine, "init", "-q");
     const oldAgents = "# old agents\n<!-- wiki-ssot:fresh-context-guardrail -->\nold rules\n";
-    const oldWorkflow = "name: old checks\n";
+    const oldWorkflow = readFileSync(join(process.cwd(), "kit/migrations/v1/checks.yml"), "utf8");
+    const hostWorkflow = readFileSync(join(process.cwd(), "kit/migrations/v1/host-checks.yml"), "utf8");
     put(pristine, "AGENTS.md", oldAgents);
     put(pristine, ".github/workflows/checks.yml", oldWorkflow);
     put(pristine, ".wiki/kit-manifest.json", `${JSON.stringify({
-      version: 1, kit: "wiki-ssot", digest: "old",
+      version: 1, kit: "wiki-ssot", digest: "0a56c1edf904d07a1069d8de233e24ee1346ab2ebe58adedd962f0ed7c531664",
       files: {
         "AGENTS.md": { ownership: "kit", sha256: apply.sha256(oldAgents) },
         ".github/workflows/checks.yml": { ownership: "kit", sha256: apply.sha256(oldWorkflow) },
@@ -254,7 +255,11 @@ This document must not satisfy current-page bootstrap readiness.
     const migrated = runApply(pristine, "--skip-install", "--json");
     expect(migrated.exitCode).toBe(1);
     expect(readFileSync(join(pristine, "AGENTS.md"), "utf8")).toContain("wiki-ssot:managed:start");
-    expect(existsSync(join(pristine, ".github/workflows/checks.yml"))).toBe(false);
+    expect(readFileSync(join(pristine, ".github/workflows/checks.yml"), "utf8")).toBe(hostWorkflow);
+    expect(hostWorkflow).toContain("code-check:");
+    expect(hostWorkflow).toContain("bun run typecheck");
+    expect(hostWorkflow).toContain("bun run test");
+    expect(hostWorkflow).not.toContain("wiki-structure:");
     expect(existsSync(join(pristine, ".github/workflows/wiki-ssot.yml"))).toBe(true);
 
     const customized = fixture();
@@ -277,9 +282,15 @@ This document must not satisfy current-page bootstrap readiness.
       files: { ".github/workflows/checks.yml": { ownership: "kit", sha256: apply.sha256(oldWorkflow) } },
     })}\n`);
     expect(jsonOutput(runApply(customWorkflow, "--skip-install", "--json"))).toMatchObject({ status: "needs-merge" });
+    const stillDuplicated = runApply(customWorkflow, "--skip-install", "--json", "--accept", ".github/workflows/checks.yml");
+    expect(jsonOutput(stillDuplicated)).toMatchObject({ status: "needs-merge" });
+    put(customWorkflow, ".github/workflows/checks.yml", `${hostWorkflow}# host jobs retained\n`);
     const accepted = runApply(customWorkflow, "--skip-install", "--json", "--accept", ".github/workflows/checks.yml");
     expect(jsonOutput(accepted).status).not.toBe("needs-merge");
-    expect(readFileSync(join(customWorkflow, ".github/workflows/checks.yml"), "utf8")).toContain("host jobs retained");
+    const retainedWorkflow = readFileSync(join(customWorkflow, ".github/workflows/checks.yml"), "utf8");
+    expect(retainedWorkflow).toContain("host jobs retained");
+    expect(retainedWorkflow).toContain("code-check:");
+    expect(retainedWorkflow).not.toContain("wiki-structure:");
     const acceptedManifest = JSON.parse(readFileSync(join(customWorkflow, ".wiki/kit-manifest.json"), "utf8")) as { files: Record<string, unknown> };
     expect(acceptedManifest.files[".github/workflows/checks.yml"]).toBeUndefined();
   });

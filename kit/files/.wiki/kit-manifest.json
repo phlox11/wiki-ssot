@@ -1,5 +1,5 @@
 {
-  "digest": "1e12621132878363ff872a1813b6117cc69152a27b1ac8f78fb73dbfc54010ff",
+  "digest": "5a569b0598a3fcbfcf44c025e0b09d77b8796470d47a497702887ecd5cdefcff",
   "files": {
     ".github/workflows/wiki-audit.yml": {
       "ownership": "kit",
@@ -35,7 +35,7 @@
     },
     "scripts/wiki/core.ts": {
       "ownership": "kit",
-      "sha256": "1d3b5f1a77d22ff539431e69c1448399316dcd35ef13aa1b97649be2bc305511"
+      "sha256": "6a39612179bb56f86fd7c0f1df36c7fdebdd53686a7d82c1f4620b46cb617b2d"
     },
     "scripts/wiki/fresh-context.test.ts": {
       "ownership": "kit",
@@ -122,6 +122,8 @@
     }
   },
   "reference": {
+    "migrations/v1/checks.yml": "53d46f240a5f4ee78327cae0d1e221ded01bd7b36b714c16121dd1256b1d92d5",
+    "migrations/v1/host-checks.yml": "0aaea6d0903f1e951dfec6a1e3a4adcab38fd4c5d2389ca3d4ac87c0c4915cfa",
     "package.kit.json": "c90e49d9266943f7dba2283504ecdd35046030b5a937e8303973a9a46a7856e7",
     "scripts/wiki/inventories.example.ts": "c77492bf25a8e89d6c5f2de5d1238bb426e41b81cd255d7c153e05d295e91c4e"
   },
