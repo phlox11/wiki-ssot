@@ -2,8 +2,8 @@
   "pages": {
     "architecture/engine": {
       "sources": {
-        "scripts/wiki/apply.test.ts": "2d3f6a0b244162934b6b736a7a70a24c5878ef0922553eef371917bd9f7e85ef",
-        "scripts/wiki/apply.ts": "7f74ce950f5fa536476a87295d56cdcd5a2968cb9b33f52b62802e13b07bfb25",
+        "scripts/wiki/apply.test.ts": "a8e7bdb079d12b8e23121cf00580f08749effb1c0ee0c7d7820a3415c656a198",
+        "scripts/wiki/apply.ts": "81991ac2d7cdb5eedaef8ec238ab72e84a44fc452e00d59a49f5c4e4fd646298",
         "scripts/wiki/cli.ts": "e827375422ebb9dc1ca3705534cc5d1afcd6853b89d5ea1586534ede81b742e7",
         "scripts/wiki/core.ts": "1d3b5f1a77d22ff539431e69c1448399316dcd35ef13aa1b97649be2bc305511",
         "scripts/wiki/existing-repo-bootstrap.test.ts": "90d75082e33ccdb3fe195b1bbbcbbc6be7646a55a948e1359be2d001e79e5eb2",
@@ -27,7 +27,8 @@
         "scripts/wiki/work.test.ts": "192ce7a1884b735472d35fc0aa2a7fc96033056fd279d3225badd8ef1e5638d7"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "The apply fix enforces the existing current-page and safe integration contracts without changing their documented semantics."
       }
     },
     "operations/enforcement": {
@@ -42,24 +43,26 @@
         ".wiki/config.json": "0c546d40f0fd8b49b189c559156650e6804a36889cf341d564c4869bdf1827d1",
         "AGENTS.md": "f62e0c1bca4174c3e856d93387c966510845fc7ec481c67923ce385ac4606be7",
         "package.json": "e73eac7e5e309f816f1e35df44a8f11362282fee931c4db24e0a3a409da23934",
-        "scripts/wiki/apply.ts": "7f74ce950f5fa536476a87295d56cdcd5a2968cb9b33f52b62802e13b07bfb25",
+        "scripts/wiki/apply.ts": "81991ac2d7cdb5eedaef8ec238ab72e84a44fc452e00d59a49f5c4e4fd646298",
         "scripts/wiki/cli.ts": "e827375422ebb9dc1ca3705534cc5d1afcd6853b89d5ea1586534ede81b742e7",
         "scripts/wiki/core.ts": "1d3b5f1a77d22ff539431e69c1448399316dcd35ef13aa1b97649be2bc305511",
         "scripts/wiki/github-attestation.ts": "cad5290748265f5b5cd1a5503f075cfb837283ca0e8b4e7c004567deb33139cb"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "The hook environment and bootstrap checks now implement the existing enforcement contract; no page semantics changed."
       }
     },
     "product/invariants": {
       "sources": {
         "AGENTS.md": "f62e0c1bca4174c3e856d93387c966510845fc7ec481c67923ce385ac4606be7",
-        "scripts/wiki/apply.ts": "7f74ce950f5fa536476a87295d56cdcd5a2968cb9b33f52b62802e13b07bfb25",
+        "scripts/wiki/apply.ts": "81991ac2d7cdb5eedaef8ec238ab72e84a44fc452e00d59a49f5c4e4fd646298",
         "scripts/wiki/cli.ts": "e827375422ebb9dc1ca3705534cc5d1afcd6853b89d5ea1586534ede81b742e7",
         "scripts/wiki/core.ts": "1d3b5f1a77d22ff539431e69c1448399316dcd35ef13aa1b97649be2bc305511"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "The source-map readiness guard fixes an implementation violation of the existing invariant; the invariant itself is unchanged."
       }
     },
     "product/scope": {

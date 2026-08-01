@@ -263,7 +263,7 @@ function ensureInside(repo: string, path: string): string {
 }
 
 function write(path: string, content: string): void {
-  if (existsSync(path) && lstatSync(path).isSymbolicLink()) throw new Error(`refusing to write through symlink: ${path}`);
+  if (lstatSync(path, { throwIfNoEntry: false })?.isSymbolicLink()) throw new Error(`refusing to write through symlink: ${path}`);
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, content);
 }
@@ -275,9 +275,53 @@ function readJson(path: string, fallback: Record<string, unknown> = {}): Record<
   return parsed as Record<string, unknown>;
 }
 
-function command(repo: string, args: string[]): { ok: boolean; stdout: string; stderr: string } {
-  const result = Bun.spawnSync(args, { cwd: repo, stdout: "pipe", stderr: "pipe", env: { ...process.env, HUSKY: "0" } });
+export function commandEnvironment(
+  base: Record<string, string | undefined>,
+  disableHusky: boolean,
+): Record<string, string | undefined> {
+  const env = { ...base };
+  if (disableHusky) env.HUSKY = "0";
+  else delete env.HUSKY;
+  return env;
+}
+
+function command(
+  repo: string,
+  args: string[],
+  options: { disableHusky?: boolean } = {},
+): { ok: boolean; stdout: string; stderr: string } {
+  const result = Bun.spawnSync(args, {
+    cwd: repo,
+    stdout: "pipe",
+    stderr: "pipe",
+    env: commandEnvironment(process.env, options.disableHusky ?? true),
+  });
   return { ok: result.exitCode === 0, stdout: result.stdout.toString(), stderr: result.stderr.toString() };
+}
+
+/**
+ * The generated source map contains only parsed `status: current` pages and
+ * only their declared source evidence. A non-empty result therefore proves
+ * that bootstrap has crossed the minimum semantic boundary; lint separately
+ * proves that the declared sources resolve.
+ */
+export function currentPageIdsFromSourceMap(value: unknown): string[] {
+  if (value == null || typeof value !== "object" || Array.isArray(value)) return [];
+  const map = value as { exact?: unknown; globs?: unknown };
+  const ids = new Set<string>();
+  if (map.exact != null && typeof map.exact === "object" && !Array.isArray(map.exact)) {
+    for (const pages of Object.values(map.exact as Record<string, unknown>)) {
+      if (Array.isArray(pages)) for (const id of pages) if (typeof id === "string" && id.length > 0) ids.add(id);
+    }
+  }
+  if (Array.isArray(map.globs)) {
+    for (const item of map.globs) {
+      if (item == null || typeof item !== "object" || Array.isArray(item)) continue;
+      const pages = (item as { pages?: unknown }).pages;
+      if (Array.isArray(pages)) for (const id of pages) if (typeof id === "string" && id.length > 0) ids.add(id);
+    }
+  }
+  return [...ids].sort();
 }
 
 function findingObjects(raw: string): { code?: string; path?: string; message?: string }[] {
@@ -312,6 +356,9 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
   const incomingManifest = readJson(join(kitRoot, "files", MANIFEST_TARGET)) as ApplyKitManifest;
   const nextCommand = `bun ${resolve(dirname(fileURLToPath(import.meta.url)), "apply.ts")} --into ${repo}`;
   const conflicts: { path: string; reason: string }[] = plan.conflicts.map((path) => ({ path, reason: "kit-owned file changed locally and upstream" }));
+  const addConflict = (path: string, reason: string): void => {
+    if (!conflicts.some((item) => item.path === path && item.reason === reason)) conflicts.push({ path, reason });
+  };
   const applied: string[] = [];
   const checks: Record<string, "pass" | "fail" | "skipped"> = {};
   const findings: ApplyFinding[] = [];
@@ -324,7 +371,7 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
   const customizedLegacy = removedLegacy && legacyEntry != null && existsSync(legacyPath)
     && sha256(readFileSync(legacyPath, "utf8")) !== legacyEntry.sha256;
   if (customizedLegacy && !acceptedLegacy) {
-    conflicts.push({ path: legacyWorkflow, reason: "customized legacy workflow must retain host jobs while removing duplicate wiki jobs" });
+    addConflict(legacyWorkflow, "customized legacy workflow must retain host jobs while removing duplicate wiki jobs");
     plan.nextManifest.files[legacyWorkflow] = legacyEntry!;
   }
 
@@ -337,21 +384,26 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
     const incoming = readFileSync(source, "utf8");
     if (sha256(incoming) !== meta.sha256) throw new Error(`kit managed entry hash does not match manifest: ${target}`);
     const local = ensureInside(repo, target);
-    const exists = existsSync(local);
+    const localStat = lstatSync(local, { throwIfNoEntry: false });
+    const exists = localStat != null;
+    if (localStat?.isSymbolicLink()) {
+      addConflict(target, "managed integration target is a symlink");
+      continue;
+    }
     const existing = exists ? readFileSync(local, "utf8") : target.startsWith(".husky/") ? "#!/usr/bin/env sh\n" : "";
     const recorded = previousManifest?.files?.[target];
     const pristineLegacy = recorded != null && sha256(existing) === recorded.sha256;
     const merged = pristineLegacy
       ? { status: "ready" as const, content: target.startsWith(".husky/") ? `#!/usr/bin/env sh\n${incoming}` : incoming, action: existing === incoming ? "unchanged" as const : "replace" as const }
       : mergeManagedBlock(existing, incoming, { start: meta.start, end: meta.end, legacyMarkers: meta.legacyMarkers });
-    if (merged.status === "needs-merge") conflicts.push({ path: target, reason: merged.reason ?? "managed integration block requires reconciliation" });
+    if (merged.status === "needs-merge") addConflict(target, merged.reason ?? "managed integration block requires reconciliation");
     else if (merged.action !== "unchanged" || (target.startsWith(".husky/") && exists && (statSync(local).mode & 0o111) === 0)) previewChanges.push(target);
   }
   const packagePath = join(repo, "package.json");
   const packageFragmentPath = join(kitRoot, "package.kit.json");
   const packageMerge = mergePackageJson(readJson(packagePath), readJson(packageFragmentPath));
   if (packageMerge.changed) previewChanges.push("package.json");
-  for (const path of packageMerge.conflicts) conflicts.push({ path: `package.json#${path}`, reason: "host value is incompatible with the toolkit minimum" });
+  for (const path of packageMerge.conflicts) addConflict(`package.json#${path}`, "host value is incompatible with the toolkit minimum");
 
   if (options.dryRun) {
     return {
@@ -386,7 +438,12 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
     if (!existsSync(source)) throw new Error(`kit managed entry is missing: ${target}`);
     const incoming = readFileSync(source, "utf8");
     const local = ensureInside(repo, target);
-    const exists = existsSync(local);
+    const localStat = lstatSync(local, { throwIfNoEntry: false });
+    const exists = localStat != null;
+    if (localStat?.isSymbolicLink()) {
+      addConflict(target, "managed integration target is a symlink");
+      continue;
+    }
     const existing = exists ? readFileSync(local, "utf8") : target.startsWith(".husky/") ? "#!/usr/bin/env sh\n" : "";
     const recorded = previousManifest?.files?.[target];
     const pristineLegacy = recorded != null && sha256(existing) === recorded.sha256;
@@ -395,7 +452,7 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
       ? { status: "ready" as const, content: legacyReplacement, action: existing === legacyReplacement ? "unchanged" as const : "replace" as const }
       : mergeManagedBlock(existing, incoming, { start: meta.start, end: meta.end, legacyMarkers: meta.legacyMarkers });
     if (merged.status === "needs-merge") {
-      conflicts.push({ path: target, reason: merged.reason ?? "managed integration block requires reconciliation" });
+      addConflict(target, merged.reason ?? "managed integration block requires reconciliation");
       continue;
     }
     const needsExecutableMode = target.startsWith(".husky/") && exists && (statSync(local).mode & 0o111) === 0;
@@ -437,7 +494,7 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
         applied: [...new Set(applied)].sort(), changes: [...new Set(applied)].sort(), conflicts, findings, checks, nextCommand,
       };
     }
-    const hooks = command(repo, ["bun", "run", "wiki:hooks:install"]);
+    const hooks = command(repo, ["bun", "run", "wiki:hooks:install"], { disableHusky: false });
     checks.hooks = hooks.ok ? "pass" : "fail";
     if (!hooks.ok) findings.push({ code: "hook-install-failed", path: ".husky/", action: hooks.stderr.trim() || hooks.stdout.trim() || "rerun bun run wiki:hooks:install" });
   } else {
@@ -471,9 +528,8 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
 
   const coverage = readJson(join(repo, ".wiki/coverage.json"), { version: 1, include: [], exclusions: [] });
   const include = Array.isArray(coverage.include) ? coverage.include : [];
-  const wikiFiles = git(repo, ["ls-files", "--cached", "--others", "--exclude-standard"], true)
-    .split("\n").filter((path) => path.startsWith("wiki/") && path.endsWith(".md") && !["wiki/README.md", "wiki/SCHEMA.md", "wiki/WORKFLOW.md", "wiki/changelog.md", "wiki/index.md", "wiki/current-status.md", "wiki/conflicts.md", "wiki/work-queue.md"].includes(path));
-  if ((mode === "new" || mode === "adopt") && wikiFiles.length === 0) {
+  const sourceMap = readJson(join(repo, ".wiki/source-map.json"), { version: 1, exact: {}, globs: [] });
+  if (currentPageIdsFromSourceMap(sourceMap).length === 0) {
     findings.push({ code: "bootstrap-current-page-required", path: "wiki/", action: "inspect the project and create at least one source-backed status: current page" });
   }
   if (include.length === 0) {

@@ -99,8 +99,68 @@ describe("apply workflow", () => {
     const afterFirst = snapshot(repo);
     const second = runApply(repo, "--skip-install", "--json");
     expect(second.exitCode).toBe(1);
-    expect(jsonOutput(second)).toMatchObject({ changes: [] });
+    expect(jsonOutput(second)).toMatchObject({
+      mode: "upgrade",
+      status: "needs-reconcile",
+      changes: [],
+      findings: expect.arrayContaining([expect.objectContaining({ code: "bootstrap-current-page-required" })]),
+    });
     expect(snapshot(repo)).toBe(afterFirst);
+  });
+
+  test("derives bootstrap completeness only from current pages with declared sources", () => {
+    expect(apply.currentPageIdsFromSourceMap({
+      version: 1,
+      exact: { "src/app.ts": ["product/app", "product/app"] },
+      globs: [{ glob: "test/**/*.ts", pages: ["product/app", "architecture/tests"] }],
+    })).toEqual(["architecture/tests", "product/app"]);
+    expect(apply.currentPageIdsFromSourceMap({ version: 1, exact: {}, globs: [] })).toEqual([]);
+    expect(apply.currentPageIdsFromSourceMap({ version: 1, exact: { "proposal.md": "proposal/plan" }, globs: [{ pages: [42] }] })).toEqual([]);
+  });
+
+  test("non-current markdown cannot make a post-install rerun ready", () => {
+    const repo = fixture();
+    const kit = fastKit();
+    git(repo, "init", "-q");
+    expect(runApply(repo, "--kit", kit, "--skip-install", "--json").exitCode).toBe(1);
+    symlinkSync(join(process.cwd(), "node_modules"), join(repo, "node_modules"), "dir");
+    put(repo, "src/app.ts", "export const proposedOnly = true;\n");
+    put(repo, ".wiki/coverage.json", `${JSON.stringify({
+      version: 1,
+      include: ["src/**/*.ts"],
+      exclusions: [{
+        glob: "src/**/*.ts",
+        reason: "This source is excluded only to isolate the current-page bootstrap readiness contract.",
+      }],
+    }, null, 2)}\n`);
+    put(repo, "wiki/proposals/plan.md", `---
+id: proposal/plan
+summary: This proposal deliberately remains outside the current contract.
+kind: proposal
+status: proposed
+authority: normative
+owners: ["@fixture"]
+sources: [{path: package.json}]
+work_items: []
+---
+
+# Proposed plan
+
+This document must not satisfy current-page bootstrap readiness.
+`);
+    const rerun = runApply(repo, "--kit", kit, "--skip-install", "--json");
+    expect(rerun.exitCode).toBe(1);
+    expect(jsonOutput(rerun)).toMatchObject({
+      mode: "upgrade",
+      status: "needs-reconcile",
+      checks: { generated: "pass", doctor: "pass", lint: "pass", audit: "pass" },
+      findings: expect.arrayContaining([expect.objectContaining({ code: "bootstrap-current-page-required" })]),
+    });
+  }, 30_000);
+
+  test("enables Husky only for the explicit hook installation command", () => {
+    expect(apply.commandEnvironment({ HUSKY: "0", KEEP: "yes" }, true)).toEqual({ HUSKY: "0", KEEP: "yes" });
+    expect(apply.commandEnvironment({ HUSKY: "0", KEEP: "yes" }, false)).toEqual({ KEEP: "yes" });
   });
 
   test("an already-applied current manifest is a dry-run no-op", () => {
@@ -130,6 +190,20 @@ describe("apply workflow", () => {
 
     expect(merge!(once + once, managed)).toMatchObject({ status: "needs-merge" });
     expect(merge!("<!-- wiki-ssot:managed:start -->\nunterminated", managed)).toMatchObject({ status: "needs-merge" });
+  });
+
+  test("managed integration targets fail closed on symlinks without duplicate conflicts", () => {
+    const repo = fixture();
+    git(repo, "init", "-q");
+    symlinkSync("missing-agents-target.md", join(repo, "AGENTS.md"));
+    const report = jsonOutput(runApply(repo, "--dry-run", "--json")) as {
+      status: string;
+      conflicts: { path: string; reason: string }[];
+    };
+    expect(report.status).toBe("needs-merge");
+    expect(report.conflicts.filter((item) => item.path === "AGENTS.md")).toEqual([
+      { path: "AGENTS.md", reason: "managed integration target is a symlink" },
+    ]);
   });
 
   test("package merge changes only wiki-owned entries and reports incompatible shared dependencies", () => {
