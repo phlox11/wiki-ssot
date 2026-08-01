@@ -11,20 +11,20 @@ and a later upgrade: [PV-09 existing-repository bootstrap evidence](./evidence/p
 - Bun ≥ 1.1 and git.
 - A clean working tree and a known base commit.
 
-## 1. Copy the kit in
+## 1. Run the unified apply loop
 
 The distribution lives in [`kit/`](../kit/README.md). From a checkout of this repository:
 
 ```sh
-bun scripts/wiki/kit-sync.ts --into /path/to/your-repo --dry-run   # preview
-bun scripts/wiki/kit-sync.ts --into /path/to/your-repo
+bun /path/to/WikiSsot/scripts/wiki/apply.ts --into /path/to/your-repo --dry-run
+bun /path/to/WikiSsot/scripts/wiki/apply.ts --into /path/to/your-repo
 ```
 
-An existing repository usually already has an `AGENTS.md` or a PR template. Those come back as conflicts with the incoming version written alongside as `<path>.kit-new`; nothing of yours is overwritten. Merge each one and re-run with `--accept <path>`.
+The command detects `adopt`, installs the kit, merges only Wiki-owned package entries, runs install/generation/checks, and reports the semantic reconciliation still required. It preserves host `test`, `typecheck`, `prepare`, `type`, dependencies, CI, and content outside the managed blocks in `AGENTS.md`, the PR template, and hooks.
 
-Then merge the scripts and dev dependencies into your `package.json` with the command in [`kit/README.md`](../kit/README.md#adopt-it-in-a-new-repository) — it keeps your `type`, `engines`, dependency pins, and any script name you already use, and prints the collisions it refused to take — then `bun install`.
+Unsafe double edits and ambiguous legacy integrations return `needs-merge` without overwriting the project. Merge ordinary `.kit-new` files and use the printed `--accept` flag; repair managed files to contain one marked block. Then rerun the same command.
 
-If your repository already has `.github/workflows/`, merge the copied jobs into your existing CI rather than keeping two workflows that install twice.
+Wiki jobs live in the dedicated `.github/workflows/wiki-ssot.yml`; existing build/test workflows remain independent.
 
 The kit ships only the toolkit. This repository's own wiki pages, conflicts, and proposals are instance content and are never part of it, so there is nothing to delete afterwards. [`kit/README.md`](../kit/README.md) documents the full file list, the kit-owned/seed split, and how to take a later upgrade without losing your configuration.
 
@@ -78,7 +78,7 @@ Map every file matched by `coverage.json` `include` to some page's `sources`, or
 
 ## 4. Optional: code-derived inventories
 
-For always-current generated pages (route tables, schema lists), implement `scripts/wiki/inventories.ts` for your stack. Copy patterns from `kit/scripts/wiki/inventories.example.ts` in this repository — it is reference-only, is never delivered into yours, and so is nothing you have to clean up. Keep `scripts/wiki/wiki.test.ts`, `scripts/wiki/work.test.ts`, and `scripts/wiki/fresh-context.test.ts`: they are the engine's own regression suites (run by the `code-check` CI job) and depend on no host project.
+For always-current generated pages (route tables, schema lists), implement `scripts/wiki/inventories.ts` for your stack. Copy patterns from `kit/scripts/wiki/inventories.example.ts` in this repository — it is reference-only, is never delivered into yours, and so is nothing you have to clean up. Keep `scripts/wiki/wiki.test.ts`, `scripts/wiki/work.test.ts`, and `scripts/wiki/fresh-context.test.ts`: they are the engine's own regression suites (run by the dedicated Wiki tooling test) and depend on no host project.
 
 ## 5. Verify and go green
 
@@ -88,14 +88,15 @@ bun run wiki:verify                    # record source hashes for all current pa
 bun run wiki:lint                      # must pass
 bun run wiki:doctor                    # integration seams must be present
 bun run wiki:audit                     # must pass (no stale pages)
-bun run typecheck && bun run test
+bun run wiki:tooling:typecheck && bun run wiki:tooling:test
+bun /path/to/WikiSsot/scripts/wiki/apply.ts --into .  # must report ready
 ```
 
 Commit the wiki, `.wiki/`, and generated files together.
 
 ## 6. Turn on the rails
 
-- Hooks activate on `bun install` (via the `prepare` script). Confirm a bad staged page blocks a commit.
+- The apply command installs Husky explicitly without replacing the host `prepare` script. Confirm a bad staged page blocks a commit.
 - Keep the root `AGENTS.md` markers and affirmative provider-neutral routing clauses: index/current-status/invariant reading, no-query generic work discovery, selected-work context, topic search/context, and non-current authority labels. Also preserve canonical `wiki:work` and review/doctor scripts, the structured PR `fresh_context` block, and the stable `wiki-review-attestation` workflow job. `wiki:doctor` rejects marker-only, placeholder, command-name-only, or commonly negated route clauses when adoption rewrites these files; it does not interpret arbitrary prose.
 - CI: the workflows in `.github/workflows/` run code, structure/doctor, generated, impact, and Ready-only review-attestation checks. The attestation check skips Drafts, uses trusted base code/policy, and never executes PR-head code.
 - Trust boundary: wiki-ssot assumes repository write/admin actors are trusted. Branch protection, required workflows, CODEOWNERS, and administrator-bypass rules are optional deployment governance; the toolkit neither configures nor audits them.

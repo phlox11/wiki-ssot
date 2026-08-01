@@ -1,3 +1,4 @@
+<!-- wiki-ssot:managed:start -->
 # Agent instructions
 
 These rules apply to every coding agent and every task in this repository. They exist so an agent starting a fresh session with no memory of past work can still find the code and constraints it must account for, and cannot silently drift the wiki out of sync with the code.
@@ -51,3 +52,4 @@ These rules apply to every coding agent and every task in this repository. They 
 - Hooks and CI are feedback. Deployment-configured branch protection may provide a remote merge boundary, but this toolkit assumes repository write/admin actors are trusted and does not prescribe organization-security policy.
 - Branch protection matches on check name rather than workflow meaning: a `pull_request` that keeps a required job's name while emptying its steps can report success. Required workflows, CODEOWNERS, and administrator-bypass controls are optional deployment hardening outside the product contract.
 - Keep unrelated changes intact and do not bypass checks to make a change appear valid.
+<!-- wiki-ssot:managed:end -->

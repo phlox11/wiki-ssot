@@ -11,6 +11,8 @@ The real contributors to a modern repository are increasingly **context-less cod
 
 Documentation drift is not a one-time mess to clean up. It is *regenerated* every time an agent changes code without changing docs, or reads a stale doc and assumes wrongly. So the fix cannot be a cleanup; it has to be a standing, mechanical gate on events that always happen.
 
+Installation drift has the same shape: if every new repository, existing-code adoption, and toolkit upgrade needs a different copy/merge checklist, each project eventually runs a different enforcement system. Wiki SSOT therefore exposes one idempotent apply loop. It updates generic tooling mechanically, preserves project-owned policy and host workflows, and returns the semantic Wiki/code work to the invoking coding agent instead of hiding it in manual upgrade prose.
+
 ## Operating principle: no holes inside the declared trust boundary
 
 Start with maximum closure inside the product's declared trust boundary — every deterministic check rejects invalid candidates from day one — then relax whatever proves too costly in real use. Where "no holes" is impossible (a semantic contradiction, an unwritten decision, or an actor intentionally weakening repository policy), say so rather than pretend a gate covers it.
@@ -47,6 +49,8 @@ Enforcement is only real if it fires on events that always happen:
 1. **Session start** — every agent auto-reads `AGENTS.md`: a generic remaining-work request routes to the no-query repository queue, while selected work routes to its current invariants, context pages, conflicts, sources, and explicitly non-current proposal owner. (Compliance rail.)
 2. **Local commit** — a pre-commit hook runs the cheap structural lint on staged files; a pre-push hook blocks direct pushes to `main`. Bypassable feedback.
 3. **Pre-PR / pull request / CI** — `wiki:review-preflight` prepares and validates risk-selected independent reconciliation before publication. Structural, generated-freshness, impact, integration-seam, and Ready-only review-attestation checks then reject invalid candidates; deployments that make those jobs required checks also use them to block merges. A weekly job re-audits everything.
+
+The rails are installed and upgraded through `bun /path/to/WikiSsot/scripts/wiki/apply.ts --into <git-repo>`. The deterministic command classifies `new`, `adopt`, or `upgrade`, applies safe kit/package/managed-block changes, regenerates and checks the Wiki, and returns `needs-merge` or `needs-reconcile` when a coding agent must make a project-specific judgment. Repeating that same command is the convergence loop; it performs no Git publication and invokes no model itself.
 
 ## Validation status
 

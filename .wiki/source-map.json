@@ -12,6 +12,9 @@
     ".github/workflows/wiki-audit.yml": [
       "operations/enforcement"
     ],
+    ".github/workflows/wiki-ssot.yml": [
+      "operations/enforcement"
+    ],
     ".husky/pre-commit": [
       "operations/enforcement"
     ],
@@ -34,6 +37,10 @@
     "README.md": [
       "product/scope"
     ],
+    "scripts/wiki/apply.ts": [
+      "operations/enforcement",
+      "product/invariants"
+    ],
     "scripts/wiki/cli.ts": [
       "operations/enforcement",
       "product/invariants"
@@ -44,6 +51,9 @@
     ],
     "scripts/wiki/github-attestation.ts": [
       "operations/enforcement"
+    ],
+    "scripts/wiki/tsconfig.json": [
+      "architecture/engine"
     ]
   },
   "globs": [

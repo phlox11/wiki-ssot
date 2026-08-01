@@ -21,6 +21,16 @@ All commands are `bun run wiki:<name>`; each maps to `bun scripts/wiki/cli.ts <n
 | `wiki:audit` | Repo-wide: structure + generated + every current page's source hashes. | weekly CI |
 | `wiki:index` / `wiki:inventory` | Write just the core generated files / just the inventories. | — |
 
+## Install, adopt, or upgrade
+
+`apply.ts` is intentionally run from a WikiSsot checkout rather than through the target package scripts, because it must work before the target has the engine installed:
+
+```sh
+bun /path/to/WikiSsot/scripts/wiki/apply.ts --into /path/to/git-project [--dry-run] [--json] [--skip-install] [--accept <path>]
+```
+
+It detects `new`, `adopt`, or `upgrade`, performs every safe mechanical integration and Wiki check, and returns `ready`, `needs-merge`, `needs-reconcile`, or `failed`. Resolve the named merge/semantic work and rerun the same command. Exit codes are 0, 1, and 2 respectively for ready, expected action, and fatal failure. The command never creates Git history or performs semantic review itself.
+
 ## Common flows
 
 Start a fresh session without knowing internal wiki nodes:

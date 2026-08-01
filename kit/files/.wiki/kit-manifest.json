@@ -1,29 +1,17 @@
 {
-  "digest": "0a56c1edf904d07a1069d8de233e24ee1346ab2ebe58adedd962f0ed7c531664",
+  "digest": "1e12621132878363ff872a1813b6117cc69152a27b1ac8f78fb73dbfc54010ff",
   "files": {
-    ".github/pull_request_template.md": {
-      "ownership": "kit",
-      "sha256": "01671f58991af636842acb82728fddcef26bd314ed394a0cd2c7cee67503afa0"
-    },
-    ".github/workflows/checks.yml": {
-      "ownership": "kit",
-      "sha256": "53d46f240a5f4ee78327cae0d1e221ded01bd7b36b714c16121dd1256b1d92d5"
-    },
     ".github/workflows/wiki-audit.yml": {
       "ownership": "kit",
       "sha256": "33a3bf1dcf6482a293f137a4cfc332eb8804639bd3b8d950a9244fa6fdda97f4"
     },
+    ".github/workflows/wiki-ssot.yml": {
+      "ownership": "kit",
+      "sha256": "8735217c246e7b4dc9232144af3e8d9fc96d99288561d8d499a1c14f69802df5"
+    },
     ".gitignore": {
       "ownership": "seed",
       "sha256": "2f9aebd7a15d0a9e62d69bff1c888bb93ec5eab506a9db272de622defda4735c"
-    },
-    ".husky/pre-commit": {
-      "ownership": "kit",
-      "sha256": "58a0e92eab02374a09bea44bb6e18f9b088e5e5180203b0b1cb8c309740ac10b"
-    },
-    ".husky/pre-push": {
-      "ownership": "kit",
-      "sha256": "21b38e361c58ffc03baec92b4826f3d5bb6d122b0862fce1af0cb12acdfc09d3"
     },
     ".wiki/config.json": {
       "ownership": "seed",
@@ -37,10 +25,6 @@
       "ownership": "seed",
       "sha256": "3f9f07b25b1a2dfb59bbaa631f522b58a07301f499680939b02d50500c6cc721"
     },
-    "AGENTS.md": {
-      "ownership": "kit",
-      "sha256": "93715ca258469050c0e5c466bd86d9ecd67442329faac2350641966dfd810574"
-    },
     "CLAUDE.md": {
       "ownership": "seed",
       "sha256": "3ca00cefe7f0f391fe2ad6bb078ee3064aa82f8a5ae1ec02099dfa8f4862dad9"
@@ -51,19 +35,27 @@
     },
     "scripts/wiki/core.ts": {
       "ownership": "kit",
-      "sha256": "eb6c0bdb8dd24cb40e13bd341de5285c6021ef026f12ed1c69f671fd120fda0f"
+      "sha256": "1d3b5f1a77d22ff539431e69c1448399316dcd35ef13aa1b97649be2bc305511"
     },
     "scripts/wiki/fresh-context.test.ts": {
       "ownership": "kit",
-      "sha256": "763c8ea1d161b56afe79ea4a23125636ddf34b4158c31122baf981a6b1bb1ca5"
+      "sha256": "7f0082d0f64b6a938bfb61d72b444b8c3d37ee6d85c7be93a3f626b472d83232"
     },
     "scripts/wiki/github-attestation.ts": {
       "ownership": "kit",
-      "sha256": "4cb27ceea5acd3b16c13eb719429f6a05035eda6cfbc3a072bf048822831e86c"
+      "sha256": "cad5290748265f5b5cd1a5503f075cfb837283ca0e8b4e7c004567deb33139cb"
     },
     "scripts/wiki/inventories.ts": {
       "ownership": "seed",
       "sha256": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca"
+    },
+    "scripts/wiki/test-runner.ts": {
+      "ownership": "kit",
+      "sha256": "286f69b3e224851dc2c43e38c47a47654afd2516463b4b6c89d03a82f933a990"
+    },
+    "scripts/wiki/tsconfig.json": {
+      "ownership": "kit",
+      "sha256": "e663640cb557e1d3fee0c2ffca227ad0832d3cd30a341813c4fd09f73bb0e65a"
     },
     "scripts/wiki/wiki.test.ts": {
       "ownership": "kit",
@@ -95,9 +87,43 @@
     }
   },
   "kit": "wiki-ssot",
+  "managed": {
+    ".github/pull_request_template.md": {
+      "end": "<!-- wiki-ssot:managed:end -->",
+      "legacyMarkers": [
+        "fresh_context:"
+      ],
+      "sha256": "871b26e291b757c1b3946054de1af55f28607c1cc60e18769313fba02045058b",
+      "start": "<!-- wiki-ssot:managed:start -->"
+    },
+    ".husky/pre-commit": {
+      "end": "# wiki-ssot:managed:end",
+      "legacyMarkers": [
+        "bun run wiki:lint --staged"
+      ],
+      "sha256": "c9ad727cb00161e87677b904f7e52edf05ca280887d5ea39ffee269e11fb2e08",
+      "start": "# wiki-ssot:managed:start"
+    },
+    ".husky/pre-push": {
+      "end": "# wiki-ssot:managed:end",
+      "legacyMarkers": [
+        "refs/heads/main"
+      ],
+      "sha256": "7be73ead829e28feb1f58fb03bc41b6e9d8e4fd35e10c0064f657836cba2488d",
+      "start": "# wiki-ssot:managed:start"
+    },
+    "AGENTS.md": {
+      "end": "<!-- wiki-ssot:managed:end -->",
+      "legacyMarkers": [
+        "<!-- wiki-ssot:fresh-context-guardrail -->"
+      ],
+      "sha256": "864a64ed264f0bc561555c0689ab9077953eca1a7de426fbd7e92ea80c07cd82",
+      "start": "<!-- wiki-ssot:managed:start -->"
+    }
+  },
   "reference": {
-    "package.kit.json": "3cd2ebe06fe9cb5bcf72540a682f39fa6fd2fd5c4b2139fbc8c56654c12b3a4a",
+    "package.kit.json": "c90e49d9266943f7dba2283504ecdd35046030b5a937e8303973a9a46a7856e7",
     "scripts/wiki/inventories.example.ts": "c77492bf25a8e89d6c5f2de5d1238bb426e41b81cd255d7c153e05d295e91c4e"
   },
-  "version": 1
+  "version": 2
 }

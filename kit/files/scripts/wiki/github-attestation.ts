@@ -83,7 +83,7 @@ export function validateGitHubIntegrationSeams(view: RepoView): Finding[] {
     findings.push({ code: "fresh-context-template-missing", message: "PR template must include the structured fresh_context metadata contract", path: templatePath, severity: "error" });
   }
 
-  const workflowPath = ".github/workflows/checks.yml";
+  const workflowPath = ".github/workflows/wiki-ssot.yml";
   const workflow = view.exists(workflowPath) ? view.read(workflowPath) : "";
   let workflowValid = false;
   try {
@@ -149,7 +149,7 @@ export function validateGitHubIntegrationSeams(view: RepoView): Finding[] {
     workflowValid = false;
   }
   if (!workflowValid) {
-    findings.push({ code: "fresh-context-workflow-missing", message: "checks workflow must expose the stable wiki-review-attestation job and required PR activity triggers", path: workflowPath, severity: "error" });
+    findings.push({ code: "fresh-context-workflow-missing", message: "wiki-ssot workflow must expose the stable wiki-review-attestation job and required PR activity triggers", path: workflowPath, severity: "error" });
   }
   return findings;
 }

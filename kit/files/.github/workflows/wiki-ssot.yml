@@ -1,0 +1,143 @@
+name: wiki-ssot
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited, ready_for_review, converted_to_draft]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  wiki-structure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: HUSKY=0 bun install --frozen-lockfile
+      - run: bun run wiki:lint
+      - run: bun run wiki:doctor
+
+  wiki-generated:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: HUSKY=0 bun install --frozen-lockfile
+      - run: bun run wiki:generated -- --check
+
+  wiki-impact:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    env:
+      WIKI_PR_BODY: ${{ github.event.pull_request.body }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: HUSKY=0 bun install --frozen-lockfile
+      - name: Enforce wiki impact and conflict protocol
+        shell: bash
+        run: |
+          set -o pipefail
+          bun run wiki:impact -- --base origin/${{ github.base_ref }} --enforce --json | tee wiki-impact.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wiki-impact
+          path: wiki-impact.json
+
+  wiki-review-attestation:
+    name: wiki-review-attestation
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    env:
+      BASE_REF_NAME: ${{ github.event.pull_request.base.ref }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      REPOSITORY: ${{ github.event.pull_request.base.repo.full_name }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout trusted base implementation
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.base.repo.full_name }}
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+          path: trusted
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install trusted dependencies
+        working-directory: trusted
+        run: HUSKY=0 bun install --frozen-lockfile
+      - name: Materialize PR head as data without executing it
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -C trusted fetch --no-tags origin "pull/${PR_NUMBER}/head:refs/remotes/origin/wiki-review-attestation-head"
+          git -C trusted fetch --no-tags origin "${BASE_REF_NAME}:refs/remotes/origin/${BASE_REF_NAME}"
+          git -C trusted worktree add --detach "${RUNNER_TEMP}/wiki-pr-head" "${HEAD_SHA}"
+          echo "TRUSTED_ROOT=${GITHUB_WORKSPACE}/trusted" >> "$GITHUB_ENV"
+          echo "REVIEW_ROOT=${RUNNER_TEMP}/wiki-pr-head" >> "$GITHUB_ENV"
+          echo "PR_BODY_PATH=${RUNNER_TEMP}/pr-body.md" >> "$GITHUB_ENV"
+          echo "REPORT_PATH=${RUNNER_TEMP}/fresh-context-report.json" >> "$GITHUB_ENV"
+          echo "RESULT_PATH=${RUNNER_TEMP}/wiki-review-attestation.json" >> "$GITHUB_ENV"
+      - name: Read PR metadata from the trusted event payload
+        shell: bash
+        run: |
+          bun -e 'const event = await Bun.file(process.env.GITHUB_EVENT_PATH).json(); await Bun.write(process.env.PR_BODY_PATH, event.pull_request?.body ?? "");'
+      - name: Read authenticated GitHub attestations
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api --paginate --slurp "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" > "${RUNNER_TEMP}/issue-comments.json"
+          gh api --paginate --slurp "repos/${REPOSITORY}/pulls/${PR_NUMBER}/reviews?per_page=100" > "${RUNNER_TEMP}/pull-request-reviews.json"
+          bun "${TRUSTED_ROOT}/scripts/wiki/github-attestation.ts" \
+            --comments "${RUNNER_TEMP}/issue-comments.json" \
+            --reviews "${RUNNER_TEMP}/pull-request-reviews.json" \
+            --output "${REPORT_PATH}" \
+            --actor-output "${RUNNER_TEMP}/fresh-context-actor.txt" \
+            --envelope-output "${RUNNER_TEMP}/fresh-context-envelope.json"
+          reviewer_actor=""
+          if [ -f "${RUNNER_TEMP}/fresh-context-actor.txt" ]; then
+            reviewer_actor="$(tr -d '\r\n' < "${RUNNER_TEMP}/fresh-context-actor.txt")"
+          fi
+          echo "WIKI_REVIEWER_ACTOR=${reviewer_actor}" >> "$GITHUB_ENV"
+      - name: Deterministically validate Fresh-context attestation
+        working-directory: trusted
+        shell: bash
+        run: |
+          set -o pipefail
+          bun scripts/wiki/cli.ts review-check \
+            --root "${REVIEW_ROOT}" \
+            --base "origin/${BASE_REF_NAME}" \
+            --metadata "${PR_BODY_PATH}" \
+            --report "${REPORT_PATH}" \
+            --policy-file "${TRUSTED_ROOT}/.wiki/config.json" \
+            --reviewer-actor "${WIKI_REVIEWER_ACTOR}" \
+            --pr-author "${PR_AUTHOR}" \
+            --json | tee "${RESULT_PATH}"
+      - name: Upload Fresh-context validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wiki-review-attestation
+          path: |
+            ${{ runner.temp }}/wiki-review-attestation.json
+            ${{ runner.temp }}/fresh-context-envelope.json
+          if-no-files-found: warn

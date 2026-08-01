@@ -1,4 +1,3 @@
-#!/usr/bin/env sh
 # wiki-ssot:managed:start
 bun run wiki:lint --staged
 # wiki-ssot:managed:end

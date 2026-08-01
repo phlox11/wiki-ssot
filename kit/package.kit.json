@@ -9,15 +9,13 @@
     "bun": ">=1.1.0"
   },
   "scripts": {
-    "prepare": "husky",
-    "test": "bun test scripts/wiki",
-    "typecheck": "tsc --noEmit",
     "wiki:audit": "bun scripts/wiki/cli.ts audit",
     "wiki:check": "bun scripts/wiki/cli.ts check",
     "wiki:conflicts": "bun scripts/wiki/cli.ts conflicts",
     "wiki:context": "bun scripts/wiki/cli.ts context",
     "wiki:doctor": "bun scripts/wiki/cli.ts doctor",
     "wiki:generated": "bun scripts/wiki/cli.ts generated",
+    "wiki:hooks:install": "husky",
     "wiki:impact": "bun scripts/wiki/cli.ts impact",
     "wiki:index": "bun scripts/wiki/cli.ts index",
     "wiki:inventory": "bun scripts/wiki/cli.ts inventory",
@@ -26,8 +24,9 @@
     "wiki:review-check": "bun scripts/wiki/cli.ts review-check",
     "wiki:review-preflight": "bun scripts/wiki/cli.ts review-preflight",
     "wiki:search": "bun scripts/wiki/cli.ts search",
+    "wiki:tooling:test": "bun scripts/wiki/test-runner.ts",
+    "wiki:tooling:typecheck": "tsc --noEmit -p scripts/wiki/tsconfig.json",
     "wiki:verify": "bun scripts/wiki/cli.ts verify",
     "wiki:work": "bun scripts/wiki/cli.ts work"
-  },
-  "type": "module"
+  }
 }

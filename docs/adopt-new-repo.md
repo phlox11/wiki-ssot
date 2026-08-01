@@ -2,15 +2,16 @@
 
 Goal: start a repository with the wiki already in place, and grow it as the code grows.
 
-## 1. Copy the kit in
+## 1. Run the unified apply loop
 
-Create your empty repository, then sync the kit into it from a checkout of this one:
+Create a project directory and initialize Git, then run the same command used for adoption and every future upgrade:
 
 ```sh
-bun scripts/wiki/kit-sync.ts --into /path/to/your-repo
+git -C /path/to/your-repo init
+bun /path/to/WikiSsot/scripts/wiki/apply.ts --into /path/to/your-repo
 ```
 
-Then merge the scripts and dev dependencies into your `package.json` with the command in [`kit/README.md`](../kit/README.md#adopt-it-in-a-new-repository), and run `bun install`.
+The first report identifies mode `new` and intentionally returns `needs-reconcile` until the project has real source-backed current intent and non-empty maintained coverage. The command installs dependencies and hooks, preserves host package lifecycle commands, and can be rerun unchanged after each finding is resolved.
 
 You arrive with an empty verification ledger, an empty coverage `include`, an adopter-owned `.gitignore` that keeps installed dependencies out of the first candidate, and no pages to delete: the kit contains only the toolkit, never this repository's own wiki pages, conflicts, or proposals. Within `scripts/wiki/`, `wiki.test.ts`, `work.test.ts`, and `fresh-context.test.ts` are kit-owned — they are the engine's regression suites and run in CI. `inventories.example.ts` is never copied into your repository at all; read its patterns from `kit/scripts/wiki/inventories.example.ts` in this checkout when you write your own `inventories.ts`.
 
@@ -49,15 +50,13 @@ Start top-level `highRisk` empty and add stale-page globs as you introduce contr
 
 ## 3. Write the first pages as you write the first code
 
-The initially empty repository becomes green after kit sync, package/dependency merge, `wiki:generated`, and `wiki:verify`; at that point `wiki:lint`, `wiki:doctor`, `typecheck`, and the shipped engine tests pass while coverage is intentionally inactive. Commit that adoption baseline before adding product code so the first feature has a real merge base.
-
-Then add the first feature as one candidate:
+The apply loop does not call a copied toolkit with no project knowledge complete. Add the first feature and its Wiki contract as one candidate:
 
 1. Create production code and its test.
 2. Create `wiki/<group>/<name>.md` in the **same candidate**, with `sources` pointing at both files.
 3. Add the code area to `.wiki/coverage.json` `include`; extend `tsconfig.json` and the repository's `test` script so the new code and test are actually checked, and mark high-risk paths in `.wiki/config.json` where appropriate.
 4. Run `wiki:generated`, then `wiki:verify`. The candidate is not green before verification records the new current page's source hash.
-5. Run `wiki:lint`, `wiki:doctor`, `wiki:impact -- --base <adoption-baseline> --enforce`, `typecheck`, `test`, and `wiki:review-preflight` with prospective PR metadata. `not-required` is a passing preflight result when the configured risk selector does not select the feature; otherwise reconcile the emitted bundle to PASS in a separate context.
+5. Rerun `apply.ts` until it reports `ready`, then run `wiki:impact -- --base <base> --enforce` and `wiki:review-preflight` with prospective PR metadata. `not-required` is a passing preflight result when the configured risk selector does not select the feature; otherwise reconcile the emitted bundle to PASS in a separate context.
 6. Commit code, test, current page, coverage, generated maps/indexes, and the verification ledger together. Record real product invariants as `kind: invariant` pages early — they are what conflicts and reviews check against.
 
 Because the wiki grows *with* the code, each page is verified by the same PR that creates the behavior — no big-bang backfill, and no drift to catch up on later.

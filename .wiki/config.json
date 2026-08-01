@@ -4,6 +4,7 @@
   "publishesKit": true,
   "highRisk": [
     ".github/workflows/checks.yml",
+    ".github/workflows/wiki-ssot.yml",
     "scripts/wiki/**"
   ],
   "freshContext": {

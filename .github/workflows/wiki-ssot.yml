@@ -1,4 +1,4 @@
-name: checks
+name: wiki-ssot
 
 on:
   pull_request:
@@ -12,19 +12,6 @@ permissions:
   pull-requests: read
 
 jobs:
-  code-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-      - run: HUSKY=0 bun install --frozen-lockfile
-      - run: bun run typecheck
-      - run: bun run test
-
   wiki-structure:
     runs-on: ubuntu-latest
     steps:

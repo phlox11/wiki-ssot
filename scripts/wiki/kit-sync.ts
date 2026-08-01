@@ -56,6 +56,8 @@ export type KitManifest = {
   kit: string;
   digest: string;
   files: Record<string, KitManifestEntry>;
+  managed?: Record<string, { sha256: string; start: string; end: string; legacyMarkers?: string[] }>;
+  reference?: Record<string, string>;
 };
 
 export type SyncAction =
@@ -220,8 +222,15 @@ export function applySync(kitRoot: string, repoRoot: string, plan: SyncPlan): st
       applied.push(`${entry.target}.kit-new`);
     }
   }
-  write(resolveInside(repoRoot, MANIFEST_TARGET), `${JSON.stringify(plan.nextManifest, null, 2)}\n`);
-  applied.push(MANIFEST_TARGET);
+  const manifestPath = resolveInside(repoRoot, MANIFEST_TARGET);
+  const manifestContent = `${JSON.stringify(plan.nextManifest, null, 2)}\n`;
+  if (existsSync(manifestPath) && lstatSync(manifestPath).isSymbolicLink()) {
+    throw new Error(`refusing to write through a symlink: ${manifestPath}`);
+  }
+  if (!existsSync(manifestPath) || readFileSync(manifestPath, "utf8") !== manifestContent) {
+    write(manifestPath, manifestContent);
+    applied.push(MANIFEST_TARGET);
+  }
   return applied.sort();
 }
 

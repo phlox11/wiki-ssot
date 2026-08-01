@@ -1,5 +1,4 @@
-#!/usr/bin/env sh
-
+# wiki-ssot:managed:start
 while read -r local_ref local_sha remote_ref remote_sha
 do
   if [ "$remote_ref" = "refs/heads/main" ]; then
@@ -7,3 +6,4 @@ do
     exit 1
   fi
 done
+# wiki-ssot:managed:end

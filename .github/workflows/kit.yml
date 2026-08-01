@@ -1,7 +1,8 @@
 name: kit
 
-# Deliberately separate from checks.yml: that workflow is part of the kit payload
-# and runs in every adopting repository, where a kit/ directory does not exist.
+# Deliberately separate from wiki-ssot.yml: that workflow is part of the kit
+# payload and runs in adopting repositories, where a publisher kit/ tree does
+# not exist.
 
 on:
   pull_request:
