@@ -54,13 +54,13 @@ publication.
 
 ## Get started
 
-The distribution is [`kit/`](kit/README.md) — a generated tree containing the toolkit and nothing about this repository. Copy it into another repository, and take later upgrades, with:
+The distribution is [`kit/`](kit/README.md) — a generated tree containing the toolkit and nothing about this repository. One idempotent command handles a Git-initialized project with no commits, an existing project adopting Wiki SSOT, and any later upgrade:
 
 ```sh
-bun scripts/wiki/kit-sync.ts --into /path/to/your-repo
+bun /path/to/WikiSsot/scripts/wiki/apply.ts --into /path/to/your-repo
 ```
 
-It splits kit-owned files (replaced on upgrade) from seed files (yours after the first copy), and refuses to overwrite a file you edited. [`kit/README.md`](kit/README.md) has the full procedure.
+The command detects `new`, `adopt`, or `upgrade`; installs and updates the toolkit; merges only `wiki:*` package scripts and compatible toolkit dependencies; preserves host lifecycle scripts; refreshes generated files; and runs the Wiki checks. It never creates commits, branches, or PRs. If project-specific Wiki meaning is missing or a merge is unsafe, it returns structured `needs-reconcile` or `needs-merge` work; the coding agent resolves that work and reruns the same command. [`kit/README.md`](kit/README.md) has the full contract.
 
 Two paths, each a step-by-step playbook with copy-paste commands:
 
@@ -92,7 +92,7 @@ scripts/wiki/            # engine, CLI, provider/project adapters, kit tooling,
 wiki/                    # the SSOT pages + SCHEMA.md + WORKFLOW.md
 .wiki/                   # machine config + generated indexes + verification ledger
 .husky/                  # pre-commit (lint) + pre-push (block main)
-.github/workflows/       # checks.yml (PR gates) + kit.yml + wiki-audit.yml (weekly)
+.github/workflows/       # host checks + wiki-ssot.yml gates + kit.yml + weekly audit
 AGENTS.md / CLAUDE.md    # the agent entrypoint
 kit/                     # the generated distribution other repos copy
 docs/                    # design + adoption playbooks + command reference

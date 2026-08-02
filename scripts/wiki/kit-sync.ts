@@ -56,6 +56,10 @@ export type KitManifest = {
   kit: string;
   digest: string;
   files: Record<string, KitManifestEntry>;
+  /** Project-owned integration files accepted after one-time inspection. */
+  hostFiles?: string[];
+  managed?: Record<string, { sha256: string; start: string; end: string; legacyMarkers?: string[] }>;
+  reference?: Record<string, string>;
 };
 
 export type SyncAction =
@@ -87,8 +91,11 @@ export function sha256(content: string): string {
 
 function isManifest(value: unknown): value is KitManifest {
   if (value == null || typeof value !== "object") return false;
-  const files = (value as KitManifest).files;
+  const manifest = value as KitManifest;
+  const files = manifest.files;
   if (files == null || typeof files !== "object") return false;
+  if (manifest.hostFiles != null
+    && (!Array.isArray(manifest.hostFiles) || manifest.hostFiles.some((path) => typeof path !== "string" || path.length === 0))) return false;
   return Object.values(files).every((entry) => entry != null && typeof entry === "object" && typeof (entry as KitManifestEntry).sha256 === "string");
 }
 
@@ -150,6 +157,7 @@ export function planSync(kitRoot: string, repoRoot: string, accept: string[] = [
   if (!isManifest(incoming)) throw new Error(`kit manifest is malformed: ${manifestPath}`);
   const recorded = readManifest(join(repoRoot, MANIFEST_TARGET));
   const accepted = new Set(accept);
+  const retainedHostFiles = [...new Set(recorded?.hostFiles ?? [])].sort();
 
   const entries: SyncEntry[] = [];
   const nextFiles: Record<string, KitManifestEntry> = {};
@@ -189,11 +197,14 @@ export function planSync(kitRoot: string, repoRoot: string, accept: string[] = [
 
   entries.sort((a, b) => a.target.localeCompare(b.target));
   const conflicts = entries.filter((entry) => entry.action === "conflict").map((entry) => entry.target);
+  const nextManifest: KitManifest = { ...incoming, files: nextFiles };
+  if (retainedHostFiles.length > 0) nextManifest.hostFiles = retainedHostFiles;
+  else delete nextManifest.hostFiles;
   return {
     digest: incoming.digest,
     entries,
     conflicts,
-    nextManifest: { ...incoming, files: nextFiles },
+    nextManifest,
   };
 }
 
@@ -220,8 +231,15 @@ export function applySync(kitRoot: string, repoRoot: string, plan: SyncPlan): st
       applied.push(`${entry.target}.kit-new`);
     }
   }
-  write(resolveInside(repoRoot, MANIFEST_TARGET), `${JSON.stringify(plan.nextManifest, null, 2)}\n`);
-  applied.push(MANIFEST_TARGET);
+  const manifestPath = resolveInside(repoRoot, MANIFEST_TARGET);
+  const manifestContent = `${JSON.stringify(plan.nextManifest, null, 2)}\n`;
+  if (existsSync(manifestPath) && lstatSync(manifestPath).isSymbolicLink()) {
+    throw new Error(`refusing to write through a symlink: ${manifestPath}`);
+  }
+  if (!existsSync(manifestPath) || readFileSync(manifestPath, "utf8") !== manifestContent) {
+    write(manifestPath, manifestContent);
+    applied.push(MANIFEST_TARGET);
+  }
   return applied.sort();
 }
 

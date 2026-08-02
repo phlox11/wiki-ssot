@@ -10,7 +10,7 @@
   "scripts": {
     "prepare": "husky",
     "typecheck": "tsc --noEmit",
-    "test": "bun test scripts/wiki",
+    "test": "bun scripts/wiki/test-runner.ts",
     "wiki:inventory": "bun scripts/wiki/cli.ts inventory",
     "wiki:index": "bun scripts/wiki/cli.ts index",
     "wiki:generated": "bun scripts/wiki/cli.ts generated",
@@ -27,7 +27,10 @@
     "wiki:review-check": "bun scripts/wiki/cli.ts review-check",
     "wiki:doctor": "bun scripts/wiki/cli.ts doctor",
     "wiki:check": "bun scripts/wiki/cli.ts check",
-    "wiki:audit": "bun scripts/wiki/cli.ts audit"
+    "wiki:audit": "bun scripts/wiki/cli.ts audit",
+    "wiki:hooks:install": "husky",
+    "wiki:tooling:typecheck": "tsc --noEmit -p scripts/wiki/tsconfig.json",
+    "wiki:tooling:test": "bun scripts/wiki/test-runner.ts"
   },
   "devDependencies": {
     "@types/bun": "^1.1.14",

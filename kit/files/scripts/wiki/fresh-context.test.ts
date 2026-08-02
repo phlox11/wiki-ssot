@@ -1490,7 +1490,7 @@ Do not label pages with status proposed, conflicted, deprecated, or archived as 
   });
 
   test("GitHub reference workflow skips Drafts and validates Ready PRs", () => {
-    const workflow = readFileSync(join(process.cwd(), ".github/workflows/checks.yml"), "utf8");
+    const workflow = readFileSync(join(process.cwd(), ".github/workflows/wiki-ssot.yml"), "utf8");
     expect(workflow).toContain("wiki-review-attestation:");
     expect(workflow).toContain("name: wiki-review-attestation");
     expect(workflow).toContain("edited");
@@ -1524,8 +1524,8 @@ jobs:
     const view = {
       root: "/memory",
       mode: "working" as const,
-      listFiles: () => [".github/pull_request_template.md", ".github/workflows/checks.yml"],
-      exists: (path: string) => [".github/pull_request_template.md", ".github/workflows/checks.yml"].includes(path),
+      listFiles: () => [".github/pull_request_template.md", ".github/workflows/wiki-ssot.yml"],
+      exists: (path: string) => [".github/pull_request_template.md", ".github/workflows/wiki-ssot.yml"].includes(path),
       read: (path: string) => path.endsWith("pull_request_template.md")
         ? "fresh_context: verdict: reviewed_head_sha: bundle_digest: reviewer: evidence:"
         : fakeWorkflow,

@@ -24,8 +24,8 @@ wiki-ssot turns a repository's development knowledge into a small set of `status
 - A pre-PR command that deterministically classifies risk, prepares an independent-review bundle, and validates the returned structured Fresh-context report before publication.
 - Explicit solo and team trust policies: separate review context is always procedural, while distinct GitHub actors are optional and machine-enforced only when configured.
 - Enforcement rails within a trusted repository-developer boundary: a provider-neutral agent entrypoint (`AGENTS.md`) with machine-checked affirmative authority, work-discovery, and focused-context clause shapes; local git hooks; CI jobs; and downstream integration seams.
-- Two adoption paths: bootstrap a wiki into an existing repository, or grow one from an empty repository.
-- A generated `kit/` distribution and a sync tool, so another repository can adopt the toolkit by copy and later take an upgrade without losing its own configuration. This repository's own wiki pages, conflicts, and proposals are instance content and are not part of it.
+- One idempotent apply loop across every lifecycle state: install while beginning a Git project, adopt into an existing codebase, or upgrade an installed Wiki SSOT. Every path performs the same deterministic Wiki/code checks and returns project-specific semantic reconciliation to the invoking coding agent.
+- A generated `kit/` distribution with separate kit-owned, managed-block, seeded project-owned, and reference content. Upgrades replace only what the toolkit owns, preserve host scripts/workflows and project policy, split the recognized version 1 combined CI into retained host code checks plus dedicated Wiki checks, and fail closed instead of overwriting ambiguous customizations. This repository's own wiki pages, conflicts, and proposals are instance content and are not part of it.
 
 ## Validated boundary
 

@@ -1094,10 +1094,12 @@ export function sourceHashes(view: RepoView, page: WikiPage): Record<string, str
 // generated from the files below, never hand-edited: `wiki:kit` writes it and
 // `wiki:kit --check` fails when it drifts from its sources.
 //
-// The payload is split in two because adoption and upgrade need opposite rules:
+// The payload is split by ownership because adoption and upgrade need opposite rules:
 //   kit/files/**  stays kit-owned. Adoption copies it wholesale and an upgrade
 //                 replaces it, so engine and rail improvements actually reach an
 //                 adopting repository.
+//   kit/managed/** owns only a marked block inside a shared host file. Content
+//                 outside the block remains project-owned.
 //   kit/seed/**   becomes the adopter's on first copy. Adoption writes each file
 //                 only when it is absent and an upgrade never touches it, so
 //                 project policy, recorded source hashes, and a project-specific
@@ -1122,14 +1124,17 @@ export type KitOwnership = "kit" | "seed";
  * an adopting repository:
  *   files     copied on adoption and replaced on upgrade
  *   seed      copied only when absent and never updated
+ *   managed   one marked block is replaced while surrounding host content stays
  *   reference read from the kit checkout, never copied — so nothing an adopter
  *             merges and deletes gets re-dropped by the next upgrade
  */
-export type KitPlacement = "files" | "seed" | "reference";
+export type KitPlacement = "files" | "seed" | "managed" | "reference";
 
 type KitSource =
   | { kind: "copy"; from: string }
   | { kind: "strip"; from: string }
+  | { kind: "managed-block"; from: string; start: string; end: string; legacyMarkers?: string[] }
+  | { kind: "legacy-v1-workflow"; host: string; wiki: string }
   | { kind: "literal"; content: string }
   | { kind: "package-fragment"; from: string };
 
@@ -1182,12 +1187,56 @@ export const KIT_ENTRIES: KitEntry[] = [
   { target: "scripts/wiki/wiki.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/wiki.test.ts" } },
   { target: "scripts/wiki/work.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/work.test.ts" } },
   { target: "scripts/wiki/fresh-context.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/fresh-context.test.ts" } },
-  { target: ".github/workflows/checks.yml", placement: "files", source: { kind: "copy", from: ".github/workflows/checks.yml" } },
+  { target: "scripts/wiki/test-runner.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/test-runner.ts" } },
+  { target: "scripts/wiki/tsconfig.json", placement: "files", source: { kind: "copy", from: "scripts/wiki/tsconfig.json" } },
+  { target: ".github/workflows/wiki-ssot.yml", placement: "files", source: { kind: "copy", from: ".github/workflows/wiki-ssot.yml" } },
   { target: ".github/workflows/wiki-audit.yml", placement: "files", source: { kind: "copy", from: ".github/workflows/wiki-audit.yml" } },
-  { target: ".github/pull_request_template.md", placement: "files", source: { kind: "copy", from: ".github/pull_request_template.md" } },
-  { target: ".husky/pre-commit", placement: "files", source: { kind: "copy", from: ".husky/pre-commit" } },
-  { target: ".husky/pre-push", placement: "files", source: { kind: "copy", from: ".husky/pre-push" } },
-  { target: "AGENTS.md", placement: "files", source: { kind: "strip", from: "AGENTS.md" } },
+  {
+    target: "migrations/v1/checks.yml",
+    placement: "reference",
+    source: { kind: "legacy-v1-workflow", host: ".github/workflows/checks.yml", wiki: ".github/workflows/wiki-ssot.yml" },
+  },
+  {
+    target: "migrations/v1/host-checks.yml",
+    placement: "reference",
+    source: { kind: "copy", from: ".github/workflows/checks.yml" },
+  },
+  {
+    target: ".github/pull_request_template.md",
+    placement: "managed",
+    source: {
+      kind: "managed-block", from: ".github/pull_request_template.md",
+      start: "<!-- wiki-ssot:managed:start -->", end: "<!-- wiki-ssot:managed:end -->",
+      legacyMarkers: ["fresh_context:"],
+    },
+  },
+  {
+    target: ".husky/pre-commit",
+    placement: "managed",
+    source: {
+      kind: "managed-block", from: ".husky/pre-commit",
+      start: "# wiki-ssot:managed:start", end: "# wiki-ssot:managed:end",
+      legacyMarkers: ["bun run wiki:lint --staged"],
+    },
+  },
+  {
+    target: ".husky/pre-push",
+    placement: "managed",
+    source: {
+      kind: "managed-block", from: ".husky/pre-push",
+      start: "# wiki-ssot:managed:start", end: "# wiki-ssot:managed:end",
+      legacyMarkers: ["refs/heads/main"],
+    },
+  },
+  {
+    target: "AGENTS.md",
+    placement: "managed",
+    source: {
+      kind: "managed-block", from: "AGENTS.md",
+      start: "<!-- wiki-ssot:managed:start -->", end: "<!-- wiki-ssot:managed:end -->",
+      legacyMarkers: ["<!-- wiki-ssot:fresh-context-guardrail -->"],
+    },
+  },
   { target: "wiki/README.md", placement: "files", source: { kind: "strip", from: "wiki/README.md" } },
   { target: "wiki/SCHEMA.md", placement: "files", source: { kind: "strip", from: "wiki/SCHEMA.md" } },
   { target: "wiki/WORKFLOW.md", placement: "files", source: { kind: "strip", from: "wiki/WORKFLOW.md" } },
@@ -1237,14 +1286,48 @@ export function stripKitExclusions(raw: string): { content: string; error?: stri
 function kitPackageFragment(raw: string): { content: string; error?: string } {
   let parsed: unknown;
   try { parsed = JSON.parse(raw); } catch { return { content: "", error: "package.json is not valid JSON" }; }
-  const pkg = parsed as { type?: unknown; engines?: unknown; scripts?: Record<string, string>; devDependencies?: unknown };
-  const scripts = Object.fromEntries(Object.entries(pkg.scripts ?? {}).filter(([name]) => !KIT_OMITTED_SCRIPTS.has(name)));
-  return { content: jsonStable({ type: pkg.type, engines: pkg.engines, scripts, devDependencies: pkg.devDependencies }) };
+  const pkg = parsed as { engines?: unknown; scripts?: Record<string, string>; devDependencies?: unknown };
+  const scripts = Object.fromEntries(Object.entries(pkg.scripts ?? {})
+    .filter(([name]) => name.startsWith("wiki:") && !KIT_OMITTED_SCRIPTS.has(name)));
+  return { content: jsonStable({ engines: pkg.engines, scripts, devDependencies: pkg.devDependencies }) };
+}
+
+function extractManagedBlock(raw: string, source: Extract<KitSource, { kind: "managed-block" }>): { content: string; error?: string } {
+  const starts = raw.split(source.start).length - 1;
+  const ends = raw.split(source.end).length - 1;
+  const startIndex = raw.indexOf(source.start);
+  const endIndex = raw.indexOf(source.end, startIndex + source.start.length);
+  if (starts !== 1 || ends !== 1 || startIndex < 0 || endIndex < startIndex) {
+    return { content: "", error: `managed source must contain exactly one ordered ${source.start}/${source.end} block` };
+  }
+  const block = raw.slice(startIndex, endIndex + source.end.length);
+  const stripped = stripKitExclusions(block);
+  return stripped.error ? stripped : { content: `${stripped.content.trim()}\n` };
 }
 
 function renderKitEntry(view: RepoView, entry: KitEntry, findings: Finding[]): string | null {
   const source = entry.source;
   if (source.kind === "literal") return source.content;
+  if (source.kind === "legacy-v1-workflow") {
+    const missing = [source.host, source.wiki].filter((path) => !view.exists(path));
+    if (missing.length > 0) {
+      for (const path of missing) pushFinding(findings, path, "kit-source-missing", `kit entry ${entry.target} has no source file`);
+      return null;
+    }
+    const host = view.read(source.host);
+    const wiki = view.read(source.wiki);
+    const delimiter = "jobs:\n";
+    const hostJobsAt = host.indexOf(delimiter);
+    const wikiJobsAt = wiki.indexOf(delimiter);
+    if (hostJobsAt < 0 || wikiJobsAt < 0) {
+      pushFinding(findings, source.wiki, "kit-source-invalid", `kit entry ${entry.target} cannot reconstruct the version 1 combined workflow`);
+      return null;
+    }
+    const combinedHeader = wiki.slice(0, wikiJobsAt).replace(/^name: wiki-ssot$/m, "name: checks");
+    const hostJobs = host.slice(hostJobsAt + delimiter.length).trimEnd();
+    const wikiJobs = wiki.slice(wikiJobsAt + delimiter.length);
+    return `${combinedHeader}${delimiter}${hostJobs}\n\n${wikiJobs}`;
+  }
   if (!view.exists(source.from)) {
     pushFinding(findings, source.from, "kit-source-missing", `kit entry ${entry.target} has no source file`);
     return null;
@@ -1258,6 +1341,14 @@ function renderKitEntry(view: RepoView, entry: KitEntry, findings: Finding[]): s
       return null;
     }
     return fragment.content;
+  }
+  if (source.kind === "managed-block") {
+    const block = extractManagedBlock(raw, source);
+    if (block.error) {
+      pushFinding(findings, source.from, "kit-managed-block-invalid", `kit entry ${entry.target}: ${block.error}`);
+      return null;
+    }
+    return block.content;
   }
   const stripped = stripKitExclusions(raw);
   if (stripped.error) {
@@ -1282,17 +1373,26 @@ export function kitFiles(view: RepoView): { files: Record<string, string>; findi
   // "are you up to date" check built on it, claiming nothing moved.
   const manifestFiles: Record<string, { sha256: string; ownership: KitOwnership }> = {};
   const manifestReference: Record<string, string> = {};
+  const manifestManaged: Record<string, { sha256: string; start: string; end: string; legacyMarkers?: string[] }> = {};
   for (const { entry, content } of rendered) {
     if (entry.placement === "reference") manifestReference[entry.target] = hashContent(content);
+    else if (entry.placement === "managed") {
+      const source = entry.source as Extract<KitSource, { kind: "managed-block" }>;
+      manifestManaged[entry.target] = {
+        sha256: hashContent(content), start: source.start, end: source.end,
+        ...(source.legacyMarkers == null ? {} : { legacyMarkers: source.legacyMarkers }),
+      };
+    }
     else manifestFiles[entry.target] = { sha256: hashContent(content), ownership: entry.placement === "files" ? "kit" : "seed" };
   }
   const manifest = {
-    version: 1,
+    version: 2,
     kit: "wiki-ssot",
     // Content-addressed rather than tagged: the digest identifies exactly which
     // kit an adopter holds without a version string or a timestamp to drift.
-    digest: hashContent(jsonStable({ files: manifestFiles, reference: manifestReference })),
+    digest: hashContent(jsonStable({ files: manifestFiles, managed: manifestManaged, reference: manifestReference })),
     files: manifestFiles,
+    managed: manifestManaged,
     reference: manifestReference,
   };
 

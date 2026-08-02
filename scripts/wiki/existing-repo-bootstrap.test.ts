@@ -20,6 +20,7 @@ import {
   type PrMetadata,
 } from "./core";
 import { MANIFEST_TARGET, applySync, planSync, sha256 } from "./kit-sync";
+import { mergeManagedBlock } from "./apply";
 
 const temporary: string[] = [];
 
@@ -68,11 +69,26 @@ function moveUpstream(kit: string, ownership: "kit" | "seed", target: string, co
   const manifestPath = join(kit, "files", MANIFEST_TARGET);
   const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as {
     files: Record<string, { sha256: string; ownership: string }>;
+    managed: Record<string, { sha256: string; start: string; end: string }>;
     reference: Record<string, string>;
     digest: string;
   };
   manifest.files[target].sha256 = sha256(content);
-  manifest.digest = sha256(jsonStable({ files: manifest.files, reference: manifest.reference }));
+  manifest.digest = sha256(jsonStable({ files: manifest.files, managed: manifest.managed, reference: manifest.reference }));
+  writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+}
+
+function moveManagedUpstream(kit: string, target: string, content: string): void {
+  put(kit, `managed/${target}`, content);
+  const manifestPath = join(kit, "files", MANIFEST_TARGET);
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as {
+    files: Record<string, { sha256: string; ownership: string }>;
+    managed: Record<string, { sha256: string; start: string; end: string }>;
+    reference: Record<string, string>;
+    digest: string;
+  };
+  manifest.managed[target].sha256 = sha256(content);
+  manifest.digest = sha256(jsonStable({ files: manifest.files, managed: manifest.managed, reference: manifest.reference }));
   writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 }
 
@@ -202,17 +218,16 @@ describe("existing-repository bootstrap evidence", () => {
 
     const kit = stageKit();
     const initial = planSync(kit, repo);
-    expect(initial.conflicts).toEqual(["AGENTS.md"]);
+    expect(initial.conflicts).toEqual([]);
     applySync(kit, repo, initial);
-    expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toContain("Existing repository instructions");
-    expect(readFileSync(join(repo, "AGENTS.md.kit-new"), "utf8")).toContain("wiki-ssot:fresh-context-guardrail");
-
-    const mergedAgents = `${readFileSync(join(repo, "AGENTS.md"), "utf8").trimEnd()}\n\n${readFileSync(join(repo, "AGENTS.md.kit-new"), "utf8").trimStart()}`;
-    writeFileSync(join(repo, "AGENTS.md"), mergedAgents);
-    rmSync(join(repo, "AGENTS.md.kit-new"));
-    const accepted = planSync(kit, repo, ["AGENTS.md"]);
-    expect(actionFor(accepted, "AGENTS.md")).toBe("resolved");
-    applySync(kit, repo, accepted);
+    const initialAgents = mergeManagedBlock(
+      readFileSync(join(repo, "AGENTS.md"), "utf8"),
+      readFileSync(join(kit, "managed/AGENTS.md"), "utf8"),
+    );
+    expect(initialAgents.status).toBe("ready");
+    writeFileSync(join(repo, "AGENTS.md"), initialAgents.content);
+    expect(initialAgents.content).toContain("Existing repository instructions");
+    expect(initialAgents.content).toContain("wiki-ssot:fresh-context-guardrail");
     mergePackageFragment(repo, kit);
 
     put(repo, ".wiki/config.json", jsonStable({
@@ -337,8 +352,9 @@ describe("existing-repository bootstrap evidence", () => {
     const localAgents = `${readFileSync(join(repo, "AGENTS.md"), "utf8").trimEnd()}\n\n## Existing service customization\n\nRun the host release checklist before deployment.\n`;
     writeFileSync(join(repo, "AGENTS.md"), localAgents);
 
-    const incomingAgents = `${readFileSync(join(kit, "files/AGENTS.md"), "utf8").trimEnd()}\n\n<!-- kit-v2-entrypoint -->\n`;
-    moveUpstream(kit, "kit", "AGENTS.md", incomingAgents);
+    const incomingAgents = readFileSync(join(kit, "managed/AGENTS.md"), "utf8")
+      .replace("<!-- wiki-ssot:managed:end -->", "<!-- kit-v2-entrypoint -->\n<!-- wiki-ssot:managed:end -->");
+    moveManagedUpstream(kit, "AGENTS.md", incomingAgents);
     moveUpstream(kit, "kit", "wiki/README.md", "# wiki\n\nUpstream kit v2 documentation.\n");
     moveUpstream(kit, "seed", ".wiki/config.json", '{"version":1,"name":"upstream-v2-policy"}\n');
     moveUpstream(kit, "seed", ".wiki/coverage.json", '{"version":1,"include":["upstream/**"],"exclusions":[]}\n');
@@ -346,21 +362,16 @@ describe("existing-repository bootstrap evidence", () => {
     moveUpstream(kit, "seed", "scripts/wiki/inventories.ts", "export const upstreamInventory = true;\n");
 
     const upgrade = planSync(kit, repo);
-    expect(actionFor(upgrade, "AGENTS.md")).toBe("conflict");
     expect(actionFor(upgrade, "wiki/README.md")).toBe("update");
     for (const path of adopterOwned) expect(actionFor(upgrade, path)).toBe("seed-present");
     applySync(kit, repo, upgrade);
     expect(readFileSync(join(repo, "wiki/README.md"), "utf8")).toContain("Upstream kit v2");
     for (const path of adopterOwned) expect(readFileSync(join(repo, path), "utf8")).toBe(beforeUpgrade[path]);
 
-    const mergedUpgradeAgents = `${localAgents.trimEnd()}\n\n<!-- kit-v2-entrypoint -->\n`;
-    writeFileSync(join(repo, "AGENTS.md"), mergedUpgradeAgents);
-    rmSync(join(repo, "AGENTS.md.kit-new"));
-    const resolvedUpgrade = planSync(kit, repo, ["AGENTS.md"]);
-    expect(actionFor(resolvedUpgrade, "AGENTS.md")).toBe("resolved");
-    applySync(kit, repo, resolvedUpgrade);
-    expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toBe(mergedUpgradeAgents);
-    expect(actionFor(planSync(kit, repo), "AGENTS.md")).toBe("customized");
-    expect(existsSync(join(repo, "AGENTS.md.kit-new"))).toBe(false);
+    const mergedUpgradeAgents = mergeManagedBlock(localAgents, incomingAgents);
+    expect(mergedUpgradeAgents.status).toBe("ready");
+    writeFileSync(join(repo, "AGENTS.md"), mergedUpgradeAgents.content);
+    expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toContain("kit-v2-entrypoint");
+    expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toContain("Existing service customization");
   });
 });

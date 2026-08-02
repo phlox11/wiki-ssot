@@ -1,7 +1,4 @@
-## Summary
-
-<!-- What changed, and why? -->
-
+<!-- wiki-ssot:managed:start -->
 ## Wiki metadata
 
 ```yaml
@@ -30,3 +27,4 @@ fresh_context:
 - [ ] Relevant typecheck/tests pass
 - [ ] Pre-PR `wiki:review-preflight` returned `pass` or `not-required`
 - [ ] `wiki-review-attestation` records `required: false` or validates PASS for the current PR HEAD and bundle digest
+<!-- wiki-ssot:managed:end -->

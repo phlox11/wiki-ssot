@@ -1,3 +1,4 @@
+<!-- wiki-ssot:managed:start -->
 # Agent instructions
 
 These rules apply to every coding agent and every task in this repository. They exist so an agent starting a fresh session with no memory of past work can still find the code and constraints it must account for, and cannot silently drift the wiki out of sync with the code.
@@ -54,3 +55,4 @@ These rules apply to every coding agent and every task in this repository. They 
 - The accepted workflow-bootstrap trust decision for this repository is recorded in `wiki/proposals/protected-main.md`.
 <!-- kit:exclude:end -->
 - Keep unrelated changes intact and do not bypass checks to make a change appear valid.
+<!-- wiki-ssot:managed:end -->

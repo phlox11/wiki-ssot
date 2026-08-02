@@ -99,8 +99,13 @@ describe("kit:exclude stripping", () => {
 describe("kit entry table", () => {
   test("every entry names a source that exists", () => {
     const view = createRepoView(process.cwd());
-    const missing = KIT_ENTRIES.filter((entry) => entry.source.kind !== "literal" && !view.exists((entry.source as { from: string }).from));
-    expect(missing.map((entry) => entry.target)).toEqual([]);
+    const missing = KIT_ENTRIES.flatMap((entry) => {
+      const paths = entry.source.kind === "literal" ? []
+        : entry.source.kind === "legacy-v1-workflow" ? [entry.source.host, entry.source.wiki]
+          : [entry.source.from];
+      return paths.filter((path) => !view.exists(path)).map((path) => `${entry.target} <- ${path}`);
+    });
+    expect(missing).toEqual([]);
   });
 
   test("targets and emitted paths are unique", () => {
@@ -112,6 +117,7 @@ describe("kit entry table", () => {
 
   test("placement decides the emitted directory", () => {
     expect(kitPath({ target: "AGENTS.md", placement: "files" })).toBe("kit/files/AGENTS.md");
+    expect(kitPath({ target: "AGENTS.md", placement: "managed" })).toBe("kit/managed/AGENTS.md");
     expect(kitPath({ target: ".wiki/config.json", placement: "seed" })).toBe("kit/seed/.wiki/config.json");
     expect(kitPath({ target: "package.kit.json", placement: "reference" })).toBe("kit/package.kit.json");
   });
@@ -208,7 +214,7 @@ describe("emitted kit", () => {
     // Scoped to `strip` entries on purpose: the engine source legitimately ships
     // the marker text because it is where the constants are defined.
     const { files } = realKit();
-    const leaked = KIT_ENTRIES.filter((entry) => entry.source.kind === "strip")
+    const leaked = KIT_ENTRIES.filter((entry) => entry.source.kind === "strip" || entry.source.kind === "managed-block")
       .map((entry) => kitPath(entry))
       .filter((path) => files[path].includes(KIT_EXCLUDE_START) || files[path].includes(KIT_EXCLUDE_END));
     expect(leaked).toEqual([]);
@@ -225,7 +231,7 @@ describe("emitted kit", () => {
     const { files } = realKit();
     const installed = {
       ".wiki/config.json": files["kit/seed/.wiki/config.json"],
-      "AGENTS.md": files["kit/files/AGENTS.md"],
+      "AGENTS.md": files["kit/managed/AGENTS.md"],
       "package.json": files["kit/package.kit.json"],
     };
     const view = {
@@ -262,24 +268,24 @@ describe("emitted kit", () => {
   test("drops guidance that points at pages only this repository has", () => {
     const { files } = realKit();
     expect(readFileSync("AGENTS.md", "utf8")).toContain("protected-main");
-    expect(files["kit/files/AGENTS.md"]).not.toContain("protected-main");
+    expect(files["kit/managed/AGENTS.md"]).not.toContain("protected-main");
     expect(files["kit/files/wiki/WORKFLOW.md"]).not.toContain("protected-main");
   });
 
   test("keeps the base-engine bundle rule, which applies downstream too", () => {
-    // The shipped checks.yml does the same base.sha checkout and the shipped
+    // The shipped wiki-ssot.yml does the same base.sha checkout and the shipped
     // policy lists scripts/wiki/** as review-triggering, so an adopter editing
     // the engine hits the same digest recomputation. Stripping it from the
     // entrypoint while wiki/WORKFLOW.md kept it left the two disagreeing.
     const { files } = realKit();
-    expect(files["kit/files/AGENTS.md"]).toContain("base-checkout");
+    expect(files["kit/managed/AGENTS.md"]).toContain("base-checkout");
     expect(files["kit/files/wiki/WORKFLOW.md"]).toContain("merge-base engine");
   });
 
   test("ships the warning that branch protection matches on check name", () => {
-    // checks.yml is part of the payload, so every adopting repository inherits
+    // wiki-ssot.yml is part of the payload, so every adopting repository inherits
     // the seam, while the wiki page and docs that explained it stay behind here.
-    expect(realKit().files["kit/files/AGENTS.md"]).toContain("keeps a required job's name");
+    expect(realKit().files["kit/managed/AGENTS.md"]).toContain("keeps a required job's name");
   });
 });
 
@@ -288,14 +294,15 @@ describe("kit manifest", () => {
     return JSON.parse(realKit().files[`kit/files/${KIT_MANIFEST_TARGET}`]) as {
       digest: string;
       files: Record<string, { sha256: string; ownership: "kit" | "seed" }>;
+      managed: Record<string, { sha256: string; start: string; end: string }>;
       reference: Record<string, string>;
     };
   }
 
   test("records ownership derived from placement", () => {
-    const entries = manifest().files;
-    expect(entries["AGENTS.md"].ownership).toBe("kit");
-    expect(entries[".wiki/config.json"].ownership).toBe("seed");
+    const parsed = manifest();
+    expect(parsed.managed["AGENTS.md"].start).toBe("<!-- wiki-ssot:managed:start -->");
+    expect(parsed.files[".wiki/config.json"].ownership).toBe("seed");
   });
 
   test("keeps reference files out of the synced file map but inside the kit", () => {
@@ -303,7 +310,21 @@ describe("kit manifest", () => {
     expect(KIT_MANIFEST_TARGET in parsed.files).toBe(false);
     expect("package.kit.json" in parsed.files).toBe(false);
     expect("package.kit.json" in parsed.reference).toBe(true);
-    expect(Object.keys(parsed.files).length).toBe(KIT_ENTRIES.filter((entry) => entry.placement !== "reference").length);
+    expect("migrations/v1/checks.yml" in parsed.reference).toBe(true);
+    expect("migrations/v1/host-checks.yml" in parsed.reference).toBe(true);
+    expect(Object.keys(parsed.files).length).toBe(KIT_ENTRIES.filter((entry) => entry.placement === "files" || entry.placement === "seed").length);
+    expect(Object.keys(parsed.managed).length).toBe(KIT_ENTRIES.filter((entry) => entry.placement === "managed").length);
+  });
+
+  test("locks the exact version 1 workflow and its host-only migration result", () => {
+    const { files } = realKit();
+    const legacy = files["kit/migrations/v1/checks.yml"];
+    const host = files["kit/migrations/v1/host-checks.yml"];
+    expect(sha256(legacy)).toBe("53d46f240a5f4ee78327cae0d1e221ded01bd7b36b714c16121dd1256b1d92d5");
+    expect(legacy).toContain("code-check:");
+    expect(legacy).toContain("wiki-structure:");
+    expect(host).toContain("code-check:");
+    expect(host).not.toContain("wiki-structure:");
   });
 
   test("the digest covers reference files too", () => {
@@ -311,7 +332,7 @@ describe("kit manifest", () => {
     // digest ignored it, every "are you up to date" check would say nothing moved.
     const parsed = manifest();
     const hasher = new Bun.CryptoHasher("sha256");
-    hasher.update(jsonStable({ files: parsed.files, reference: parsed.reference }));
+    hasher.update(jsonStable({ files: parsed.files, managed: parsed.managed, reference: parsed.reference }));
     expect(hasher.digest("hex")).toBe(parsed.digest);
 
     const withoutReference = new Bun.CryptoHasher("sha256");
@@ -325,6 +346,11 @@ describe("kit manifest", () => {
       const shipped = files[kitPath({ target, placement: meta.ownership === "kit" ? "files" : "seed" })];
       const hasher = new Bun.CryptoHasher("sha256");
       hasher.update(shipped);
+      expect(hasher.digest("hex")).toBe(meta.sha256);
+    }
+    for (const [target, meta] of Object.entries(manifest().managed)) {
+      const hasher = new Bun.CryptoHasher("sha256");
+      hasher.update(files[kitPath({ target, placement: "managed" })]);
       expect(hasher.digest("hex")).toBe(meta.sha256);
     }
   });
@@ -371,6 +397,9 @@ describe("kit drift detection", () => {
 
 
 describe("kit sync", () => {
+  const SYNC_TARGET = "wiki/README.md";
+  const SECOND_SYNC_TARGET = "scripts/wiki/cli.ts";
+
   function stageKit(): string {
     const root = tempDir("kit-src-");
     for (const [path, content] of Object.entries(realKit().files)) {
@@ -406,70 +435,69 @@ describe("kit sync", () => {
     const repo = tempDir("kit-dest-");
     const plan = planSync(kit, repo);
     expect(plan.conflicts).toEqual([]);
-    expect(actionFor(plan, "AGENTS.md")).toBe("create");
+    expect(actionFor(plan, SYNC_TARGET)).toBe("create");
     expect(actionFor(plan, ".wiki/config.json")).toBe("seed-created");
     applySync(kit, repo, plan);
-    expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toContain("wiki-ssot:fresh-context-guardrail");
-    expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toContain("wiki-ssot:work-discovery");
+    expect(readFileSync(join(repo, SYNC_TARGET), "utf8")).toContain("single source of truth");
     expect(readFileSync(join(repo, "scripts/wiki/work.test.ts"), "utf8")).toContain("generic fresh-session prompts");
   });
 
   test("a second run reports nothing to do", () => {
     const { kit, repo } = adopt();
     const plan = planSync(kit, repo);
-    expect(actionFor(plan, "AGENTS.md")).toBe("unchanged");
+    expect(actionFor(plan, SYNC_TARGET)).toBe("unchanged");
     expect(actionFor(plan, ".wiki/config.json")).toBe("seed-present");
   });
 
   test("an untouched file is updated when the kit moves", () => {
     const { kit, repo } = adopt();
-    moveUpstream(kit, "AGENTS.md", "upstream v2\n");
+    moveUpstream(kit, SYNC_TARGET, "upstream v2\n");
     const plan = planSync(kit, repo);
-    expect(actionFor(plan, "AGENTS.md")).toBe("update");
+    expect(actionFor(plan, SYNC_TARGET)).toBe("update");
     applySync(kit, repo, plan);
-    expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toBe("upstream v2\n");
+    expect(readFileSync(join(repo, SYNC_TARGET), "utf8")).toBe("upstream v2\n");
   });
 
   test("a local edit is left alone when the kit did not move", () => {
     const { kit, repo } = adopt();
-    writeFileSync(join(repo, "AGENTS.md"), "entirely mine\n");
+    writeFileSync(join(repo, SYNC_TARGET), "entirely mine\n");
     const plan = planSync(kit, repo);
-    expect(actionFor(plan, "AGENTS.md")).toBe("customized");
+    expect(actionFor(plan, SYNC_TARGET)).toBe("customized");
     applySync(kit, repo, plan);
-    expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toBe("entirely mine\n");
+    expect(readFileSync(join(repo, SYNC_TARGET), "utf8")).toBe("entirely mine\n");
   });
 
   test("a local edit plus an upstream change conflicts without clobbering", () => {
     const { kit, repo } = adopt();
-    writeFileSync(join(repo, "AGENTS.md"), "mine\n");
-    moveUpstream(kit, "AGENTS.md", "theirs\n");
+    writeFileSync(join(repo, SYNC_TARGET), "mine\n");
+    moveUpstream(kit, SYNC_TARGET, "theirs\n");
     const plan = planSync(kit, repo);
-    expect(plan.conflicts).toEqual(["AGENTS.md"]);
+    expect(plan.conflicts).toEqual([SYNC_TARGET]);
     applySync(kit, repo, plan);
-    expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toBe("mine\n");
-    expect(readFileSync(join(repo, "AGENTS.md.kit-new"), "utf8")).toBe("theirs\n");
+    expect(readFileSync(join(repo, SYNC_TARGET), "utf8")).toBe("mine\n");
+    expect(readFileSync(join(repo, `${SYNC_TARGET}.kit-new`), "utf8")).toBe("theirs\n");
   });
 
   test("a hand-merged conflict terminates once accepted", () => {
     // Without --accept the merged file matches neither the incoming nor the
     // recorded version, so it would re-conflict on every future run forever.
     const { kit, repo } = adopt();
-    writeFileSync(join(repo, "AGENTS.md"), "mine\n");
-    moveUpstream(kit, "AGENTS.md", "theirs\n");
+    writeFileSync(join(repo, SYNC_TARGET), "mine\n");
+    moveUpstream(kit, SYNC_TARGET, "theirs\n");
     applySync(kit, repo, planSync(kit, repo));
 
-    writeFileSync(join(repo, "AGENTS.md"), "mine + theirs\n");
-    rmSync(join(repo, "AGENTS.md.kit-new"));
-    expect(actionFor(planSync(kit, repo), "AGENTS.md")).toBe("conflict");
+    writeFileSync(join(repo, SYNC_TARGET), "mine + theirs\n");
+    rmSync(join(repo, `${SYNC_TARGET}.kit-new`));
+    expect(actionFor(planSync(kit, repo), SYNC_TARGET)).toBe("conflict");
 
-    const accepted = planSync(kit, repo, ["AGENTS.md"]);
+    const accepted = planSync(kit, repo, [SYNC_TARGET]);
     expect(accepted.conflicts).toEqual([]);
-    expect(actionFor(accepted, "AGENTS.md")).toBe("resolved");
+    expect(actionFor(accepted, SYNC_TARGET)).toBe("resolved");
     applySync(kit, repo, accepted);
 
-    expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toBe("mine + theirs\n");
+    expect(readFileSync(join(repo, SYNC_TARGET), "utf8")).toBe("mine + theirs\n");
     const after = planSync(kit, repo);
-    expect(actionFor(after, "AGENTS.md")).toBe("customized");
+    expect(actionFor(after, SYNC_TARGET)).toBe("customized");
     expect(after.conflicts).toEqual([]);
   });
 
@@ -477,18 +505,18 @@ describe("kit sync", () => {
     // The manifest advances per file. A global advance would freeze the baseline
     // and make every subsequent upstream change look like the adopter's edit.
     const { kit, repo } = adopt();
-    writeFileSync(join(repo, "AGENTS.md"), "mine\n");
-    moveUpstream(kit, "AGENTS.md", "theirs v2\n");
-    moveUpstream(kit, "wiki/README.md", "readme v2\n");
+    writeFileSync(join(repo, SYNC_TARGET), "mine\n");
+    moveUpstream(kit, SYNC_TARGET, "theirs v2\n");
+    moveUpstream(kit, SECOND_SYNC_TARGET, "cli v2\n");
     applySync(kit, repo, planSync(kit, repo));
-    expect(readFileSync(join(repo, "wiki/README.md"), "utf8")).toBe("readme v2\n");
+    expect(readFileSync(join(repo, SECOND_SYNC_TARGET), "utf8")).toBe("cli v2\n");
 
-    moveUpstream(kit, "wiki/README.md", "readme v3\n");
+    moveUpstream(kit, SECOND_SYNC_TARGET, "cli v3\n");
     const plan = planSync(kit, repo);
-    expect(actionFor(plan, "wiki/README.md")).toBe("update");
-    expect(plan.conflicts).toEqual(["AGENTS.md"]);
+    expect(actionFor(plan, SECOND_SYNC_TARGET)).toBe("update");
+    expect(plan.conflicts).toEqual([SYNC_TARGET]);
     applySync(kit, repo, plan);
-    expect(readFileSync(join(repo, "wiki/README.md"), "utf8")).toBe("readme v3\n");
+    expect(readFileSync(join(repo, SECOND_SYNC_TARGET), "utf8")).toBe("cli v3\n");
   });
 
   test("an upgrade never rewrites a seed file", () => {
@@ -503,24 +531,25 @@ describe("kit sync", () => {
     const kit = stageKit();
     const repo = tempDir("kit-dest-");
     mkdirSync(join(repo, "wiki"), { recursive: true });
-    writeFileSync(join(repo, "AGENTS.md"), "pre-existing instructions\n");
-    writeFileSync(join(repo, "wiki/README.md"), readFileSync(join(kit, "files/wiki/README.md"), "utf8"));
+    mkdirSync(join(repo, "scripts/wiki"), { recursive: true });
+    writeFileSync(join(repo, SECOND_SYNC_TARGET), "pre-existing implementation\n");
+    writeFileSync(join(repo, SYNC_TARGET), readFileSync(join(kit, "files", SYNC_TARGET), "utf8"));
     const plan = planSync(kit, repo);
-    expect(plan.conflicts).toEqual(["AGENTS.md"]);
-    expect(actionFor(plan, "wiki/README.md")).toBe("unchanged");
+    expect(plan.conflicts).toEqual([SECOND_SYNC_TARGET]);
+    expect(actionFor(plan, SYNC_TARGET)).toBe("unchanged");
     applySync(kit, repo, plan);
-    expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toBe("pre-existing instructions\n");
+    expect(readFileSync(join(repo, SECOND_SYNC_TARGET), "utf8")).toBe("pre-existing implementation\n");
   });
 
   test("a symlinked target is never written through", () => {
     const { kit, repo } = adopt();
-    const outside = join(tempDir("kit-outside-"), "shared-AGENTS.md");
+    const outside = join(tempDir("kit-outside-"), "shared-wiki-readme.md");
     writeFileSync(outside, "shared\n");
-    rmSync(join(repo, "AGENTS.md"));
-    symlinkSync(outside, join(repo, "AGENTS.md"));
-    moveUpstream(kit, "AGENTS.md", "theirs\n");
+    rmSync(join(repo, SYNC_TARGET));
+    symlinkSync(outside, join(repo, SYNC_TARGET));
+    moveUpstream(kit, SYNC_TARGET, "theirs\n");
     const plan = planSync(kit, repo);
-    expect(actionFor(plan, "AGENTS.md")).toBe("conflict");
+    expect(actionFor(plan, SYNC_TARGET)).toBe("conflict");
     applySync(kit, repo, plan);
     expect(readFileSync(outside, "utf8")).toBe("shared\n");
   });
@@ -591,9 +620,9 @@ describe("kit sync", () => {
   test("an executable source stays executable in the target", () => {
     const kit = stageKit();
     const repo = tempDir("kit-dest-");
-    chmodSync(join(kit, "files/.husky/pre-commit"), 0o755);
+    chmodSync(join(kit, "files", SECOND_SYNC_TARGET), 0o755);
     applySync(kit, repo, planSync(kit, repo));
-    expect(statSync(join(repo, ".husky/pre-commit")).mode & 0o111).not.toBe(0);
+    expect(statSync(join(repo, SECOND_SYNC_TARGET)).mode & 0o111).not.toBe(0);
   });
 
   test("a dry run writes nothing", () => {

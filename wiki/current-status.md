@@ -4,9 +4,9 @@
 
 | ID | Kind | Authority | Owner | Sources |
 |---|---|---|---|---:|
-| [architecture/engine](./architecture/engine.md) | architecture | observed | @phlox11 | 1 |
-| [operations/enforcement](./operations/enforcement.md) | operation | normative | @phlox11 | 12 |
-| [product/invariants](./product/invariants.md) | invariant | normative | @phlox11 | 3 |
+| [architecture/engine](./architecture/engine.md) | architecture | observed | @phlox11 | 2 |
+| [operations/enforcement](./operations/enforcement.md) | operation | normative | @phlox11 | 14 |
+| [product/invariants](./product/invariants.md) | invariant | normative | @phlox11 | 4 |
 | [product/scope](./product/scope.md) | product | normative | @phlox11 | 2 |
 
 ## Outstanding work (11)

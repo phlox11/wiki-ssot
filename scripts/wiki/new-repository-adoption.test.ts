@@ -129,26 +129,39 @@ fresh_context:
 }
 
 describe("new-repository adoption", () => {
-  test("starts green, then adds the first covered and verified feature as one candidate", () => {
+  test("reports an empty project incomplete, then reaches ready with its first covered feature", () => {
     const fixture = temporaryDirectory();
     const repo = join(fixture, "repo");
+    const testKit = join(fixture, "kit");
     mkdirSync(repo);
+    cpSync(join(publisherRoot, "kit"), testKit, { recursive: true });
+    const testFragmentPath = join(testKit, "package.kit.json");
+    const testFragment = JSON.parse(readFileSync(testFragmentPath, "utf8"));
+    testFragment.scripts["wiki:tooling:test"] = "bun test scripts/wiki/wiki.test.ts -t 'frontmatter schema' --max-concurrency=1";
+    writeFileSync(testFragmentPath, `${JSON.stringify(testFragment, null, 2)}\n`);
 
     run(repo, ["git", "init", "-q"]);
     run(repo, ["git", "config", "user.email", "adoption@example.test"]);
     run(repo, ["git", "config", "user.name", "Adoption Fixture"]);
-    run(repo, ["git", "commit", "--allow-empty", "-qm", "empty repository"]);
     expect(run(repo, ["git", "ls-files"]).stdout).toBe("");
 
-    const sync = run(publisherRoot, [
+    const initialApply = Bun.spawnSync([
       process.execPath,
-      "scripts/wiki/kit-sync.ts",
+      join(publisherRoot, "scripts/wiki/apply.ts"),
       "--into",
       repo,
+      "--kit",
+      testKit,
+      "--skip-install",
       "--json",
-    ]);
-    expect(JSON.parse(sync.stdout)).toMatchObject({ ok: true, dryRun: false });
-    mergeKitPackage(repo);
+    ], { cwd: publisherRoot, env: commandEnvironment, stdout: "pipe", stderr: "pipe" });
+    expect(initialApply.exitCode).toBe(1);
+    const initialReport = JSON.parse(initialApply.stdout.toString());
+    expect(initialReport).toMatchObject({ mode: "new", status: "needs-reconcile" });
+    expect(initialReport.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: "bootstrap-current-page-required" }),
+      expect.objectContaining({ code: "bootstrap-coverage-required" }),
+    ]));
     const config = JSON.parse(readFileSync(join(repo, ".wiki/config.json"), "utf8"));
     config.name = "adoption-fixture";
     config.highRisk = [];
@@ -165,16 +178,12 @@ describe("new-repository adoption", () => {
     });
     expect(readFileSync(join(repo, ".gitignore"), "utf8")).toContain("node_modules/");
 
-    // The first green point is after kit sync, package merge/dependency
-    // availability, deterministic generation, and the empty verification pass.
+    // Preserve an explicit test-only merge base after the deterministic install.
+    // The apply report above remains the authority: this is not a completed Wiki.
     runWiki(repo, "generated");
     runWiki(repo, "verify");
-    expect(JSON.parse(runWiki(repo, "lint", "--json").stdout)).toMatchObject({ ok: true });
-    expect(JSON.parse(runWiki(repo, "doctor", "--json").stdout)).toMatchObject({ ok: true });
-    run(repo, ["bun", "run", "typecheck"]);
-    run(repo, ["bun", "run", "test"]);
     run(repo, ["git", "add", "-A"]);
-    run(repo, ["git", "commit", "-qm", "adopt wiki kit"]);
+    run(repo, ["git", "commit", "-qm", "test-only installed baseline"]);
 
     put(repo, "src/greeting.ts", `export function greet(name: string): string {
   return \`Hello, \${name}!\`;
@@ -211,6 +220,7 @@ sources:
 
     const packageJson = JSON.parse(readFileSync(join(repo, "package.json"), "utf8"));
     packageJson.scripts.test = "bun test scripts/wiki src";
+    packageJson.scripts.typecheck = "tsc --noEmit";
     put(repo, "package.json", `${JSON.stringify(packageJson, null, 2)}\n`);
 
     const tsconfig = JSON.parse(readFileSync(join(repo, "tsconfig.json"), "utf8"));
@@ -232,7 +242,19 @@ sources:
     expect(JSON.parse(runWiki(repo, "lint", "--json").stdout)).toMatchObject({ ok: true });
     expect(JSON.parse(runWiki(repo, "doctor", "--json").stdout)).toMatchObject({ ok: true });
     run(repo, ["bun", "run", "typecheck"]);
-    run(repo, ["bun", "run", "test"]);
+    run(repo, ["bun", "test", "src"]);
+    const readyApply = Bun.spawnSync([
+      process.execPath,
+      join(publisherRoot, "scripts/wiki/apply.ts"),
+      "--into",
+      repo,
+      "--kit",
+      testKit,
+      "--skip-install",
+      "--json",
+    ], { cwd: publisherRoot, env: commandEnvironment, stdout: "pipe", stderr: "pipe" });
+    expect(readyApply.exitCode).toBe(0);
+    expect(JSON.parse(readyApply.stdout.toString())).toMatchObject({ mode: "upgrade", status: "ready" });
 
     run(repo, ["git", "add", "-A"]);
     run(repo, ["git", "commit", "-qm", "add first feature"]);
