@@ -22,6 +22,7 @@ import {
   openConflicts,
   parseFreshContextReport,
   parseFreshContextPolicy,
+  projectWorkQueue,
   readConfig,
   reviewCheck,
   searchWikiPages,
@@ -36,6 +37,7 @@ import {
   type SelectedWorkContextConflict,
   type SelectedWorkContextPage,
   type WikiSource,
+  type WorkExecutorFilter,
   type WorkQueueItem,
 } from "./core";
 import { validateGitHubIntegrationSeams } from "./github-attestation";
@@ -102,6 +104,7 @@ function sourceText(sources: WikiSource[]): string {
 function workText(item: WorkQueueItem): string {
   const details = [
     `${item.id} [${item.queue_state}, ${item.priority}]\t${item.title}`,
+    `  Executor: ${item.executor}`,
     `  Owner: ${item.owner_page.id} (${item.owner_page.path}; ${item.owner_page.owners.join(", ")})`,
     `  Dependencies: ${item.depends_on.join(", ") || "none"}`,
   ];
@@ -111,6 +114,29 @@ function workText(item: WorkQueueItem): string {
   if (item.evidence.length > 0) details.push(`  Evidence: ${item.evidence.join("; ")}`);
   details.push(`  Context: ${item.context_command}`);
   return details.join("\n");
+}
+
+function workHelp(): string {
+  return [
+    "Usage: bun run wiki:work [--executor agent|human|all] [--all] [--json]",
+    "",
+    "Executor filters:",
+    "  all     show agent, human, and either work (default)",
+    "  agent   show agent and either work",
+    "  human   show human and either work",
+    "",
+    "--all includes completed rows in addition to the visible outstanding groups.",
+    "Combine --all with --executor to include completed rows for that executor view.",
+    "Recommendations are agent auto-selection: human-only work is never recommended.",
+  ].join("\n");
+}
+
+function workExecutorFilter(parsed: ParsedArgs): WorkExecutorFilter {
+  if (!has(parsed, "executor")) return "all";
+  const value = one(parsed, "executor");
+  if (value == null || value === "true") throw new UsageError("work --executor requires a value: agent, human, or all");
+  if (value === "all" || value === "agent" || value === "human") return value;
+  throw new UsageError(`work --executor must be one of agent, human, or all; received ${value || "(missing value)"}`);
 }
 
 function exactSourceText(sources: SelectedWorkContextPage["exactSources"]): string {
@@ -174,6 +200,14 @@ async function main() {
   const staged = has(parsed, "staged");
   const view = createRepoView(resolve(one(parsed, "root") ?? process.cwd()), staged);
   const loaded = loadWikiPages(view);
+
+  // Work owns a dedicated help surface so executor filtering can be explained
+  // without changing the behavior of other commands' --help handling.
+  if (command === "work" && has(parsed, "help")) {
+    if (parsed.positional.length > 0) throw new UsageError("work --help does not accept a query or work ID");
+    emit(workHelp(), false);
+    return;
+  }
 
   if (command === "lint") {
     const result = allLintFindings(view, true);
@@ -278,6 +312,7 @@ async function main() {
 
   if (command === "work") {
     if (parsed.positional.length > 0) throw new UsageError("work does not accept a query or work ID; run it without arguments, then use context --work <ID>");
+    const executor = workExecutorFilter(parsed);
     const findings = validatePages(view, loaded.pages);
     if (findings.length > 0) {
       if (json) emit({ ok: false, findings }, true);
@@ -285,7 +320,7 @@ async function main() {
       process.exitCode = 1;
       return;
     }
-    const queue = buildWorkQueue(loaded.pages);
+    const queue = projectWorkQueue(buildWorkQueue(loaded.pages), executor);
     const groups = {
       active: queue.groups.active,
       ready: queue.groups.ready,
@@ -303,8 +338,15 @@ async function main() {
       emit("No remaining work.", false);
       return;
     }
+    const humanOutstanding = ["active", "ready"]
+      .flatMap((group) => queue.groups[group as keyof typeof queue.groups])
+      .some((item) => item.executor === "human");
     const lines = [
-      queue.recommended_next ? `Recommended next: ${queue.recommended_next.id}` : "Recommended next: none",
+      queue.recommended_next
+        ? `Recommended next: ${queue.recommended_next.id}`
+        : humanOutstanding
+          ? "Recommended next: none (no agent-recommendable work; human-only work remains visible)"
+          : "Recommended next: none",
       "",
     ];
     for (const [heading, items] of [
@@ -398,6 +440,12 @@ async function main() {
           work.title,
           "",
           `Stored state: ${work.state}`,
+          `Executor: ${work.executor}`,
+          ...(work.executor === "human"
+            ? ["Execution guardrail: This work requires human execution. Agents must not execute it or assume credentials or authority; report the procedure and hand off to a human."]
+            : work.executor === "either"
+              ? ["Authorization guardrail: Either permits agent or human execution but does not grant additional credentials or authority; follow the existing authority boundary."]
+              : ["Authorization guardrail: Executor metadata does not grant credentials or authority; follow the existing authority boundary."]),
           `Owner proposal: ${work.owner_page.id} (${work.owner_page.path})`,
           `Dependencies: ${work.depends_on.join(", ") || "none"}`,
           `Unmet dependencies: ${work.unmet_dependencies.join(", ") || "none"}`,

@@ -5,10 +5,12 @@ import { tmpdir } from "node:os";
 import {
   buildWorkQueue,
   compareGenerated,
+  generateCurrentStatus,
   generateWorkQueue,
   jsonStable,
   loadWikiPages,
   parseWikiPage,
+  projectWorkQueue,
   validateWorkItems,
   type RepoView,
   type WikiPage,
@@ -155,6 +157,75 @@ describe("work item schema and queue", () => {
       work({ id: "WK-02", state: "active", priority: "low" }),
     ]);
     expect(buildWorkQueue(pages).recommended_next).toEqual({ kind: "work", id: "WK-02" });
+  });
+
+  test("normalizes omitted executors and preserves explicit executor enums", () => {
+    const pages = pagesFor([
+      work({ id: "WK-OMITTED" }),
+      work({ id: "WK-HUMAN", executor: "human" }),
+      work({ id: "WK-EITHER", executor: "either" }),
+    ]);
+    expect(validateWorkItems(pages)).toEqual([]);
+    expect(buildWorkQueue(pages).groups.ready.map((item) => [item.id, item.executor])).toEqual([
+      ["WK-EITHER", "either"],
+      ["WK-HUMAN", "human"],
+      ["WK-OMITTED", "agent"],
+    ]);
+    expect(JSON.parse(jsonStable(buildWorkQueue(pages))).groups.ready.every((item: { executor?: string }) => item.executor != null)).toBe(true);
+  });
+
+  test("rejects invalid executor values and excludes them from the owned graph", () => {
+    const invalidExecutors: unknown[] = ["robot", null, [], 42];
+    for (const [index, executor] of invalidExecutors.entries()) {
+      const item = { ...work({ id: `WK-BAD-${index}` }), executor } as unknown as WorkItem;
+      const pages = pagesFor([item]);
+      const findings = validateWorkItems(pages);
+      expect(findings).toEqual(expect.arrayContaining([
+        expect.objectContaining({ code: "work-executor", message: expect.stringContaining("agent, human, or either") }),
+      ]));
+      expect(buildWorkQueue(pages).groups.ready).toEqual([]);
+    }
+  });
+
+  test("filters a complete graph without changing dependency state and never recommends human-only work", () => {
+    const pages = pagesFor([
+      work({ id: "WK-HUMAN", executor: "human", priority: "critical" }),
+      work({ id: "WK-EITHER", executor: "either", priority: "normal" }),
+      work({ id: "WK-AGENT-WAITING", executor: "agent", depends_on: ["WK-HUMAN"], priority: "critical" }),
+    ]);
+    const full = buildWorkQueue(pages);
+    expect(full.recommended_next).toEqual({ kind: "work", id: "WK-EITHER" });
+    expect(full.groups.ready.map((item) => item.id)).toEqual(["WK-HUMAN", "WK-EITHER"]);
+    expect(full.groups.waiting).toEqual([
+      expect.objectContaining({ id: "WK-AGENT-WAITING", unmet_dependencies: ["WK-HUMAN"], queue_state: "waiting" }),
+    ]);
+
+    const agent = projectWorkQueue(full, "agent");
+    expect(agent.groups.ready.map((item) => item.id)).toEqual(["WK-EITHER"]);
+    expect(agent.groups.waiting).toEqual([
+      expect.objectContaining({ id: "WK-AGENT-WAITING", unmet_dependencies: ["WK-HUMAN"], queue_state: "waiting" }),
+    ]);
+    expect(agent.recommended_next).toEqual({ kind: "work", id: "WK-EITHER" });
+
+    const human = projectWorkQueue(full, "human");
+    expect(human.groups.ready.map((item) => item.id)).toEqual(["WK-HUMAN", "WK-EITHER"]);
+    expect(human.recommended_next).toEqual({ kind: "work", id: "WK-EITHER" });
+  });
+
+  test("keeps a human-only active/ready queue visible with no recommendation", () => {
+    const queue = buildWorkQueue(pagesFor([
+      work({ id: "WK-HUMAN-ACTIVE", executor: "human", state: "active" }),
+      work({ id: "WK-HUMAN-READY", executor: "human" }),
+    ]));
+    expect(queue.recommended_next).toBeNull();
+    expect(queue.groups.active.map((item) => item.id)).toEqual(["WK-HUMAN-ACTIVE"]);
+    expect(queue.groups.ready.map((item) => item.id)).toEqual(["WK-HUMAN-READY"]);
+    expect(generateWorkQueue(pagesFor([
+      work({ id: "WK-HUMAN-READY", executor: "human" }),
+    ]))).toContain("no agent-recommendable work is available");
+    expect(generateCurrentStatus(pagesFor([
+      work({ id: "WK-HUMAN-READY", executor: "human" }),
+    ]))).toContain("human-only work remains");
   });
 
   test("rejects duplicate, unknown, self, cyclic, and illegal lifecycle records", () => {
@@ -313,6 +384,38 @@ describe("work CLI and selected context", () => {
     expect(all.groups.done[0].id).toBe("WK-00");
   });
 
+  test("supports executor filter matrices, --all combinations, and work-specific help", () => {
+    const root = cliRepo([
+      work({ id: "WK-AGENT", executor: "agent", state: "done", evidence: ["source.ts"] }),
+      work({ id: "WK-HUMAN-DONE", executor: "human", state: "done", evidence: ["source.ts"] }),
+      work({ id: "WK-HUMAN", executor: "human" }),
+      work({ id: "WK-EITHER", executor: "either" }),
+    ]);
+    const cli = join(process.cwd(), "scripts/wiki/cli.ts");
+    const all = JSON.parse(run(root, [process.execPath, cli, "work", "--executor", "all", "--json"]));
+    expect(all.groups.ready.map((item: { id: string; executor: string }) => [item.id, item.executor])).toEqual([
+      ["WK-EITHER", "either"],
+      ["WK-HUMAN", "human"],
+    ]);
+    expect(all.recommended_next).toEqual({ kind: "work", id: "WK-EITHER" });
+
+    const agent = JSON.parse(run(root, [process.execPath, cli, "work", "--executor", "agent", "--json"]));
+    expect(agent.groups.ready.map((item: { id: string }) => item.id)).toEqual(["WK-EITHER"]);
+    expect(agent.groups.done).toBeUndefined();
+
+    const human = JSON.parse(run(root, [process.execPath, cli, "work", "--executor", "human", "--all", "--json"]));
+    expect(human.groups.ready.map((item: { id: string }) => item.id)).toEqual(["WK-EITHER", "WK-HUMAN"]);
+    expect(human.groups.done.map((item: { id: string; executor: string }) => [item.id, item.executor])).toEqual([["WK-HUMAN-DONE", "human"]]);
+    expect(run(root, [process.execPath, cli, "work", "--help"])).toContain("--executor agent|human|all");
+    expect(run(root, [process.execPath, cli, "work", "--help"])).toContain("--all includes completed rows");
+
+    for (const argv of [["--executor", "robot"], ["--executor"]]) {
+      const invalid = Bun.spawnSync([process.execPath, cli, "work", ...argv], { cwd: root, stdout: "pipe", stderr: "pipe" });
+      expect(invalid.exitCode).toBe(2);
+      expect(invalid.stderr.toString()).toContain("work --executor");
+    }
+  });
+
   test("assembles authoritative current context and labels the proposal non-current", () => {
     const root = cliRepo([work({ id: "WK-01", context_pages: ["product/test"] })]);
     const cli = join(process.cwd(), "scripts/wiki/cli.ts");
@@ -361,6 +464,20 @@ describe("work CLI and selected context", () => {
     expect(text.indexOf("# SOURCE READ ORDER")).toBeLessThan(text.indexOf("# NON-CURRENT WORK OWNER"));
     expect(text).toContain("Declared sources:");
     expect(text).not.toContain("# CURRENT PAGE proposal/work");
+  });
+
+  test("exposes executor in generated/context projections and hands human work off", () => {
+    const root = cliRepo([work({ id: "WK-HUMAN", executor: "human" })], false);
+    const cli = join(process.cwd(), "scripts/wiki/cli.ts");
+    const queueText = run(root, [process.execPath, cli, "work"]);
+    expect(queueText).toContain("Executor: human");
+    const contextJson = JSON.parse(run(root, [process.execPath, cli, "context", "--work", "WK-HUMAN", "--json"]));
+    expect(contextJson.work.executor).toBe("human");
+    const contextText = run(root, [process.execPath, cli, "context", "--work", "WK-HUMAN"]);
+    expect(contextText).toContain("Executor: human");
+    expect(contextText).toContain("requires human execution");
+    expect(contextText).toContain("report the procedure and hand off to a human");
+    expect(contextText).toContain("assume credentials or authority");
   });
 
   test("makes generic topic context authority-, source-, and conflict-complete", () => {

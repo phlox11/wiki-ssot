@@ -1,5 +1,5 @@
 {
-  "digest": "5a569b0598a3fcbfcf44c025e0b09d77b8796470d47a497702887ecd5cdefcff",
+  "digest": "d60c432dd8b894217f2bbdcfcbb18cb0bd746fc1ca2d41ce58f795e3de65111d",
   "files": {
     ".github/workflows/wiki-audit.yml": {
       "ownership": "kit",
@@ -31,15 +31,15 @@
     },
     "scripts/wiki/cli.ts": {
       "ownership": "kit",
-      "sha256": "e827375422ebb9dc1ca3705534cc5d1afcd6853b89d5ea1586534ede81b742e7"
+      "sha256": "458cf212b007c39ace3dab47522915f88d16f2570dfb2755a8e8e985d213241d"
     },
     "scripts/wiki/core.ts": {
       "ownership": "kit",
-      "sha256": "6a39612179bb56f86fd7c0f1df36c7fdebdd53686a7d82c1f4620b46cb617b2d"
+      "sha256": "764ed30e14313ba53bdd4febd5be60ed9b40cb37a88de99916d5cd540d1df05d"
     },
     "scripts/wiki/fresh-context.test.ts": {
       "ownership": "kit",
-      "sha256": "7f0082d0f64b6a938bfb61d72b444b8c3d37ee6d85c7be93a3f626b472d83232"
+      "sha256": "5e26d02abbca0a4e17c25be737242feb15d0091302682318e394b584fe29c7b4"
     },
     "scripts/wiki/github-attestation.ts": {
       "ownership": "kit",
@@ -63,7 +63,7 @@
     },
     "scripts/wiki/work.test.ts": {
       "ownership": "kit",
-      "sha256": "192ce7a1884b735472d35fc0aa2a7fc96033056fd279d3225badd8ef1e5638d7"
+      "sha256": "b238c2c38b2fe32ed4ddb5fa7f3168ad437ca2454643209a5c1563182674bb4d"
     },
     "tsconfig.json": {
       "ownership": "seed",
@@ -79,11 +79,11 @@
     },
     "wiki/SCHEMA.md": {
       "ownership": "kit",
-      "sha256": "e4153d1ffce8960bda99e531b5e5090d016acb1d1ca7978dbbf61ec86df374d2"
+      "sha256": "c6678032a19b49cdea9686edc539191394d23cf6678a29771dfefb30996d2503"
     },
     "wiki/WORKFLOW.md": {
       "ownership": "kit",
-      "sha256": "200ac0e53e48561050591a6f3b5c8273cae9c5e04eb88b14814d16d00dbed046"
+      "sha256": "a11761d3234d5c4e4a232a95c9df5333c78a87598b0ca1271b84bae49167a9f5"
     }
   },
   "kit": "wiki-ssot",
@@ -117,7 +117,7 @@
       "legacyMarkers": [
         "<!-- wiki-ssot:fresh-context-guardrail -->"
       ],
-      "sha256": "864a64ed264f0bc561555c0689ab9077953eca1a7de426fbd7e92ea80c07cd82",
+      "sha256": "9b1528269cd7e4a50771add0a507e153b558186ec78352c9ff01473ee16d6e6e",
       "start": "<!-- wiki-ssot:managed:start -->"
     }
   },

@@ -2,6 +2,7 @@
 
 Record only current-contract changes here: product-contract changes, significant architecture decisions, invariant changes, large reconciles, and schema or process changes. Git remains the source of truth for ordinary change history.
 
+- Proposal work items now carry an optional `agent | human | either` executor independent from lifecycle state, defaulting omitted values to `agent`. Work discovery keeps human work visible and dependency-complete while excluding human-exclusive records from automatic recommendations, adds executor-filtered views, and requires provider-neutral human handoff without assumed authority.
 - Installation, adoption, upgrade, and Wiki/code reconciliation now converge through `scripts/wiki/apply.ts`. Kit manifest version 2 separates full kit files, project-owned seeds, shared-file managed blocks, and reference inputs; package merging owns only `wiki:*` scripts and compatible toolkit requirements; Wiki CI moved to `wiki-ssot.yml`; and the exact version 1 combined workflow is split into a retained host `code-check` plus dedicated Wiki jobs while unknown/custom legacy CI fails closed.
 - Initial wiki established: engine, enforcement rails, and the self-describing pages.
 - Fresh-context reconciliation promoted from advisory prose to a required, HEAD/bundle-bound attestation guard with explicit reviewer trust policy, downstream integration checks, and trusted GitHub reference enforcement.
