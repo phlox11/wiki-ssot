@@ -3,7 +3,7 @@
 ## Before editing
 
 1. Read `wiki/index.md` and `wiki/current-status.md`.
-2. For a generic "what remains?", "what is unfinished?", or "what should happen next?" request, run `bun run wiki:work` without asking for an ID or search term. Select only `active` or `ready` work, then run the item's printed `bun run wiki:context -- --work <ID>` command. Never auto-select waiting, blocked, deferred, or conflict work.
+2. For a generic "what remains?", "what is unfinished?", or "what should happen next?" request, run `bun run wiki:work` without asking for an ID or search term. Select only recommended `agent` or `either` work in `active` or `ready`, then run the item's printed `bun run wiki:context -- --work <ID>` command. Never auto-select `executor: human`, waiting, blocked, deferred, or conflict work. Human work remains visible; use `bun run wiki:work -- --executor human` to report its procedure and hand it off without assuming human credentials or authority.
 3. For a topic-specific task, run `bun run wiki:search -- "<terms>"`.
 4. Run `bun run wiki:context -- "<terms>"`; inspect every returned open conflict and acceptance list.
 5. Read the matched pages, conflicts, and their primary `sources`.
@@ -13,7 +13,7 @@
 - Behavior/intent change: update sources, affected current pages, and tests together.
 - No semantic change: verify affected pages with a reason of at least 20 characters.
 - Future idea: create a `status: proposed` page under `wiki/proposals/**`; do not edit current behavior as if already shipped.
-- Proposed backlog: store structured `work_items` in proposal frontmatter. Update state and durable evidence in the same PR as the work; the generated `wiki/work-queue.md` is read-only.
+- Proposed backlog: store structured `work_items` in proposal frontmatter. Classify the optional executor independently from state, update state and durable evidence in the same PR as the work, and keep the generated `wiki/work-queue.md` read-only. `either` selects who can execute; it does not expand permissions.
 - Unclear disagreement: create a structured page under `wiki/conflicts/open/**` and stop treating the disputed fact as current.
 - Conflict source changed: declare `resolve`, `retain`, or `introduce` in PR metadata. Use `bun run wiki:conflicts -- C-NNN` for the resolution contract.
 

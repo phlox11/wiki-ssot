@@ -19,7 +19,7 @@ wiki-ssot turns a repository's development knowledge into a small set of `status
 ## In scope
 
 - A page schema and frontmatter contract (`wiki/SCHEMA.md`).
-- A repository-wide, offline work graph stored with proposal rationale, plus a no-query command and generated queue that let a fresh session discover and select outstanding work without knowing a wiki node or task ID.
+- A repository-wide, offline work graph stored with proposal rationale, including executor classification independent from state, plus a no-query command and generated queue that let a fresh session discover agent-capable work and hand human work off without knowing a wiki node or task ID.
 - Deterministic CLI checks: structure lint, generated-file freshness, code→page impact, source staleness, configured coverage, and a conflict lifecycle. Coverage applies to files matched by `.wiki/coverage.json`, each of which must map to current authority or a reasoned exclusion.
 - A pre-PR command that deterministically classifies risk, prepares an independent-review bundle, and validates the returned structured Fresh-context report before publication.
 - Explicit solo and team trust policies: separate review context is always procedural, while distinct GitHub actors are optional and machine-enforced only when configured.
@@ -39,7 +39,8 @@ green, including an existing-repository review defect that was reconciled
 before exact PASS.
 
 The validated user expectation is that a fresh session can discover
-repository-wide work without an internal ID, load a selected item's controlling
+repository-wide work without an internal ID, keep human-exclusive work visible
+without agent auto-selection or assumed authority, load a selected item's controlling
 current authority and sources, trace every configured covered file to a current
 page or exclusion, and complete the installed review path when deterministic
 risk policy selects it. The required installation seam is the affirmative root
@@ -57,7 +58,7 @@ automatic authorization, or protection against a hostile maintainer.
 - Rendering or hosting a documentation website.
 - Replacing the wiki with an auto-generated API reference.
 - Deciding product questions on the agent's behalf: an ambiguous decision is a conflict, not an invention.
-- Automatically executing recommended work. Queue recommendation is deterministic ordering, not authorization.
+- Automatically executing recommended work. Queue recommendation and executor classification are deterministic discovery metadata, not authorization; `either` grants no additional permission.
 - Running or hosting a particular LLM/reviewer in core or CI. The invoking code agent supplies a context-isolated reviewer or sub-agent; core prepares and validates its artifact.
 - Claiming cryptographic proof that a reviewer had a genuinely fresh context. The selected reviewer/orchestrator defines that trust boundary.
 - Treating repository developers or administrators as hostile actors. wiki-ssot trusts them not to rewrite validation or weaken repository settings; required workflows, CODEOWNERS staffing, rulesets, and administrator-bypass policy are deployment governance outside the product contract.

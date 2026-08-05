@@ -65,6 +65,7 @@ type AgentEntrypointClauses = {
   selected: string;
   topic: string;
   nonCurrent: string;
+  humanWork: string;
 };
 
 function providerNeutralAgentEntrypoint(overrides: Partial<AgentEntrypointClauses> = {}): string {
@@ -74,6 +75,7 @@ function providerNeutralAgentEntrypoint(overrides: Partial<AgentEntrypointClause
     selected: "After selecting a returned item, run the printed wiki:context -- --work <ID> command.",
     topic: `Search before editing with wiki:search -- "<task terms>" and wiki:context -- "<task terms>".`,
     nonCurrent: "Pages with status proposed, conflicted, deprecated, or archived must be labelled non-current.",
+    humanWork: "Do not automatically select executor: human work. Keep it visible, report the required work and procedure, and hand it off to a human without assuming their credentials or authority. executor: either does not expand external-write, destructive-action, or other permissions.",
     ...overrides,
   };
   return `<!-- wiki-ssot:fresh-context-guardrail -->
@@ -85,6 +87,7 @@ ${clauses.work}
 ${clauses.selected}
 ${clauses.topic}
 ${clauses.nonCurrent}
+${clauses.humanWork}
 `;
 }
 
@@ -1487,6 +1490,34 @@ Do not label pages with status proposed, conflicted, deprecated, or archived as 
 
   test("core seam validation accepts a complete provider-neutral agent entrypoint", () => {
     expect(validateIntegrationSeams(coreIntegrationView(providerNeutralAgentEntrypoint()))).toEqual([]);
+  });
+
+  test("core seam validation requires the affirmative human-work executor guardrail", () => {
+    const missing = validateIntegrationSeams(coreIntegrationView(providerNeutralAgentEntrypoint({
+      humanWork: "Executor metadata is documented for work items.",
+    })));
+    const missingContract = missing.find((finding) => finding.code === "agent-entrypoint-contract-incomplete");
+    expect(missingContract?.message).toContain("human-work executor guardrail");
+
+    const accepted = validateIntegrationSeams(coreIntegrationView(providerNeutralAgentEntrypoint({
+      humanWork: "Human-only work is never auto-selected; report the procedure and hand off to a human; do not assume authority or credentials.",
+    })));
+    expect(accepted).toEqual([]);
+  });
+
+  test("human guardrail's intentional authority negation is not treated as a generic route negation", () => {
+    const findings = validateIntegrationSeams(coreIntegrationView(providerNeutralAgentEntrypoint({
+      humanWork: "Do not automatically select executor: human work. Report the required work and procedure, and hand it off to a human without assuming their credentials or authority.",
+    })));
+    expect(findings).toEqual([]);
+  });
+
+  test("human guardrail rejects negated procedure reporting or handoff clauses", () => {
+    const findings = validateIntegrationSeams(coreIntegrationView(providerNeutralAgentEntrypoint({
+      humanWork: "Do not automatically select executor: human work; do not report the procedure or hand it off to a human; do not assume authority.",
+    })));
+    expect(findings.find((finding) => finding.code === "agent-entrypoint-contract-incomplete")?.message)
+      .toContain("human-work executor guardrail");
   });
 
   test("GitHub reference workflow skips Drafts and validates Ready PRs", () => {

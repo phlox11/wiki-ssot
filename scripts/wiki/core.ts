@@ -21,11 +21,14 @@ export type ConflictResolution = {
 };
 export type WorkState = "not-started" | "active" | "blocked" | "done" | "deferred";
 export type WorkPriority = "critical" | "high" | "normal" | "low";
+export type WorkExecutor = "agent" | "human" | "either";
 export type WorkItem = {
   id: string;
   title: string;
   state: WorkState;
   priority: WorkPriority;
+  /** Optional in proposal frontmatter; queue projections always normalize it. */
+  executor?: WorkExecutor;
   depends_on: string[];
   context_pages: string[];
   acceptance: string[];
@@ -289,6 +292,15 @@ export function validatePages(view: RepoView, pages: WikiPage[]): Finding[] {
 
 type OwnedWorkItem = { item: WorkItem; page: WikiPage };
 
+const WORK_EXECUTORS = new Set<WorkExecutor>(["agent", "human", "either"]);
+
+function normalizedWorkExecutor(item: Record<string, unknown>): WorkExecutor | undefined {
+  // Omission is the backwards-compatible agent default. An explicit
+  // undefined/null is still malformed input and must not enter the graph.
+  if (!("executor" in item)) return "agent";
+  return WORK_EXECUTORS.has(item.executor as WorkExecutor) ? item.executor as WorkExecutor : undefined;
+}
+
 function ownedWorkItems(pages: WikiPage[]): OwnedWorkItem[] {
   const states = new Set<WorkState>(["not-started", "active", "blocked", "done", "deferred"]);
   const priorities = new Set<WorkPriority>(["critical", "high", "normal", "low"]);
@@ -301,7 +313,9 @@ function ownedWorkItems(pages: WikiPage[]): OwnedWorkItem[] {
       if (typeof item.id !== "string" || typeof item.title !== "string") continue;
       if (!states.has(item.state as WorkState) || !priorities.has(item.priority as WorkPriority)) continue;
       if (!stringArray(item.depends_on) || !stringArray(item.context_pages) || !stringArray(item.acceptance) || !stringArray(item.evidence)) continue;
-      items.push({ page, item: item as WorkItem });
+      const executor = normalizedWorkExecutor(item);
+      if (!executor) continue;
+      items.push({ page, item: { ...item, executor } as WorkItem });
     }
   }
   return items;
@@ -346,6 +360,7 @@ export function validateWorkItems(pages: WikiPage[]): Finding[] {
       if (typeof item.title !== "string" || item.title.trim().length === 0) pushFinding(findings, page.path, "work-title", `${label}.title must be a non-empty string`);
       if (!states.has(item.state as WorkState)) pushFinding(findings, page.path, "work-state", `${label}.state is invalid: ${String(item.state)}`);
       if (!priorities.has(item.priority as WorkPriority)) pushFinding(findings, page.path, "work-priority", `${label}.priority is invalid: ${String(item.priority)}`);
+      if (normalizedWorkExecutor(item) == null) pushFinding(findings, page.path, "work-executor", `${label}.executor must be one of agent, human, or either when provided; omission defaults to agent`);
       for (const field of ["depends_on", "context_pages", "acceptance", "evidence"] as const) {
         if (!stringArray(item[field])) pushFinding(findings, page.path, `work-${field.replaceAll("_", "-")}`, `${label}.${field} must be a string array`);
       }
@@ -363,14 +378,16 @@ export function validateWorkItems(pages: WikiPage[]): Finding[] {
         pushFinding(findings, page.path, "work-owner-status", `${label} is non-terminal but its proposal status is ${page.data.status}`);
       }
       if (validId && !workById.has(id) && states.has(state) && priorities.has(item.priority as WorkPriority)
+        && normalizedWorkExecutor(item) != null
         && stringArray(item.depends_on) && stringArray(item.context_pages) && stringArray(item.acceptance) && stringArray(item.evidence)
         && typeof item.title === "string" && item.title.trim().length > 0) {
-        workById.set(id, { page, item: item as WorkItem });
+        workById.set(id, { page, item: { ...item, executor: normalizedWorkExecutor(item) } as WorkItem });
       }
       if (validId && states.has(state) && priorities.has(item.priority as WorkPriority)
+        && normalizedWorkExecutor(item) != null
         && stringArray(item.depends_on) && stringArray(item.context_pages) && stringArray(item.acceptance) && stringArray(item.evidence)
         && typeof item.title === "string" && item.title.trim().length > 0) {
-        validItems.push({ page, item: item as WorkItem });
+        validItems.push({ page, item: { ...item, executor: normalizedWorkExecutor(item) } as WorkItem });
       }
     }
   }
@@ -564,7 +581,8 @@ export function openConflicts(pages: WikiPage[]): WikiPage[] {
 }
 
 export type WorkQueueState = "ready" | "waiting" | "active" | "blocked" | "done" | "deferred";
-export type WorkQueueItem = WorkItem & {
+export type WorkQueueItem = Omit<WorkItem, "executor"> & {
+  executor: WorkExecutor;
   queue_state: WorkQueueState;
   unmet_dependencies: string[];
   owner_page: {
@@ -590,6 +608,9 @@ export type WorkQueue = {
   groups: WorkQueueGroups;
   open_conflicts: ConflictSummary[];
 };
+
+/** Public queue views can select agent, human, or all; `either` is included in both named views. */
+export type WorkExecutorFilter = "agent" | "human" | "all";
 
 export type ContextSourceGlob = {
   glob: string;
@@ -674,6 +695,7 @@ export function buildWorkQueue(pages: WikiPage[]): WorkQueue {
     const queueState: WorkQueueState = item.state === "not-started" ? (unmet.length === 0 ? "ready" : "waiting") : item.state;
     return {
       ...item,
+      executor: item.executor ?? "agent",
       depends_on: [...item.depends_on].sort((a, b) => a.localeCompare(b)),
       context_pages: [...item.context_pages],
       acceptance: [...item.acceptance],
@@ -692,12 +714,41 @@ export function buildWorkQueue(pages: WikiPage[]): WorkQueue {
   }).sort((a, b) => WORK_PRIORITY_ORDER[a.priority] - WORK_PRIORITY_ORDER[b.priority] || a.id.localeCompare(b.id));
   const groups: WorkQueueGroups = { active: [], ready: [], waiting: [], blocked: [], deferred: [], done: [] };
   for (const item of normalized) groups[item.queue_state].push(item);
-  const recommended = groups.active[0] ?? groups.ready[0];
-  return {
+  const queue: WorkQueue = {
     version: 1,
-    recommended_next: recommended ? { kind: "work", id: recommended.id } : null,
+    recommended_next: null,
     groups,
     open_conflicts: openConflicts(pages).map(conflictSummary),
+  };
+  return projectWorkQueue(queue, "all");
+}
+
+function executorVisible(item: WorkQueueItem, filter: WorkExecutorFilter): boolean {
+  return filter === "all" || item.executor === "either" || item.executor === filter;
+}
+
+function recommendedWork(groups: WorkQueueGroups): { kind: "work"; id: string } | null {
+  // Recommendations are agent auto-selection. Human-exclusive work remains
+  // visible in every projection, but is never selected automatically.
+  const recommended = [...groups.active, ...groups.ready].find((item) => item.executor !== "human");
+  return recommended ? { kind: "work", id: recommended.id } : null;
+}
+
+/**
+ * Project a fully-derived repository queue for display. Dependency state and
+ * unmet dependencies are intentionally computed before this visibility filter;
+ * filtering a hidden prerequisite must never turn a waiting item into ready.
+ */
+export function projectWorkQueue(queue: WorkQueue, filter: WorkExecutorFilter = "all"): WorkQueue {
+  const groups = (Object.keys(queue.groups) as (keyof WorkQueueGroups)[]).reduce((result, group) => {
+    result[group] = queue.groups[group].filter((item) => executorVisible(item, filter));
+    return result;
+  }, {} as WorkQueueGroups);
+  return {
+    version: queue.version,
+    recommended_next: recommendedWork(groups),
+    groups,
+    open_conflicts: queue.open_conflicts,
   };
 }
 
@@ -878,8 +929,8 @@ export function buildTopicContext(view: RepoView, pages: WikiPage[], query: stri
 
 function renderWorkTable(items: WorkQueueItem[]): string[] {
   const lines = [
-    "| ID | Priority | Owner page | Dependencies | Summary | Context |",
-    "|---|---|---|---|---|---|",
+    "| ID | Priority | Executor | Owner page | Dependencies | Summary | Context |",
+    "|---|---|---|---|---|---|---|",
   ];
   for (const item of items) {
     const owner = `[${item.owner_page.id}](./${item.owner_page.path.slice("wiki/".length)})`;
@@ -891,9 +942,9 @@ function renderWorkTable(items: WorkQueueItem[]): string[] {
         : item.queue_state === "waiting"
           ? ` — Waiting on: ${item.unmet_dependencies.join(", ")}`
           : "";
-    lines.push(`| ${item.id} | ${item.priority} | ${owner} | ${dependencies} | ${item.title}${reason} | \`${item.context_command}\` |`);
+    lines.push(`| ${item.id} | ${item.priority} | ${item.executor} | ${owner} | ${dependencies} | ${item.title}${reason} | \`${item.context_command}\` |`);
   }
-  if (items.length === 0) lines.push("| — | — | — | — | None | — |");
+  if (items.length === 0) lines.push("| — | — | — | — | — | None | — |");
   return lines;
 }
 
@@ -901,6 +952,9 @@ export function generateWorkQueue(pages: WikiPage[]): string {
   const queue = buildWorkQueue(pages);
   const outstanding = ["active", "ready", "waiting", "blocked", "deferred"]
     .reduce((total, group) => total + queue.groups[group as keyof WorkQueueGroups].length, 0);
+  const humanOutstanding = ["active", "ready"]
+    .flatMap((group) => queue.groups[group as keyof WorkQueueGroups])
+    .some((item) => item.executor === "human");
   const lines = [
     "---",
     "id: generated/work-queue",
@@ -921,7 +975,9 @@ export function generateWorkQueue(pages: WikiPage[]): string {
     "",
     queue.recommended_next
       ? `**Recommended next:** \`${queue.recommended_next.id}\` — run \`bun run wiki:context -- --work ${queue.recommended_next.id}\`.`
-      : "**Recommended next:** none. Do not invent work; inspect blockers and open decisions below.",
+      : humanOutstanding
+        ? "**Recommended next:** none; no agent-recommendable work is available. Human-only work remains visible below and requires human execution; do not invent work or assume authority."
+        : "**Recommended next:** none. Do not invent work; inspect blockers and open decisions below.",
     "",
     `Outstanding work: ${outstanding}. Completed work hidden: ${queue.groups.done.length}; run \`bun run wiki:work -- --all\` to inspect it.`,
     "",
@@ -993,10 +1049,15 @@ export function generateCurrentStatus(pages: WikiPage[]): string {
   if (currentPages(pages).length === 0) lines.push("| — | — | — | — | 0 |");
   const queue = buildWorkQueue(pages);
   const outstanding = queue.groups.active.length + queue.groups.ready.length + queue.groups.waiting.length + queue.groups.blocked.length + queue.groups.deferred.length;
+  const humanOutstanding = ["active", "ready"]
+    .flatMap((group) => queue.groups[group as keyof WorkQueueGroups])
+    .some((item) => item.executor === "human");
   lines.push("", `## Outstanding work (${outstanding})`, "");
   lines.push(queue.recommended_next
     ? `Recommended next: \`${queue.recommended_next.id}\`. Run \`bun run wiki:context -- --work ${queue.recommended_next.id}\`.`
-    : "No active or ready work is available; do not infer a task from blocked or deferred records.");
+    : outstanding > 0 && humanOutstanding
+      ? "No agent-recommendable work is available; human-only work remains and requires human execution. Do not infer an agent task or assume authority."
+      : "No active or ready work is available; do not infer a task from blocked or deferred records.");
   lines.push("", "See the [repository work queue](./work-queue.md) or run `bun run wiki:work`.", "");
   const conflicts = openConflicts(pages);
   lines.push("", `## Open conflicts (${conflicts.length})`, "", "| Severity | Count |", "|---|---:|");
@@ -1709,6 +1770,31 @@ function agentEntrypointContractGaps(agents: string): string[] {
     && /\b(label|present|state|status|treat)\w*\b/.test(line)
     && /(not current|non-current)/.test(line))) {
     gaps.push("the non-current authority boundary");
+  }
+  // Executor metadata is a routing contract, not an authorization mechanism.
+  // This guardrail intentionally accepts the required negative authority
+  // clause ("do not assume authority") instead of sending it through the
+  // generic route-negation detector above.
+  const humanOnlyNotAutoSelected = lines.some((line) =>
+    ( /\bhuman[- ](?:only|exclusive)\b/.test(line)
+      || /\bexecutor\s*:\s*human\b/.test(line)
+      || /\bhuman\s+work\b/.test(line) )
+    && (
+      /\b(?:never|not|must not|should not|cannot|can't|do not)\b[^.;—–]{0,120}\b(?:auto[- ]?select(?:ed|ion)?|recommend(?:ed|ation)?|select(?:ed)? automatically|automatically\s+select)\b/.test(line)
+      || /\b(?:never|not|must not|should not|cannot|can't|do not)\b[^.;—–]{0,120}\b(?:auto[- ]?select(?:ed|ion)?|recommend(?:ed|ation)?|select(?:ed)? automatically|automatically\s+select)\b[^.;—–]{0,120}(?:human[- ](?:only|exclusive)|executor\s*:\s*human|human\s+work)\b/.test(line)
+    ));
+  const reportsProcedure = lines.some((line) =>
+    /\b(?:report|document|describe|provide|explain|state)\b[^.;—–]{0,120}\b(?:procedure|steps?|process|instructions?)\b/.test(line)
+    && !explicitlyNegatesAction(line, /\b(?:report|document|describe|provide|explain|state)\b/));
+  const handsOffToHuman = lines.some((line) =>
+    /\b(?:hand(?:\s+it)?[- ]off|handoff|escalat(?:e|ion)|refer)\b[^.;—–]{0,100}\bhumans?\b/.test(line)
+    && !explicitlyNegatesAction(line, /\b(?:hand(?:\s+it)?[- ]off|handoff|escalat(?:e|ion)|refer)\b/));
+  const doesNotAssumeAuthority = lines.some((line) =>
+    /\b(?:do not|must not|should not|never|cannot|can't)\s+(?:assume|presume)\s+(?:(?:any|additional|extra)\s+)?(?:credentials?|authority|permissions?)(?:\s+or\s+(?:credentials?|authority|permissions?))?\b/.test(line)
+    || /\bno\s+(?:assumed|assumption of)\s+(?:credentials?|authority|permissions?)\b/.test(line)
+    || /\bwithout\s+assuming\b[^.;—–]{0,100}\b(?:credentials?|authority|permissions?)\b/.test(line));
+  if (!humanOnlyNotAutoSelected || !reportsProcedure || !handsOffToHuman || !doesNotAssumeAuthority) {
+    gaps.push("the human-work executor guardrail (human-only auto-selection exclusion, procedure report/handoff, and no assumed authority)");
   }
   return gaps;
 }

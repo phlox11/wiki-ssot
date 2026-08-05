@@ -17,6 +17,7 @@ These rules apply to every coding agent and every task in this repository. They 
 1. Start at `wiki/index.md`, then read `wiki/current-status.md` and any `kind: invariant` pages.
 <!-- wiki-ssot:work-discovery -->
 2. If the user asks what remains, what is unfinished, or what should happen next without naming a task — including “할 일 남은 거 뭐야?” — run `bun run wiki:work` before topic search. Do not require a proposal ID, work ID, or search term. After selecting a returned item, run its printed `wiki:context -- --work <ID>` command.
+   - Do not automatically select `executor: human` work. Keep it visible, report the required work and procedure, and hand it off to a human without assuming their credentials or authority. `executor: either` does not expand external-write, destructive-action, or other permissions.
 3. Search before editing: `bun run wiki:search -- "<task terms>"` and `bun run wiki:context -- "<task terms>"`. Context automatically includes related open conflicts.
 4. Read each affected page's `sources` directly. Do not rely on the wiki summary alone for implementation details.
 5. Change wiki, code, and tests in the same PR when behavior or intent changes. If semantics do not change, run `bun run wiki:verify -- --page <id> --unchanged "<20+ character reason>"`.

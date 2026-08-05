@@ -49,6 +49,7 @@ work_items:
   - id: PV-03
     title: Provide zero-knowledge repository-wide work discovery
     state: not-started
+    executor: agent
     priority: critical
     depends_on: [PV-00]
     context_pages: [product/scope, product/invariants]
@@ -60,6 +61,8 @@ work_items:
 Every item requires `id`, `title`, `state`, `priority`, `depends_on`, `context_pages`, `acceptance`, and `evidence`.
 
 - `state`: `not-started | active | blocked | done | deferred`.
+- `executor`: optional `agent | human | either`; omission normalizes to `agent` for backward compatibility. `agent` means a coding agent can perform the work, `human` means it requires a human capability such as an account, payment, physical device, credential, or legal declaration, and `either` means either executor can perform it.
+- Executor and state are independent. Human work that can begin is still `not-started` and derives to `ready`; use `blocked` or `deferred` only for their ordinary lifecycle meanings.
 - `priority`: `critical | high | normal | low`.
 - Stored `not-started` derives to queue state `ready` when all dependencies are done and `waiting` otherwise.
 - `blocked` requires a non-empty `blocker`; `deferred` requires a non-empty `deferred_reason`; `done` requires at least one durable `evidence` entry. Those conditional fields are illegal on other states.
@@ -69,6 +72,10 @@ Every item requires `id`, `title`, `state`, `priority`, `depends_on`, `context_p
 - A deprecated or archived proposal may retain only `done` or `deferred` work.
 
 Frontmatter is the sole state, dependency, acceptance, and evidence contract. The proposal body keeps rationale rather than a second tracker. GitHub or provider records may appear as evidence, but the repository queue must remain complete offline.
+
+`wiki:work` derives dependencies and queue state from the complete graph before applying an executor view. The default and `--executor all` views show every executor but recommend only `agent` or `either` work. `--executor agent` shows `agent` and `either`; `--executor human` shows `human` and `either` for human handoff and never recommends human-exclusive work. The existing `--all` flag independently includes completed rows, so it may be combined with any executor view. An executor value is classification, not authorization: it never grants external writes, destructive actions, credentials, or human authority.
+
+Upgrade the Wiki SSOT engine before adding `executor: human` to an existing repository. Older engines ignore the classification when choosing recommendations; once upgraded, existing items may remain unmodified because omission continues to mean `agent`.
 
 ## Conflict pages
 
