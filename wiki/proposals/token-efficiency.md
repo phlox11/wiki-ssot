@@ -15,20 +15,15 @@ sources:
   - path: scripts/wiki/fresh-context.test.ts
   - path: scripts/wiki/primary-scenarios.ts
   - path: scripts/wiki/primary-current.ts
-  - path: scripts/wiki/token-efficiency-baseline.ts
-  - path: scripts/wiki/token-efficiency-baseline.test.ts
   - path: docs/evidence/pv-19-primary-current.json
   - path: docs/evidence/pv-19-primary-current.md
-  - path: docs/evidence/te-00-controlled-rollout.json
-  - path: docs/evidence/te-00-token-efficiency-baseline.json
-  - path: docs/evidence/te-00-token-efficiency-baseline.md
 affects: [product/scope, product/invariants, architecture/engine, operations/enforcement]
 related: [proposal/primary-findability-validation, product/scope, product/invariants, architecture/engine, operations/enforcement]
 tags: [roadmap, token, context, efficiency, search, sources, review, orchestration]
 work_items:
   - id: TE-00
     title: Capture the token-efficiency measurement baseline
-    state: done
+    state: not-started
     executor: agent
     priority: high
     depends_on: []
@@ -39,11 +34,7 @@ work_items:
       - The baseline separates deterministic repository byte metrics from model- and orchestrator-dependent rollout metrics.
       - The evidence presents the correctness floor, proposed optimization targets, comparison task, model and effort controls, accepted variance options, and any measurement limitations for owner ratification.
       - Baseline evidence includes the current real-repository queries and selected-work case recorded on this page rather than relying only on small synthetic fixtures.
-    evidence:
-      - scripts/wiki/token-efficiency-baseline.test.ts
-      - docs/evidence/te-00-controlled-rollout.json
-      - docs/evidence/te-00-token-efficiency-baseline.json
-      - docs/evidence/te-00-token-efficiency-baseline.md
+    evidence: []
   - id: TE-00-OWNER
     title: Ratify the token-efficiency comparison contract and budgets
     state: not-started
@@ -162,11 +153,11 @@ work_items:
 
 This proposal turns the observed context and rollout cost problem into bounded,
 measurable repository work. It is a `status: proposed` plan, not a statement of
-current behavior. `TE-00` has recorded the durable deterministic and controlled
-rollout baseline. `TE-00-OWNER` now requires explicit human ratification before
-implementation items become ready. Later items remain waiting on their declared
-dependencies. Queue readiness does not authorize implementation beyond a
-separately requested task.
+current behavior. `TE-00` is ready to establish the durable baseline;
+`TE-00-OWNER` then requires explicit human ratification before implementation
+items become ready. Later items remain waiting on their declared dependencies.
+Queue readiness does not authorize implementation beyond a separately
+requested task.
 
 The goal is not to make the Wiki smaller by hiding authority. The goal is to
 preserve the same current pages, invariants, conflicts, source traceability,
@@ -200,21 +191,6 @@ bundle: 138,661 bytes of diff and 62,970 bytes of non-diff review material. The
 same `product/invariants` body appeared under both affected pages and
 invariants. This is a diagnostic sample that `TE-00` must turn into a checked-in
 reproduction contract before review-bundle optimization begins.
-
-TE-00 now reproduces these values with the checked-in version 1 fixture and
-machine-readable evidence. The review directory contains 201,701 raw bytes;
-the recorded comparison excludes the 70-byte serialized `bundle_digest`
-binding and therefore retains the original 201,631-byte comparison contract.
-The evidence preserves both values instead of rewriting raw file sizes.
-
-The controlled read-only comparison used one `gpt-5.6-sol` agent at `high`
-effort with no child or guardian agents. The sanitized local-rollout record
-contains 25 positive usage increments, 1,241,104 raw input tokens including
-1,158,912 cached input tokens, 82,192 derived uncached input tokens, 8,520
-output tokens including 3,737 reasoning-output tokens, and 1,249,624 total
-tokens. These are raw local rollout measurements, not billed API cost or
-subscription-credit consumption. The owner brief leaves the ratification
-decision unselected.
 
 PV-19 deliberately states that context byte counts are not runtime or
 model-token guarantees. The new baseline therefore has two distinct layers:
