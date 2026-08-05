@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "kind": "sanitized-controlled-rollout",
+  "comparison": {
+    "taskLabel": "te00_controlled_rollout",
+    "contextSourceRevision": "cf128d5e76cc40c0f3d48db0e3873e29d6468e00",
+    "orchestration": "one read-only default agent with no subagents or guardian agents"
+  },
+  "provenance": {
+    "kind": "sanitized",
+    "description": "Local rollout usage was aggregated from cumulative token-count snapshots. Twenty-five snapshots increased total usage; three repeated zero-delta snapshots were excluded from model-call count. No conversation content or local identifiers are retained.",
+    "eventCount": 28
+  },
+  "agents": [
+    {
+      "taskLabel": "te00_controlled_rollout",
+      "role": "default",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "modelCallCount": 25,
+      "rawInputTokens": 1241104,
+      "cachedInputTokens": 1158912,
+      "uncachedInputTokens": 82192,
+      "outputTokens": 8520,
+      "reasoningOutputTokens": 3737,
+      "totalTokens": 1249624
+    }
+  ],
+  "totals": {
+    "agentCount": 1,
+    "modelCallCount": 25,
+    "rawInputTokens": 1241104,
+    "cachedInputTokens": 1158912,
+    "uncachedInputTokens": 82192,
+    "outputTokens": 8520,
+    "reasoningOutputTokens": 3737,
+    "totalTokens": 1249624
+  }
+}

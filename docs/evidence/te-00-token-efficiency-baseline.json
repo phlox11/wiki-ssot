@@ -1,0 +1,431 @@
+{
+  "comparison": {
+    "acceptedVarianceOptions": [
+      "Owner may accept a documented model, cache, orchestration, or sampling variance when the exact task and controls are preserved."
+    ],
+    "contextSourceRevision": "cf128d5e76cc40c0f3d48db0e3873e29d6468e00",
+    "exactTask": "Measure the real repository's mandatory entry, focused and broad topic context, PV-20 selected-work context, recursive TypeScript source expansion, and the 70cdf3d candidate review bundle against the pinned revisions.",
+    "limitations": [
+      "UTF-8 bytes and local token counts are evidence, not runtime, billed API cost, subscription credits, or proof of model comprehension."
+    ],
+    "modelAndEffortControls": [
+      "Record the exact model and reasoning effort per rollout agent; do not compare different model or effort settings without a declared variance."
+    ],
+    "orchestrationControls": [
+      "Keep agent role, model-call count, and fan-out/orchestration policy fixed for comparison; deterministic repository measurements remain separate from rollout usage."
+    ]
+  },
+  "controlledRollout": {
+    "agents": [
+      {
+        "cachedInputTokens": 1158912,
+        "effort": "high",
+        "model": "gpt-5.6-sol",
+        "modelCallCount": 25,
+        "outputTokens": 8520,
+        "rawInputTokens": 1241104,
+        "reasoningOutputTokens": 3737,
+        "role": "default",
+        "taskLabel": "te00_controlled_rollout",
+        "totalTokens": 1249624,
+        "uncachedInputTokens": 82192
+      }
+    ],
+    "comparison": {
+      "contextSourceRevision": "cf128d5e76cc40c0f3d48db0e3873e29d6468e00",
+      "orchestration": "one read-only default agent with no subagents or guardian agents",
+      "taskLabel": "te00_controlled_rollout"
+    },
+    "kind": "sanitized-controlled-rollout",
+    "provenance": {
+      "description": "Local rollout usage was aggregated from cumulative token-count snapshots. Twenty-five snapshots increased total usage; three repeated zero-delta snapshots were excluded from model-call count. No conversation content or local identifiers are retained.",
+      "eventCount": 28,
+      "kind": "sanitized"
+    },
+    "totals": {
+      "agentCount": 1,
+      "cachedInputTokens": 1158912,
+      "modelCallCount": 25,
+      "outputTokens": 8520,
+      "rawInputTokens": 1241104,
+      "reasoningOutputTokens": 3737,
+      "totalTokens": 1249624,
+      "uncachedInputTokens": 82192
+    },
+    "version": 1
+  },
+  "deterministic": {
+    "contractVersion": 1,
+    "deterministic": {
+      "broad": {
+        "json": {
+          "bytes": 114429,
+          "lines": 1410,
+          "words": 11784
+        },
+        "label": "broad",
+        "query": "token context runtime cost efficiency",
+        "semantic": {
+          "conflictCount": 0,
+          "conflictIds": [],
+          "currentPageCount": 4,
+          "nonCurrentPageCount": 2,
+          "nonCurrentPageIds": [
+            "proposal/primary-findability-validation",
+            "proposal/primary-interpretation-decision-gate"
+          ],
+          "pageCount": 4,
+          "pageIds": [
+            "architecture/engine",
+            "operations/enforcement",
+            "product/invariants",
+            "product/scope"
+          ],
+          "readOrderCount": 39,
+          "sourceDeclarationCount": 6,
+          "sourceFileCount": 55,
+          "sourceIds": [
+            "architecture/engine",
+            "operations/enforcement",
+            "product/invariants",
+            "product/scope",
+            "proposal/primary-findability-validation",
+            "proposal/primary-interpretation-decision-gate"
+          ]
+        },
+        "text": {
+          "bytes": 92758,
+          "lines": 1223,
+          "words": 11599
+        },
+        "workId": null
+      },
+      "contextSourceRevision": "cf128d5e76cc40c0f3d48db0e3873e29d6468e00",
+      "entry": {
+        "files": {
+          "AGENTS.md": {
+            "bytes": 7924,
+            "lines": 59,
+            "words": 1144
+          },
+          "wiki/current-status.md": {
+            "bytes": 877,
+            "lines": 27,
+            "words": 135
+          },
+          "wiki/index.md": {
+            "bytes": 1330,
+            "lines": 22,
+            "words": 152
+          },
+          "wiki/product/invariants.md": {
+            "bytes": 6809,
+            "lines": 27,
+            "words": 936
+          }
+        },
+        "json": {
+          "bytes": 513,
+          "lines": 30,
+          "words": 48
+        },
+        "paths": [
+          "AGENTS.md",
+          "wiki/index.md",
+          "wiki/current-status.md",
+          "wiki/product/invariants.md"
+        ],
+        "semantic": {
+          "currentAuthorityFileCount": 1,
+          "fileCount": 4,
+          "sourcePathCount": 4
+        },
+        "text": {
+          "bytes": 16940,
+          "lines": 135,
+          "words": 2367
+        }
+      },
+      "focused": {
+        "json": {
+          "bytes": 69128,
+          "lines": 859,
+          "words": 6781
+        },
+        "label": "focused",
+        "query": "token context bundle review",
+        "semantic": {
+          "conflictCount": 0,
+          "conflictIds": [],
+          "currentPageCount": 1,
+          "nonCurrentPageCount": 1,
+          "nonCurrentPageIds": [
+            "proposal/primary-findability-validation"
+          ],
+          "pageCount": 1,
+          "pageIds": [
+            "architecture/engine"
+          ],
+          "readOrderCount": 24,
+          "sourceDeclarationCount": 2,
+          "sourceFileCount": 47,
+          "sourceIds": [
+            "architecture/engine",
+            "proposal/primary-findability-validation"
+          ]
+        },
+        "text": {
+          "bytes": 55046,
+          "lines": 706,
+          "words": 6676
+        },
+        "workId": null
+      },
+      "recursiveTypeScript": {
+        "fileCount": 22,
+        "glob": "scripts/wiki/**/*.ts",
+        "paths": [
+          "scripts/wiki/apply.test.ts",
+          "scripts/wiki/apply.ts",
+          "scripts/wiki/cli.ts",
+          "scripts/wiki/core.ts",
+          "scripts/wiki/existing-repo-bootstrap.test.ts",
+          "scripts/wiki/fresh-context.test.ts",
+          "scripts/wiki/github-attestation.ts",
+          "scripts/wiki/inventories.example.ts",
+          "scripts/wiki/inventories.ts",
+          "scripts/wiki/kit-sync.ts",
+          "scripts/wiki/kit.test.ts",
+          "scripts/wiki/new-repository-adoption.test.ts",
+          "scripts/wiki/primary-baseline.test.ts",
+          "scripts/wiki/primary-baseline.ts",
+          "scripts/wiki/primary-current.test.ts",
+          "scripts/wiki/primary-current.ts",
+          "scripts/wiki/primary-scenarios.test.ts",
+          "scripts/wiki/primary-scenarios.ts",
+          "scripts/wiki/publisher-boundary.test.ts",
+          "scripts/wiki/test-runner.ts",
+          "scripts/wiki/wiki.test.ts",
+          "scripts/wiki/work.test.ts"
+        ],
+        "text": {
+          "bytes": 588463,
+          "lines": 12647,
+          "words": 55073
+        }
+      },
+      "reviewBundle": {
+        "baseRef": "ba84625e189f7ec59838ca8eead355b49791c879",
+        "baseSha": "ba84625e189f7ec59838ca8eead355b49791c879",
+        "candidateRef": "70cdf3d63ba9dd14ffa6819f32bf3dbc1a632234",
+        "candidateSha": "70cdf3d63ba9dd14ffa6819f32bf3dbc1a632234",
+        "comparisonDiffBytes": 138661,
+        "comparisonNonDiffBytes": 62970,
+        "comparisonTotalBytes": 201631,
+        "componentBytes": {
+          "diff": 138661,
+          "impact": 1283,
+          "invariants": 6809,
+          "manifest": 2047,
+          "metadata": 299,
+          "pages": 43218,
+          "review-contract": 7874,
+          "sources": 1510
+        },
+        "diffBytes": 138661,
+        "digest": "487bb3cc27aa73c53f785f29fb58c3e2008972542694a939031fae2eda079c3c",
+        "digestBindingBytes": 70,
+        "fileBytes": {
+          "diff.patch": 138661,
+          "impact.json": 1283,
+          "invariants/product_invariants.md": 6809,
+          "manifest.json": 2047,
+          "pages/architecture_engine.md": 21101,
+          "pages/operations_enforcement.md": 9929,
+          "pages/product_invariants.md": 6809,
+          "pages/product_scope.md": 5379,
+          "pr-metadata.json": 299,
+          "PROMPT.md": 2102,
+          "REPORT.example.json": 417,
+          "REPORT.findings.example.json": 1761,
+          "REPORT.md": 3594,
+          "sources.json": 1510
+        },
+        "files": [
+          {
+            "bytes": 138661,
+            "component": "diff",
+            "path": "diff.patch"
+          },
+          {
+            "bytes": 1283,
+            "component": "impact",
+            "path": "impact.json"
+          },
+          {
+            "bytes": 6809,
+            "component": "invariants",
+            "path": "invariants/product_invariants.md"
+          },
+          {
+            "bytes": 2047,
+            "component": "manifest",
+            "path": "manifest.json"
+          },
+          {
+            "bytes": 21101,
+            "component": "pages",
+            "path": "pages/architecture_engine.md"
+          },
+          {
+            "bytes": 9929,
+            "component": "pages",
+            "path": "pages/operations_enforcement.md"
+          },
+          {
+            "bytes": 6809,
+            "component": "pages",
+            "path": "pages/product_invariants.md"
+          },
+          {
+            "bytes": 5379,
+            "component": "pages",
+            "path": "pages/product_scope.md"
+          },
+          {
+            "bytes": 299,
+            "component": "metadata",
+            "path": "pr-metadata.json"
+          },
+          {
+            "bytes": 2102,
+            "component": "review-contract",
+            "path": "PROMPT.md"
+          },
+          {
+            "bytes": 417,
+            "component": "review-contract",
+            "path": "REPORT.example.json"
+          },
+          {
+            "bytes": 1761,
+            "component": "review-contract",
+            "path": "REPORT.findings.example.json"
+          },
+          {
+            "bytes": 3594,
+            "component": "review-contract",
+            "path": "REPORT.md"
+          },
+          {
+            "bytes": 1510,
+            "component": "sources",
+            "path": "sources.json"
+          }
+        ],
+        "metadata": {
+          "affectedInvariants": [
+            "product/invariants"
+          ],
+          "affectedPages": [
+            "architecture/engine",
+            "operations/enforcement",
+            "product/invariants",
+            "product/scope"
+          ],
+          "changeType": "feature",
+          "semanticChange": true,
+          "touchedConflicts": [],
+          "wikiAction": "update"
+        },
+        "nonDiffBytes": 63040,
+        "rawDiffBytes": 138661,
+        "rawNonDiffBytes": 63040,
+        "rawTotalBytes": 201701,
+        "sourceBreadth": {
+          "affectedPageCount": 4,
+          "conflictCount": 0,
+          "invariantCount": 1,
+          "sourceFileCount": 17,
+          "sourcePathCount": 17
+        },
+        "totalBytes": 201701
+      },
+      "selectedWork": {
+        "json": {
+          "bytes": 76492,
+          "lines": 919,
+          "words": 8262
+        },
+        "label": "selected-work",
+        "query": null,
+        "semantic": {
+          "conflictCount": 0,
+          "conflictIds": [],
+          "currentPageCount": 4,
+          "nonCurrentPageCount": 0,
+          "nonCurrentPageIds": [],
+          "pageCount": 4,
+          "pageIds": [
+            "architecture/engine",
+            "operations/enforcement",
+            "product/invariants",
+            "product/scope"
+          ],
+          "readOrderCount": 39,
+          "sourceDeclarationCount": 5,
+          "sourceFileCount": 37,
+          "sourceIds": [
+            "architecture/engine",
+            "operations/enforcement",
+            "product/invariants",
+            "product/scope",
+            "proposal/primary-interpretation-decision-gate"
+          ]
+        },
+        "text": {
+          "bytes": 65031,
+          "lines": 738,
+          "words": 8191
+        },
+        "workId": "PV-20"
+      }
+    },
+    "method": {
+      "contextCommands": [
+        "bun run wiki:context -- \"token context bundle review\"",
+        "bun run wiki:context -- \"token context runtime cost efficiency\"",
+        "bun run wiki:context -- --work PV-20"
+      ],
+      "historicalCheckout": "git clone --shared --no-checkout; git checkout --detach cf128d5e76cc40c0f3d48db0e3873e29d6468e00",
+      "notes": [
+        "All deterministic measurements are UTF-8 bytes and are not model-token, runtime, billing, or subscription-credit claims.",
+        "The context/source and review candidate checkouts are detached immutable revisions; moving refs cannot rewrite this evidence.",
+        "Review bundle file/component totals retain every generated byte (201,701); the proposal-recorded comparison explicitly excludes a 70-byte serialized bundle_digest binding, yielding 201,631 bytes."
+      ],
+      "reviewBundleCommand": "bun run wiki:review-bundle -- --base ba84625e189f7ec59838ca8eead355b49791c879",
+      "sourceExpansion": "scripts/wiki/**/*.ts",
+      "textEncoding": "UTF-8"
+    },
+    "reportVersion": 1,
+    "summary": {
+      "broadContextBytes": 92758,
+      "focusedContextBytes": 55046,
+      "mandatoryEntryBytes": 16940,
+      "recursiveTypeScriptBytes": 588463,
+      "reviewBundleBytes": 201631,
+      "reviewDiffBytes": 138661,
+      "reviewNonDiffBytes": 62970,
+      "selectedWorkContextBytes": 65031
+    }
+  },
+  "evidenceVersion": 1,
+  "ownerRatification": {
+    "decision": null,
+    "options": [
+      "ratify targets",
+      "request another bounded measurement cycle",
+      "do not adopt optimization"
+    ]
+  }
+}
