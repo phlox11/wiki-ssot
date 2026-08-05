@@ -15,9 +15,9 @@ tags: [generated, work, queue]
 
 This is a deterministic view of structured `work_items` on proposal pages. It is not current product authority; open the owning proposal and then the returned current context.
 
-**Recommended next:** none; no agent-recommendable work is available. Human-only work remains visible below and requires human execution; do not invent work or assume authority.
+**Recommended next:** `TE-00` — run `bun run wiki:context -- --work TE-00`.
 
-Outstanding work: 28. Completed work hidden: 18; run `bun run wiki:work -- --all` to inspect it.
+Outstanding work: 29. Completed work hidden: 17; run `bun run wiki:work -- --all` to inspect it.
 
 ## Active
 
@@ -29,12 +29,13 @@ Outstanding work: 28. Completed work hidden: 18; run `bun run wiki:work -- --all
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| TE-00-OWNER | high | human | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-00 | Ratify the token-efficiency comparison contract and budgets | `bun run wiki:context -- --work TE-00-OWNER` |
+| TE-00 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | — | Capture the token-efficiency measurement baseline | `bun run wiki:context -- --work TE-00` |
 
 ## Waiting
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
+| TE-00-OWNER | high | human | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-00 | Ratify the token-efficiency comparison contract and budgets — Waiting on: TE-00 | `bun run wiki:context -- --work TE-00-OWNER` |
 | TE-01 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-00-OWNER | Add compact context projections with explicit full expansion — Waiting on: TE-00-OWNER | `bun run wiki:context -- --work TE-01` |
 | TE-02 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-00-OWNER | Bound partial-match discovery before full context expansion — Waiting on: TE-00-OWNER | `bun run wiki:context -- --work TE-02` |
 | TE-03 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-00-OWNER | Partition the recursive engine source authority boundary — Waiting on: TE-00-OWNER | `bun run wiki:context -- --work TE-03` |
