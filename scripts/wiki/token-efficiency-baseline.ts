@@ -150,6 +150,9 @@ export type ReviewBundleMeasurement = {
   sourceBreadth: {
     sourceFileCount: number;
     sourcePathCount: number;
+    sourcePaths: string[];
+    sourceFiles: string[];
+    globMatches: Record<string, string[]>;
     affectedPageCount: number;
     invariantCount: number;
     conflictCount: number;
@@ -308,6 +311,7 @@ function summarizeContext(value: unknown): SemanticCounts {
   const sources = Array.isArray(object.sources) ? object.sources as Record<string, unknown>[] : [];
   const sourceFiles = new Set<string>();
   const sourceIds = sources.flatMap((item) => typeof item.pageId === "string" ? [item.pageId] : []);
+  const sourceDeclarationCount = sources.reduce((count, item) => count + (Array.isArray(item.declared) ? item.declared.length : 0), 0);
   for (const source of [...pages, ...nonCurrent, ...sources]) {
     for (const path of Array.isArray(source.sourceFiles) ? source.sourceFiles : []) if (typeof path === "string") sourceFiles.add(path);
   }
@@ -316,7 +320,7 @@ function summarizeContext(value: unknown): SemanticCounts {
     currentPageCount: pages.filter((page) => page.status === "current").length,
     nonCurrentPageCount: nonCurrent.length,
     conflictCount: conflicts.length,
-    sourceDeclarationCount: sources.length,
+    sourceDeclarationCount,
     sourceFileCount: sourceFiles.size,
     readOrderCount: Array.isArray(object.readOrder) ? object.readOrder.length : 0,
     sourceIds: [...new Set(sourceIds)].sort((a, b) => a.localeCompare(b)),
@@ -451,12 +455,33 @@ function reviewBundleMeasurement(root: string): ReviewBundleMeasurement {
     const sourceJson = JSON.parse(readFileSync(join(outputPath, "sources.json"), "utf8")) as Record<string, unknown>;
     const affectedPages = ["architecture/engine", "operations/enforcement", "product/invariants", "product/scope"];
     const invariantIds = ["product/invariants"];
-    const sourceFiles = new Set<string>();
+    const sourcePathSet = new Set<string>();
+    const globSet = new Set<string>();
     for (const value of Object.values((sourceJson.affectedPages ?? {}) as Record<string, unknown>)) {
       for (const source of Array.isArray(value) ? value : []) {
-        if (source && typeof source === "object" && "path" in source && typeof source.path === "string") sourceFiles.add(source.path);
+        if (source == null || typeof source !== "object" || Array.isArray(source)) continue;
+        const declaration = source as Record<string, unknown>;
+        if (typeof declaration.path === "string") sourcePathSet.add(declaration.path);
+        if (typeof declaration.glob === "string") globSet.add(declaration.glob);
       }
     }
+    const candidateTree = git(candidateRoot, ["ls-tree", "-r", "--name-only", TOKEN_EFFICIENCY_REVIEW_CANDIDATE_REF])
+      .split("\n").filter(Boolean).sort((a, b) => a.localeCompare(b));
+    const globMatches: Record<string, string[]> = {};
+    const sourceFileSet = new Set(sourcePathSet);
+    for (const pattern of [...globSet].sort((a, b) => a.localeCompare(b))) {
+      let glob: Bun.Glob;
+      try {
+        glob = new Bun.Glob(pattern);
+      } catch {
+        throw new Error(`TE-00 review source glob is invalid: ${pattern}`);
+      }
+      const matches = candidateTree.filter((path) => glob.match(path)).sort((a, b) => a.localeCompare(b));
+      globMatches[pattern] = matches;
+      for (const path of matches) sourceFileSet.add(path);
+    }
+    const sourcePaths = [...sourcePathSet].sort((a, b) => a.localeCompare(b));
+    const sourceFiles = [...sourceFileSet].sort((a, b) => a.localeCompare(b));
     return {
       candidateRef: TOKEN_EFFICIENCY_REVIEW_CANDIDATE_REF,
       baseRef: TOKEN_EFFICIENCY_REVIEW_BASE_REF,
@@ -485,8 +510,11 @@ function reviewBundleMeasurement(root: string): ReviewBundleMeasurement {
       totalBytes: rawTotalBytes,
       rawTotalBytes,
       sourceBreadth: {
-        sourceFileCount: sourceFiles.size,
-        sourcePathCount: sourceFiles.size,
+        sourceFileCount: sourceFiles.length,
+        sourcePathCount: sourcePaths.length,
+        sourcePaths,
+        sourceFiles,
+        globMatches,
         affectedPageCount: affectedPages.length,
         invariantCount: invariantIds.length,
         conflictCount: 0,

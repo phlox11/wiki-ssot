@@ -89,6 +89,9 @@ describe("TE-00 token-efficiency deterministic baseline", () => {
     expect(report.deterministic.focused.text.bytes).toBe(55_046);
     expect(report.deterministic.broad.text.bytes).toBe(92_758);
     expect(report.deterministic.selectedWork.text.bytes).toBe(65_031);
+    expect(report.deterministic.focused.semantic.sourceDeclarationCount).toBe(37);
+    expect(report.deterministic.broad.semantic.sourceDeclarationCount).toBe(59);
+    expect(report.deterministic.selectedWork.semantic.sourceDeclarationCount).toBe(24);
     for (const surface of [report.deterministic.focused, report.deterministic.broad, report.deterministic.selectedWork]) {
       expect(surface.json.bytes).toBeGreaterThan(0);
       expect(surface.semantic.pageCount).toBeGreaterThan(0);
@@ -121,7 +124,21 @@ describe("TE-00 token-efficiency deterministic baseline", () => {
     expect(bundle.comparisonNonDiffBytes).toBe(62_970);
     expect(bundle.files.map((file) => file.path)).toEqual([...bundle.files.map((file) => file.path)].sort((a, b) => a.localeCompare(b)));
     expect(bundle.fileBytes["diff.patch"]).toBe(138_661);
-    expect(bundle.sourceBreadth).toMatchObject({ affectedPageCount: 4, invariantCount: 1, conflictCount: 0 });
+    expect(bundle.sourceBreadth).toMatchObject({
+      affectedPageCount: 4,
+      invariantCount: 1,
+      conflictCount: 0,
+      sourcePathCount: 17,
+      sourceFileCount: 35,
+    });
+    expect(bundle.sourceBreadth.sourcePaths).toEqual([...bundle.sourceBreadth.sourcePaths].sort((a, b) => a.localeCompare(b)));
+    expect(bundle.sourceBreadth.sourceFiles).toEqual([...bundle.sourceBreadth.sourceFiles].sort((a, b) => a.localeCompare(b)));
+    expect(bundle.sourceBreadth.sourcePaths).toHaveLength(17);
+    expect(bundle.sourceBreadth.sourceFiles).toHaveLength(35);
+    expect(bundle.sourceBreadth.globMatches["scripts/wiki/**/*.ts"]).toHaveLength(22);
+    expect(bundle.sourceBreadth.globMatches["scripts/wiki/**/*.ts"]).toContain("scripts/wiki/core.ts");
+    expect(bundle.sourceBreadth.sourceFiles).toContain("scripts/wiki/core.ts");
+    expect(bundle.sourceBreadth.sourceFiles).toContain("scripts/wiki/tsconfig.json");
     expect(bundle.rawTotalBytes).toBe(bundle.totalBytes);
     expect(bundle.rawTotalBytes).toBe(201_701);
     expect(bundle.digestBindingBytes).toBe(70);
