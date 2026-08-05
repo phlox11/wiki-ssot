@@ -15,9 +15,9 @@ tags: [generated, work, queue]
 
 This is a deterministic view of structured `work_items` on proposal pages. It is not current product authority; open the owning proposal and then the returned current context.
 
-**Recommended next:** none. Do not invent work; inspect blockers and open decisions below.
+**Recommended next:** `TE-00` — run `bun run wiki:context -- --work TE-00`.
 
-Outstanding work: 11. Completed work hidden: 17; run `bun run wiki:work -- --all` to inspect it.
+Outstanding work: 20. Completed work hidden: 17; run `bun run wiki:work -- --all` to inspect it.
 
 ## Active
 
@@ -29,13 +29,20 @@ Outstanding work: 11. Completed work hidden: 17; run `bun run wiki:work -- --all
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| — | — | — | — | — | None | — |
+| TE-00 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | — | Capture the token-efficiency measurement baseline | `bun run wiki:context -- --work TE-00` |
 
 ## Waiting
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| — | — | — | — | — | None | — |
+| TE-00-OWNER | high | human | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-00 | Ratify the token-efficiency comparison contract and budgets — Waiting on: TE-00 | `bun run wiki:context -- --work TE-00-OWNER` |
+| TE-01 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-00-OWNER | Add compact context projections with explicit full expansion — Waiting on: TE-00-OWNER | `bun run wiki:context -- --work TE-01` |
+| TE-02 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-00-OWNER | Bound partial-match discovery before full context expansion — Waiting on: TE-00-OWNER | `bun run wiki:context -- --work TE-02` |
+| TE-03 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-00-OWNER | Partition the recursive engine source authority boundary — Waiting on: TE-00-OWNER | `bun run wiki:context -- --work TE-03` |
+| TE-04 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-00-OWNER, TE-03 | Deduplicate and focus exact-HEAD review bundles — Waiting on: TE-00-OWNER, TE-03 | `bun run wiki:context -- --work TE-04` |
+| TE-06 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-01, TE-02, TE-03, TE-04, TE-05 | Validate token-efficiency gains and prepare exit evidence — Waiting on: TE-01, TE-02, TE-03, TE-04, TE-05 | `bun run wiki:context -- --work TE-06` |
+| TE-06-OWNER | high | human | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-06 | Record the token-efficiency owner exit decision — Waiting on: TE-06 | `bun run wiki:context -- --work TE-06-OWNER` |
+| TE-05 | normal | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-01, TE-02, TE-03, TE-04 | Make orchestration cost and reusable context boundaries explicit — Waiting on: TE-01, TE-02, TE-03, TE-04 | `bun run wiki:context -- --work TE-05` |
 
 ## Blocked
 
