@@ -9,9 +9,9 @@
 | [product/invariants](./product/invariants.md) | invariant | normative | @phlox11 | 4 |
 | [product/scope](./product/scope.md) | product | normative | @phlox11 | 2 |
 
-## Outstanding work (11)
+## Outstanding work (20)
 
-No active or ready work is available; do not infer a task from blocked or deferred records.
+Recommended next: `TE-00`. Run `bun run wiki:context -- --work TE-00`.
 
 See the [repository work queue](./work-queue.md) or run `bun run wiki:work`.
 
