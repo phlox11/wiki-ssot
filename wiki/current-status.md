@@ -9,7 +9,7 @@
 | [product/invariants](./product/invariants.md) | invariant | normative | @phlox11 | 4 |
 | [product/scope](./product/scope.md) | product | normative | @phlox11 | 2 |
 
-## Outstanding work (20)
+## Outstanding work (29)
 
 Recommended next: `TE-00`. Run `bun run wiki:context -- --work TE-00`.
 
