@@ -17,7 +17,7 @@ This is a deterministic view of structured `work_items` on proposal pages. It is
 
 **Recommended next:** `TE-00` — run `bun run wiki:context -- --work TE-00`.
 
-Outstanding work: 20. Completed work hidden: 17; run `bun run wiki:work -- --all` to inspect it.
+Outstanding work: 29. Completed work hidden: 17; run `bun run wiki:work -- --all` to inspect it.
 
 ## Active
 
@@ -42,6 +42,15 @@ Outstanding work: 20. Completed work hidden: 17; run `bun run wiki:work -- --all
 | TE-04 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-00-OWNER, TE-03 | Deduplicate and focus exact-HEAD review bundles — Waiting on: TE-00-OWNER, TE-03 | `bun run wiki:context -- --work TE-04` |
 | TE-06 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-01, TE-02, TE-03, TE-04, TE-05 | Validate token-efficiency gains and prepare exit evidence — Waiting on: TE-01, TE-02, TE-03, TE-04, TE-05 | `bun run wiki:context -- --work TE-06` |
 | TE-06-OWNER | high | human | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-06 | Record the token-efficiency owner exit decision — Waiting on: TE-06 | `bun run wiki:context -- --work TE-06-OWNER` |
+| KM-00 | normal | agent | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | TE-06-OWNER | Freeze the portable-kit modularity baseline and compatibility contract — Waiting on: TE-06-OWNER | `bun run wiki:context -- --work KM-00` |
+| KM-00-OWNER | normal | human | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | KM-00 | Ratify the portable-kit module budget and split contract — Waiting on: KM-00 | `bun run wiki:context -- --work KM-00-OWNER` |
+| KM-01 | normal | agent | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | KM-00-OWNER | Extract shared model, repository-view, and page-validation primitives — Waiting on: KM-00-OWNER | `bun run wiki:context -- --work KM-01` |
+| KM-02 | normal | agent | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | KM-01 | Extract work discovery, search, context, and generated-view modules — Waiting on: KM-01 | `bun run wiki:context -- --work KM-02` |
+| KM-03 | normal | agent | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | KM-02 | Extract portable-kit packaging and generation from the engine core — Waiting on: KM-02 | `bun run wiki:context -- --work KM-03` |
+| KM-04 | normal | agent | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | KM-03 | Extract verification, impact, and exact-HEAD review modules — Waiting on: KM-03 | `bun run wiki:context -- --work KM-04` |
+| KM-05 | normal | agent | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | KM-04 | Replace the monolithic CLI dispatcher with bounded command handlers — Waiting on: KM-04 | `bun run wiki:context -- --work KM-05` |
+| KM-06 | normal | agent | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | KM-05 | Split portable regression suites and consolidate shared fixtures — Waiting on: KM-05 | `bun run wiki:context -- --work KM-06` |
+| KM-07 | normal | agent | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | KM-06 | Validate the modular kit and install a bounded growth guard — Waiting on: KM-06 | `bun run wiki:context -- --work KM-07` |
 | TE-05 | normal | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-01, TE-02, TE-03, TE-04 | Make orchestration cost and reusable context boundaries explicit — Waiting on: TE-01, TE-02, TE-03, TE-04 | `bun run wiki:context -- --work TE-05` |
 
 ## Blocked
