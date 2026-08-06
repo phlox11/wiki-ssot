@@ -98,8 +98,9 @@ revision and the same TE-00 five-surface task, including the byte-identical
 review-candidate recipe. Its default output is a compact projection bound to a
 retained full record by content digest. `scripts/wiki/te06-exit-validation.ts`
 is the separate publishing-only correctness harness: it validates those fixed
-comparison records and the sanitized controlled-publisher observation, then
-reruns the Primary, kit, adoption, selected-work, and focused-review floors.
+comparison records and requires the sanitized controlled-publisher observation
+to retain the same canonical task identity and digest, then reruns the Primary,
+kit, adoption, selected-work, and focused-review floors.
 Successful suite diagnostics contain bounded counts and result digests instead
 of test bodies. Both harnesses, their tests, and TE-06 evidence remain outside
 `KIT_ENTRIES`; adopters receive the portable engine and regression behavior,

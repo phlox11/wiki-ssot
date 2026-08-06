@@ -22,6 +22,15 @@
   "artifactCategories": {
     "sanitizedCompactComparisonPayload": 1082
   },
+  "comparisonTask": {
+    "broadDiscovery": "token context runtime cost efficiency",
+    "focusedTopic": "recursive source mapping",
+    "reviewBundle": "deterministic current review bundle measurement",
+    "reviewCandidateRecipeDigest": "d101e02a10eb28586a9e36cdf57413506c5de2224c8fc0bb8f4820db351d7b50",
+    "selectedWork": "TE-00",
+    "sourceExpansion": "scripts/wiki/**/*.ts"
+  },
+  "comparisonTaskDigest": "4812fe4f0e227750fc1051dc14327c8739c327ae2358e90c97f4c10a90f9f00d",
   "exactRevision": "76e5d97a410d8e67659835e059e7b721541113c5",
   "inputDistribution": {
     "outputMax": 368,

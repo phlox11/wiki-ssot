@@ -2,7 +2,7 @@
 
 The deterministic exit report is bound to exact combined publisher revision
 `76e5d97a410d8e67659835e059e7b721541113c5` and report digest
-`50ee372d28282fd8388d42a62703e58da6a2fdc4ff6e24ece78c08610036b7c8`.
+`b5b71a6da1cdab1815dfe1d02bdfecab0fa5dd36e2e8c6e7292bdaa8c9a6c27c`.
 The harness itself made zero model or provider calls; the separately audited
 controlled publisher used one `gpt-5.6-sol / high` default agent with no child
 agent or Guardian.
@@ -47,7 +47,10 @@ five-surface task recorded at TE-00. Task identity digest
 binds the three context selectors, recursive source glob, deterministic review
 bundle, and byte-identical TE-00 review-candidate recipe. Its full deterministic
 record is bound to `0bca638d3a7e1fcc8ebb7ac619431bd8775c4abc67962b6ee050314dde525f72`;
-default successful output is the 1,082-byte compact projection.
+default successful output is the 1,082-byte compact projection. The separate
+controlled-publisher observation carrying token and timing data must retain the
+same canonical task identity and digest; the exit validator rejects either
+field when missing or altered.
 
 | Observation | TE-00 before | TE-06 after | Change |
 | --- | ---: | ---: | ---: |

@@ -18,6 +18,7 @@ import {
 } from "./te06-exit-validation";
 import {
   buildTe06ControlledComparison,
+  TE06_COMPARISON_TASK_IDENTITY,
   renderTe06ControlledComparisonCompact,
   validateTe06ControlledComparisonCompact,
   TE06_COMPARISON_TASK_DIGEST,
@@ -155,6 +156,8 @@ describe("TE-06 exact-revision exit validation", () => {
     expect(publisher.exactRevision).toBe(report.exactRevision);
     expect(publisher.taskLabel).toBe(TE06_CONTROLLED_PUBLISHER_TASK_LABEL);
     expect(publisher.orchestration).toBe(TE06_CONTROLLED_COMPARISON_ORCHESTRATION);
+    expect(publisher.comparisonTask).toEqual(TE06_COMPARISON_TASK_IDENTITY);
+    expect(publisher.comparisonTaskDigest).toBe(TE06_COMPARISON_TASK_DIGEST);
     expect(publisher.agents.length).toBeGreaterThan(0);
     for (const agent of publisher.agents) {
       expect(agent.uncachedInputTokens).toBe(agent.rawInputTokens - agent.cachedInputTokens);
@@ -181,6 +184,14 @@ describe("TE-06 exact-revision exit validation", () => {
       .toThrow("task does not match the fixed TE-00 comparison task");
     expect(() => validateTe06ControlledPublisherAfter({ ...publisher, orchestration: "full TE-06 exit suite" }, report.exactRevision))
       .toThrow("orchestration does not match TE-00 controls");
+    const missingTask = { ...publisher } as Record<string, unknown>;
+    delete missingTask.comparisonTask;
+    expect(() => validateTe06ControlledPublisherAfter(missingTask, report.exactRevision))
+      .toThrow("comparisonTask is required");
+    expect(() => validateTe06ControlledPublisherAfter({ ...publisher, comparisonTask: { ...TE06_COMPARISON_TASK_IDENTITY, focusedTopic: "all source" } }, report.exactRevision))
+      .toThrow("comparisonTask must equal");
+    expect(() => validateTe06ControlledPublisherAfter({ ...publisher, comparisonTaskDigest: "0".repeat(64) }, report.exactRevision))
+      .toThrow("comparisonTaskDigest must equal");
   });
 
   test("separates attribution layers and limits miss classification vocabulary", () => {

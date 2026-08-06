@@ -477,7 +477,7 @@ still passes with portable correctness, source breadth 7, and 49,937 non-diff
 bytes, so the growth alone does not activate deferred TE-03.
 
 The machine report digest is
-`50ee372d28282fd8388d42a62703e58da6a2fdc4ff6e24ece78c08610036b7c8`.
+`b5b71a6da1cdab1815dfe1d02bdfecab0fa5dd36e2e8c6e7292bdaa8c9a6c27c`.
 It records no remaining correctness miss and leaves all three owner outcomes
 unselected. TE-03 remains deferred because this evidence does not show its
 recursive-source partition activation condition.

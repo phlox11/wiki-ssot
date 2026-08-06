@@ -296,6 +296,9 @@ export type ControlledPublisher = {
   taskLabel: string;
   exactRevision: string;
   orchestration: string;
+  /** Present on the TE-06 after-case; retained after normalization for audit binding. */
+  comparisonTask?: typeof TOKEN_EFFICIENCY_COMPARISON_TASK;
+  comparisonTaskDigest?: typeof TOKEN_EFFICIENCY_COMPARISON_TASK_DIGEST;
   agents: UsageAgent[];
   totals: UsageTotals;
   inputDistribution: NumericDistribution;
@@ -959,13 +962,42 @@ export function inspectControlledPublisher(input: unknown): Validation<Controlle
   const taskLabel = value.taskLabel ?? (isObject(value.comparison) ? value.comparison.taskLabel : undefined);
   const exactRevision = value.exactRevision ?? (isObject(value.comparison) ? value.comparison.contextSourceRevision : undefined);
   const orchestration = value.orchestration ?? (isObject(value.comparison) ? value.comparison.orchestration : undefined);
+  const comparisonTask = value.comparisonTask;
+  const comparisonTaskDigest = value.comparisonTaskDigest;
   if (!nonEmpty(taskLabel)) errors.push("publisher.taskLabel must be a non-empty string");
   if (!nonEmpty(exactRevision) || !/^[0-9a-f]{40}$/.test(String(exactRevision))) errors.push("publisher.exactRevision must be a 40-character revision");
   if (!nonEmpty(orchestration)) errors.push("publisher.orchestration must be a non-empty string");
+  if (comparisonTask !== undefined || comparisonTaskDigest !== undefined) {
+    if (!isObject(comparisonTask) || jsonStable(comparisonTask) !== jsonStable(TOKEN_EFFICIENCY_COMPARISON_TASK)) {
+      errors.push("publisher.comparisonTask must equal the fixed TE-00 comparison task");
+    }
+    if (comparisonTaskDigest !== TOKEN_EFFICIENCY_COMPARISON_TASK_DIGEST) {
+      errors.push("publisher.comparisonTaskDigest must equal the fixed TE-00 comparison task digest");
+    }
+  }
   const usage = validateUsage(value, "publisher", errors);
   const outcome = commonOutcome(value, "publisher", errors);
   if (errors.length || !outcome.performance) return { ok: false, errors };
-  return { ok: true, errors: [], value: { version: 1, kind: "sanitized-controlled-publisher", taskLabel: String(taskLabel), exactRevision: String(exactRevision), orchestration: String(orchestration), ...usage, inputDistribution: outcome.inputDistribution, artifactCategories: outcome.artifactCategories, success: outcome.success, limitations: outcome.limitations, performance: outcome.performance } };
+  return {
+    ok: true,
+    errors: [],
+    value: {
+      version: 1,
+      kind: "sanitized-controlled-publisher",
+      taskLabel: String(taskLabel),
+      exactRevision: String(exactRevision),
+      orchestration: String(orchestration),
+      ...(comparisonTask !== undefined || comparisonTaskDigest !== undefined
+        ? { comparisonTask: TOKEN_EFFICIENCY_COMPARISON_TASK, comparisonTaskDigest: TOKEN_EFFICIENCY_COMPARISON_TASK_DIGEST }
+        : {}),
+      ...usage,
+      inputDistribution: outcome.inputDistribution,
+      artifactCategories: outcome.artifactCategories,
+      success: outcome.success,
+      limitations: outcome.limitations,
+      performance: outcome.performance,
+    },
+  };
 }
 
 export function validateControlledPublisher(input: unknown): ControlledPublisher {

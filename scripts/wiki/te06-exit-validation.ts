@@ -30,11 +30,11 @@ import {
   type ControlledPublisher,
 } from "./token-efficiency-baseline";
 import {
+  TE06_COMPARISON_TASK_IDENTITY,
   TE06_COMPARISON_TASK_DIGEST,
   TE06_CONTROLLED_COMPARISON_ORCHESTRATION,
   TE06_CONTROLLED_COMPARISON_REVISION,
   TE06_CONTROLLED_PUBLISHER_TASK_LABEL,
-  normalizeTe06ComparisonTask,
   validateTe06ControlledComparison as validateControlledComparisonRecord,
   validateTe06ControlledComparisonCompact,
   compactTe06ControlledComparison,
@@ -312,6 +312,16 @@ export function validateTe06RemainingMisses(misses: Te06RemainingMiss[]): Te06Re
 }
 
 export function validateTe06ControlledPublisherAfter(input: unknown, revision: string): ControlledPublisher {
+  if (input == null || typeof input !== "object" || Array.isArray(input)) {
+    throw new Error("controlled publisher after-case must include the fixed TE-00 comparison task identity and digest");
+  }
+  const raw = input as Record<string, unknown>;
+  if (raw.comparisonTask === undefined) {
+    throw new Error("controlled publisher after-case comparisonTask is required");
+  }
+  if (raw.comparisonTaskDigest === undefined) {
+    throw new Error("controlled publisher after-case comparisonTaskDigest is required");
+  }
   const publisher = validateControlledPublisher(input);
   validateControlledPublisherPerformance(publisher.performance);
   if (publisher.exactRevision !== revision) throw new Error("controlled publisher after-case does not bind the TE-06 exact revision");
@@ -321,17 +331,11 @@ export function validateTe06ControlledPublisherAfter(input: unknown, revision: s
   if (publisher.orchestration !== TE06_CONTROLLED_COMPARISON_ORCHESTRATION) {
     throw new Error("controlled publisher after-case orchestration does not match TE-00 controls");
   }
-  if (input != null && typeof input === "object" && !Array.isArray(input)) {
-    const raw = input as Record<string, unknown>;
-    const suppliedDigest = raw.comparisonTaskDigest ?? raw.taskDigest;
-    if (suppliedDigest !== undefined && suppliedDigest !== TE06_COMPARISON_TASK_DIGEST) {
-      throw new Error("controlled publisher after-case task digest does not match the fixed TE-00 comparison task");
-    }
-    const suppliedTask = raw.comparisonTask ?? raw.taskIdentity;
-    if (suppliedTask !== undefined) {
-      normalizeTe06ComparisonTask(suppliedTask);
-      if (suppliedDigest === undefined) throw new Error("controlled publisher after-case task identity requires its digest");
-    }
+  if (publisher.comparisonTask == null || jsonStable(publisher.comparisonTask) !== jsonStable(TE06_COMPARISON_TASK_IDENTITY)) {
+    throw new Error("controlled publisher after-case comparisonTask does not match the fixed TE-00 comparison task");
+  }
+  if (publisher.comparisonTaskDigest !== TE06_COMPARISON_TASK_DIGEST) {
+    throw new Error("controlled publisher after-case comparisonTaskDigest does not match the fixed TE-00 comparison task");
   }
   return publisher;
 }
