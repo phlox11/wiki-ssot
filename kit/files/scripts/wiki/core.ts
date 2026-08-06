@@ -3341,6 +3341,18 @@ export function validateFocusedReviewManifest(
             ? hasHead && hasMergeBase && sameDigest
             : false;
     if (!lifecycleConsistent) error("focused-manifest-lifecycle-binding", `source lifecycle does not match its head/merge-base digests: ${source.path}`, source.path);
+    if (repositoryRoot) {
+      const headRevision = /^[0-9a-f]{40}$/.test(focused.head_sha) ? sourceAtRevision(repositoryRoot, focused.head_sha, source.path) : { exists: false, raw: "" };
+      const mergeBaseRevision = /^[0-9a-f]{40}$/.test(focused.merge_base_sha) ? sourceAtRevision(repositoryRoot, focused.merge_base_sha, source.path) : { exists: false, raw: "" };
+      const expectedHeadDigest = headRevision.exists ? hashContent(headRevision.raw) : undefined;
+      const expectedMergeBaseDigest = mergeBaseRevision.exists ? hashContent(mergeBaseRevision.raw) : undefined;
+      if (source.head_digest !== expectedHeadDigest) error("focused-manifest-source-head-revision-binding", `source head digest does not match repository HEAD bytes: ${source.path}`, source.path);
+      if (source.merge_base_digest !== expectedMergeBaseDigest) error("focused-manifest-source-base-revision-binding", `source merge-base digest does not match repository merge-base bytes: ${source.path}`, source.path);
+      const expectedLifecycle: FocusedSourceBinding["lifecycle"] = headRevision.exists && mergeBaseRevision.exists
+        ? expectedHeadDigest === expectedMergeBaseDigest ? "unchanged" : "changed"
+        : headRevision.exists ? "added" : "removed";
+      if (source.lifecycle !== expectedLifecycle) error("focused-manifest-source-revision-lifecycle", `source lifecycle does not match repository HEAD/merge-base existence and bytes: ${source.path}`, source.path);
+    }
     if (source.roles.includes("affected_authority_source") && (source.declared_by.length === 0 || source.declaration_ids.length === 0)) error("focused-manifest-authority-provenance", `affected_authority_source requires declaring page and declaration provenance: ${source.path}`, source.path);
     const declarationOwners = [...new Set(source.declaration_ids.map((id) => declarationsById.get(id)?.page_id).filter((id): id is string => id != null))].sort((a, b) => a.localeCompare(b));
     const declaredBy = [...new Set(source.declared_by)].sort((a, b) => a.localeCompare(b));
@@ -3378,6 +3390,24 @@ export function validateFocusedReviewManifest(
     if (hashContent(jsonStable(core)) !== expected.bundle_digest) error("focused-manifest-bundle-binding", "enclosing ReviewManifest bundle digest is not self-consistent", "manifest.json");
     const bodyRoleAt = (role: FocusedBodyRole, id: string, lifecycle: "head" | "merge-base"): FocusedBodyBinding | undefined => validBodyRoles.find((item) => item.role === role && item.id === id && item.lifecycle === lifecycle);
     type RevisionPageEvidence = { exists: boolean; page?: WikiPage };
+    const revisionPageCache = new Map<"head" | "merge-base", WikiPage[]>();
+    const pagesAtRevision = (lifecycle: "head" | "merge-base"): WikiPage[] => {
+      if (!repositoryRoot) return [];
+      const cached = revisionPageCache.get(lifecycle);
+      if (cached) return cached;
+      const revision = lifecycle === "head" ? focused.head_sha : focused.merge_base_sha;
+      if (!/^[0-9a-f]{40}$/.test(revision)) return [];
+      const pages: WikiPage[] = [];
+      for (const path of filesAtRevision(repositoryRoot, revision).filter(isContentPage)) {
+        const actual = sourceAtRevision(repositoryRoot, revision, path);
+        if (!actual.exists) continue;
+        try { pages.push(parseWikiPage(path, actual.raw)); } catch { /* normal page validation reports malformed pages */ }
+      }
+      revisionPageCache.set(lifecycle, pages);
+      return pages;
+    };
+    const pagesWithIdAtRevision = (lifecycle: "head" | "merge-base", id: string): WikiPage[] => pagesAtRevision(lifecycle).filter((page) => page.data.id === id);
+    const conflictsWithIdAtRevision = (lifecycle: "head" | "merge-base", id: string): WikiPage[] => pagesAtRevision(lifecycle).filter((page) => page.data.kind === "conflict" && page.data.conflict_id === id);
     const revisionPageEvidence = (lifecycle: "head" | "merge-base", path: string): RevisionPageEvidence | undefined => {
       if (!repositoryRoot) return undefined;
       const revision = lifecycle === "head" ? focused.head_sha : focused.merge_base_sha;
@@ -3394,26 +3424,25 @@ export function validateFocusedReviewManifest(
       if (!repositoryRoot || role.lifecycle !== "merge-base") return false;
       const base = revisionPageEvidence("merge-base", role.wiki_path);
       if (!base?.exists || base.page?.data.id !== id || base.page.data.status !== "current") return false;
-      const head = revisionPageEvidence("head", role.wiki_path);
-      return head != null && (!head.exists || head.page == null || head.page.data.id !== id || head.page.data.status !== "current");
+      return !pagesWithIdAtRevision("head", id).some((page) => page.data.status === "current");
     };
     const validDemotedInvariantException = (id: string, baseRole: FocusedBodyBinding, headRole: FocusedBodyBinding): boolean => {
-      if (!repositoryRoot || baseRole.wiki_path !== headRole.wiki_path) return false;
+      if (!repositoryRoot) return false;
       const base = revisionPageEvidence("merge-base", baseRole.wiki_path);
       const head = revisionPageEvidence("head", headRole.wiki_path);
+      const currentHeadPages = pagesWithIdAtRevision("head", id).filter((page) => page.data.status === "current");
       return base?.page?.data.id === id
         && base.page.data.kind === "invariant"
         && base.page.data.status === "current"
         && head?.page?.data.id === id
         && head.page.data.status === "current"
-        && head.page.data.kind !== "invariant";
+        && currentHeadPages.some((page) => page.data.kind !== "invariant");
     };
     const validRemovedConflictException = (id: string, role: FocusedBodyBinding): boolean => {
       if (!repositoryRoot || role.lifecycle !== "merge-base") return false;
       const base = revisionPageEvidence("merge-base", role.wiki_path);
       if (!base?.page || base.page.data.conflict_id !== id || base.page.data.kind !== "conflict") return false;
-      const head = revisionPageEvidence("head", role.wiki_path);
-      return head != null && (!head.exists || head.page == null || head.page.data.conflict_id !== id);
+      return conflictsWithIdAtRevision("head", id).length === 0;
     };
     const requireAffectedPageBody = (id: string) => {
       // A changed page must be represented by its HEAD body.  A removed or

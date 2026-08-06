@@ -373,17 +373,76 @@ function tempAffectedPageBaseGlobReviewRepo(): string {
   return root;
 }
 
-function rebindFocusedBundle(candidate: FocusedReviewManifest, files: Record<string, string>, manifest: ReviewManifest): { files: Record<string, string>; manifest: ReviewManifest } {
+/** A current page moves paths while retaining its stable page ID. */
+function tempRenamedCurrentPageReviewRepo(): string {
+  const root = mkdtempSync(join(tmpdir(), "wiki-review-renamed-current-page-"));
+  temporary.push(root);
+  run(root, ["git", "init", "-q"]);
+  run(root, ["git", "config", "user.name", "Wiki Test"]);
+  run(root, ["git", "config", "user.email", "wiki@example.invalid"]);
+  put(root, ".wiki/config.json", jsonStable({ version: 1, name: "renamed-current-page", highRisk: [], freshContext: policy() }));
+  put(root, "source.ts", "export const value = 1;\n");
+  put(root, "wiki/product/original.md", page("source.ts", "The current page is at its original path."));
+  let view = createRepoView(root);
+  put(root, ".wiki/state.json", jsonStable(verifyState(view, loadWikiPages(view).pages, [], undefined)));
+  run(root, ["git", "add", "."]);
+  run(root, ["git", "commit", "-qm", "renamed page baseline"]);
+
+  rmSync(join(root, "wiki/product/original.md"));
+  put(root, "wiki/product/renamed.md", page("source.ts", "The current page moved without changing its stable ID."));
+  run(root, ["git", "add", "-A"]);
+  view = createRepoView(root);
+  put(root, ".wiki/state.json", jsonStable(verifyState(view, loadWikiPages(view).pages, [], undefined)));
+  run(root, ["git", "add", "."]);
+  run(root, ["git", "commit", "-qm", "rename current page"]);
+  return root;
+}
+
+/** A conflict moves from open to resolved, so its ID remains present at HEAD. */
+function tempResolvedConflictMoveReviewRepo(): string {
+  const root = mkdtempSync(join(tmpdir(), "wiki-review-resolved-conflict-move-"));
+  temporary.push(root);
+  run(root, ["git", "init", "-q"]);
+  run(root, ["git", "config", "user.name", "Wiki Test"]);
+  run(root, ["git", "config", "user.email", "wiki@example.invalid"]);
+  put(root, ".wiki/config.json", jsonStable({ version: 1, name: "resolved-conflict-move", highRisk: [], freshContext: policy() }));
+  put(root, "source.ts", "export const value = 1;\n");
+  put(root, "wiki/product/test.md", page("source.ts", "The current page remains stable."));
+  put(root, "wiki/conflicts/open/C-001.md", conflictPage());
+  let view = createRepoView(root);
+  put(root, ".wiki/state.json", jsonStable(verifyState(view, loadWikiPages(view).pages, [], undefined)));
+  run(root, ["git", "add", "."]);
+  run(root, ["git", "commit", "-qm", "open conflict baseline"]);
+
+  rmSync(join(root, "wiki/conflicts/open/C-001.md"));
+  const resolved = conflictPage()
+    .replace("status: conflicted", "status: archived")
+    .replace("resolution:\n  state: open\n  decision: null\n  acceptance:", "resolution:\n  state: verified\n  decision: The implementation contract is reconciled.\n  acceptance:")
+    .replace("    - The current page and the implementation disagree about the exported contract.\n", "    - The current page and the implementation disagree about the exported contract.\n  evidence:\n    - source.ts\n");
+  put(root, "wiki/conflicts/resolved/C-001.md", resolved);
+  run(root, ["git", "add", "-A"]);
+  view = createRepoView(root);
+  put(root, ".wiki/state.json", jsonStable(verifyState(view, loadWikiPages(view).pages, [], undefined)));
+  run(root, ["git", "add", "."]);
+  run(root, ["git", "commit", "-qm", "resolve conflict and move path"]);
+  return root;
+}
+
+function rebindFocusedBundle(candidate: FocusedReviewManifest, files: Record<string, string>, manifest: ReviewManifest, additionalFiles: Record<string, string> = {}): { files: Record<string, string>; manifest: ReviewManifest } {
   const focusedRaw = jsonStable(candidate);
   const rebound = {
     ...manifest,
-    file_digests: { ...manifest.file_digests, "focused-manifest.json": hashContent(focusedRaw) },
+    file_digests: {
+      ...manifest.file_digests,
+      ...Object.fromEntries(Object.entries(additionalFiles).map(([path, content]) => [path, hashContent(content)])),
+      "focused-manifest.json": hashContent(focusedRaw),
+    },
     focused_manifest_digest: hashContent(focusedRaw),
   } as ReviewManifest;
   const core = { ...rebound } as Record<string, unknown>;
   delete core.bundle_digest;
   rebound.bundle_digest = hashContent(jsonStable(core));
-  return { files: { ...files, "focused-manifest.json": focusedRaw }, manifest: rebound };
+  return { files: { ...files, ...additionalFiles, "focused-manifest.json": focusedRaw }, manifest: rebound };
 }
 
 function manifestFor(root: string, prMetadata = metadata()): ReviewManifest {
@@ -881,6 +940,91 @@ describe("fresh-context review manifest", () => {
     const rebound = rebindFocusedBundle(relabeled, files, reviewManifest);
     const codes = validateFocusedReviewManifest(relabeled, rebound.files, rebound.manifest, true, root).map((finding) => finding.code);
     expect(codes).toContain("focused-manifest-removed-page-exception");
+  });
+
+  test("rejects a removed-page exception when the current page moved to another HEAD path", () => {
+    const root = tempRenamedCurrentPageReviewRepo();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const prMetadata = metadata({ change_type: "editorial", affected_pages: ["product/test"] });
+    const report = impactReport(view, pages, { base: "HEAD~1", metadata: prMetadata });
+    expect(report.affectedPages).toContain("product/test");
+    expect(report.removedCurrentPages).toEqual([]);
+    const focused = buildFocusedReviewManifest(view, pages, report, prMetadata);
+    const bundle = makeReviewBundle(view, pages, report, "renamed-page-exception-bundle", prMetadata);
+    const reviewManifest = JSON.parse(readFileSync(join(bundle, "manifest.json"), "utf8")) as ReviewManifest;
+    const files: Record<string, string> = {};
+    for (const path of Object.keys(reviewManifest.file_digests)) files[path] = readFileSync(join(bundle, path), "utf8");
+    expect(validateFocusedReviewManifest(focused, files, reviewManifest, true, root)).toEqual([]);
+
+    const relabeled = JSON.parse(JSON.stringify(focused)) as FocusedReviewManifest;
+    const headRole = relabeled.body_roles.find((role) => role.role === "affected_page" && role.id === "product/test" && role.lifecycle === "head");
+    if (!headRole) throw new Error("renamed page HEAD body role disappeared");
+    const baseRaw = run(root, ["git", "show", "HEAD~1:wiki/product/original.md"]);
+    const baseDigest = hashContent(baseRaw);
+    relabeled.body_roles = relabeled.body_roles.filter((role) => role !== headRole);
+    relabeled.objects = relabeled.objects.filter((object) => object.digest !== headRole.digest);
+    relabeled.body_roles.push({ role: "removed_page", id: "product/test", wiki_path: "wiki/product/original.md", lifecycle: "merge-base", digest: baseDigest });
+    relabeled.objects.push({ digest: baseDigest, object_path: `objects/${baseDigest}.md`, bytes: Buffer.byteLength(baseRaw, "utf8") });
+    const rebound = rebindFocusedBundle(relabeled, files, reviewManifest, { [`objects/${baseDigest}.md`]: baseRaw });
+    const codes = validateFocusedReviewManifest(relabeled, rebound.files, rebound.manifest, true, root).map((finding) => finding.code);
+    expect(codes).toContain("focused-manifest-removed-page-exception");
+  });
+
+  test("rejects a conflict merge-base exception when the conflict moved open to resolved at HEAD", () => {
+    const root = tempResolvedConflictMoveReviewRepo();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const prMetadata = metadata({
+      change_type: "reconcile",
+      affected_pages: ["product/test"],
+      touched_conflicts: [{ id: "C-001", action: "resolve", reason: "The resolved conflict remains bound to its exact evidence." }],
+    });
+    const report = impactReport(view, pages, { base: "HEAD~1", metadata: prMetadata });
+    expect(report.affectedConflicts.map((conflict) => conflict.id)).toContain("C-001");
+    const focused = buildFocusedReviewManifest(view, pages, report, prMetadata);
+    const bundle = makeReviewBundle(view, pages, report, "resolved-conflict-exception-bundle", prMetadata);
+    const reviewManifest = JSON.parse(readFileSync(join(bundle, "manifest.json"), "utf8")) as ReviewManifest;
+    const files: Record<string, string> = {};
+    for (const path of Object.keys(reviewManifest.file_digests)) files[path] = readFileSync(join(bundle, path), "utf8");
+    expect(validateFocusedReviewManifest(focused, files, reviewManifest, true, root)).toEqual([]);
+
+    const relabeled = JSON.parse(JSON.stringify(focused)) as FocusedReviewManifest;
+    const headRole = relabeled.body_roles.find((role) => role.role === "conflict" && role.id === "C-001" && role.lifecycle === "head");
+    if (!headRole) throw new Error("resolved conflict HEAD body role disappeared");
+    const baseRaw = run(root, ["git", "show", "HEAD~1:wiki/conflicts/open/C-001.md"]);
+    const baseDigest = hashContent(baseRaw);
+    relabeled.body_roles = relabeled.body_roles.filter((role) => role !== headRole);
+    relabeled.objects = relabeled.objects.filter((object) => object.digest !== headRole.digest);
+    relabeled.body_roles.push({ role: "conflict", id: "C-001", wiki_path: "wiki/conflicts/open/C-001.md", lifecycle: "merge-base", digest: baseDigest });
+    relabeled.objects.push({ digest: baseDigest, object_path: `objects/${baseDigest}.md`, bytes: Buffer.byteLength(baseRaw, "utf8") });
+    const rebound = rebindFocusedBundle(relabeled, files, reviewManifest, { [`objects/${baseDigest}.md`]: baseRaw });
+    const codes = validateFocusedReviewManifest(relabeled, rebound.files, rebound.manifest, true, root).map((finding) => finding.code);
+    expect(codes).toContain("focused-manifest-conflict-exception");
+  });
+
+  test("rejects arbitrary source hashes even when their submitted lifecycle remains structurally consistent", () => {
+    const root = tempAffectedPageBaseExactReviewRepo();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const prMetadata = metadata({ affected_pages: ["product/test"] });
+    const report = impactReport(view, pages, { base: "HEAD~1", metadata: prMetadata });
+    const focused = buildFocusedReviewManifest(view, pages, report, prMetadata);
+    const bundle = makeReviewBundle(view, pages, report, "arbitrary-source-hashes-bundle", prMetadata);
+    const reviewManifest = JSON.parse(readFileSync(join(bundle, "manifest.json"), "utf8")) as ReviewManifest;
+    const files: Record<string, string> = {};
+    for (const path of Object.keys(reviewManifest.file_digests)) files[path] = readFileSync(join(bundle, path), "utf8");
+    const tampered = JSON.parse(JSON.stringify(focused)) as FocusedReviewManifest;
+    const source = tampered.source_roles.find((item) => item.path === "new.ts");
+    if (!source || source.head_digest == null || source.merge_base_digest == null) throw new Error("unchanged source lifecycle disappeared");
+    source.head_digest = "1".repeat(64);
+    source.merge_base_digest = "2".repeat(64);
+    source.lifecycle = "changed";
+    const rebound = rebindFocusedBundle(tampered, files, reviewManifest);
+    const codes = validateFocusedReviewManifest(tampered, rebound.files, rebound.manifest, true, root).map((finding) => finding.code);
+    expect(codes).toContain("focused-manifest-source-head-revision-binding");
+    expect(codes).toContain("focused-manifest-source-base-revision-binding");
+    expect(codes).toContain("focused-manifest-source-revision-lifecycle");
   });
 
   test("retains a deleted empty glob match from an affected page's merge-base body", () => {
