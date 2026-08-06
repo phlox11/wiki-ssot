@@ -68,6 +68,22 @@ impact with stale verification when changed without reconciliation. Like the
 PV-05 measurement files, the PV-19 runner and report validate this publishing
 repository and stay outside `KIT_ENTRIES`.
 
+`scripts/wiki/token-efficiency-baseline.ts` is the publishing-only TE-00
+measurement harness. It detaches disposable local clones at exact
+pre-optimization revision
+`6fd3a85414e00892930557cb8335e2d88ec90d66`, reproduces focused and broad
+topic context, selected-work context, recursive TypeScript source expansion,
+and a fixed local review candidate, then removes every disposable checkout.
+The harness makes no model or provider call. Separate sanitized inputs retain
+the external schooled diagnosis and the successful controlled publisher
+rollout; strict accounting checks keep cached input inside raw input, reasoning
+inside output, and unavailable latency or phase observations explicit rather
+than coercing them to zero. Its tests bind the revision, deterministic review
+candidate, source breadth, privacy exclusions, accounting, and byte-stable
+JSON/Markdown evidence. Like the Primary evaluation runners, these files and
+their evidence describe this publishing repository and remain outside
+`KIT_ENTRIES`.
+
 ## Kit distribution
 
 The engine also emits its own copy-paste distribution. `KIT_ENTRIES` in `scripts/wiki/core.ts` names every file the kit ships, how it is produced (verbatim copy, `kit:exclude` strip, declared managed-block extraction, literal template, or `package.json` fragment), and its placement; `wiki:kit` writes `kit/**` and `wiki:kit --check` fails on drift, deletes nothing silently, and reports a file under `kit/` the table no longer produces as an orphan. `kit/README.md` is hand-written and stays outside generator ownership.

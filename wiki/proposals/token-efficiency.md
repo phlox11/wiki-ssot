@@ -15,15 +15,21 @@ sources:
   - path: scripts/wiki/fresh-context.test.ts
   - path: scripts/wiki/primary-scenarios.ts
   - path: scripts/wiki/primary-current.ts
+  - path: scripts/wiki/token-efficiency-baseline.ts
+  - path: scripts/wiki/token-efficiency-baseline.test.ts
   - path: docs/evidence/pv-19-primary-current.json
   - path: docs/evidence/pv-19-primary-current.md
+  - path: docs/evidence/te-00-schooled-diagnosis.json
+  - path: docs/evidence/te-00-controlled-publisher.json
+  - path: docs/evidence/te-00-token-efficiency-baseline.json
+  - path: docs/evidence/te-00-token-efficiency-baseline.md
 affects: [product/scope, product/invariants, architecture/engine, operations/enforcement]
 related: [proposal/primary-findability-validation, product/scope, product/invariants, architecture/engine, operations/enforcement]
 tags: [roadmap, token, performance, latency, context, efficiency, search, sources, review, orchestration]
 work_items:
   - id: TE-00
     title: Freeze the schooled diagnosis and publisher-only comparison contract
-    state: not-started
+    state: done
     executor: agent
     priority: high
     depends_on: []
@@ -37,7 +43,11 @@ work_items:
       - Any reversible comparison candidate runs only in this repository or a disposable worktree derived from its exact revision; TE-00 creates no standalone synthetic or test repository and pushes no comparison worktree.
       - The baseline separates the external schooled diagnosis, deterministic publisher bytes, engine-owned behavior, model- and orchestrator-dependent publisher rollout metrics, cache effects, approval-system behavior, and measurement limitations.
       - Evidence presents the correctness floor, proposed optimization targets, comparison tasks, model and effort controls, accepted variance options, and every limitation needed for owner ratification before implementation begins.
-    evidence: []
+    evidence:
+      - docs/evidence/te-00-schooled-diagnosis.json
+      - docs/evidence/te-00-controlled-publisher.json
+      - docs/evidence/te-00-token-efficiency-baseline.json
+      - docs/evidence/te-00-token-efficiency-baseline.md
   - id: TE-00-OWNER
     title: Ratify the publisher-only efficiency and performance contract
     state: not-started
@@ -213,6 +223,34 @@ The comparison has four explicitly separate layers:
 4. publisher performance metrics — request, first-token and completion latency when
    observable, tool duration, approval and coordination wait, phase timing, and
    active wall time excluding user idle.
+
+TE-00 freezes those layers at publisher revision
+`6fd3a85414e00892930557cb8335e2d88ec90d66`. The deterministic fixture
+reproduces the focused `recursive source mapping` topic, the broad
+`token context runtime cost efficiency` discovery query, selected work
+`TE-00`, recursive `scripts/wiki/**/*.ts` expansion, and a disposable review
+candidate derived from that exact revision. The checked-in report records
+55,043 focused-context bytes, 114,294 broad-context bytes, 66,479
+selected-work bytes, 588,441 recursive TypeScript bytes, and a 60,946-byte
+review comparison made of 3,602 diff bytes and 57,344 non-diff bytes.
+
+The fresh publisher control completed successfully with one
+`gpt-5.6-sol / high` default agent: eight model calls, 218,077 raw input
+tokens including 207,872 cached tokens, 10,205 derived uncached tokens, 3,607
+output tokens, zero compactions, seven tool calls, and 5,190 serialized
+sanitized tool-output bytes. Its 106,071 ms task span includes 21,471 ms of
+explicit coordination wait. Request-start, first-token, and model-completion
+latencies were not observable and remain `null` with limitations instead of
+being reported as zero. The measurement-only control publishes its result to
+the parent task but does not create or merge a PR; those external phases remain
+unobserved rather than simulated.
+
+The schooled evidence is bound to its recorded audit cutoff. It preserves the
+six-role, 305-call diagnosis and exposes the difference between active spans
+and the longer event span, while explicitly recording that the sanitized
+tables cannot reproduce separate implementation, publication, merge, and
+cleanup time boundaries. No adopter inventory or additional consumer rollout
+is needed to proceed to owner ratification.
 
 The same publisher case is recorded before and after optimization. A disposable
 worktree may isolate that repository revision, but no standalone synthetic or

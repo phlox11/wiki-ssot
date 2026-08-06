@@ -22,13 +22,14 @@
         "scripts/wiki/primary-scenarios.ts": "8e8ba1de2abf551d0003f90637f58370f470c7ecdfb62a50a8d9993e1f273dec",
         "scripts/wiki/publisher-boundary.test.ts": "bfdcebbeb54c42933cc97aba9a59ee02de8c0080826c3f52a3df2578bd335d77",
         "scripts/wiki/test-runner.ts": "286f69b3e224851dc2c43e38c47a47654afd2516463b4b6c89d03a82f933a990",
+        "scripts/wiki/token-efficiency-baseline.test.ts": "feac0845bea8c8ff15d163856c2c4180167a274e1ca86ed0250510e90e5f0207",
+        "scripts/wiki/token-efficiency-baseline.ts": "0a7ff0e069b8dfc7274f5485e22094a61a12d9a21a182f75a3a3b71608b11110",
         "scripts/wiki/tsconfig.json": "e663640cb557e1d3fee0c2ffca227ad0832d3cd30a341813c4fd09f73bb0e65a",
         "scripts/wiki/wiki.test.ts": "00c5762f2fa69bf6830c10f70ca63ad12baa822c0fc1506603f89ff6fe77f7a4",
         "scripts/wiki/work.test.ts": "b238c2c38b2fe32ed4ddb5fa7f3168ad437ca2454643209a5c1563182674bb4d"
       },
       "verification": {
-        "kind": "unchanged",
-        "reason": "This proposal-only planning change does not alter the observed engine implementation."
+        "kind": "updated"
       }
     },
     "operations/enforcement": {

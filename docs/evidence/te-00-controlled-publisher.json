@@ -1,0 +1,142 @@
+{
+  "version": 1,
+  "kind": "sanitized-controlled-publisher",
+  "taskLabel": "te00-publisher-before-control",
+  "exactRevision": "6fd3a85414e00892930557cb8335e2d88ec90d66",
+  "orchestration": "one default measurement agent on gpt-5.6-sol high; no child agents or guardians; deterministic harness uses disposable local clones and makes no model or provider call",
+  "agents": [
+    {
+      "role": "default",
+      "pathLabel": "te00-publisher-before-control",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "calls": 8,
+      "rawInputTokens": 218077,
+      "cachedInputTokens": 207872,
+      "uncachedInputTokens": 10205,
+      "outputTokens": 3607,
+      "reasoningOutputTokens": 1372,
+      "totalTokens": 221684,
+      "compactions": 0,
+      "toolCalls": 7,
+      "outputBytes": 5190,
+      "activeMs": 84600,
+      "wallMs": 106071
+    }
+  ],
+  "totals": {
+    "agentCount": 1,
+    "calls": 8,
+    "rawInputTokens": 218077,
+    "cachedInputTokens": 207872,
+    "uncachedInputTokens": 10205,
+    "outputTokens": 3607,
+    "reasoningOutputTokens": 1372,
+    "totalTokens": 221684,
+    "compactions": 0,
+    "toolCalls": 7,
+    "outputBytes": 5190,
+    "activeMs": 84600,
+    "wallMs": 106071
+  },
+  "inputDistribution": {
+    "rawInputMin": 24955,
+    "rawInputMedian": 27302,
+    "rawInputP95": 29824,
+    "rawInputMax": 29824,
+    "uncachedInputMin": 635,
+    "uncachedInputMedian": 1408,
+    "uncachedInputP95": 1926,
+    "uncachedInputMax": 1926,
+    "outputMin": 196,
+    "outputMedian": 429,
+    "outputP95": 904,
+    "outputMax": 904
+  },
+  "artifactCategories": {
+    "sanitizedToolOutputPayloads": 5190
+  },
+  "success": true,
+  "limitations": [
+    "The first sanitized formatter used an incorrect field path and was retried; all eight positive-usage model calls remain in the baseline.",
+    "The controlled case is a successful read-only publisher measurement; external PR publication and merge were intentionally not performed.",
+    "The artifact classifier retains only serialized sanitized tool-output payload bytes, not prompt, source, command, or tool-output bodies.",
+    "Raw local rollout usage is not billed API cost or exact subscription-credit consumption."
+  ],
+  "performance": {
+    "modelRequest": {
+      "availability": "unavailable",
+      "valueMs": null,
+      "method": "local rollout event audit",
+      "limitation": "The rollout does not expose model request-start timestamps."
+    },
+    "firstToken": {
+      "availability": "unavailable",
+      "valueMs": null,
+      "method": "local rollout event audit",
+      "limitation": "The rollout does not expose first streamed-token timestamps."
+    },
+    "completion": {
+      "availability": "unavailable",
+      "valueMs": null,
+      "method": "local rollout event audit",
+      "limitation": "Token-count events are response aggregates and cannot separate model queue, prefill, and completion latency."
+    },
+    "toolDuration": {
+      "availability": "available",
+      "valueMs": 6081,
+      "method": "sum of seven paired tool call-to-output event spans",
+      "limitation": "This measures local call-to-output emission, not model latency."
+    },
+    "approvalWait": {
+      "availability": "available",
+      "valueMs": 0,
+      "method": "absence of approval or guardian events in the controlled child rollout",
+      "limitation": "This zero is specific to the read-only controlled case and is not a repository guarantee."
+    },
+    "coordinationWait": {
+      "availability": "available",
+      "valueMs": 21471,
+      "method": "two paired child-result question to parent-reply event spans",
+      "limitation": "The waits were caused by report-schema clarification and should remain visible in before-after comparisons."
+    },
+    "activeWallExcludingUserIdle": {
+      "availability": "available",
+      "valueMs": 106071,
+      "method": "task_started to task_complete event span with no end-user message inside the child task",
+      "limitation": "This span includes 21471 ms of separately reported agent coordination wait."
+    },
+    "phases": {
+      "implementation": {
+        "availability": "available",
+        "valueMs": 29189,
+        "method": "first deterministic API invocation start through successful sanitized measurement output",
+        "limitation": "This phase includes one failed formatter and one coordination clarification before the successful retry.",
+        "modelCalls": 4,
+        "toolCalls": 4
+      },
+      "publication": {
+        "availability": "available",
+        "valueMs": 17359,
+        "method": "final clean-status output through completed sanitized result",
+        "limitation": "This is result publication to the parent task, not an external PR publication.",
+        "modelCalls": 1,
+        "toolCalls": 0
+      },
+      "merge": {
+        "availability": "unavailable",
+        "valueMs": null,
+        "method": "read-only controlled case",
+        "limitation": "No branch or pull request was merged in this measurement-only case."
+      },
+      "cleanup": {
+        "availability": "available",
+        "valueMs": 115,
+        "method": "final repository status call-to-output span after disposable-clone cleanup",
+        "limitation": "The deterministic harness removed its clones internally; this metric covers only the explicit final verification call.",
+        "modelCalls": 1,
+        "toolCalls": 1
+      }
+    }
+  }
+}
