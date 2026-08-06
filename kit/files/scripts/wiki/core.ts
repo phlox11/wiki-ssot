@@ -3346,13 +3346,57 @@ export function validateFocusedReviewManifest(
     const core = { ...expected } as Record<string, unknown>;
     delete core.bundle_digest;
     if (hashContent(jsonStable(core)) !== expected.bundle_digest) error("focused-manifest-bundle-binding", "enclosing ReviewManifest bundle digest is not self-consistent", "manifest.json");
-    const requireBody = (role: FocusedBodyRole, id: string) => {
-      if (!bodyRoles.has(`${role}:${id}:head`) && !bodyRoles.has(`${role}:${id}:merge-base`)) error(`focused-manifest-${role}-missing`, `required ${role} role is missing: ${id}`);
+    const requireAffectedPageBody = (id: string) => {
+      // A changed page must be represented by its HEAD body.  A removed or
+      // demoted current page is the one exception: its merge-base body is
+      // carried under removed_page, which is the historical authority that
+      // remains reviewable after the HEAD page disappears.
+      if (bodyRoles.has(`affected_page:${id}:head`)) return;
+      if (bodyRoles.has(`removed_page:${id}:merge-base`)) return;
+      error("focused-manifest-affected_page-missing", `required affected_page HEAD role is missing: ${id}`);
+    };
+    const headAffectedPageKind = (id: string): WikiFrontmatter["kind"] | undefined => {
+      const role = (Array.isArray(focused.body_roles) ? focused.body_roles : []).find((item) => item.role === "affected_page" && item.id === id && item.lifecycle === "head");
+      if (!role) return undefined;
+      const object = objects.get(role.digest);
+      const raw = object ? files[object.object_path] : undefined;
+      if (raw == null) return undefined;
+      try { return parseWikiPage(role.wiki_path, raw).data.kind; } catch { return undefined; }
+    };
+    const requireInvariantBody = (id: string) => {
+      // Current invariants require their HEAD body.  A demoted/deleted
+      // invariant is valid only when both its removed-page marker and its
+      // historical invariant body are present; an invariant merge-base body
+      // by itself cannot stand in for a required HEAD body.
+      if (bodyRoles.has(`invariant:${id}:head`)) return;
+      if (bodyRoles.has(`removed_page:${id}:merge-base`) && bodyRoles.has(`invariant:${id}:merge-base`)) return;
+      // An in-place demotion keeps the page current, so impact reporting does
+      // not emit a removed_page marker.  Its affected page HEAD body proves
+      // the non-invariant kind while the merge-base invariant is the only
+      // valid historical invariant body.
+      const headKind = headAffectedPageKind(id);
+      if (bodyRoles.has(`invariant:${id}:merge-base`) && headKind != null && headKind !== "invariant") return;
+      // Preserve compatibility with metadata-only IDs that the impact report
+      // records as unknown and for which this focused bundle has no body or
+      // authority declaration to bind.
+      const hasRelatedBody = bodyRoles.has(`invariant:${id}:head`)
+        || bodyRoles.has(`invariant:${id}:merge-base`)
+        || bodyRoles.has(`removed_page:${id}:merge-base`)
+        || bodyRoles.has(`affected_page:${id}:head`);
+      const hasRelatedDeclaration = (Array.isArray(focused.source_roles) ? focused.source_roles : []).some((source) => source.declared_by.includes(id));
+      if (!hasRelatedBody && !hasRelatedDeclaration && !expected.affected_page_ids.includes(id)) return;
+      error("focused-manifest-invariant-missing", `required invariant HEAD role is missing: ${id}`);
+    };
+    const requireConflictBody = (id: string) => {
+      // Conflicts may be represented by their current body or, when the
+      // conflict file was removed from HEAD, by its merge-base body.
+      if (bodyRoles.has(`conflict:${id}:head`) || bodyRoles.has(`conflict:${id}:merge-base`)) return;
+      error("focused-manifest-conflict-missing", `required conflict role is missing: ${id}`);
     };
     if (enforceRequired) {
-      for (const id of expected.affected_page_ids) requireBody("affected_page", id);
-      for (const id of expected.affected_invariant_ids) requireBody("invariant", id);
-      for (const id of expected.affected_conflict_ids) requireBody("conflict", id);
+      for (const id of expected.affected_page_ids) requireAffectedPageBody(id);
+      for (const id of expected.affected_invariant_ids) requireInvariantBody(id);
+      for (const id of expected.affected_conflict_ids) requireConflictBody(id);
     }
     const sourceByPath = new Map((Array.isArray(focused.source_roles) ? focused.source_roles : []).map((source) => [source.path, source]));
     if (enforceRequired) {
@@ -3476,6 +3520,33 @@ export function validateFocusedReviewManifest(
         if (enforceRequired && focusedSourcePath(path) && matches.length === 1 && !matches[0].roles.includes("relevant_test")) error("focused-manifest-relevant-test-required", `changed test is missing relevant_test classification: ${path}`, path);
       }
     }
+    if (enforceRequired && typeof files["diff.patch"] === "string") {
+      // A source declaration removed from an affected authority page means
+      // the review needs the old page body as well.  This check is derived
+      // from the digest-bound patch, rather than from the submitted focused
+      // roles/declarations, so deleting all of those submitted records and
+      // rebinding their enclosing digests cannot hide the required
+      // merge-base body.
+      const pagesWithRemovedSourceDeclarations = new Set<string>();
+      let diffPath: string | undefined;
+      for (const line of files["diff.patch"].split("\n")) {
+        const header = line.match(/^diff --git a\/(.+) b\/(.+)$/);
+        if (header) {
+          diffPath = header[2];
+          continue;
+        }
+        if (diffPath && /^-\s+-\s+(?:path|glob):\s*/.test(line)) pagesWithRemovedSourceDeclarations.add(diffPath);
+      }
+      for (const bodyRole of Array.isArray(focused.body_roles) ? focused.body_roles : []) {
+        if (bodyRole.lifecycle !== "head") continue;
+        const isAffectedAuthorityBody = (bodyRole.role === "affected_page" && expected.affected_page_ids.includes(bodyRole.id))
+          || (bodyRole.role === "invariant" && expected.affected_invariant_ids.includes(bodyRole.id));
+        if (!isAffectedAuthorityBody || !pagesWithRemovedSourceDeclarations.has(bodyRole.wiki_path)) continue;
+        if (!bodyRoles.has(`${bodyRole.role}:${bodyRole.id}:merge-base`)) {
+          error(`focused-manifest-${bodyRole.role}-merge-base-missing`, `source declarations changed in affected authority page without its merge-base body: ${bodyRole.id}`, bodyRole.wiki_path);
+        }
+      }
+    }
   }
   return findings;
 }
@@ -3520,7 +3591,7 @@ export function buildReviewManifest(view: RepoView, pages: WikiPage[], report: I
     focused_manifest_digest: hashContent(files["focused-manifest.json"]),
   };
   const manifest = { ...core, bundle_digest: hashContent(jsonStable(core)) };
-  const bindingFindings = validateFocusedReviewManifest(focused.manifest, files, manifest, false);
+  const bindingFindings = validateFocusedReviewManifest(focused.manifest, files, manifest, true);
   if (bindingFindings.some((finding) => finding.severity === "error")) throw new Error(bindingFindings.map((finding) => finding.message).join("; "));
   return manifest;
 }

@@ -785,6 +785,60 @@ describe("fresh-context review manifest", () => {
     expect(validateFocusedReviewManifest(omitted, rebound.files, rebound.manifest).map((finding) => finding.code)).toContain("focused-manifest-authority-source-required");
   });
 
+  test("rejects digest-rebound omission of an affected page HEAD body with its unique source provenance", () => {
+    const root = tempAffectedPageBaseExactReviewRepo();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const prMetadata = metadata({ affected_pages: ["product/test"] });
+    const report = impactReport(view, pages, { base: "HEAD~1", metadata: prMetadata });
+    const focused = buildFocusedReviewManifest(view, pages, report, prMetadata);
+    const bundle = makeReviewBundle(view, pages, report, "affected-head-omission-bundle", prMetadata);
+    const reviewManifest = JSON.parse(readFileSync(join(bundle, "manifest.json"), "utf8")) as ReviewManifest;
+    const files: Record<string, string> = {};
+    for (const path of Object.keys(reviewManifest.file_digests)) files[path] = readFileSync(join(bundle, path), "utf8");
+    expect(validateFocusedReviewManifest(focused, files, reviewManifest)).toEqual([]);
+
+    const omitted = JSON.parse(JSON.stringify(focused)) as FocusedReviewManifest;
+    const headRole = omitted.body_roles.find((role) => role.role === "affected_page" && role.id === "product/test" && role.lifecycle === "head");
+    if (!headRole) throw new Error("affected page HEAD body role disappeared");
+    omitted.body_roles = omitted.body_roles.filter((role) => role !== headRole);
+    if (!omitted.body_roles.some((role) => role.digest === headRole.digest)) omitted.objects = omitted.objects.filter((object) => object.digest !== headRole.digest);
+    const headSource = omitted.source_roles.find((source) => source.path === "new.ts");
+    if (!headSource) throw new Error("affected page HEAD source provenance disappeared");
+    const headDeclarationIds = new Set(headSource.declaration_ids);
+    omitted.source_roles = omitted.source_roles.filter((source) => source.path !== "new.ts");
+    omitted.source_declarations = omitted.source_declarations.filter((declaration) => !headDeclarationIds.has(declaration.id));
+    const rebound = rebindFocusedBundle(omitted, files, reviewManifest);
+    expect(validateFocusedReviewManifest(omitted, rebound.files, rebound.manifest).map((finding) => finding.code)).toContain("focused-manifest-affected_page-missing");
+  });
+
+  test("rejects digest-rebound omission of a conditional merge-base body with its unique source provenance", () => {
+    const root = tempAffectedPageBaseExactReviewRepo();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const prMetadata = metadata({ affected_pages: ["product/test"] });
+    const report = impactReport(view, pages, { base: "HEAD~1", metadata: prMetadata });
+    const focused = buildFocusedReviewManifest(view, pages, report, prMetadata);
+    const bundle = makeReviewBundle(view, pages, report, "affected-merge-base-omission-bundle", prMetadata);
+    const reviewManifest = JSON.parse(readFileSync(join(bundle, "manifest.json"), "utf8")) as ReviewManifest;
+    const files: Record<string, string> = {};
+    for (const path of Object.keys(reviewManifest.file_digests)) files[path] = readFileSync(join(bundle, path), "utf8");
+    expect(validateFocusedReviewManifest(focused, files, reviewManifest)).toEqual([]);
+
+    const omitted = JSON.parse(JSON.stringify(focused)) as FocusedReviewManifest;
+    const baseRole = omitted.body_roles.find((role) => role.role === "affected_page" && role.id === "product/test" && role.lifecycle === "merge-base");
+    if (!baseRole) throw new Error("affected page merge-base body role disappeared");
+    omitted.body_roles = omitted.body_roles.filter((role) => role !== baseRole);
+    if (!omitted.body_roles.some((role) => role.digest === baseRole.digest)) omitted.objects = omitted.objects.filter((object) => object.digest !== baseRole.digest);
+    const baseSource = omitted.source_roles.find((source) => source.path === "old.ts");
+    if (!baseSource) throw new Error("affected page merge-base source provenance disappeared");
+    const baseDeclarationIds = new Set(baseSource.declaration_ids);
+    omitted.source_roles = omitted.source_roles.filter((source) => source.path !== "old.ts");
+    omitted.source_declarations = omitted.source_declarations.filter((declaration) => !baseDeclarationIds.has(declaration.id));
+    const rebound = rebindFocusedBundle(omitted, files, reviewManifest);
+    expect(validateFocusedReviewManifest(omitted, rebound.files, rebound.manifest).map((finding) => finding.code)).toContain("focused-manifest-affected_page-merge-base-missing");
+  });
+
   test("retains a deleted empty glob match from an affected page's merge-base body", () => {
     const root = tempAffectedPageBaseGlobReviewRepo();
     const view = createRepoView(root);
