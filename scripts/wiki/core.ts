@@ -3218,6 +3218,7 @@ export function validateFocusedReviewManifest(
   files: Record<string, string> = {},
   expected?: ReviewManifest,
   enforceRequired = true,
+  repositoryRoot?: string,
 ): Finding[] {
   const findings: Finding[] = [];
   const error = (code: string, message: string, path = "focused-manifest.json") => findings.push({ code, message, path, severity: "error" });
@@ -3252,6 +3253,7 @@ export function validateFocusedReviewManifest(
     }
   }
   const bodyRoles = new Set<string>();
+  const validBodyRoles: FocusedBodyBinding[] = [];
   if (!Array.isArray(focused.body_roles)) error("focused-manifest-body-roles", "body_roles must be an array");
   for (const [index, role] of (Array.isArray(focused.body_roles) ? focused.body_roles : []).entries()) {
     const valid = role != null && typeof role === "object"
@@ -3267,6 +3269,34 @@ export function validateFocusedReviewManifest(
     const key = `${role.role}:${role.id}:${role.lifecycle}`;
     if (bodyRoles.has(key)) error("focused-manifest-body-role-duplicate", `duplicate body role: ${key}`, `focused-manifest.json:body_roles[${index}]`);
     bodyRoles.add(key);
+    validBodyRoles.push(role);
+  }
+  if (repositoryRoot) {
+    for (const role of validBodyRoles) {
+      if (!isContentPage(role.wiki_path)) {
+        error("focused-manifest-body-path", `body role path is not a content wiki page: ${role.wiki_path}`, role.wiki_path);
+        continue;
+      }
+      const revision = role.lifecycle === "head" ? focused.head_sha : focused.merge_base_sha;
+      if (!/^[0-9a-f]{40}$/.test(revision)) continue;
+      const actual = sourceAtRevision(repositoryRoot, revision, role.wiki_path);
+      if (!actual.exists) {
+        error("focused-manifest-body-revision-missing", `body role path is missing at its declared ${role.lifecycle} revision: ${role.wiki_path}`, role.wiki_path);
+      } else if (hashContent(actual.raw) !== role.digest) {
+        error("focused-manifest-body-revision-binding", `body role bytes do not match its declared ${role.lifecycle} revision: ${role.wiki_path}`, role.wiki_path);
+      } else {
+        try {
+          const page = parseWikiPage(role.wiki_path, actual.raw);
+          const identityMatches = role.role === "conflict"
+            ? page.data.kind === "conflict" && page.data.conflict_id === role.id
+            : page.data.id === role.id;
+          if (!identityMatches) error("focused-manifest-body-revision-identity", `body role identity does not match its ${role.lifecycle} revision: ${role.role}/${role.id}`, role.wiki_path);
+        } catch {
+          // Page-shape findings remain the responsibility of the normal wiki
+          // page validator; this check is limited to exact lifecycle bytes.
+        }
+      }
+    }
   }
   const sourceRoles = new Set<FocusedSourceRole>(["changed_source", "affected_authority_source", "relevant_test", "supporting_source"]);
   const declarationsById = new Map<string, FocusedSourceDeclaration>();
@@ -3346,13 +3376,54 @@ export function validateFocusedReviewManifest(
     const core = { ...expected } as Record<string, unknown>;
     delete core.bundle_digest;
     if (hashContent(jsonStable(core)) !== expected.bundle_digest) error("focused-manifest-bundle-binding", "enclosing ReviewManifest bundle digest is not self-consistent", "manifest.json");
+    const bodyRoleAt = (role: FocusedBodyRole, id: string, lifecycle: "head" | "merge-base"): FocusedBodyBinding | undefined => validBodyRoles.find((item) => item.role === role && item.id === id && item.lifecycle === lifecycle);
+    type RevisionPageEvidence = { exists: boolean; page?: WikiPage };
+    const revisionPageEvidence = (lifecycle: "head" | "merge-base", path: string): RevisionPageEvidence | undefined => {
+      if (!repositoryRoot) return undefined;
+      const revision = lifecycle === "head" ? focused.head_sha : focused.merge_base_sha;
+      if (!/^[0-9a-f]{40}$/.test(revision)) return { exists: false };
+      const actual = sourceAtRevision(repositoryRoot, revision, path);
+      if (!actual.exists) return { exists: false };
+      try {
+        return { exists: true, page: parseWikiPage(path, actual.raw) };
+      } catch {
+        return { exists: true };
+      }
+    };
+    const validRemovedPageException = (id: string, role: FocusedBodyBinding): boolean => {
+      if (!repositoryRoot || role.lifecycle !== "merge-base") return false;
+      const base = revisionPageEvidence("merge-base", role.wiki_path);
+      if (!base?.exists || base.page?.data.id !== id || base.page.data.status !== "current") return false;
+      const head = revisionPageEvidence("head", role.wiki_path);
+      return head != null && (!head.exists || head.page == null || head.page.data.id !== id || head.page.data.status !== "current");
+    };
+    const validDemotedInvariantException = (id: string, baseRole: FocusedBodyBinding, headRole: FocusedBodyBinding): boolean => {
+      if (!repositoryRoot || baseRole.wiki_path !== headRole.wiki_path) return false;
+      const base = revisionPageEvidence("merge-base", baseRole.wiki_path);
+      const head = revisionPageEvidence("head", headRole.wiki_path);
+      return base?.page?.data.id === id
+        && base.page.data.kind === "invariant"
+        && base.page.data.status === "current"
+        && head?.page?.data.id === id
+        && head.page.data.status === "current"
+        && head.page.data.kind !== "invariant";
+    };
+    const validRemovedConflictException = (id: string, role: FocusedBodyBinding): boolean => {
+      if (!repositoryRoot || role.lifecycle !== "merge-base") return false;
+      const base = revisionPageEvidence("merge-base", role.wiki_path);
+      if (!base?.page || base.page.data.conflict_id !== id || base.page.data.kind !== "conflict") return false;
+      const head = revisionPageEvidence("head", role.wiki_path);
+      return head != null && (!head.exists || head.page == null || head.page.data.conflict_id !== id);
+    };
     const requireAffectedPageBody = (id: string) => {
       // A changed page must be represented by its HEAD body.  A removed or
       // demoted current page is the one exception: its merge-base body is
       // carried under removed_page, which is the historical authority that
       // remains reviewable after the HEAD page disappears.
       if (bodyRoles.has(`affected_page:${id}:head`)) return;
-      if (bodyRoles.has(`removed_page:${id}:merge-base`)) return;
+      const removedRole = bodyRoleAt("removed_page", id, "merge-base");
+      if (removedRole && (!repositoryRoot || validRemovedPageException(id, removedRole))) return;
+      if (removedRole) error("focused-manifest-removed-page-exception", `removed_page role is not supported by exact HEAD/merge-base evidence: ${id}`, removedRole.wiki_path);
       error("focused-manifest-affected_page-missing", `required affected_page HEAD role is missing: ${id}`);
     };
     const headAffectedPageKind = (id: string): WikiFrontmatter["kind"] | undefined => {
@@ -3369,13 +3440,20 @@ export function validateFocusedReviewManifest(
       // historical invariant body are present; an invariant merge-base body
       // by itself cannot stand in for a required HEAD body.
       if (bodyRoles.has(`invariant:${id}:head`)) return;
-      if (bodyRoles.has(`removed_page:${id}:merge-base`) && bodyRoles.has(`invariant:${id}:merge-base`)) return;
+      const baseInvariantRole = bodyRoleAt("invariant", id, "merge-base");
+      const removedRole = bodyRoleAt("removed_page", id, "merge-base");
+      if (baseInvariantRole && removedRole && baseInvariantRole.wiki_path === removedRole.wiki_path
+        && (!repositoryRoot || validRemovedPageException(id, removedRole))) return;
+      if (baseInvariantRole && removedRole && repositoryRoot) error("focused-manifest-removed-page-exception", `removed_page role is not supported by exact HEAD/merge-base evidence: ${id}`, removedRole.wiki_path);
       // An in-place demotion keeps the page current, so impact reporting does
       // not emit a removed_page marker.  Its affected page HEAD body proves
       // the non-invariant kind while the merge-base invariant is the only
       // valid historical invariant body.
       const headKind = headAffectedPageKind(id);
-      if (bodyRoles.has(`invariant:${id}:merge-base`) && headKind != null && headKind !== "invariant") return;
+      const headPageRole = bodyRoleAt("affected_page", id, "head");
+      if (baseInvariantRole && headPageRole && headKind != null && headKind !== "invariant"
+        && (!repositoryRoot || validDemotedInvariantException(id, baseInvariantRole, headPageRole))) return;
+      if (baseInvariantRole && headPageRole && repositoryRoot && headKind != null && headKind !== "invariant") error("focused-manifest-demoted-invariant-exception", `invariant merge-base role is not supported by exact HEAD/merge-base demotion evidence: ${id}`, baseInvariantRole.wiki_path);
       // Preserve compatibility with metadata-only IDs that the impact report
       // records as unknown and for which this focused bundle has no body or
       // authority declaration to bind.
@@ -3390,7 +3468,10 @@ export function validateFocusedReviewManifest(
     const requireConflictBody = (id: string) => {
       // Conflicts may be represented by their current body or, when the
       // conflict file was removed from HEAD, by its merge-base body.
-      if (bodyRoles.has(`conflict:${id}:head`) || bodyRoles.has(`conflict:${id}:merge-base`)) return;
+      if (bodyRoles.has(`conflict:${id}:head`)) return;
+      const baseRole = bodyRoleAt("conflict", id, "merge-base");
+      if (baseRole && (!repositoryRoot || validRemovedConflictException(id, baseRole))) return;
+      if (baseRole) error("focused-manifest-conflict-exception", `conflict merge-base role is not supported by exact HEAD/merge-base evidence: ${id}`, baseRole.wiki_path);
       error("focused-manifest-conflict-missing", `required conflict role is missing: ${id}`);
     };
     if (enforceRequired) {
@@ -3591,7 +3672,7 @@ export function buildReviewManifest(view: RepoView, pages: WikiPage[], report: I
     focused_manifest_digest: hashContent(files["focused-manifest.json"]),
   };
   const manifest = { ...core, bundle_digest: hashContent(jsonStable(core)) };
-  const bindingFindings = validateFocusedReviewManifest(focused.manifest, files, manifest, true);
+  const bindingFindings = validateFocusedReviewManifest(focused.manifest, files, manifest, true, view.root);
   if (bindingFindings.some((finding) => finding.severity === "error")) throw new Error(bindingFindings.map((finding) => finding.message).join("; "));
   return manifest;
 }

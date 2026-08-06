@@ -809,7 +809,7 @@ describe("fresh-context review manifest", () => {
     omitted.source_roles = omitted.source_roles.filter((source) => source.path !== "new.ts");
     omitted.source_declarations = omitted.source_declarations.filter((declaration) => !headDeclarationIds.has(declaration.id));
     const rebound = rebindFocusedBundle(omitted, files, reviewManifest);
-    expect(validateFocusedReviewManifest(omitted, rebound.files, rebound.manifest).map((finding) => finding.code)).toContain("focused-manifest-affected_page-missing");
+    expect(validateFocusedReviewManifest(omitted, rebound.files, rebound.manifest, true, root).map((finding) => finding.code)).toContain("focused-manifest-affected_page-missing");
   });
 
   test("rejects digest-rebound omission of a conditional merge-base body with its unique source provenance", () => {
@@ -836,7 +836,51 @@ describe("fresh-context review manifest", () => {
     omitted.source_roles = omitted.source_roles.filter((source) => source.path !== "old.ts");
     omitted.source_declarations = omitted.source_declarations.filter((declaration) => !baseDeclarationIds.has(declaration.id));
     const rebound = rebindFocusedBundle(omitted, files, reviewManifest);
-    expect(validateFocusedReviewManifest(omitted, rebound.files, rebound.manifest).map((finding) => finding.code)).toContain("focused-manifest-affected_page-merge-base-missing");
+    expect(validateFocusedReviewManifest(omitted, rebound.files, rebound.manifest, true, root).map((finding) => finding.code)).toContain("focused-manifest-affected_page-merge-base-missing");
+  });
+
+  test("rejects digest-rebound relabeling of merge-base bytes as an affected page HEAD body", () => {
+    const root = tempAffectedPageBaseExactReviewRepo();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const prMetadata = metadata({ affected_pages: ["product/test"] });
+    const report = impactReport(view, pages, { base: "HEAD~1", metadata: prMetadata });
+    const focused = buildFocusedReviewManifest(view, pages, report, prMetadata);
+    const bundle = makeReviewBundle(view, pages, report, "affected-lifecycle-relabel-bundle", prMetadata);
+    const reviewManifest = JSON.parse(readFileSync(join(bundle, "manifest.json"), "utf8")) as ReviewManifest;
+    const files: Record<string, string> = {};
+    for (const path of Object.keys(reviewManifest.file_digests)) files[path] = readFileSync(join(bundle, path), "utf8");
+    const relabeled = JSON.parse(JSON.stringify(focused)) as FocusedReviewManifest;
+    const headRole = relabeled.body_roles.find((role) => role.role === "affected_page" && role.id === "product/test" && role.lifecycle === "head");
+    const baseRole = relabeled.body_roles.find((role) => role.role === "affected_page" && role.id === "product/test" && role.lifecycle === "merge-base");
+    if (!headRole || !baseRole) throw new Error("affected page lifecycle roles disappeared");
+    relabeled.body_roles = relabeled.body_roles.filter((role) => role !== headRole);
+    baseRole.lifecycle = "head";
+    const rebound = rebindFocusedBundle(relabeled, files, reviewManifest);
+    const codes = validateFocusedReviewManifest(relabeled, rebound.files, rebound.manifest, true, root).map((finding) => finding.code);
+    expect(codes).toContain("focused-manifest-body-revision-binding");
+  });
+
+  test("rejects a self-asserted removed-page exception when HEAD still has the current page", () => {
+    const root = tempAffectedPageBaseExactReviewRepo();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const prMetadata = metadata({ affected_pages: ["product/test"] });
+    const report = impactReport(view, pages, { base: "HEAD~1", metadata: prMetadata });
+    const focused = buildFocusedReviewManifest(view, pages, report, prMetadata);
+    const bundle = makeReviewBundle(view, pages, report, "affected-exception-relabel-bundle", prMetadata);
+    const reviewManifest = JSON.parse(readFileSync(join(bundle, "manifest.json"), "utf8")) as ReviewManifest;
+    const files: Record<string, string> = {};
+    for (const path of Object.keys(reviewManifest.file_digests)) files[path] = readFileSync(join(bundle, path), "utf8");
+    const relabeled = JSON.parse(JSON.stringify(focused)) as FocusedReviewManifest;
+    const headRole = relabeled.body_roles.find((role) => role.role === "affected_page" && role.id === "product/test" && role.lifecycle === "head");
+    const baseRole = relabeled.body_roles.find((role) => role.role === "affected_page" && role.id === "product/test" && role.lifecycle === "merge-base");
+    if (!headRole || !baseRole) throw new Error("affected page lifecycle roles disappeared");
+    relabeled.body_roles = relabeled.body_roles.filter((role) => role !== headRole);
+    baseRole.role = "removed_page";
+    const rebound = rebindFocusedBundle(relabeled, files, reviewManifest);
+    const codes = validateFocusedReviewManifest(relabeled, rebound.files, rebound.manifest, true, root).map((finding) => finding.code);
+    expect(codes).toContain("focused-manifest-removed-page-exception");
   });
 
   test("retains a deleted empty glob match from an affected page's merge-base body", () => {
