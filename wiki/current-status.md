@@ -9,9 +9,9 @@
 | [product/invariants](./product/invariants.md) | invariant | normative | @phlox11 | 4 |
 | [product/scope](./product/scope.md) | product | normative | @phlox11 | 2 |
 
-## Outstanding work (26)
+## Outstanding work (24)
 
-Recommended next: `TE-01`. Run `bun run wiki:context -- --work TE-01`.
+Recommended next: `TE-04`. Run `bun run wiki:context -- --work TE-04`.
 
 See the [repository work queue](./work-queue.md) or run `bun run wiki:work`.
 
