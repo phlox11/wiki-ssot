@@ -12,7 +12,7 @@ The deterministic publisher evidence is pinned to `6fd3a85414e00892930557cb8335e
 
 ## Reproduced deterministic publisher bytes
 
-- Entry 16915; focused 55043; broad 114294; selected work 66479; recursive TypeScript 588441; review 60946 (3602 diff, 57344 non-diff).
+- Entry 16919; focused 55043; broad 114294; selected work 66479; recursive TypeScript 588463; review 60946 (3602 diff, 57344 non-diff).
 - Review candidate `d70befec1ac13e173ea3cc5b004d789b58a98368` is derived from exact base `6fd3a85414e00892930557cb8335e2d88ec90d66`, with no push and no retained worktree.
 
 ## Controlled publisher rollout and performance

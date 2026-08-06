@@ -50,11 +50,13 @@ export const TOKEN_EFFICIENCY_SOURCE_GLOB = "scripts/wiki/**/*.ts" as const;
 
 /** Reproduced values for the pinned revision; tests bind the report to these bytes. */
 export const TOKEN_EFFICIENCY_EXPECTED = {
-  mandatoryEntryBytes: 16_915,
+  mandatoryEntryBytes: 16_919,
+  mandatoryEntryLines: 135,
   focusedContextBytes: 55_043,
   broadContextBytes: 114_294,
   selectedWorkContextBytes: 66_479,
-  recursiveTypeScriptBytes: 588_441,
+  recursiveTypeScriptBytes: 588_463,
+  recursiveTypeScriptLines: 12_647,
   reviewBundleBytes: 60_946,
   reviewDiffBytes: 3_602,
   reviewNonDiffBytes: 57_344,
@@ -105,6 +107,7 @@ export type EntryMeasurement = {
 export type RecursiveSourceMeasurement = {
   glob: typeof TOKEN_EFFICIENCY_SOURCE_GLOB;
   paths: string[];
+  files: Record<string, TextMetric>;
   fileCount: number;
   text: TextMetric;
 };
@@ -166,10 +169,12 @@ export type DeterministicTokenEfficiencyReport = {
   };
   summary: {
     mandatoryEntryBytes: number;
+    mandatoryEntryLines: number;
     focusedContextBytes: number;
     broadContextBytes: number;
     selectedWorkContextBytes: number;
     recursiveTypeScriptBytes: number;
+    recursiveTypeScriptLines: number;
     reviewBundleBytes: number;
     reviewDiffBytes: number;
     reviewNonDiffBytes: number;
@@ -330,6 +335,14 @@ function git(root: string, args: string[], allowFailure = false): string {
   return result.stdout.trim();
 }
 
+/** Read a Git blob without trimming its terminal newline. */
+function gitBlob(root: string, path: string): string {
+  const args = ["show", `${TOKEN_EFFICIENCY_CONTEXT_SOURCE_REF}:${path}`];
+  const result = run(["git", ...args], root);
+  if (result.exitCode !== 0) throw new Error(`git ${args.join(" ")} failed\n${result.stderr || result.stdout}`);
+  return result.stdout;
+}
+
 function metric(text: string): TextMetric {
   const trimmed = text.trim();
   return {
@@ -402,7 +415,7 @@ function trackedSourcePaths(root: string): string[] {
 }
 
 function entryMeasurement(root: string): EntryMeasurement {
-  const files = Object.fromEntries(TOKEN_EFFICIENCY_ENTRY_PATHS.map((path) => [path, metric(git(root, ["show", `${TOKEN_EFFICIENCY_CONTEXT_SOURCE_REF}:${path}`]))])) as Record<string, TextMetric>;
+  const files = Object.fromEntries(TOKEN_EFFICIENCY_ENTRY_PATHS.map((path) => [path, metric(gitBlob(root, path))])) as Record<string, TextMetric>;
   return {
     paths: [...TOKEN_EFFICIENCY_ENTRY_PATHS],
     files,
@@ -424,8 +437,8 @@ function contextMeasurement(root: string, label: ContextMeasurement["label"], qu
 
 function recursiveSourceMeasurement(root: string): RecursiveSourceMeasurement {
   const paths = trackedSourcePaths(root);
-  const files = paths.map((path) => metric(git(root, ["show", `${TOKEN_EFFICIENCY_CONTEXT_SOURCE_REF}:${path}`])));
-  return { glob: TOKEN_EFFICIENCY_SOURCE_GLOB, paths, fileCount: paths.length, text: sumMetrics(files) };
+  const files = Object.fromEntries(paths.map((path) => [path, metric(gitBlob(root, path))])) as Record<string, TextMetric>;
+  return { glob: TOKEN_EFFICIENCY_SOURCE_GLOB, paths, files, fileCount: paths.length, text: sumMetrics(Object.values(files)) };
 }
 
 function canonicalMetadata(): string {
@@ -611,10 +624,12 @@ function buildAtRoot(root: string): DeterministicTokenEfficiencyReport {
     deterministic: { contextSourceRevision: TOKEN_EFFICIENCY_CONTEXT_SOURCE_REF, entry, focused, broad, selectedWork, recursiveTypeScript, reviewBundle },
     summary: {
       mandatoryEntryBytes: entry.text.bytes,
+      mandatoryEntryLines: entry.text.lines,
       focusedContextBytes: focused.text.bytes,
       broadContextBytes: broad.text.bytes,
       selectedWorkContextBytes: selectedWork.text.bytes,
       recursiveTypeScriptBytes: recursiveTypeScript.text.bytes,
+      recursiveTypeScriptLines: recursiveTypeScript.text.lines,
       reviewBundleBytes: reviewBundle.comparisonTotalBytes,
       reviewDiffBytes: reviewBundle.comparisonDiffBytes,
       reviewNonDiffBytes: reviewBundle.comparisonNonDiffBytes,

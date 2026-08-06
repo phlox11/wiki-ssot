@@ -231,23 +231,23 @@
       "entry": {
         "files": {
           "AGENTS.md": {
-            "bytes": 7923,
-            "lines": 58,
+            "bytes": 7924,
+            "lines": 59,
             "words": 1144
           },
           "wiki/current-status.md": {
-            "bytes": 855,
-            "lines": 26,
+            "bytes": 856,
+            "lines": 27,
             "words": 128
           },
           "wiki/index.md": {
-            "bytes": 1329,
-            "lines": 21,
+            "bytes": 1330,
+            "lines": 22,
             "words": 152
           },
           "wiki/product/invariants.md": {
-            "bytes": 6808,
-            "lines": 26,
+            "bytes": 6809,
+            "lines": 27,
             "words": 936
           }
         },
@@ -268,8 +268,8 @@
           "sourcePathCount": 4
         },
         "text": {
-          "bytes": 16915,
-          "lines": 131,
+          "bytes": 16919,
+          "lines": 135,
           "words": 2360
         }
       },
@@ -310,6 +310,118 @@
       },
       "recursiveTypeScript": {
         "fileCount": 22,
+        "files": {
+          "scripts/wiki/apply.test.ts": {
+            "bytes": 25701,
+            "lines": 559,
+            "words": 2062
+          },
+          "scripts/wiki/apply.ts": {
+            "bytes": 29454,
+            "lines": 655,
+            "words": 3260
+          },
+          "scripts/wiki/cli.ts": {
+            "bytes": 39867,
+            "lines": 880,
+            "words": 3873
+          },
+          "scripts/wiki/core.ts": {
+            "bytes": 159745,
+            "lines": 2972,
+            "words": 16296
+          },
+          "scripts/wiki/existing-repo-bootstrap.test.ts": {
+            "bytes": 16315,
+            "lines": 377,
+            "words": 1448
+          },
+          "scripts/wiki/fresh-context.test.ts": {
+            "bytes": 69390,
+            "lines": 1566,
+            "words": 6058
+          },
+          "scripts/wiki/github-attestation.ts": {
+            "bytes": 10013,
+            "lines": 189,
+            "words": 965
+          },
+          "scripts/wiki/inventories.example.ts": {
+            "bytes": 5827,
+            "lines": 96,
+            "words": 605
+          },
+          "scripts/wiki/inventories.ts": {
+            "bytes": 1304,
+            "lines": 26,
+            "words": 193
+          },
+          "scripts/wiki/kit-sync.ts": {
+            "bytes": 14096,
+            "lines": 307,
+            "words": 1747
+          },
+          "scripts/wiki/kit.test.ts": {
+            "bytes": 27905,
+            "lines": 634,
+            "words": 2540
+          },
+          "scripts/wiki/new-repository-adoption.test.ts": {
+            "bytes": 11609,
+            "lines": 320,
+            "words": 1026
+          },
+          "scripts/wiki/primary-baseline.test.ts": {
+            "bytes": 7043,
+            "lines": 169,
+            "words": 481
+          },
+          "scripts/wiki/primary-baseline.ts": {
+            "bytes": 30496,
+            "lines": 798,
+            "words": 2774
+          },
+          "scripts/wiki/primary-current.test.ts": {
+            "bytes": 5375,
+            "lines": 139,
+            "words": 397
+          },
+          "scripts/wiki/primary-current.ts": {
+            "bytes": 27114,
+            "lines": 664,
+            "words": 2288
+          },
+          "scripts/wiki/primary-scenarios.test.ts": {
+            "bytes": 6102,
+            "lines": 133,
+            "words": 376
+          },
+          "scripts/wiki/primary-scenarios.ts": {
+            "bytes": 16528,
+            "lines": 414,
+            "words": 1355
+          },
+          "scripts/wiki/publisher-boundary.test.ts": {
+            "bytes": 10083,
+            "lines": 297,
+            "words": 818
+          },
+          "scripts/wiki/test-runner.ts": {
+            "bytes": 1767,
+            "lines": 47,
+            "words": 202
+          },
+          "scripts/wiki/wiki.test.ts": {
+            "bytes": 41668,
+            "lines": 745,
+            "words": 3605
+          },
+          "scripts/wiki/work.test.ts": {
+            "bytes": 31061,
+            "lines": 660,
+            "words": 2704
+          }
+        },
         "glob": "scripts/wiki/**/*.ts",
         "paths": [
           "scripts/wiki/apply.test.ts",
@@ -336,8 +448,8 @@
           "scripts/wiki/work.test.ts"
         ],
         "text": {
-          "bytes": 588441,
-          "lines": 12625,
+          "bytes": 588463,
+          "lines": 12647,
           "words": 55073
         }
       },
@@ -611,8 +723,10 @@
     "summary": {
       "broadContextBytes": 114294,
       "focusedContextBytes": 55043,
-      "mandatoryEntryBytes": 16915,
-      "recursiveTypeScriptBytes": 588441,
+      "mandatoryEntryBytes": 16919,
+      "mandatoryEntryLines": 135,
+      "recursiveTypeScriptBytes": 588463,
+      "recursiveTypeScriptLines": 12647,
       "reviewBundleBytes": 60946,
       "reviewDiffBytes": 3602,
       "reviewNonDiffBytes": 57344,
@@ -673,23 +787,23 @@
       "entry": {
         "files": {
           "AGENTS.md": {
-            "bytes": 7923,
-            "lines": 58,
+            "bytes": 7924,
+            "lines": 59,
             "words": 1144
           },
           "wiki/current-status.md": {
-            "bytes": 855,
-            "lines": 26,
+            "bytes": 856,
+            "lines": 27,
             "words": 128
           },
           "wiki/index.md": {
-            "bytes": 1329,
-            "lines": 21,
+            "bytes": 1330,
+            "lines": 22,
             "words": 152
           },
           "wiki/product/invariants.md": {
-            "bytes": 6808,
-            "lines": 26,
+            "bytes": 6809,
+            "lines": 27,
             "words": 936
           }
         },
@@ -710,8 +824,8 @@
           "sourcePathCount": 4
         },
         "text": {
-          "bytes": 16915,
-          "lines": 131,
+          "bytes": 16919,
+          "lines": 135,
           "words": 2360
         }
       },
@@ -752,6 +866,118 @@
       },
       "recursiveTypeScript": {
         "fileCount": 22,
+        "files": {
+          "scripts/wiki/apply.test.ts": {
+            "bytes": 25701,
+            "lines": 559,
+            "words": 2062
+          },
+          "scripts/wiki/apply.ts": {
+            "bytes": 29454,
+            "lines": 655,
+            "words": 3260
+          },
+          "scripts/wiki/cli.ts": {
+            "bytes": 39867,
+            "lines": 880,
+            "words": 3873
+          },
+          "scripts/wiki/core.ts": {
+            "bytes": 159745,
+            "lines": 2972,
+            "words": 16296
+          },
+          "scripts/wiki/existing-repo-bootstrap.test.ts": {
+            "bytes": 16315,
+            "lines": 377,
+            "words": 1448
+          },
+          "scripts/wiki/fresh-context.test.ts": {
+            "bytes": 69390,
+            "lines": 1566,
+            "words": 6058
+          },
+          "scripts/wiki/github-attestation.ts": {
+            "bytes": 10013,
+            "lines": 189,
+            "words": 965
+          },
+          "scripts/wiki/inventories.example.ts": {
+            "bytes": 5827,
+            "lines": 96,
+            "words": 605
+          },
+          "scripts/wiki/inventories.ts": {
+            "bytes": 1304,
+            "lines": 26,
+            "words": 193
+          },
+          "scripts/wiki/kit-sync.ts": {
+            "bytes": 14096,
+            "lines": 307,
+            "words": 1747
+          },
+          "scripts/wiki/kit.test.ts": {
+            "bytes": 27905,
+            "lines": 634,
+            "words": 2540
+          },
+          "scripts/wiki/new-repository-adoption.test.ts": {
+            "bytes": 11609,
+            "lines": 320,
+            "words": 1026
+          },
+          "scripts/wiki/primary-baseline.test.ts": {
+            "bytes": 7043,
+            "lines": 169,
+            "words": 481
+          },
+          "scripts/wiki/primary-baseline.ts": {
+            "bytes": 30496,
+            "lines": 798,
+            "words": 2774
+          },
+          "scripts/wiki/primary-current.test.ts": {
+            "bytes": 5375,
+            "lines": 139,
+            "words": 397
+          },
+          "scripts/wiki/primary-current.ts": {
+            "bytes": 27114,
+            "lines": 664,
+            "words": 2288
+          },
+          "scripts/wiki/primary-scenarios.test.ts": {
+            "bytes": 6102,
+            "lines": 133,
+            "words": 376
+          },
+          "scripts/wiki/primary-scenarios.ts": {
+            "bytes": 16528,
+            "lines": 414,
+            "words": 1355
+          },
+          "scripts/wiki/publisher-boundary.test.ts": {
+            "bytes": 10083,
+            "lines": 297,
+            "words": 818
+          },
+          "scripts/wiki/test-runner.ts": {
+            "bytes": 1767,
+            "lines": 47,
+            "words": 202
+          },
+          "scripts/wiki/wiki.test.ts": {
+            "bytes": 41668,
+            "lines": 745,
+            "words": 3605
+          },
+          "scripts/wiki/work.test.ts": {
+            "bytes": 31061,
+            "lines": 660,
+            "words": 2704
+          }
+        },
         "glob": "scripts/wiki/**/*.ts",
         "paths": [
           "scripts/wiki/apply.test.ts",
@@ -778,8 +1004,8 @@
           "scripts/wiki/work.test.ts"
         ],
         "text": {
-          "bytes": 588441,
-          "lines": 12625,
+          "bytes": 588463,
+          "lines": 12647,
           "words": 55073
         }
       },
@@ -1053,8 +1279,10 @@
     "summary": {
       "broadContextBytes": 114294,
       "focusedContextBytes": 55043,
-      "mandatoryEntryBytes": 16915,
-      "recursiveTypeScriptBytes": 588441,
+      "mandatoryEntryBytes": 16919,
+      "mandatoryEntryLines": 135,
+      "recursiveTypeScriptBytes": 588463,
+      "recursiveTypeScriptLines": 12647,
       "reviewBundleBytes": 60946,
       "reviewDiffBytes": 3602,
       "reviewNonDiffBytes": 57344,

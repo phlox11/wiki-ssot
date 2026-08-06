@@ -231,7 +231,7 @@ reproduces the focused `recursive source mapping` topic, the broad
 `TE-00`, recursive `scripts/wiki/**/*.ts` expansion, and a disposable review
 candidate derived from that exact revision. The checked-in report records
 55,043 focused-context bytes, 114,294 broad-context bytes, 66,479
-selected-work bytes, 588,441 recursive TypeScript bytes, and a 60,946-byte
+selected-work bytes, 588,463 recursive TypeScript bytes, and a 60,946-byte
 review comparison made of 3,602 diff bytes and 57,344 non-diff bytes.
 
 The fresh publisher control completed successfully with one

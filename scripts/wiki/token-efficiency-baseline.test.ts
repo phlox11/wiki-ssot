@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, test } from "bun:test";
+import { resolve } from "node:path";
 import {
   buildTokenEfficiencyBaselineReport,
   buildTokenEfficiencyEvidence,
@@ -18,6 +19,27 @@ import {
   type UsageAgent,
   type UsageTotals,
 } from "./token-efficiency-baseline";
+
+const root = resolve(import.meta.dir, "../..");
+
+function rawGitBlob(path: string): string {
+  const result = Bun.spawnSync(["git", "cat-file", "blob", `${TOKEN_EFFICIENCY_BASELINE_ENGINE_REF}:${path}`], {
+    cwd: root,
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  if (result.exitCode !== 0) throw new Error(result.stderr.toString());
+  return result.stdout.toString();
+}
+
+function rawMetric(text: string) {
+  const trimmed = text.trim();
+  return {
+    lines: (text.match(/\n/g) ?? []).length,
+    words: trimmed.length === 0 ? 0 : trimmed.split(/\s+/).length,
+    bytes: Buffer.byteLength(text, "utf8"),
+  };
+}
 
 function performance(): PerformanceEvidence {
   const unavailable = { availability: "unavailable" as const, valueMs: null, method: "not captured", limitation: "The local fixture has no provider timing sample." };
@@ -120,12 +142,34 @@ describe("TE-00 token-efficiency baseline", () => {
     expect(report.deterministic.selectedWork.workId).toBe("TE-00");
     expect(report.deterministic.recursiveTypeScript.glob).toBe("scripts/wiki/**/*.ts");
     expect(report.summary).toEqual(TOKEN_EFFICIENCY_EXPECTED);
+    expect(report.deterministic.entry.text).toMatchObject({ bytes: 16_919, lines: 135 });
+    expect(report.deterministic.recursiveTypeScript.text).toMatchObject({ bytes: 588_463, lines: 12_647 });
     expect(report.deterministic.recursiveTypeScript.paths).not.toContain("scripts/wiki/token-efficiency-baseline.ts");
     expect(report.deterministic.recursiveTypeScript.fileCount).toBeGreaterThan(0);
     expect(report.deterministic.reviewBundle.baseSha).toBe(TOKEN_EFFICIENCY_BASELINE_ENGINE_REF);
     expect(report.deterministic.reviewBundle.candidateBaseRef).toBe(TOKEN_EFFICIENCY_BASELINE_ENGINE_REF);
     expect(report.deterministic.reviewBundle.candidateSha).toBe(report.deterministic.reviewBundle.candidateRef);
     expect(report.deterministic.reviewBundle.candidateSha).not.toBe(TOKEN_EFFICIENCY_BASELINE_ENGINE_REF);
+  });
+
+  test("accounts for terminal bytes from every raw Git blob, not trimmed command output", () => {
+    const entry = report.deterministic.entry;
+    for (const path of entry.paths) expect(entry.files[path]).toEqual(rawMetric(rawGitBlob(path)));
+    const entryAggregate = entry.paths.map(rawGitBlob).map(rawMetric).reduce((sum, value) => ({
+      lines: sum.lines + value.lines,
+      words: sum.words + value.words,
+      bytes: sum.bytes + value.bytes,
+    }), { lines: 0, words: 0, bytes: 0 });
+    expect(entry.text).toEqual(entryAggregate);
+
+    const source = report.deterministic.recursiveTypeScript;
+    const sourceMetrics = source.paths.map(rawGitBlob).map(rawMetric);
+    for (const path of source.paths) expect(source.files[path]).toEqual(rawMetric(rawGitBlob(path)));
+    expect(source.text).toEqual(sourceMetrics.reduce((sum, value) => ({
+      lines: sum.lines + value.lines,
+      words: sum.words + value.words,
+      bytes: sum.bytes + value.bytes,
+    }), { lines: 0, words: 0, bytes: 0 }));
   });
 
   test("keeps semantic and source-breadth accounting deterministic", () => {
