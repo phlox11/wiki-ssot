@@ -3335,11 +3335,35 @@ export function validateFocusedReviewManifest(
       }
     }
     if (expected.focused_manifest_digest && Object.keys(files).length > 0 && files["focused-manifest.json"] != null && hashContent(files["focused-manifest.json"]) !== expected.focused_manifest_digest) error("focused-manifest-digest-binding", "focused manifest digest does not match the enclosing ReviewManifest");
+    let canonicalChangedFiles: string[] | undefined;
+    const impactRaw = files["impact.json"];
+    if (impactRaw != null) {
+      try {
+        const impact = JSON.parse(impactRaw) as { changedFiles?: unknown };
+        if (!Array.isArray(impact.changedFiles) || impact.changedFiles.some((path) => typeof path !== "string" || path.length === 0)) {
+          error("focused-manifest-impact-changed-files", "bound impact.json changedFiles must be a string array", "impact.json");
+        } else {
+          canonicalChangedFiles = [...impact.changedFiles].sort((a, b) => a.localeCompare(b));
+          if (new Set(canonicalChangedFiles).size !== canonicalChangedFiles.length) error("focused-manifest-impact-changed-files", "bound impact.json changedFiles must not contain duplicates", "impact.json");
+          if (!Array.isArray(focused.changed_files) || jsonStable(focused.changed_files) !== jsonStable(canonicalChangedFiles)) error("focused-manifest-changed-files-binding", "focused changed_files must exactly match the digest-bound impact.json changedFiles", "focused-manifest.json:changed_files");
+        }
+      } catch {
+        error("focused-manifest-impact-changed-files", "bound impact.json must be valid JSON with canonical changedFiles", "impact.json");
+      }
+    }
     const authorityPageIds = new Set([...expected.affected_page_ids, ...expected.affected_invariant_ids]);
     for (const source of Array.isArray(focused.source_roles) ? focused.source_roles : []) {
       const hasAuthorityDeclaration = source.declaration_ids.some((id) => authorityPageIds.has(declarationsById.get(id)?.page_id ?? ""));
       if (hasAuthorityDeclaration && !source.roles.includes("affected_authority_source")) error("focused-manifest-authority-role-required", `source declaration from an affected authority page is missing affected_authority_source: ${source.path}`, source.path);
       if (!hasAuthorityDeclaration && source.roles.includes("affected_authority_source")) error("focused-manifest-authority-role-misclassified", `affected_authority_source is not backed by an affected authority declaration: ${source.path}`, source.path);
+    }
+    if (canonicalChangedFiles) {
+      for (const path of canonicalChangedFiles) {
+        const matches = (Array.isArray(focused.source_roles) ? focused.source_roles : []).filter((source) => source.path === path);
+        if (matches.length !== 1) error("focused-manifest-changed-source-binding", `each canonical changed path must have exactly one source binding: ${path}`, path);
+        else if (!matches[0].roles.includes("changed_source")) error("focused-manifest-changed-source-binding", `canonical changed path is missing changed_source classification: ${path}`, path);
+        if (enforceRequired && focusedSourcePath(path) && matches.length === 1 && !matches[0].roles.includes("relevant_test")) error("focused-manifest-relevant-test-required", `changed test is missing relevant_test classification: ${path}`, path);
+      }
     }
   }
   return findings;

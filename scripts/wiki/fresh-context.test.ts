@@ -408,6 +408,30 @@ describe("fresh-context review manifest", () => {
     const objectPath = tampered.objects[0].object_path;
     const tamperedFiles = { ...files, [objectPath]: `${files[objectPath]}tampered` };
     expect(validateFocusedReviewManifest(tampered, tamperedFiles, reviewManifest).map((finding) => finding.code)).toContain("focused-manifest-object-digest");
+
+    // An attacker cannot hide a changed path by editing the focused index and
+    // recomputing every focused/enclosing digest: impact.json remains the
+    // digest-bound canonical changed-file set.
+    const omitted = clone();
+    const omittedSource = omitted.source_roles.find((item) => item.path === "source.ts");
+    if (!omittedSource) throw new Error("focused source fixture did not classify source.ts for omission test");
+    const omittedDeclarationIds = new Set(omittedSource.declaration_ids);
+    omitted.changed_files = omitted.changed_files.filter((path) => path !== "source.ts");
+    omitted.source_roles = omitted.source_roles.filter((item) => item.path !== "source.ts");
+    omitted.source_declarations = omitted.source_declarations.filter((declaration) => !omittedDeclarationIds.has(declaration.id));
+    const omittedFocusedRaw = jsonStable(omitted);
+    const omittedManifest = {
+      ...reviewManifest,
+      file_digests: { ...reviewManifest.file_digests, "focused-manifest.json": hashContent(omittedFocusedRaw) },
+      focused_manifest_digest: hashContent(omittedFocusedRaw),
+    } as ReviewManifest;
+    const omittedManifestCore = { ...omittedManifest } as Record<string, unknown>;
+    delete omittedManifestCore.bundle_digest;
+    omittedManifest.bundle_digest = hashContent(jsonStable(omittedManifestCore));
+    const omittedFiles = { ...files, "focused-manifest.json": omittedFocusedRaw };
+    const omittedCodes = validateFocusedReviewManifest(omitted, omittedFiles, omittedManifest).map((finding) => finding.code);
+    expect(omittedCodes).toContain("focused-manifest-changed-files-binding");
+    expect(omittedCodes).toContain("focused-manifest-changed-source-binding");
   });
 
   test("expands merge-base glob provenance for removed sources and hashes empty blobs", () => {
