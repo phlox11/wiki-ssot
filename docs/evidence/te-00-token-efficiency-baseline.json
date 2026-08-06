@@ -10,7 +10,7 @@
   },
   "comparison": {
     "acceptedVarianceOptions": [
-      "Record model/cache behavior, orchestration, approval, provider latency, or bounded sampling variance explicitly before accepting a comparison."
+      "No blanket percentage reduction or variance gate applies; record before/after values and attribute model/cache behavior, orchestration, approval, provider latency, and sampling limitations explicitly."
     ],
     "correctnessFloor": [
       "PV-19 correctness floor: preserve 100% of current-page, invariant, conflict, implementation-source, authority/status, non-current-label, expected-change, Wiki-action, coverage, impact, review, and drift expectations.",
@@ -26,9 +26,9 @@
       "Keep task, role, model, reasoning effort, and call accounting fixed for before/after comparisons."
     ],
     "optimizationTargets": [
-      "At most 40% of the reproduced deterministic context baseline for each topic and selected-work case.",
-      "At most 60% of the controlled end-to-end baseline for uncached input and review non-diff bytes under unchanged controls.",
-      "At most 70% of primary calls and active wall time, and at most 50% of publication-phase calls."
+      "Remove repeated full-body expansion, broad re-reading, duplicate review input, repeated discovery and polling, oversized success output, and unnecessary role or phase round trips where the repository structure causes them.",
+      "Keep token, byte, call, tool, and elapsed-time measurements as before/after diagnostic evidence instead of standalone percentage pass thresholds.",
+      "Demonstrate that each structural change removes its reproduced waste without weakening the correctness floor or hiding work in an external orchestrator."
     ],
     "orchestrationControls": [
       "Keep orchestration/fan-out and approval policy fixed; repository code does not control provider routing or cache continuity."
@@ -1549,15 +1549,16 @@
   "limitations": [
     "No model/provider calls are made by this harness.",
     "No comparison candidate is pushed; the disposable candidate is removed after bundle measurement.",
-    "Owner decision remains pending until TE-00-OWNER ratification."
+    "The owner rejected fixed percentage reduction gates; measurements remain diagnostic evidence for structural improvements."
   ],
   "ownerRatification": {
-    "decision": null,
+    "decision": "ratified: structural improvement without fixed percentage budgets",
     "options": [
       "ratify the publisher contract",
       "request another bounded measurement cycle",
       "do not adopt the optimization"
-    ]
+    ],
+    "rationale": "The measured time and token cost comes from structural waste. Remove reproduced unnecessary expansion, rereading, duplication, polling, and round trips while preserving correctness; do not substitute arbitrary reduction percentages for that work."
   },
   "separation": {
     "approvalEffects": "Approval waits are reported when available and remain external approval-system observations.",

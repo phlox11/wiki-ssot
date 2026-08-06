@@ -42,7 +42,7 @@ work_items:
       - Performance evidence reports model request, first-token and completion latency when available, tool duration, approval wait, coordination wait, active wall time excluding user idle, and phase-level implementation, publication, merge, and cleanup measurements.
       - Any reversible comparison candidate runs only in this repository or a disposable worktree derived from its exact revision; TE-00 creates no standalone synthetic or test repository and pushes no comparison worktree.
       - The baseline separates the external schooled diagnosis, deterministic publisher bytes, engine-owned behavior, model- and orchestrator-dependent publisher rollout metrics, cache effects, approval-system behavior, and measurement limitations.
-      - Evidence presents the correctness floor, proposed optimization targets, comparison tasks, model and effort controls, accepted variance options, and every limitation needed for owner ratification before implementation begins.
+      - Evidence presents the correctness floor, structural optimization objectives, comparison tasks, model and effort controls, measurement interpretation, and every limitation needed for owner ratification before implementation begins.
     evidence:
       - docs/evidence/te-00-schooled-diagnosis.json
       - docs/evidence/te-00-controlled-publisher.json
@@ -50,17 +50,20 @@ work_items:
       - docs/evidence/te-00-token-efficiency-baseline.md
   - id: TE-00-OWNER
     title: Ratify the publisher-only efficiency and performance contract
-    state: not-started
+    state: done
     executor: human
     priority: high
     depends_on: [TE-00]
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
     acceptance:
-      - The owner explicitly ratifies the schooled diagnosis, publisher before/after case, correctness floor, optimization targets, model and effort controls, latency instrumentation, and accepted variance before implementation begins.
-      - Any changed threshold or accepted measurement limitation is recorded with its rationale in durable proposal or evidence content.
+      - The owner explicitly ratifies the schooled diagnosis, publisher before/after case, correctness floor, structural optimization objectives, model and effort controls, latency instrumentation, and measurement interpretation before implementation begins.
+      - "Fixed percentage reduction gates are rejected: token, byte, call, tool, and elapsed-time values remain before/after diagnostic evidence, while acceptance requires removing reproduced structural waste without weakening correctness."
       - Engine-owned pass criteria remain separate from Guardian, provider cache, model routing, and other external-orchestrator observations that the repository cannot enforce.
       - The decision does not authorize weakening current authority, conflicts, source traceability, coverage, impact, exact-HEAD binding, or independent-review invariants.
-    evidence: []
+    evidence:
+      - wiki/proposals/token-efficiency.md
+      - docs/evidence/te-00-token-efficiency-baseline.json
+      - docs/evidence/te-00-token-efficiency-baseline.md
   - id: TE-01
     title: Add compact context projections with explicit full expansion
     state: not-started
@@ -73,7 +76,7 @@ work_items:
       - The default projection avoids embedding complete current and non-current page bodies and repeated source lists when stable paths, summaries, hashes, and focused follow-up commands carry the same routing information.
       - An explicit full-output mode remains available for exhaustive inspection and is documented for callers that need the complete historical text representation.
       - Text and JSON compact projections carry the same semantic fields, deterministic ordering, and clear current versus non-current separation.
-      - Focused publisher regressions prove that compact output meets the ratified byte and performance targets without reducing PV-19 authority, conflict, source, status, or expected-action recall, while existing kit and adoption tests preserve portable correctness.
+      - Focused publisher regressions prove that compact output removes reproduced full-body duplication and broad rereading, while recording before/after bytes, calls, and time without reducing PV-19 authority, conflict, source, status, or expected-action recall; existing kit and adoption tests preserve portable correctness.
       - Any change to the current context-completeness contract updates current Wiki pages, code, tests, and downstream kit documentation in the same implementation PR.
       - TE-01 and TE-02 ship as one inseparable implementation PR because they change the same search, semantic context, text, JSON, test, and adoption surfaces; each stable work ID retains its own acceptance evidence.
     evidence: []
@@ -98,10 +101,10 @@ work_items:
     executor: agent
     priority: high
     depends_on: [TE-00-OWNER, TE-04]
-    deferred_reason: Activate only when the controlled publisher evidence shows that a broad source declaration adds unrelated required-source breadth and a shadow partition reduces required-source count or bytes by at least 20% without weakening coverage, impact, or review completeness.
+    deferred_reason: Activate only when controlled publisher evidence shows that a broad source declaration structurally adds unrelated required-source breadth and a coherent partition removes that waste without weakening coverage, impact, or review completeness.
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
     acceptance:
-      - Before activation, exact publisher baseline or shadow evidence identifies the task, unrelated source families, required-source count and bytes, and a partition that reduces that measured breadth by at least 20%.
+      - Before activation, exact publisher baseline or shadow evidence identifies the task, unrelated source families, required-source count and bytes, and a coherent partition that removes the unrelated breadth.
       - Once activated, the monolithic scripts/wiki TypeScript source declaration is replaced or complemented by coherent current authority pages and bounded exact or glob declarations for engine core, install and kit, review integration, and publishing-only validation evidence.
       - Every file covered by .wiki/coverage.json remains mapped to at least one current page or a reasoned exclusion, and independent code-only probes continue to fail enforced impact when Wiki reconciliation is absent.
       - A context-renderer change no longer directs the reader through unrelated adoption, historical-baseline, and publishing-only test sources merely because all TypeScript files share one recursive page declaration.
@@ -149,8 +152,8 @@ work_items:
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
     acceptance:
       - The current Primary scenario suite, existing kit and adoption regression suites, and the controlled publisher scenario run against exact combined revisions with no authority, invariant, conflict, source, status, expected-action, coverage, impact, review, or portable-correctness regression.
-      - Default context output satisfies the ratified deterministic byte budget for every reproduced topic and selected-work case, and full mode remains available for exhaustive inspection.
-      - Controlled end-to-end pilots report per-agent calls, raw, cached and uncached usage, input distribution, model latency, tool time, approval time, active wall time, and phase timing, and satisfy ratified targets under the same comparison task, model, effort, and orchestration policy.
+      - Default context output removes the reproduced unnecessary full-body expansion and broad rereading for every controlled topic and selected-work case, records before/after bytes, and retains full mode for exhaustive inspection.
+      - Controlled end-to-end pilots report per-agent calls, raw, cached and uncached usage, input distribution, model latency, tool time, approval time, active wall time, and phase timing, and demonstrate the removal of reproduced structural round trips and duplication under the same comparison task, model, effort, and orchestration policy.
       - Evidence separately evaluates engine-owned gains, repository guidance and optional orchestration gains, cache-accounting effects, Guardian and approval behavior, and provider limitations.
       - Remaining misses are classified as a concrete defect, owner decision, orchestrator limitation, or explicitly accepted limitation.
       - The evidence presents token efficiency validated, another bounded cycle, and not adopted as explicit owner-decision options without selecting one on the owner's behalf.
@@ -176,9 +179,10 @@ bounded repository work. It is a `status: proposed` plan, not a statement of
 current behavior. The supplied schooled rollout is the diagnosis of shared
 orchestration and context costs. `TE-00` records that diagnosis durably and
 freezes one controlled pre-optimization case in this publisher repository.
-`TE-00-OWNER` then requires explicit human ratification before implementation
-items become ready. Queue readiness does not authorize implementation beyond a
-separately requested task.
+`TE-00-OWNER` records the owner's ratification of structural waste removal
+without fixed percentage gates, so implementation items can become ready.
+Queue readiness does not authorize implementation beyond a separately
+requested task.
 
 The goal is not to make the Wiki smaller or faster by hiding authority. The
 goal is to preserve the same current pages, invariants, conflicts, source
@@ -261,31 +265,33 @@ Reasoning output remains part of output. Raw rollout usage is not billed API
 cost or exact subscription-credit consumption. Prompt and source bodies are
 not copied into measurement evidence.
 
-## Proposed optimization targets
+## Ratified structural optimization contract
 
-`TE-00` records exact comparison tasks and prepares numeric refinements.
-`TE-00-OWNER` freezes the contract before implementation. The initial targets
-presented for ratification are:
+`TE-00` records exact comparison tasks and their observed costs.
+`TE-00-OWNER` ratifies structural correction rather than a numeric reduction
+contest. Token, byte, call, tool, and elapsed-time values remain before/after
+diagnostic evidence. They help verify that a change addressed the reproduced
+waste, but no fixed percentage is a standalone pass condition.
 
 - preserve 100% of the PV-19 current-page, invariant, conflict, implementation
   source, status-plus-authority, non-current-label, expected-change, and Wiki
   action expectations, with zero new coverage or drift escapes;
-- reduce default text and JSON context bytes to at most 40% of the publisher
-  baseline for every controlled topic and selected-work case while retaining
-  full mode;
-- reduce primary model calls and primary active wall time to at most 70% of the
-  comparable baseline;
-- reduce publication-phase model calls to at most 50% of baseline;
-- reduce controlled uncached input and review non-diff bytes to at most 60% of
-  baseline under the same task, model, effort, and orchestration policy;
-- allow no controlled publisher correctness or performance metric outside its
-  ratified variance to regress without an explicit accepted limitation.
+- remove repeated full-body expansion and broad rereading while retaining
+  explicit full mode;
+- remove duplicate review input and oversized successful output that add no
+  authority, source, conflict, or diagnostic information;
+- remove repeated discovery, avoidable polling, and unnecessary role or phase
+  round trips caused by repository guidance or artifact boundaries;
+- report before/after values under the same task, model, effort, and
+  orchestration policy, attributing external cache, approval, routing, and
+  provider-latency effects instead of hiding them.
 
 Engine-owned criteria and end-to-end observations remain separate. A Guardian
 cache miss or provider latency event cannot be hidden to make the engine pass,
 but it also cannot be presented as something repository code controls. If the
-correctness floor and a numeric target conflict, correctness wins and the owner
-records another bounded cycle or an accepted limitation.
+correctness floor and a smaller or faster representation conflict, correctness
+wins and the structural defect remains open for another bounded solution rather
+than being hidden behind a percentage.
 
 ## Planned design
 
@@ -319,10 +325,10 @@ merge base, digest binding, and reviewer independence remain mandatory.
 ### Partition source authority only when evidence activates it
 
 `TE-03` is deferred. It activates only when the controlled publisher case proves
-that a broad declaration adds unrelated required-source breadth and a shadow
-partition reduces required-source count or bytes by at least 20% without a
-coverage, impact, or review-completeness escape. If that condition never
-appears, no source-authority restructuring is performed.
+that a broad declaration structurally adds unrelated required-source breadth
+and a coherent shadow partition removes that waste without a coverage, impact,
+or review-completeness escape. If that condition never appears, no
+source-authority restructuring is performed.
 
 ### Keep engine and orchestrator claims separate
 
@@ -338,8 +344,9 @@ approval policy, billing, or subscription behavior.
 1. Revise this proposal contract before measuring or implementing anything.
 2. `TE-00` records the schooled diagnosis and freezes the exact publisher byte,
    rollout, and performance before baseline without measuring other adopters.
-3. `TE-00-OWNER` requires explicit owner ratification of the publisher case,
-   correctness floor, budgets, controls, variance, and limitations.
+3. `TE-00-OWNER` records the owner's rejection of fixed percentage gates and
+   ratification of structural waste removal, correctness, controls, measurement
+   interpretation, and limitations.
 4. `TE-05` reduces orchestration round trips and defines reusable bounded
    context boundaries first.
 5. `TE-01` and `TE-02` ship as one PR for compact context and bounded
@@ -382,7 +389,8 @@ to the normal one-work-item-per-PR split.
 
 `TE-06` may pass only when the exact combined publisher revision satisfies the
 current Primary correctness contract, portable kit and adoption regressions,
-and ratified token and performance budgets on the same controlled case. The
+and removes the reproduced structural waste on the same controlled case while
+reporting before/after token and performance observations. The
 final evidence keeps the schooled diagnosis, deterministic engine
 measurements, controlled publisher rollout, latency, cache effects, approval
 behavior, and orchestration choices visibly separate. `TE-06-OWNER` then

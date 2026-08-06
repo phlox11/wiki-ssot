@@ -217,7 +217,7 @@ describe("TE-00 token-efficiency baseline", () => {
     expect(inspectSchooledDiagnosis(privateInput).ok).toBe(false);
   });
 
-  test("renders combined evidence byte-stably and leaves owner decision unselected", () => {
+  test("renders combined evidence byte-stably with the structural owner decision", () => {
     const evidence = buildTokenEfficiencyEvidence(report, diagnosisFixture(), publisherFixture());
     const json = renderTokenEfficiencyEvidenceJson(evidence);
     const markdown = renderTokenEfficiencyOwnerRatification(evidence);
@@ -225,9 +225,10 @@ describe("TE-00 token-efficiency baseline", () => {
     expect(renderTokenEfficiencyOwnerRatification(buildTokenEfficiencyEvidence(report, diagnosisFixture(), publisherFixture()))).toBe(markdown);
     expect(json).toContain("externalSchooledDiagnosis");
     expect(json).toContain("controlledPublisher");
-    expect(markdown).toContain("Decision: **unselected**");
-    expect(markdown).toContain("40% of the reproduced deterministic context baseline");
-    expect(markdown).toContain("60% of the controlled end-to-end baseline");
+    expect(markdown).toContain("Decision: **ratified: structural improvement without fixed percentage budgets**");
+    expect(markdown).toContain("Remove repeated full-body expansion");
+    expect(markdown).toContain("before/after diagnostic evidence instead of standalone percentage pass thresholds");
+    expect(markdown).not.toMatch(/At most (40|50|60|70)%/);
     expect(markdown).toContain("no transcript, prompt, private path");
     expect(markdown).toContain("Cached input is included in raw input");
     expect(markdown).not.toContain("do not retain");
