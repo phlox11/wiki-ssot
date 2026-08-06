@@ -1148,6 +1148,160 @@ export function sourceHashes(view: RepoView, page: WikiPage): Record<string, str
   return Object.fromEntries(Object.entries(result).sort(([a], [b]) => a.localeCompare(b)));
 }
 
+export type ReusableWorkContextArtifact = {
+  version: 1;
+  selector: { kind: "work"; id: string };
+  repository: {
+    base_ref: string;
+    base_sha: string;
+    merge_base_sha: string;
+    head_sha: string;
+    metadata_digest: string;
+  };
+  work: {
+    id: string;
+    title: string;
+    state: WorkState;
+    queue_state: WorkQueueState;
+    executor: WorkExecutor;
+    owner_page: { id: string; path: string };
+    acceptance: string[];
+  };
+  read_order: SelectedWorkContextReadEntry[];
+  bindings: {
+    context_digest: string;
+    pages: { id: string; path: string; digest: string }[];
+    conflicts: { id: string; path: string; digest: string }[];
+    sources: { path: string; declared_by: string[]; digest: string }[];
+  };
+  artifact_digest: string;
+};
+
+function reusableArtifactCore(
+  view: RepoView,
+  pages: WikiPage[],
+  work: WorkQueueItem,
+  options: { base: string; metadata: PrMetadata },
+): Omit<ReusableWorkContextArtifact, "artifact_digest"> {
+  const context = buildSelectedWorkContext(view, pages, work);
+  const baseRef = resolveDiffBase(view.root, options.base);
+  const baseSha = git(view.root, ["rev-parse", "--verify", `${baseRef}^{commit}`]).trim();
+  const mergeBaseSha = git(view.root, ["merge-base", baseRef, "HEAD"]).trim();
+  const headSha = git(view.root, ["rev-parse", "--verify", "HEAD^{commit}"]).trim();
+  const contextPages = [...context.pages, context.ownerPage]
+    .map((page) => ({ id: page.id, path: page.path, digest: hashContent(view.read(page.path)) }))
+    .sort((a, b) => a.id.localeCompare(b.id));
+  const conflicts = context.conflicts
+    .map((conflict) => ({ id: conflict.id, path: conflict.path, digest: hashContent(view.read(conflict.path)) }))
+    .sort((a, b) => a.id.localeCompare(b.id));
+  const sourceDeclarations = new Map<string, Set<string>>();
+  for (const summary of context.sources) {
+    for (const path of summary.sourceFiles) {
+      const declaredBy = sourceDeclarations.get(path) ?? new Set<string>();
+      declaredBy.add(summary.pageId);
+      sourceDeclarations.set(path, declaredBy);
+    }
+  }
+  const sources = [...sourceDeclarations.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([path, declaredBy]) => ({ path, declared_by: [...declaredBy].sort((a, b) => a.localeCompare(b)), digest: hashContent(view.read(path)) }));
+  const readOrderSources = new Map(
+    context.readOrder
+      .filter((entry): entry is Extract<SelectedWorkContextReadEntry, { kind: "source" }> => entry.kind === "source")
+      .map((entry) => [entry.path, new Set(entry.declaredBy)]),
+  );
+  for (const [path, declaredBy] of sourceDeclarations) {
+    const existing = readOrderSources.get(path) ?? new Set<string>();
+    for (const id of declaredBy) existing.add(id);
+    readOrderSources.set(path, existing);
+  }
+  const readOrder: SelectedWorkContextReadEntry[] = [
+    ...context.readOrder.filter((entry) => entry.kind !== "source"),
+    ...[...readOrderSources.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([path, declaredBy]) => ({ kind: "source" as const, path, declaredBy: [...declaredBy].sort((a, b) => a.localeCompare(b)) })),
+  ];
+  return {
+    version: 1,
+    selector: { kind: "work", id: work.id },
+    repository: {
+      base_ref: baseRef,
+      base_sha: baseSha,
+      merge_base_sha: mergeBaseSha,
+      head_sha: headSha,
+      metadata_digest: hashContent(jsonStable(canonicalPrMetadata(options.metadata))),
+    },
+    work: {
+      id: work.id,
+      title: work.title,
+      state: work.state,
+      queue_state: work.queue_state,
+      executor: work.executor,
+      owner_page: { id: work.owner_page.id, path: work.owner_page.path },
+      acceptance: [...work.acceptance],
+    },
+    read_order: readOrder,
+    bindings: {
+      context_digest: hashContent(jsonStable(context)),
+      pages: contextPages,
+      conflicts,
+      sources,
+    },
+  };
+}
+
+/**
+ * Produce the small, body-free context handoff used between authoring and
+ * implementation roles at one committed repository revision.
+ */
+export function buildReusableWorkContextArtifact(
+  view: RepoView,
+  pages: WikiPage[],
+  work: WorkQueueItem,
+  options: { base: string; metadata: PrMetadata },
+): ReusableWorkContextArtifact {
+  const core = reusableArtifactCore(view, pages, work, options);
+  return { ...core, artifact_digest: hashContent(jsonStable(core)) };
+}
+
+/**
+ * Recompute every binding. A reused artifact is all-or-nothing: it never
+ * degrades into a partially trusted shortcut when repository context moved.
+ */
+export function validateReusableWorkContextArtifact(
+  candidate: unknown,
+  expected: ReusableWorkContextArtifact,
+): Finding[] {
+  if (candidate == null || typeof candidate !== "object" || Array.isArray(candidate)) {
+    return [{ code: "context-artifact-malformed", message: "reusable context artifact must be a JSON object", severity: "error" }];
+  }
+  const artifact = candidate as Partial<ReusableWorkContextArtifact>;
+  const findings: Finding[] = [];
+  const stale = (code: string, message: string) => findings.push({ code, message, severity: "error" });
+  if (artifact.version !== 1 || artifact.selector?.kind !== "work" || typeof artifact.selector.id !== "string"
+    || typeof artifact.artifact_digest !== "string" || artifact.repository == null || artifact.bindings == null) {
+    return [{ code: "context-artifact-malformed", message: "reusable context artifact is missing its version, selector, repository, bindings, or digest", severity: "error" }];
+  }
+  const { artifact_digest: declaredDigest, ...candidateCore } = artifact as ReusableWorkContextArtifact;
+  if (hashContent(jsonStable(candidateCore)) !== declaredDigest) stale("context-artifact-digest-invalid", "reusable context artifact content does not match its artifact_digest");
+  if (artifact.selector.id !== expected.selector.id) stale("context-artifact-selector-stale", `artifact work ${artifact.selector.id} does not match ${expected.selector.id}`);
+  if (artifact.repository.base_ref !== expected.repository.base_ref || artifact.repository.base_sha !== expected.repository.base_sha
+    || artifact.repository.merge_base_sha !== expected.repository.merge_base_sha) {
+    stale("context-artifact-base-stale", "artifact base ref, base SHA, or merge-base SHA changed");
+  }
+  if (artifact.repository.head_sha !== expected.repository.head_sha) stale("context-artifact-head-stale", "artifact HEAD no longer matches the committed repository HEAD");
+  if (artifact.repository.metadata_digest !== expected.repository.metadata_digest) stale("context-artifact-metadata-stale", "artifact PR metadata digest changed");
+  if (jsonStable(artifact.bindings?.pages) !== jsonStable(expected.bindings.pages)) stale("context-artifact-pages-stale", "a controlling page digest changed");
+  if (jsonStable(artifact.bindings?.conflicts) !== jsonStable(expected.bindings.conflicts)) stale("context-artifact-conflicts-stale", "a controlling conflict digest changed");
+  if (jsonStable(artifact.bindings?.sources) !== jsonStable(expected.bindings.sources)) stale("context-artifact-sources-stale", "a required source digest or declaration changed");
+  if (artifact.bindings?.context_digest !== expected.bindings.context_digest
+    || jsonStable(artifact.work) !== jsonStable(expected.work)
+    || jsonStable(artifact.read_order) !== jsonStable(expected.read_order)) {
+    stale("context-artifact-context-stale", "selected work context or read order changed");
+  }
+  return findings;
+}
+
 // ---------------------------------------------------------------------------
 // Portable kit
 //

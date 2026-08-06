@@ -12,11 +12,13 @@ sources:
   - path: scripts/wiki/core.ts
   - path: scripts/wiki/cli.ts
   - path: scripts/wiki/work.test.ts
+  - path: scripts/wiki/kit.test.ts
   - path: scripts/wiki/fresh-context.test.ts
   - path: scripts/wiki/primary-scenarios.ts
   - path: scripts/wiki/primary-current.ts
   - path: scripts/wiki/token-efficiency-baseline.ts
   - path: scripts/wiki/token-efficiency-baseline.test.ts
+  - path: docs/commands.md
   - path: docs/evidence/pv-19-primary-current.json
   - path: docs/evidence/pv-19-primary-current.md
   - path: docs/evidence/te-00-schooled-diagnosis.json
@@ -129,7 +131,7 @@ work_items:
     evidence: []
   - id: TE-05
     title: Bound orchestration round trips and reusable context boundaries
-    state: not-started
+    state: done
     executor: agent
     priority: high
     depends_on: [TE-00-OWNER]
@@ -140,9 +142,18 @@ work_items:
       - Reuse is invalidated by changed controlling page, source, conflict, metadata, base, or HEAD digests and never substitutes stale context for required direct source inspection.
       - The authoring context and required independent reviewer remain separate, while optional role fan-out is measured and justified by task risk rather than presented as an engine requirement.
       - Provider-neutral adoption and agent-entrypoint guidance directs callers to batch independent reads and deterministic checks, avoid repeated queue or context discovery at one exact revision, use bounded waits instead of status polling, summarize successful output with digest-addressable full evidence, and create a bounded phase handoff before publication when the authoring context has grown materially.
-      - Focused controlled runs reduce primary model calls, publication-phase calls, and active wall time against TE-00 without bypassing validation, approval, exact-HEAD review, or failure diagnostics.
+      - Focused deterministic runs prove that one body-free selected-work artifact can serve authoring and implementation at an exact revision, eliminating repeated queue discovery and broad-context output serialization; command count, output bytes, and elapsed time remain before/after diagnostics rather than numeric gates, and validation, approval, exact-HEAD review, and failure diagnostics remain intact.
       - Adoption guidance makes no claim that the repository can control Guardian cache continuity, approval policy, external model routing, provider latency, subscription accounting, or other orchestrator behavior.
-    evidence: []
+    evidence:
+      - scripts/wiki/core.ts
+      - scripts/wiki/cli.ts
+      - scripts/wiki/work.test.ts
+      - scripts/wiki/kit.test.ts
+      - AGENTS.md
+      - docs/commands.md
+      - wiki/architecture/engine.md
+      - wiki/product/invariants.md
+      - wiki/operations/enforcement.md
   - id: TE-06
     title: Validate publisher-repository token and performance gains
     state: not-started

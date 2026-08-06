@@ -282,6 +282,24 @@ describe("emitted kit", () => {
     expect(files["kit/files/wiki/WORKFLOW.md"]).toContain("merge-base engine");
   });
 
+  test("ships bounded reusable-context and orchestration guidance downstream", () => {
+    const agents = realKit().files["kit/managed/AGENTS.md"];
+    for (const required of [
+      "bun run wiki:context -- --work <ID> --artifact <path> --metadata <pr-body> --base <ref>",
+      "--reuse <path>",
+      "Reuse never replaces reading the listed current pages and sources directly",
+      "batch independent reads and deterministic checks and do not rerun `wiki:work` or broad context discovery",
+      "Use bounded waits for running work rather than status polling",
+      "Keep successful summaries bounded and point to digest-addressed full evidence",
+      "one bounded phase handoff before publication",
+      "the context-isolated reviewer are mandatory and remain separate",
+      "provider-specific fan-out is optional",
+      "does not promise provider cache continuity, approval behavior, model routing",
+    ]) {
+      expect(agents).toContain(required);
+    }
+  });
+
   test("ships the warning that branch protection matches on check name", () => {
     // wiki-ssot.yml is part of the payload, so every adopting repository inherits
     // the seam, while the wiki page and docs that explained it stay behind here.
