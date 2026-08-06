@@ -27,7 +27,8 @@
         "scripts/wiki/work.test.ts": "b238c2c38b2fe32ed4ddb5fa7f3168ad437ca2454643209a5c1563182674bb4d"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "This proposal-only planning change does not alter the observed engine implementation."
       }
     },
     "operations/enforcement": {
@@ -48,7 +49,8 @@
         "scripts/wiki/github-attestation.ts": "cad5290748265f5b5cd1a5503f075cfb837283ca0e8b4e7c004567deb33139cb"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "This proposal-only planning change does not alter current enforcement behavior or policy."
       }
     },
     "product/invariants": {
@@ -59,7 +61,8 @@
         "scripts/wiki/core.ts": "764ed30e14313ba53bdd4febd5be60ed9b40cb37a88de99916d5cd540d1df05d"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "This proposal-only planning change preserves every current invariant and enforcement rule."
       }
     },
     "product/scope": {
@@ -68,7 +71,8 @@
         "README.md": "f2caaaefc6c9681049bc3ef74d250e5f5f120a1b5003d16ceb8b9df7ed17829f"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "This proposal-only planning change does not alter the current product scope contract."
       }
     }
   },
