@@ -9,9 +9,9 @@
 | [product/invariants](./product/invariants.md) | invariant | normative | @phlox11 | 4 |
 | [product/scope](./product/scope.md) | product | normative | @phlox11 | 2 |
 
-## Outstanding work (23)
+## Outstanding work (22)
 
-Recommended next: `TE-06`. Run `bun run wiki:context -- --work TE-06`.
+No agent-recommendable work is available; human-only work remains and requires human execution. Do not infer an agent task or assume authority.
 
 See the [repository work queue](./work-queue.md) or run `bun run wiki:work`.
 

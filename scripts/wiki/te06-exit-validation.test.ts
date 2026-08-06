@@ -20,8 +20,7 @@ const root = resolve(import.meta.dir, "../..");
 let report: Te06ExitValidationReport;
 
 beforeAll(() => {
-  const controlled = JSON.parse(readFileSync(resolve(root, "docs/evidence/te-00-controlled-publisher.json"), "utf8"));
-  controlled.exactRevision = TE06_COMBINED_REVISION;
+  const controlled = JSON.parse(readFileSync(resolve(root, "docs/evidence/te-06-controlled-publisher.json"), "utf8"));
   report = buildTe06ExitValidation({ controlledPublisherAfter: controlled });
 }, 180_000);
 
@@ -143,10 +142,10 @@ describe("TE-06 exact-revision exit validation", () => {
       "repositoryGuidanceAndOptionalOrchestration",
     ]);
     expect(TE06_MISS_CLASSIFICATIONS).toEqual([
-      "concrete defect",
-      "owner decision",
-      "orchestrator limitation",
-      "accepted limitation",
+      "concrete-defect",
+      "owner-decision",
+      "orchestrator-limitation",
+      "explicitly-accepted-limitation",
     ]);
     expect(report.remainingMisses).toEqual([]);
     expect(() => validateTe06RemainingMisses([{
@@ -159,7 +158,11 @@ describe("TE-06 exact-revision exit validation", () => {
   test("presents exactly three owner options without selecting one", () => {
     expect(report.ownerDecision).toEqual({
       selectedOption: null,
-      options: ["token efficiency validated", "another bounded cycle", "not adopted"],
+      options: [
+        "publisher token and performance efficiency validated with portable correctness preserved",
+        "another bounded efficiency cycle",
+        "optimization not adopted",
+      ],
     });
     expect(report.ownerDecision.options).toEqual([...TE06_OWNER_OPTIONS]);
   });
@@ -168,6 +171,7 @@ describe("TE-06 exact-revision exit validation", () => {
     const rendered = renderTe06ExitValidation(report);
     expect(renderTe06ExitValidation(JSON.parse(rendered))).toBe(rendered);
     expect(rendered).toBe(jsonStable(report));
+    expect(readFileSync(resolve(root, "docs/evidence/te-06-token-performance.json"), "utf8")).toBe(rendered);
     expect(report.reportDigest).toMatch(/^[0-9a-f]{64}$/);
   });
 });

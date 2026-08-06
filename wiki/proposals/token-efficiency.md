@@ -20,6 +20,8 @@ sources:
   - path: scripts/wiki/token-efficiency-baseline.test.ts
   - path: scripts/wiki/te04-focused-review.ts
   - path: scripts/wiki/te04-focused-review.test.ts
+  - path: scripts/wiki/te06-exit-validation.ts
+  - path: scripts/wiki/te06-exit-validation.test.ts
   - path: docs/commands.md
   - path: docs/evidence/pv-19-primary-current.json
   - path: docs/evidence/pv-19-primary-current.md
@@ -31,6 +33,9 @@ sources:
   - path: docs/evidence/te-01-02-context-projection.md
   - path: docs/evidence/te-04-focused-review.json
   - path: docs/evidence/te-04-focused-review.md
+  - path: docs/evidence/te-06-controlled-publisher.json
+  - path: docs/evidence/te-06-token-performance.json
+  - path: docs/evidence/te-06-token-performance.md
 affects: [product/scope, product/invariants, architecture/engine, operations/enforcement]
 related: [proposal/primary-findability-validation, product/scope, product/invariants, architecture/engine, operations/enforcement]
 tags: [roadmap, token, performance, latency, context, efficiency, search, sources, review, orchestration]
@@ -188,7 +193,7 @@ work_items:
       - wiki/operations/enforcement.md
   - id: TE-06
     title: Validate publisher-repository token and performance gains
-    state: not-started
+    state: done
     executor: agent
     priority: high
     depends_on: [TE-01, TE-02, TE-04, TE-05]
@@ -200,7 +205,13 @@ work_items:
       - Evidence separately evaluates engine-owned gains, repository guidance and optional orchestration gains, cache-accounting effects, Guardian and approval behavior, and provider limitations.
       - Remaining misses are classified as a concrete defect, owner decision, orchestrator limitation, or explicitly accepted limitation.
       - The evidence presents token efficiency validated, another bounded cycle, and not adopted as explicit owner-decision options without selecting one on the owner's behalf.
-    evidence: []
+    evidence:
+      - scripts/wiki/te06-exit-validation.ts
+      - scripts/wiki/te06-exit-validation.test.ts
+      - docs/evidence/te-06-controlled-publisher.json
+      - docs/evidence/te-06-token-performance.json
+      - docs/evidence/te-06-token-performance.md
+      - wiki/architecture/engine.md
   - id: TE-06-OWNER
     title: Record the publisher-repository efficiency owner exit decision
     state: not-started
@@ -429,6 +440,30 @@ to the normal one-work-item-per-PR split.
   deferred `PV-13` through `PV-27` work.
 
 ## Exit gate
+
+TE-06 completed against exact combined publisher revision
+`76e5d97a410d8e67659835e059e7b721541113c5`. All eight Primary scenarios,
+portable kit and adoption suites, selected-work/context checks, and focused
+exact-review checks passed. The three controlled default text outputs fell from
+55,043, 114,294, and 66,479 bytes at TE-00 to 13,617, 3,893, and 16,253 bytes,
+respectively, while explicit full output remained available and compact/full
+semantic digests matched.
+
+The same one-agent `gpt-5.6-sol / high` control reduced model calls from eight
+to five, tool-protocol calls from seven to four, raw input from 218,077 to
+129,274 tokens, and uncached input from 10,205 to 6,650 tokens. Coordination
+wait fell from 21,471 ms to zero. Output tokens, tool spans, and active wall time
+rose in the after-case because the exit command ran the complete deterministic
+correctness suite and final result preparation dominated publication; the
+evidence keeps those regressions visible under the ratified no-fixed-percentage
+contract. Request-start, first-token, and completion latency remain unavailable,
+and no Guardian, external merge, or separate cleanup phase was observed.
+
+The machine report digest is
+`048520ca2bb066102eb41d007c047433429180750c8842a36e3a58072627412f`.
+It records no remaining correctness miss and leaves all three owner outcomes
+unselected. TE-03 remains deferred because this evidence does not show its
+recursive-source partition activation condition.
 
 `TE-06` may pass only when the exact combined publisher revision satisfies the
 current Primary correctness contract, portable kit and adoption regressions,

@@ -42,16 +42,16 @@ export const TE06_CONTEXT_CASES = [
 ] as const;
 
 export const TE06_MISS_CLASSIFICATIONS = [
-  "concrete defect",
-  "owner decision",
-  "orchestrator limitation",
-  "accepted limitation",
+  "concrete-defect",
+  "owner-decision",
+  "orchestrator-limitation",
+  "explicitly-accepted-limitation",
 ] as const;
 
 export const TE06_OWNER_OPTIONS = [
-  "token efficiency validated",
-  "another bounded cycle",
-  "not adopted",
+  "publisher token and performance efficiency validated with portable correctness preserved",
+  "another bounded efficiency cycle",
+  "optimization not adopted",
 ] as const;
 
 export type Te06MissClassification = typeof TE06_MISS_CLASSIFICATIONS[number];

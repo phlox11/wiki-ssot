@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "kind": "sanitized-controlled-publisher",
+  "taskLabel": "te06-publisher-after-control",
+  "exactRevision": "76e5d97a410d8e67659835e059e7b721541113c5",
+  "orchestration": "one default measurement agent on gpt-5.6-sol high; no child agents or guardians; one repository command with asynchronous tool-protocol polling; deterministic harness uses disposable local clones and makes no model or provider call",
+  "agents": [
+    {
+      "role": "default",
+      "pathLabel": "te06-publisher-after-control",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "calls": 5,
+      "rawInputTokens": 129274,
+      "cachedInputTokens": 122624,
+      "uncachedInputTokens": 6650,
+      "outputTokens": 7339,
+      "reasoningOutputTokens": 6776,
+      "totalTokens": 136613,
+      "compactions": 0,
+      "toolCalls": 4,
+      "outputBytes": 6929,
+      "activeMs": 189535,
+      "wallMs": 189535
+    }
+  ],
+  "totals": {
+    "agentCount": 1,
+    "calls": 5,
+    "rawInputTokens": 129274,
+    "cachedInputTokens": 122624,
+    "uncachedInputTokens": 6650,
+    "outputTokens": 7339,
+    "reasoningOutputTokens": 6776,
+    "totalTokens": 136613,
+    "compactions": 0,
+    "toolCalls": 4,
+    "outputBytes": 6929,
+    "activeMs": 189535,
+    "wallMs": 189535
+  },
+  "inputDistribution": {
+    "rawInputMin": 24956,
+    "rawInputMedian": 25373,
+    "rawInputP95": 28326,
+    "rawInputMax": 28326,
+    "uncachedInputMin": 636,
+    "uncachedInputMedian": 1053,
+    "uncachedInputP95": 2982,
+    "uncachedInputMax": 2982,
+    "outputMin": 44,
+    "outputMedian": 198,
+    "outputP95": 6540,
+    "outputMax": 6540
+  },
+  "artifactCategories": {
+    "sanitizedReportPayload": 6929
+  },
+  "success": true,
+  "limitations": [
+    "The successful read-only publisher measurement ran one repository command; asynchronous completion required four tool-protocol calls, including bounded polling, and those calls remain visible in the comparison.",
+    "The controlled case publishes its result only to the parent task; external pull-request publication, merge, and cleanup phases were intentionally not performed.",
+    "Artifact bytes retain only the sanitized deterministic report payload, not prompt, source, command, private path, or tool-wrapper bodies.",
+    "Raw local rollout usage is not billed API cost or exact subscription-credit consumption.",
+    "Guardian routing and approval policy were not invoked in this controlled case and are not repository-engine gains."
+  ],
+  "performance": {
+    "modelRequest": {
+      "availability": "unavailable",
+      "valueMs": null,
+      "method": "local rollout event audit",
+      "limitation": "The rollout does not expose model request-start timestamps."
+    },
+    "firstToken": {
+      "availability": "unavailable",
+      "valueMs": null,
+      "method": "local rollout event audit",
+      "limitation": "The rollout does not expose first streamed-token timestamps."
+    },
+    "completion": {
+      "availability": "unavailable",
+      "valueMs": null,
+      "method": "local rollout event audit",
+      "limitation": "Token-count events are response aggregates and cannot separate model queue, prefill, and completion latency."
+    },
+    "toolDuration": {
+      "availability": "available",
+      "valueMs": 22109,
+      "method": "sum of four paired tool call-to-output event spans",
+      "limitation": "This measures tool-protocol call-to-output emission; the long-running repository command continued between bounded asynchronous polls."
+    },
+    "approvalWait": {
+      "availability": "available",
+      "valueMs": 0,
+      "method": "absence of approval or guardian events in the controlled child rollout",
+      "limitation": "This zero is specific to the read-only controlled case and is not a repository guarantee."
+    },
+    "coordinationWait": {
+      "availability": "available",
+      "valueMs": 0,
+      "method": "absence of child-to-parent clarification and parent-reply spans before task completion",
+      "limitation": "Final result delivery to the parent is publication, not an observed coordination wait."
+    },
+    "activeWallExcludingUserIdle": {
+      "availability": "available",
+      "valueMs": 189535,
+      "method": "task_started to task_complete event span with no end-user message or coordination pause inside the child task",
+      "limitation": "This span includes deterministic fixture execution and final model result preparation."
+    },
+    "phases": {
+      "implementation": {
+        "availability": "available",
+        "valueMs": 45999,
+        "method": "first repository-command tool invocation through successful sanitized report output",
+        "limitation": "This phase includes bounded asynchronous polling while the deterministic harness ran.",
+        "modelCalls": 4,
+        "toolCalls": 4
+      },
+      "publication": {
+        "availability": "available",
+        "valueMs": 135501,
+        "method": "successful sanitized report output through completed result delivery to the parent task",
+        "limitation": "This is result publication to the parent task, not external pull-request publication.",
+        "modelCalls": 1,
+        "toolCalls": 0
+      },
+      "merge": {
+        "availability": "unavailable",
+        "valueMs": null,
+        "method": "read-only controlled case",
+        "limitation": "No branch or pull request was merged in this measurement-only case."
+      },
+      "cleanup": {
+        "availability": "unavailable",
+        "valueMs": null,
+        "method": "internal deterministic-harness cleanup only",
+        "limitation": "Disposable clones were removed inside the measured command; no separate agent cleanup phase was observable."
+      }
+    }
+  }
+}

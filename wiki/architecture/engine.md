@@ -92,6 +92,16 @@ records bundle and non-diff bytes, role-classified reviewer-source breadth,
 exact attestation validation, and explicit deterministic versus externally
 observed reviewer-call/time fields without invoking a model or provider.
 
+`scripts/wiki/te06-exit-validation.ts` is the publishing-only exit harness for
+the token-efficiency roadmap. It binds one exact combined revision, compares
+compact and retained-full context through content digests, reruns the Primary,
+kit, adoption, selected-work, and focused-review correctness floors, and joins
+them only with a separately sanitized controlled-publisher observation. Its
+successful suite diagnostics contain bounded counts and result digests instead
+of test bodies. The harness, its tests, and TE-06 evidence remain outside
+`KIT_ENTRIES`; adopters receive the portable engine and regression behavior,
+not this publisher repository's performance pilot or owner decision.
+
 ## Kit distribution
 
 The engine also emits its own copy-paste distribution. `KIT_ENTRIES` in `scripts/wiki/core.ts` names every file the kit ships, how it is produced (verbatim copy, `kit:exclude` strip, declared managed-block extraction, literal template, or `package.json` fragment), and its placement; `wiki:kit` writes `kit/**` and `wiki:kit --check` fails on drift, deletes nothing silently, and reports a file under `kit/` the table no longer produces as an orphan. `kit/README.md` is hand-written and stays outside generator ownership.

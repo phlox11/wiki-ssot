@@ -15,9 +15,9 @@ tags: [generated, work, queue]
 
 This is a deterministic view of structured `work_items` on proposal pages. It is not current product authority; open the owning proposal and then the returned current context.
 
-**Recommended next:** `TE-06` — run `bun run wiki:context -- --work TE-06`.
+**Recommended next:** none; no agent-recommendable work is available. Human-only work remains visible below and requires human execution; do not invent work or assume authority.
 
-Outstanding work: 23. Completed work hidden: 23; run `bun run wiki:work -- --all` to inspect it.
+Outstanding work: 22. Completed work hidden: 24; run `bun run wiki:work -- --all` to inspect it.
 
 ## Active
 
@@ -29,13 +29,12 @@ Outstanding work: 23. Completed work hidden: 23; run `bun run wiki:work -- --all
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| TE-06 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-01, TE-02, TE-04, TE-05 | Validate publisher-repository token and performance gains | `bun run wiki:context -- --work TE-06` |
+| TE-06-OWNER | high | human | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-06 | Record the publisher-repository efficiency owner exit decision | `bun run wiki:context -- --work TE-06-OWNER` |
 
 ## Waiting
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| TE-06-OWNER | high | human | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-06 | Record the publisher-repository efficiency owner exit decision — Waiting on: TE-06 | `bun run wiki:context -- --work TE-06-OWNER` |
 | KM-00 | normal | agent | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | TE-06-OWNER | Freeze the portable-kit modularity baseline and compatibility contract — Waiting on: TE-06-OWNER | `bun run wiki:context -- --work KM-00` |
 | KM-00-OWNER | normal | human | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | KM-00 | Ratify the portable-kit module budget and split contract — Waiting on: KM-00 | `bun run wiki:context -- --work KM-00-OWNER` |
 | KM-01 | normal | agent | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | KM-00-OWNER | Extract shared model, repository-view, and page-validation primitives — Waiting on: KM-00-OWNER | `bun run wiki:context -- --work KM-01` |
