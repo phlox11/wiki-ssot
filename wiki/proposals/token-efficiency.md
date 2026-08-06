@@ -1,6 +1,6 @@
 ---
 id: proposal/token-efficiency
-summary: Reduce cross-repository Wiki SSOT model calls, context and review input, and active execution time with measured bounded artifacts and controlled end-to-end evidence.
+summary: Reduce Wiki SSOT model calls, context and review input, and active execution time using the schooled diagnosis, a controlled publisher before/after comparison, and portable correctness evidence.
 kind: proposal
 status: proposed
 authority: normative
@@ -22,29 +22,31 @@ related: [proposal/primary-findability-validation, product/scope, product/invari
 tags: [roadmap, token, performance, latency, context, efficiency, search, sources, review, orchestration]
 work_items:
   - id: TE-00
-    title: Capture the cross-repository token and performance baseline
+    title: Freeze the schooled diagnosis and publisher-only comparison contract
     state: not-started
     executor: agent
     priority: high
     depends_on: []
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
     acceptance:
-      - A frozen inventory identifies every owner-visible repository carrying the installed Wiki SSOT markers, records exact repository HEAD and toolkit version where available, and explicitly records excluded or unavailable repositories instead of silently treating the publisher as the whole population.
-      - Versioned deterministic fixtures reproduce representative focused topic, broad discovery, selected-work, source-expansion, and review-bundle measurements against every inventoried repository revision, with one common controlled scenario and repository-specific real cases kept distinct.
-      - Controlled rollout records report per-agent role, model and effort, model-call count, raw input, cached input, derived uncached input, output, total tokens, input distribution, compaction, tool calls, artifact bytes, and successful outcome without presenting them as billed cost or subscription credits.
+      - A durable diagnosis summary records the supplied schooled session 019fd1e6-816a-7742-b356-f28c945d6110, including roles, models and effort, call counts, raw, cached and uncached input, output, input distribution, compaction, tool calls, artifact bytes, phase timing, successful outcome, and limitations without exposing prompt or source bodies.
+      - The schooled diagnosis is sufficient to select the shared optimization surfaces; TE-00 performs no adopter inventory, requests no additional adopter rollout, and does not treat more consumer-repository measurement as an implementation prerequisite.
+      - Versioned deterministic fixtures reproduce representative focused topic, broad discovery, selected-work, source-expansion, and review-bundle measurements against one exact pre-optimization revision of this publisher repository.
+      - A controlled publisher case records per-agent role, model and effort, model-call count, raw input, cached input, derived uncached input, output, total tokens, input distribution, compaction, tool calls, artifact bytes, and successful outcome without presenting them as billed cost or subscription credits.
       - Performance evidence reports model request, first-token and completion latency when available, tool duration, approval wait, coordination wait, active wall time excluding user idle, and phase-level implementation, publication, merge, and cleanup measurements.
-      - The baseline separates deterministic repository bytes, engine-owned behavior, model- and orchestrator-dependent rollout metrics, cache effects, approval-system behavior, and measurement limitations; it incorporates the existing schooled session 019fd1e6-816a-7742-b356-f28c945d6110 as a real adopter case without exposing prompt or source bodies.
+      - Any reversible comparison candidate runs only in this repository or a disposable worktree derived from its exact revision; TE-00 creates no standalone synthetic or test repository and pushes no comparison worktree.
+      - The baseline separates the external schooled diagnosis, deterministic publisher bytes, engine-owned behavior, model- and orchestrator-dependent publisher rollout metrics, cache effects, approval-system behavior, and measurement limitations.
       - Evidence presents the correctness floor, proposed optimization targets, comparison tasks, model and effort controls, accepted variance options, and every limitation needed for owner ratification before implementation begins.
     evidence: []
   - id: TE-00-OWNER
-    title: Ratify the cross-repository efficiency and performance contract
+    title: Ratify the publisher-only efficiency and performance contract
     state: not-started
     executor: human
     priority: high
     depends_on: [TE-00]
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
     acceptance:
-      - The owner explicitly ratifies the adopter inventory, correctness floor, optimization targets, comparison tasks, model and effort controls, latency instrumentation, and accepted variance before implementation begins.
+      - The owner explicitly ratifies the schooled diagnosis, publisher before/after case, correctness floor, optimization targets, model and effort controls, latency instrumentation, and accepted variance before implementation begins.
       - Any changed threshold or accepted measurement limitation is recorded with its rationale in durable proposal or evidence content.
       - Engine-owned pass criteria remain separate from Guardian, provider cache, model routing, and other external-orchestrator observations that the repository cannot enforce.
       - The decision does not authorize weakening current authority, conflicts, source traceability, coverage, impact, exact-HEAD binding, or independent-review invariants.
@@ -61,7 +63,7 @@ work_items:
       - The default projection avoids embedding complete current and non-current page bodies and repeated source lists when stable paths, summaries, hashes, and focused follow-up commands carry the same routing information.
       - An explicit full-output mode remains available for exhaustive inspection and is documented for callers that need the complete historical text representation.
       - Text and JSON compact projections carry the same semantic fields, deterministic ordering, and clear current versus non-current separation.
-      - Focused regressions across the frozen adopter inventory prove that compact output meets the ratified byte and performance targets without reducing PV-19 authority, conflict, source, status, or expected-action recall.
+      - Focused publisher regressions prove that compact output meets the ratified byte and performance targets without reducing PV-19 authority, conflict, source, status, or expected-action recall, while existing kit and adoption tests preserve portable correctness.
       - Any change to the current context-completeness contract updates current Wiki pages, code, tests, and downstream kit documentation in the same implementation PR.
       - TE-01 and TE-02 ship as one inseparable implementation PR because they change the same search, semantic context, text, JSON, test, and adoption surfaces; each stable work ID retains its own acceptance evidence.
     evidence: []
@@ -70,14 +72,14 @@ work_items:
     state: not-started
     executor: agent
     priority: high
-    depends_on: [TE-00-OWNER, TE-01, TE-05]
+    depends_on: [TE-00-OWNER, TE-05]
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
     acceptance:
       - Complete all-term matches preserve the current deterministic selection behavior and every focused PV-07 regression.
       - When no complete match exists, discovery returns a compact deterministic candidate projection instead of expanding every partial match into full page bodies.
       - Every candidate remains reachable through an explicit focused page, work, or conflict context command, with deterministic pagination or continuation when a bounded candidate view is used.
       - Stop-word, score, field-weighting, or result-limit choices are justified by reproduced real-repository misses and do not silently hide a controlling current page or open conflict.
-      - The broad token-efficiency diagnostic query and every frozen adopter equivalent no longer produce an unbounded multi-page body expansion, while JSON and text results remain semantically aligned.
+      - The publisher token-efficiency diagnostic query no longer produces an unbounded multi-page body expansion, while JSON and text results remain semantically aligned and portable fixture tests preserve the same semantics downstream.
       - TE-01 and TE-02 ship as one inseparable implementation PR, and the combined candidate satisfies both work contracts before either item is marked done.
     evidence: []
   - id: TE-03
@@ -85,11 +87,11 @@ work_items:
     state: deferred
     executor: agent
     priority: high
-    depends_on: [TE-00-OWNER]
-    deferred_reason: Activate only when measured adopter evidence shows that a broad source declaration adds unrelated required-source breadth and a shadow partition reduces required-source count or bytes by at least 20% without weakening coverage, impact, or review completeness.
+    depends_on: [TE-00-OWNER, TE-04]
+    deferred_reason: Activate only when the controlled publisher evidence shows that a broad source declaration adds unrelated required-source breadth and a shadow partition reduces required-source count or bytes by at least 20% without weakening coverage, impact, or review completeness.
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
     acceptance:
-      - Before activation, exact baseline or shadow evidence identifies the affected adopter, task, unrelated source families, required-source count and bytes, and a partition that reduces that measured breadth by at least 20%.
+      - Before activation, exact publisher baseline or shadow evidence identifies the task, unrelated source families, required-source count and bytes, and a partition that reduces that measured breadth by at least 20%.
       - Once activated, the monolithic scripts/wiki TypeScript source declaration is replaced or complemented by coherent current authority pages and bounded exact or glob declarations for engine core, install and kit, review integration, and publishing-only validation evidence.
       - Every file covered by .wiki/coverage.json remains mapped to at least one current page or a reasoned exclusion, and independent code-only probes continue to fail enforced impact when Wiki reconciliation is absent.
       - A context-renderer change no longer directs the reader through unrelated adoption, historical-baseline, and publishing-only test sources merely because all TypeScript files share one recursive page declaration.
@@ -110,7 +112,7 @@ work_items:
       - Diff, metadata, current pages, invariants, conflicts, source declarations, exact HEAD, merge base, and bundle digest remain bound and independently checkable.
       - The context-isolated reviewer requirement and classification-to-disposition contract remain unchanged; no optimization permits author self-PASS or stale attestation reuse.
       - Adversarial tests fail when a required page, invariant, conflict, changed source, relevant test, or digest binding is absent or misclassified.
-      - Reproduced review candidates across the frozen adopter inventory reduce non-diff bundle bytes, reviewer source breadth, model-call count, and reviewer active time against TE-00 while retaining exact PASS on unchanged semantic fixtures.
+      - The reproduced publisher review candidate reduces non-diff bundle bytes, reviewer source breadth, model-call count, and reviewer active time against TE-00 while retaining exact PASS and portable review-fixture correctness.
     evidence: []
   - id: TE-05
     title: Bound orchestration round trips and reusable context boundaries
@@ -129,30 +131,29 @@ work_items:
       - Adoption guidance makes no claim that the repository can control Guardian cache continuity, approval policy, external model routing, provider latency, subscription accounting, or other orchestrator behavior.
     evidence: []
   - id: TE-06
-    title: Validate cross-repository token and performance gains
+    title: Validate publisher-repository token and performance gains
     state: not-started
     executor: agent
     priority: high
     depends_on: [TE-01, TE-02, TE-04, TE-05]
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
     acceptance:
-      - The current Primary scenario suite, common controlled scenario, and every frozen adopter efficiency scenario run against exact combined revisions with no authority, invariant, conflict, source, status, expected-action, coverage, impact, or review regression.
+      - The current Primary scenario suite, existing kit and adoption regression suites, and the controlled publisher scenario run against exact combined revisions with no authority, invariant, conflict, source, status, expected-action, coverage, impact, review, or portable-correctness regression.
       - Default context output satisfies the ratified deterministic byte budget for every reproduced topic and selected-work case, and full mode remains available for exhaustive inspection.
       - Controlled end-to-end pilots report per-agent calls, raw, cached and uncached usage, input distribution, model latency, tool time, approval time, active wall time, and phase timing, and satisfy ratified targets under the same comparison task, model, effort, and orchestration policy.
       - Evidence separately evaluates engine-owned gains, repository guidance and optional orchestration gains, cache-accounting effects, Guardian and approval behavior, and provider limitations.
-      - If TE-03 remains deferred, evidence proves its activation threshold is still unmet; if it was activated, the exact combined revisions include its completed evidence before exit evaluation.
       - Remaining misses are classified as a concrete defect, owner decision, orchestrator limitation, or explicitly accepted limitation.
       - The evidence presents token efficiency validated, another bounded cycle, and not adopted as explicit owner-decision options without selecting one on the owner's behalf.
     evidence: []
   - id: TE-06-OWNER
-    title: Record the cross-repository efficiency owner exit decision
+    title: Record the publisher-repository efficiency owner exit decision
     state: not-started
     executor: human
     priority: high
     depends_on: [TE-06]
     context_pages: [product/scope, product/invariants, architecture/engine, operations/enforcement]
     acceptance:
-      - The owner records cross-repository token and performance efficiency validated, another bounded efficiency cycle, or the optimization not adopted against the exact TE-06 evidence.
+      - The owner records publisher token and performance efficiency validated with portable correctness preserved, another bounded efficiency cycle, or the optimization not adopted against the exact TE-06 evidence.
       - The decision names any accepted limitations and does not silently weaken a current Wiki SSOT invariant.
       - The durable decision evidence closes the proposal cycle or names the exact bounded follow-up work.
     evidence: []
@@ -161,11 +162,13 @@ work_items:
 # Token- and time-efficient Wiki SSOT
 
 This proposal turns observed context, rollout, and elapsed-time problems into
-bounded cross-repository work. It is a `status: proposed` plan, not a statement
-of current behavior. `TE-00` first freezes every owner-visible adopter and
-records a durable baseline. `TE-00-OWNER` then requires explicit human
-ratification before implementation items become ready. Queue readiness does not
-authorize implementation beyond a separately requested task.
+bounded repository work. It is a `status: proposed` plan, not a statement of
+current behavior. The supplied schooled rollout is the diagnosis of shared
+orchestration and context costs. `TE-00` records that diagnosis durably and
+freezes one controlled pre-optimization case in this publisher repository.
+`TE-00-OWNER` then requires explicit human ratification before implementation
+items become ready. Queue readiness does not authorize implementation beyond a
+separately requested task.
 
 The goal is not to make the Wiki smaller or faster by hiding authority. The
 goal is to preserve the same current pages, invariants, conflicts, source
@@ -173,12 +176,12 @@ traceability, coverage, exact-HEAD review, and deterministic gates while
 reducing unnecessary model calls, repeated full-body expansion, broad
 re-reading, oversized successful output, approval churn, and active wall time.
 
-## Preliminary observations, not the baseline
+## Existing diagnosis and local comparison boundary
 
-Earlier publisher-only byte samples exposed broad context expansion and review
-input duplication, but they do not represent every repository using Wiki SSOT.
-They remain diagnostic history only; `TE-00` must replace them with a frozen
-adopter inventory and exact per-repository evidence.
+Earlier publisher byte samples exposed broad context expansion and review input
+duplication. They remain preliminary local measurements that `TE-00` must turn
+into an exact pre-optimization publisher fixture; they are not a reason to
+measure every repository using Wiki SSOT.
 
 The owner-supplied rollout for adopter repository `true-dragonsnest/schooled`,
 session `019fd1e6-816a-7742-b356-f28c945d6110`, adds a different real-world
@@ -191,35 +194,31 @@ of that Guardian's uncached input, while exact duplicate cross-role payloads
 were negligible. Classified artifact output was led by tests and validation,
 then work context, diff, and review material.
 
-This evidence shows that token volume and elapsed time cannot be assigned to
-one engine surface. The durable baseline must measure sequential model/tool
-round trips, context and review breadth, successful test output, approval
-behavior, cache misses, and phase timing separately. It also confirms that
-external Guardian cache continuity is an orchestrator observation, not an
-engine guarantee.
+This evidence is sufficient to select the shared optimization surfaces. No
+additional adopter inventory, rollout collection, or consumer-repository
+performance census is required. The before/after comparison is intentionally
+limited to the same controlled case in this publisher repository. Portable
+applicability is protected by generated kit and adoption regression suites,
+not by repeating performance pilots in every consumer repository.
 
-## Cross-repository measurement contract
+The comparison has four explicitly separate layers:
 
-`TE-00` freezes the population before measuring it. The inventory includes
-every owner-visible repository carrying the installed Wiki SSOT configuration,
-managed entrypoint, and canonical command seams. It records exact HEAD and
-toolkit version where available, and names exclusions or unavailable
-repositories. The publisher is one member of that inventory, never a proxy for
-all adopters.
-
-The baseline has three explicitly separate layers:
-
-1. deterministic repository metrics — text and JSON bytes, selected pages,
+1. the fixed schooled diagnosis — real end-to-end role, token, call, artifact,
+   cache, and timing observations that motivated the work;
+2. deterministic publisher metrics — text and JSON bytes, selected pages,
    source count and bytes, bundle component bytes, and correctness recall;
-2. controlled rollout metrics — per-role model and effort, calls, raw input,
+3. controlled publisher rollout metrics — per-role model and effort, calls, raw input,
    cached input, derived uncached input, output, compaction, tool calls, and
    artifact bytes;
-3. performance metrics — request, first-token and completion latency when
+4. publisher performance metrics — request, first-token and completion latency when
    observable, tool duration, approval and coordination wait, phase timing, and
    active wall time excluding user idle.
 
-Each repository gets the same common controlled scenario plus its own real
-cases. Cached input remains part of raw input and is never added twice.
+The same publisher case is recorded before and after optimization. A disposable
+worktree may isolate that repository revision, but no standalone synthetic or
+test repository is created and no consumer repository is modified. Existing
+small fixtures remain unit-test evidence only and cannot satisfy the performance
+baseline. Cached input remains part of raw input and is never added twice.
 Reasoning output remains part of output. Raw rollout usage is not billed API
 cost or exact subscription-credit consumption. Prompt and source bodies are
 not copied into measurement evidence.
@@ -233,15 +232,16 @@ presented for ratification are:
 - preserve 100% of the PV-19 current-page, invariant, conflict, implementation
   source, status-plus-authority, non-current-label, expected-change, and Wiki
   action expectations, with zero new coverage or drift escapes;
-- reduce default text and JSON context bytes to at most 40% of baseline for
-  every controlled topic and selected-work case while retaining full mode;
+- reduce default text and JSON context bytes to at most 40% of the publisher
+  baseline for every controlled topic and selected-work case while retaining
+  full mode;
 - reduce primary model calls and primary active wall time to at most 70% of the
   comparable baseline;
 - reduce publication-phase model calls to at most 50% of baseline;
 - reduce controlled uncached input and review non-diff bytes to at most 60% of
   baseline under the same task, model, effort, and orchestration policy;
-- allow no inventoried repository's comparable active wall time to regress by
-  more than 10% without an explicit accepted limitation.
+- allow no controlled publisher correctness or performance metric outside its
+  ratified variance to regress without an explicit accepted limitation.
 
 Engine-owned criteria and end-to-end observations remain separate. A Guardian
 cache miss or provider latency event cannot be hidden to make the engine pass,
@@ -280,7 +280,7 @@ merge base, digest binding, and reviewer independence remain mandatory.
 
 ### Partition source authority only when evidence activates it
 
-`TE-03` is deferred. It activates only when a measured adopter case proves
+`TE-03` is deferred. It activates only when the controlled publisher case proves
 that a broad declaration adds unrelated required-source breadth and a shadow
 partition reduces required-source count or bytes by at least 20% without a
 coverage, impact, or review-completeness escape. If that condition never
@@ -298,9 +298,9 @@ approval policy, billing, or subscription behavior.
 ## Delivery order
 
 1. Revise this proposal contract before measuring or implementing anything.
-2. `TE-00` freezes the adopter inventory and records cross-repository byte,
-   rollout, and performance baselines.
-3. `TE-00-OWNER` requires explicit owner ratification of the inventory,
+2. `TE-00` records the schooled diagnosis and freezes the exact publisher byte,
+   rollout, and performance before baseline without measuring other adopters.
+3. `TE-00-OWNER` requires explicit owner ratification of the publisher case,
    correctness floor, budgets, controls, variance, and limitations.
 4. `TE-05` reduces orchestration round trips and defines reusable bounded
    context boundaries first.
@@ -308,8 +308,9 @@ approval policy, billing, or subscription behavior.
    discovery, with separate acceptance evidence for both stable IDs.
 6. `TE-04` focuses exact review inputs and measures reviewer calls and time.
 7. `TE-03` runs only if its recorded activation threshold is met.
-8. `TE-06` reruns every frozen adopter and controlled scenario on exact
-   combined revisions and prepares token plus performance exit evidence.
+8. `TE-06` reruns the same controlled publisher scenario on the exact combined
+   revision, while existing kit and adoption suites prove portable correctness,
+   and prepares token plus performance exit evidence.
 9. `TE-06-OWNER` records the final owner decision.
 
 Every behavior change updates current Wiki, code, tests, generated artifacts,
@@ -333,16 +334,20 @@ to the normal one-work-item-per-PR split.
 - It does not claim that a repository can enforce external model routing,
   optional subagent policy, Guardian or approval caching, provider latency, or
   billing.
+- It does not inventory or remeasure consumer repositories, create a standalone
+  synthetic or test repository for performance evidence, or modify or publish
+  comparison changes to an adopter repository.
 - It does not activate the parked Primary interpretation expansion or the
   deferred `PV-13` through `PV-27` work.
 
 ## Exit gate
 
-`TE-06` may pass only when every exact combined adopter revision satisfies the
-current Primary correctness contract and ratified token and performance
-budgets. The final evidence keeps deterministic engine measurements,
-controlled rollout measurements, latency, cache effects, approval behavior,
-and orchestration choices visibly separate. It must also prove that `TE-03`'s
-activation threshold remains unmet or include completed `TE-03` evidence.
-`TE-06-OWNER` then records one of three outcomes: cross-repository efficiency
-validated, another bounded efficiency cycle, or the optimization not adopted.
+`TE-06` may pass only when the exact combined publisher revision satisfies the
+current Primary correctness contract, portable kit and adoption regressions,
+and ratified token and performance budgets on the same controlled case. The
+final evidence keeps the schooled diagnosis, deterministic engine
+measurements, controlled publisher rollout, latency, cache effects, approval
+behavior, and orchestration choices visibly separate. `TE-06-OWNER` then
+records one of three outcomes: publisher efficiency validated with portable
+correctness preserved, another bounded efficiency cycle, or the optimization
+not adopted.
