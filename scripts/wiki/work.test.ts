@@ -29,6 +29,35 @@ function run(root: string, command: string[]) {
   return result.stdout.toString();
 }
 
+function runResult(root: string, command: string[]) {
+  const result = Bun.spawnSync(command, { cwd: root, stdout: "pipe", stderr: "pipe" });
+  return {
+    exitCode: result.exitCode,
+    stdout: result.stdout.toString(),
+    stderr: result.stderr.toString(),
+  };
+}
+
+function metadataBody(changeType = "feature"): string {
+  return [
+    "```yaml",
+    `change_type: ${changeType}`,
+    "semantic_change: true",
+    "wiki_action: update",
+    "affected_pages: [product/test]",
+    "affected_invariants: [product/invariant]",
+    "touched_conflicts: []",
+    "fresh_context:",
+    "  verdict: PENDING",
+    "  reviewed_head_sha: pending",
+    "  bundle_digest: pending",
+    "  reviewer: pending",
+    "  evidence: []",
+    "```",
+    "",
+  ].join("\n");
+}
+
 function put(root: string, path: string, content: string) {
   mkdirSync(dirname(join(root, path)), { recursive: true });
   writeFileSync(join(root, path), content);
@@ -478,6 +507,145 @@ describe("work CLI and selected context", () => {
     expect(contextText).toContain("requires human execution");
     expect(contextText).toContain("report the procedure and hand off to a human");
     expect(contextText).toContain("assume credentials or authority");
+  });
+
+  test("generates a deterministic body-free reusable context and validates exact reuse", () => {
+    const root = cliRepo([work({ id: "WK-01" }), work({ id: "WK-02", title: "Second task" })]);
+    const cli = join(process.cwd(), "scripts/wiki/cli.ts");
+    const handoffDir = mkdtempSync(join(tmpdir(), "wiki-context-artifact-test-"));
+    temporary.push(handoffDir);
+    const metadata = join(handoffDir, "pr-body.md");
+    const artifactPath = join(handoffDir, "context.json");
+    writeFileSync(metadata, metadataBody());
+
+    const first = runResult(root, [process.execPath, cli, "context", "--work", "WK-01", "--artifact", artifactPath, "--metadata", metadata, "--base", "HEAD", "--json"]);
+    expect(first.exitCode).toBe(0);
+    const summary = JSON.parse(first.stdout);
+    expect(summary).toMatchObject({ ok: true, path: artifactPath, required_sources: 3 });
+    const rendered = readFileSync(artifactPath, "utf8");
+    expect(rendered).not.toContain("body");
+    expect(rendered).not.toContain("Current contract body");
+    const artifact = JSON.parse(rendered);
+    const artifactDigest = artifact.artifact_digest;
+    expect(artifact).toMatchObject({
+      version: 1,
+      selector: { kind: "work", id: "WK-01" },
+      repository: {
+        base_ref: "HEAD",
+        base_sha: expect.stringMatching(/^[0-9a-f]{40}$/),
+        merge_base_sha: expect.stringMatching(/^[0-9a-f]{40}$/),
+        head_sha: expect.stringMatching(/^[0-9a-f]{40}$/),
+        metadata_digest: expect.stringMatching(/^[0-9a-f]{64}$/),
+      },
+      bindings: {
+        context_digest: expect.stringMatching(/^[0-9a-f]{64}$/),
+        pages: expect.arrayContaining([
+          expect.objectContaining({ id: "product/invariant", path: "wiki/product/invariant.md", digest: expect.stringMatching(/^[0-9a-f]{64}$/) }),
+          expect.objectContaining({ id: "product/test", path: "wiki/product/test.md", digest: expect.stringMatching(/^[0-9a-f]{64}$/) }),
+          expect.objectContaining({ id: "proposal/work", path: "wiki/proposals/work.md", digest: expect.stringMatching(/^[0-9a-f]{64}$/) }),
+        ]),
+        sources: expect.arrayContaining([
+          expect.objectContaining({
+            path: "source.ts",
+            declared_by: expect.arrayContaining(["proposal/work"]),
+            digest: expect.stringMatching(/^[0-9a-f]{64}$/),
+          }),
+          expect.objectContaining({ path: "src/a.ts", digest: expect.stringMatching(/^[0-9a-f]{64}$/) }),
+          expect.objectContaining({ path: "src/z.ts", digest: expect.stringMatching(/^[0-9a-f]{64}$/) }),
+        ]),
+      },
+      artifact_digest: expect.stringMatching(/^[0-9a-f]{64}$/),
+    });
+    expect(summary.artifact_digest).toBe(artifactDigest);
+
+    const second = runResult(root, [process.execPath, cli, "context", "--work", "WK-01", "--artifact", artifactPath, "--metadata", metadata, "--base", "HEAD", "--json"]);
+    expect(second.exitCode).toBe(0);
+    expect(readFileSync(artifactPath, "utf8")).toBe(rendered);
+    writeFileSync(artifactPath, `${rendered}different\n`);
+    const overwrite = runResult(root, [process.execPath, cli, "context", "--work", "WK-01", "--artifact", artifactPath, "--metadata", metadata, "--base", "HEAD", "--json"]);
+    expect(overwrite.exitCode).toBe(2);
+    expect(overwrite.stderr).toContain("refusing to overwrite different context artifact");
+    writeFileSync(artifactPath, rendered);
+    const reuse = runResult(root, [process.execPath, cli, "context", "--work", "WK-01", "--reuse", artifactPath, "--metadata", metadata, "--base", "HEAD", "--json"]);
+    expect(reuse.exitCode).toBe(0);
+    expect(JSON.parse(reuse.stdout)).toMatchObject({ ok: true, artifact_digest: artifactDigest, findings: [] });
+    expect(reuse.stdout.length).toBeLessThan(rendered.length);
+
+    const wrongSelector = runResult(root, [process.execPath, cli, "context", "--work", "WK-02", "--reuse", artifactPath, "--metadata", metadata, "--base", "HEAD", "--json"]);
+    expect(wrongSelector.exitCode).toBe(1);
+    expect(JSON.parse(wrongSelector.stdout).findings.map((finding: { code: string }) => finding.code)).toEqual(expect.arrayContaining([
+      "context-artifact-selector-stale",
+      "context-artifact-context-stale",
+    ]));
+  });
+
+  test("invalidates reusable context all-or-nothing for metadata, repository, page, source, conflict, and tampering changes", () => {
+    const root = cliRepo([work({ id: "WK-01" })]);
+    const cli = join(process.cwd(), "scripts/wiki/cli.ts");
+    const handoffDir = mkdtempSync(join(tmpdir(), "wiki-context-stale-test-"));
+    temporary.push(handoffDir);
+    const metadata = join(handoffDir, "pr-body.md");
+    const artifactPath = join(handoffDir, "context.json");
+    writeFileSync(metadata, metadataBody());
+    expect(runResult(root, [process.execPath, cli, "context", "--work", "WK-01", "--artifact", artifactPath, "--metadata", metadata, "--base", "HEAD", "--json"]).exitCode).toBe(0);
+
+    writeFileSync(metadata, metadataBody("fix"));
+    let result = runResult(root, [process.execPath, cli, "context", "--work", "WK-01", "--reuse", artifactPath, "--metadata", metadata, "--base", "HEAD", "--json"]);
+    expect(result.exitCode).toBe(1);
+    expect(JSON.parse(result.stdout).findings.map((finding: { code: string }) => finding.code)).toContain("context-artifact-metadata-stale");
+
+    put(root, "source.ts", "export const value = false;\n");
+    put(root, "wiki/product/test.md", currentPage("product/test", "product", "  - path: source.ts\n  - glob: src/*.ts").replace("Current contract body.", "Changed contract body."));
+    put(root, "wiki/conflicts/open/C-900.md", conflictPage().replace("Owner decision is required.", "Changed owner decision is required."));
+    run(root, ["git", "add", "."]);
+    run(root, ["git", "commit", "-qm", "change controlled inputs"]);
+    result = runResult(root, [process.execPath, cli, "context", "--work", "WK-01", "--reuse", artifactPath, "--metadata", metadata, "--base", "HEAD~1", "--json"]);
+    expect(result.exitCode).toBe(1);
+    const staleCodes = JSON.parse(result.stdout).findings.map((finding: { code: string }) => finding.code);
+    expect(staleCodes).toEqual(expect.arrayContaining([
+      "context-artifact-base-stale",
+      "context-artifact-head-stale",
+      "context-artifact-pages-stale",
+      "context-artifact-sources-stale",
+      "context-artifact-conflicts-stale",
+      "context-artifact-context-stale",
+    ]));
+
+    const tampered = JSON.parse(readFileSync(artifactPath, "utf8"));
+    tampered.artifact_digest = "0".repeat(64);
+    writeFileSync(artifactPath, jsonStable(tampered));
+    result = runResult(root, [process.execPath, cli, "context", "--work", "WK-01", "--reuse", artifactPath, "--metadata", metadata, "--base", "HEAD", "--json"]);
+    expect(result.exitCode).toBe(1);
+    expect(JSON.parse(result.stdout).findings.map((finding: { code: string }) => finding.code)).toContain("context-artifact-digest-invalid");
+  });
+
+  test("refuses dirty candidates and validates artifact option usage", () => {
+    const root = cliRepo([work({ id: "WK-01" })], false);
+    const cli = join(process.cwd(), "scripts/wiki/cli.ts");
+    const handoffDir = mkdtempSync(join(tmpdir(), "wiki-context-usage-test-"));
+    temporary.push(handoffDir);
+    const metadata = join(handoffDir, "pr-body.md");
+    const artifactPath = join(handoffDir, "context.json");
+    writeFileSync(metadata, metadataBody());
+    expect(runResult(root, [process.execPath, cli, "context", "--work", "WK-01", "--artifact", artifactPath, "--metadata", metadata, "--base", "HEAD", "--json"]).exitCode).toBe(0);
+
+    put(root, "source.ts", "export const value = dirty;\n");
+    const dirty = runResult(root, [process.execPath, cli, "context", "--work", "WK-01", "--reuse", artifactPath, "--metadata", metadata, "--base", "HEAD", "--json"]);
+    expect(dirty.exitCode).toBe(1);
+    expect(JSON.parse(dirty.stdout).findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: "context-artifact-dirty", path: "source.ts" }),
+    ]));
+
+    const invalidCases: [string[], string][] = [
+      [["--artifact", artifactPath, "--reuse", artifactPath, "--metadata", metadata, "--base", "HEAD"], "mutually exclusive"],
+      [["--artifact", artifactPath, "--base", "HEAD"], "context --artifact/--reuse"],
+      [["--reuse", artifactPath, "--metadata", metadata], "context --artifact/--reuse"],
+    ];
+    for (const [argv, message] of invalidCases) {
+      const invalid = runResult(root, [process.execPath, cli, "context", "--work", "WK-01", ...argv]);
+      expect(invalid.exitCode).toBe(2);
+      expect(invalid.stderr).toContain(message);
+    }
   });
 
   test("makes generic topic context authority-, source-, and conflict-complete", () => {

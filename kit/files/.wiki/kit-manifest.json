@@ -1,5 +1,5 @@
 {
-  "digest": "d60c432dd8b894217f2bbdcfcbb18cb0bd746fc1ca2d41ce58f795e3de65111d",
+  "digest": "6e71033cbf61d8b7471f48fc327efa19a3ce780572a45b9650f28d41502a3cc9",
   "files": {
     ".github/workflows/wiki-audit.yml": {
       "ownership": "kit",
@@ -31,11 +31,11 @@
     },
     "scripts/wiki/cli.ts": {
       "ownership": "kit",
-      "sha256": "458cf212b007c39ace3dab47522915f88d16f2570dfb2755a8e8e985d213241d"
+      "sha256": "01dcb2fb86794eb69b04c247b4ee70e67c9c1c90e21e8ad5f3660411a8f89d87"
     },
     "scripts/wiki/core.ts": {
       "ownership": "kit",
-      "sha256": "764ed30e14313ba53bdd4febd5be60ed9b40cb37a88de99916d5cd540d1df05d"
+      "sha256": "f0f759ac5012d774be79bc74f91df7ff446be8780ae88339a9a1cc6c0000e5cb"
     },
     "scripts/wiki/fresh-context.test.ts": {
       "ownership": "kit",
@@ -63,7 +63,7 @@
     },
     "scripts/wiki/work.test.ts": {
       "ownership": "kit",
-      "sha256": "b238c2c38b2fe32ed4ddb5fa7f3168ad437ca2454643209a5c1563182674bb4d"
+      "sha256": "6d46a4e59e38bb22abd4df6961579c2a305592f216189a984655cdbcc8b053e6"
     },
     "tsconfig.json": {
       "ownership": "seed",
@@ -117,7 +117,7 @@
       "legacyMarkers": [
         "<!-- wiki-ssot:fresh-context-guardrail -->"
       ],
-      "sha256": "9b1528269cd7e4a50771add0a507e153b558186ec78352c9ff01473ee16d6e6e",
+      "sha256": "13612c088e5802ff9b062600a77e58f1267c118323d8ae79e2b741f099c50e05",
       "start": "<!-- wiki-ssot:managed:start -->"
     }
   },

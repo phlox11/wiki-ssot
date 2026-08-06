@@ -5,6 +5,7 @@ import {
   UsageError,
   allLintFindings,
   buildSelectedWorkContext,
+  buildReusableWorkContextArtifact,
   buildTopicContext,
   auditReport,
   buildWorkQueue,
@@ -29,6 +30,7 @@ import {
   validateIntegrationSeams,
   validatePages,
   validatePrMetadata,
+  validateReusableWorkContextArtifact,
   verifyState,
   writeGenerated,
   writeKit,
@@ -416,7 +418,13 @@ async function main() {
     const query = parsed.positional.join(" ").trim() || one(parsed, "query")?.trim();
     const requestedConflict = one(parsed, "conflict")?.toUpperCase();
     const requestedWorkInput = one(parsed, "work")?.trim();
-    if (requestedWorkInput && (requestedConflict || query || has(parsed, "base"))) throw new UsageError("context --work cannot be combined with a query, --conflict, or --base");
+    const artifactPath = one(parsed, "artifact");
+    const reusePath = one(parsed, "reuse");
+    const artifactMode = artifactPath != null || reusePath != null;
+    if (artifactPath && reusePath) throw new UsageError("context --artifact and --reuse are mutually exclusive");
+    if (artifactMode && !requestedWorkInput) throw new UsageError("context --artifact/--reuse requires --work <ID>");
+    if (requestedWorkInput && (requestedConflict || query || (has(parsed, "base") && !artifactMode))) throw new UsageError("context --work cannot be combined with a query, --conflict, or --base unless creating or reusing an artifact");
+    if (artifactMode && (!one(parsed, "base") || !one(parsed, "metadata"))) throw new UsageError("context --artifact/--reuse requires --base <ref> and --metadata <pr-body>");
     if (requestedWorkInput) {
       const findings = validatePages(view, loaded.pages);
       if (findings.length > 0) {
@@ -430,6 +438,88 @@ async function main() {
       const work = workItems.find((item) => item.id === requestedWorkInput)
         ?? workItems.find((item) => item.id.toLowerCase() === requestedWorkInput.toLowerCase());
       if (!work) throw new UsageError(`unknown work item: ${requestedWorkInput}`);
+      if (artifactMode) {
+        if (staged) throw new UsageError("reusable context artifacts require a working repository");
+        const metadataPath = resolve(view.root, one(parsed, "metadata")!);
+        const validated = validatePrMetadata(readFileSync(metadataPath, "utf8"), true);
+        if (validated.findings.some((item) => item.severity === "error") || !validated.metadata) {
+          if (json) emit({ ok: false, findings: validated.findings }, true);
+          else printFindings(validated.findings);
+          process.exitCode = 1;
+          return;
+        }
+        const allowed = new Set([metadataPath, artifactPath, reusePath]
+          .filter((path): path is string => path != null)
+          .map((path) => resolve(view.root, path)));
+        const reuseArtifactPath = reusePath == null ? undefined : resolve(view.root, reusePath);
+        const gitPaths = (command: string[]) => {
+          const result = Bun.spawnSync(["git", ...command], { cwd: view.root, stdout: "pipe", stderr: "pipe" });
+          if (result.exitCode !== 0) throw new UsageError(result.stderr.toString().trim() || `git ${command.join(" ")} failed`);
+          return result.stdout.toString().split("\0").filter(Boolean);
+        };
+        const dirtyPaths = [...new Set([
+          ...gitPaths(["diff", "--name-only", "-z", "HEAD"]),
+          ...gitPaths(["ls-files", "--others", "--exclude-standard", "-z"]),
+        ].filter((path) => !allowed.has(resolve(view.root, path))))].sort((a, b) => a.localeCompare(b));
+        if (dirtyPaths.length > 0) {
+          const findings: Finding[] = dirtyPaths.map((path) => ({
+            code: "context-artifact-dirty",
+            message: "reusable context requires a committed exact HEAD",
+            path,
+            severity: "error",
+          }));
+          if (json) emit({ ok: false, findings }, true);
+          else printFindings(findings);
+          process.exitCode = 1;
+          return;
+        }
+        const artifact = buildReusableWorkContextArtifact(view, loaded.pages, work, {
+          base: one(parsed, "base")!,
+          metadata: validated.metadata,
+        });
+        if (reusePath) {
+          let candidate: unknown;
+          try {
+            candidate = JSON.parse(readFileSync(reuseArtifactPath!, "utf8"));
+          } catch (error) {
+            const findings: Finding[] = [{ code: "context-artifact-malformed", message: error instanceof Error ? error.message : String(error), path: reuseArtifactPath, severity: "error" }];
+            if (json) emit({ ok: false, findings }, true);
+            else printFindings(findings);
+            process.exitCode = 1;
+            return;
+          }
+          const findings = validateReusableWorkContextArtifact(candidate, artifact);
+          if (json) emit({
+            ok: findings.length === 0,
+            artifact_digest: artifact.artifact_digest,
+            head_sha: artifact.repository.head_sha,
+            findings,
+          }, true);
+          else if (findings.length === 0) emit(`reusable context valid ${artifact.artifact_digest}\nRead required sources directly in artifact read_order; the artifact does not replace source inspection.`, false);
+          else printFindings(findings);
+          if (findings.length > 0) process.exitCode = 1;
+          return;
+        }
+        const output = resolve(view.root, artifactPath!);
+        const rendered = jsonStable(artifact);
+        if (existsSync(output) && readFileSync(output, "utf8") !== rendered) throw new UsageError(`refusing to overwrite different context artifact: ${artifactPath}`);
+        writeFileSync(output, rendered);
+        if (json) emit({
+          ok: true,
+          artifact_digest: artifact.artifact_digest,
+          path: output,
+          head_sha: artifact.repository.head_sha,
+          required_sources: artifact.bindings.sources.length,
+        }, true);
+        else emit([
+          `wrote ${output}`,
+          `Artifact digest: ${artifact.artifact_digest}`,
+          `HEAD: ${artifact.repository.head_sha}`,
+          `Required sources: ${artifact.bindings.sources.length}`,
+          "Read required sources directly in artifact read_order; the artifact does not replace source inspection.",
+        ].join("\n"), false);
+        return;
+      }
       const context = buildSelectedWorkContext(view, loaded.pages, work);
       if (json) {
         emit(context, true);

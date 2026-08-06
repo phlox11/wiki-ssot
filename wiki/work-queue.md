@@ -15,9 +15,9 @@ tags: [generated, work, queue]
 
 This is a deterministic view of structured `work_items` on proposal pages. It is not current product authority; open the owning proposal and then the returned current context.
 
-**Recommended next:** `TE-05` — run `bun run wiki:context -- --work TE-05`.
+**Recommended next:** `TE-01` — run `bun run wiki:context -- --work TE-01`.
 
-Outstanding work: 27. Completed work hidden: 19; run `bun run wiki:work -- --all` to inspect it.
+Outstanding work: 26. Completed work hidden: 20; run `bun run wiki:work -- --all` to inspect it.
 
 ## Active
 
@@ -29,16 +29,15 @@ Outstanding work: 27. Completed work hidden: 19; run `bun run wiki:work -- --all
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| TE-05 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-00-OWNER | Bound orchestration round trips and reusable context boundaries | `bun run wiki:context -- --work TE-05` |
+| TE-01 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-00-OWNER, TE-05 | Add compact context projections with explicit full expansion | `bun run wiki:context -- --work TE-01` |
+| TE-02 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-00-OWNER, TE-05 | Bound partial-match discovery before full context expansion | `bun run wiki:context -- --work TE-02` |
 
 ## Waiting
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| TE-01 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-00-OWNER, TE-05 | Add compact context projections with explicit full expansion — Waiting on: TE-05 | `bun run wiki:context -- --work TE-01` |
-| TE-02 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-00-OWNER, TE-05 | Bound partial-match discovery before full context expansion — Waiting on: TE-05 | `bun run wiki:context -- --work TE-02` |
 | TE-04 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-00-OWNER, TE-01, TE-02 | Focus exact-HEAD review inputs and reduce reviewer round trips — Waiting on: TE-01, TE-02 | `bun run wiki:context -- --work TE-04` |
-| TE-06 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-01, TE-02, TE-04, TE-05 | Validate publisher-repository token and performance gains — Waiting on: TE-01, TE-02, TE-04, TE-05 | `bun run wiki:context -- --work TE-06` |
+| TE-06 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-01, TE-02, TE-04, TE-05 | Validate publisher-repository token and performance gains — Waiting on: TE-01, TE-02, TE-04 | `bun run wiki:context -- --work TE-06` |
 | TE-06-OWNER | high | human | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-06 | Record the publisher-repository efficiency owner exit decision — Waiting on: TE-06 | `bun run wiki:context -- --work TE-06-OWNER` |
 | KM-00 | normal | agent | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | TE-06-OWNER | Freeze the portable-kit modularity baseline and compatibility contract — Waiting on: TE-06-OWNER | `bun run wiki:context -- --work KM-00` |
 | KM-00-OWNER | normal | human | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | KM-00 | Ratify the portable-kit module budget and split contract — Waiting on: KM-00 | `bun run wiki:context -- --work KM-00-OWNER` |
