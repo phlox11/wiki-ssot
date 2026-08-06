@@ -5,9 +5,9 @@
         "scripts/wiki/apply.test.ts": "ab318b04cd21cc4e191066261e2c6cf8a09776d37635415032c30a66b2dc5dc2",
         "scripts/wiki/apply.ts": "5a273691372ff6fcfdd63214da513fa8b71b9fe8730ff2e49cdfec0793ad2c15",
         "scripts/wiki/cli.ts": "6d0d9b9344ea64f602b9fbff7a313e7619c53210801f42da0b66d9727f2d8617",
-        "scripts/wiki/core.ts": "cbb80a64920bc34ec35a1aeabb51230dc9356054332b70a89863a008acfbe309",
+        "scripts/wiki/core.ts": "8dfb3137a801be1bbf2f8a98f9ba0500358c52be10c684444d89248760e7a2b5",
         "scripts/wiki/existing-repo-bootstrap.test.ts": "90d75082e33ccdb3fe195b1bbbcbbc6be7646a55a948e1359be2d001e79e5eb2",
-        "scripts/wiki/fresh-context.test.ts": "89cfa58ee9bf2fe95057a0d5c959e92e1f99af778e66f3b1e119eb66ced5a8c0",
+        "scripts/wiki/fresh-context.test.ts": "34a93ab7185863765c84b7a78cff634e45cbc29e09127939b4f17eaeb02f6a22",
         "scripts/wiki/github-attestation.ts": "cad5290748265f5b5cd1a5503f075cfb837283ca0e8b4e7c004567deb33139cb",
         "scripts/wiki/inventories.example.ts": "c77492bf25a8e89d6c5f2de5d1238bb426e41b81cd255d7c153e05d295e91c4e",
         "scripts/wiki/inventories.ts": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca",
@@ -31,7 +31,8 @@
         "scripts/wiki/work.test.ts": "f55bf17000199c2655290f41dc213c2eec592e481a6b6beba911e15b15f729ba"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "Reviewer-discovered merge-base glob and empty-blob correctness fixes preserve the documented focused review contract."
       }
     },
     "operations/enforcement": {
@@ -48,11 +49,12 @@
         "package.json": "e73eac7e5e309f816f1e35df44a8f11362282fee931c4db24e0a3a409da23934",
         "scripts/wiki/apply.ts": "5a273691372ff6fcfdd63214da513fa8b71b9fe8730ff2e49cdfec0793ad2c15",
         "scripts/wiki/cli.ts": "6d0d9b9344ea64f602b9fbff7a313e7619c53210801f42da0b66d9727f2d8617",
-        "scripts/wiki/core.ts": "cbb80a64920bc34ec35a1aeabb51230dc9356054332b70a89863a008acfbe309",
+        "scripts/wiki/core.ts": "8dfb3137a801be1bbf2f8a98f9ba0500358c52be10c684444d89248760e7a2b5",
         "scripts/wiki/github-attestation.ts": "cad5290748265f5b5cd1a5503f075cfb837283ca0e8b4e7c004567deb33139cb"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "Reviewer-discovered merge-base glob and empty-blob correctness fixes preserve the documented enforcement contract."
       }
     },
     "product/invariants": {
@@ -60,10 +62,11 @@
         "AGENTS.md": "ce754be14c6dae7cb7bd70252e263842d960b8c8312170102cfae34bd8419746",
         "scripts/wiki/apply.ts": "5a273691372ff6fcfdd63214da513fa8b71b9fe8730ff2e49cdfec0793ad2c15",
         "scripts/wiki/cli.ts": "6d0d9b9344ea64f602b9fbff7a313e7619c53210801f42da0b66d9727f2d8617",
-        "scripts/wiki/core.ts": "cbb80a64920bc34ec35a1aeabb51230dc9356054332b70a89863a008acfbe309"
+        "scripts/wiki/core.ts": "8dfb3137a801be1bbf2f8a98f9ba0500358c52be10c684444d89248760e7a2b5"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "Reviewer-discovered merge-base glob and empty-blob correctness fixes enforce the existing exact source-binding invariant."
       }
     },
     "product/scope": {
@@ -72,7 +75,8 @@
         "README.md": "6b991a3548bb25dec3b35654c1f0b16c9c56bf9adf6971d6155c88efcaedaed9"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "Reviewer-discovered merge-base glob and empty-blob correctness fixes stay within the documented toolkit scope."
       }
     }
   },

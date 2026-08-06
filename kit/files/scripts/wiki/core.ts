@@ -2882,6 +2882,29 @@ function pageAtRevision(root: string, revision: string, path: string): WikiPage 
   try { return parseWikiPage(path, raw); } catch { return undefined; }
 }
 
+function filesAtRevision(root: string, revision: string): string[] {
+  return git(root, ["ls-tree", "-r", "--name-only", revision], true)
+    .split("\n")
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b));
+}
+
+function sourceAtRevision(root: string, revision: string, path: string): { exists: boolean; raw: string } {
+  // `git show` returns an empty string both for an empty blob and for a
+  // missing path.  cat-file's exit code preserves that existence bit so an
+  // empty source still receives a real SHA-256 digest and lifecycle state.
+  const result = Bun.spawnSync(["git", "cat-file", "-p", `${revision}:${path}`], { cwd: root, stdout: "pipe", stderr: "pipe" });
+  return result.exitCode === 0
+    ? { exists: true, raw: result.stdout.toString() }
+    : { exists: false, raw: "" };
+}
+
+function expandSourceAtRevision(root: string, revision: string, source: WikiSource, files: string[]): string[] {
+  if ("path" in source) return files.includes(source.path) ? [source.path] : [];
+  const glob = new Bun.Glob(source.glob);
+  return files.filter((path) => glob.match(path)).sort((a, b) => a.localeCompare(b));
+}
+
 function focusedReviewData(view: RepoView, pages: WikiPage[], report: ImpactReport, metadata?: PrMetadata): FocusedReviewData {
   const headSha = git(view.root, ["rev-parse", "--verify", "HEAD^{commit}"]).trim();
   const diff = git(view.root, ["diff", "--binary", "--full-index", "--no-color", "--no-ext-diff", `${report.mergeBase}..HEAD`], true);
@@ -2933,15 +2956,20 @@ function focusedReviewData(view: RepoView, pages: WikiPage[], report: ImpactRepo
   type UndigestedDeclaration = Omit<FocusedSourceDeclaration, "id">;
   const declarations = new Map<string, UndigestedDeclaration[]>();
   const authorityIds = new Set([...report.affectedPages, ...(metadata?.affected_invariants ?? [])]);
-  const addDeclarations = (page: WikiPage, authority: boolean) => {
+  const mergeBaseFiles = filesAtRevision(view.root, report.mergeBase);
+  const headFiles = new Set(view.listFiles());
+  const addDeclarations = (page: WikiPage, authority: boolean, revision: "head" | "merge-base") => {
     for (const rawDeclaration of page.data.sources) {
       const declaration = canonicalSourceDeclaration(rawDeclaration);
       // Exact declarations remain explicit primary inputs.  Broad globs are
       // focused to changed matches; otherwise a recursive publisher glob would
       // reintroduce the unrelated source breadth TE-04 is removing.
+      const expanded = revision === "merge-base"
+        ? expandSourceAtRevision(view.root, report.mergeBase, rawDeclaration, mergeBaseFiles)
+        : expandSource(view, rawDeclaration);
       const paths = "path" in rawDeclaration
-        ? expandSource(view, rawDeclaration)
-        : expandSource(view, rawDeclaration).filter((path) => changedSet.has(path));
+        ? expanded
+        : expanded.filter((path) => changedSet.has(path) || (revision === "merge-base" && !headFiles.has(path)));
       // Keep an exact declaration even when the file was deleted from HEAD;
       // its merge-base digest remains independently verifiable.
       const candidates = "path" in rawDeclaration && paths.length === 0 ? [rawDeclaration.path] : paths;
@@ -2963,19 +2991,25 @@ function focusedReviewData(view: RepoView, pages: WikiPage[], report: ImpactRepo
     void authority;
   };
   const requiredPageIds = new Set([...report.affectedPages, ...invariants.map((page) => page.data.id)]);
-  for (const page of pages.filter((item) => item.data.status === "current" && requiredPageIds.has(item.data.id))) addDeclarations(page, authorityIds.has(page.data.id));
+  for (const page of pages.filter((item) => item.data.status === "current" && requiredPageIds.has(item.data.id))) addDeclarations(page, authorityIds.has(page.data.id), "head");
   for (const path of baseInvariantPaths) {
     const basePage = pageAtRevision(view.root, report.mergeBase, path);
-    if (basePage?.data.status === "current" && basePage.data.kind === "invariant") addDeclarations(basePage, authorityIds.has(basePage.data.id));
+    if (basePage?.data.status === "current" && basePage.data.kind === "invariant") addDeclarations(basePage, authorityIds.has(basePage.data.id), "merge-base");
   }
-  for (const conflictPage of pages.filter((item) => item.data.kind === "conflict" && report.affectedConflicts.some((summary) => summary.id === item.data.conflict_id))) addDeclarations(conflictPage, false);
+  for (const conflictPage of pages.filter((item) => item.data.kind === "conflict" && report.affectedConflicts.some((summary) => summary.id === item.data.conflict_id))) addDeclarations(conflictPage, false, "head");
   for (const summary of report.affectedConflicts) {
     if (pages.some((page) => page.data.kind === "conflict" && page.data.conflict_id === summary.id)) continue;
     const basePage = pageAtRevision(view.root, report.mergeBase, summary.path);
-    if (basePage?.data.kind === "conflict") addDeclarations(basePage, false);
+    if (basePage?.data.kind === "conflict") addDeclarations(basePage, false, "merge-base");
   }
 
-  const headFiles = new Set(view.listFiles());
+  // Do not emit a lifecycle record for a stale declaration that is absent
+  // from both revisions.  A changed path is retained because the diff itself
+  // is the provenance even when an unusual tree state cannot be read here.
+  for (const path of [...declarations.keys()]) {
+    const baseState = sourceAtRevision(view.root, report.mergeBase, path);
+    if (!headFiles.has(path) && !baseState.exists && !changedSet.has(path)) declarations.delete(path);
+  }
   const sourceBindings: FocusedSourceBinding[] = [];
   const declarationEntries = [...new Map(
     [...declarations.values()].flat().map((entry) => [jsonStable(entry), entry] as const),
@@ -2992,13 +3026,18 @@ function focusedReviewData(view: RepoView, pages: WikiPage[], report: ImpactRepo
     if (records.some((entry) => authorityIds.has(entry.page_id))) roles.add("affected_authority_source");
     if (focusedSourcePath(path)) roles.add("relevant_test");
     if (roles.size === 0 || (roles.size === 1 && roles.has("changed_source") && declaredBy.length === 0)) roles.add("supporting_source");
-    const headRaw = headFiles.has(path) ? view.read(path) : "";
-    const baseRaw = git(view.root, ["show", `${report.mergeBase}:${path}`], true);
-    const headDigest = headRaw ? hashContent(headRaw) : undefined;
-    const baseDigest = baseRaw ? hashContent(baseRaw) : undefined;
-    const lifecycle: FocusedSourceBinding["lifecycle"] = headDigest && baseDigest
+    const headExists = headFiles.has(path);
+    const headRaw = headExists ? view.read(path) : "";
+    const baseState = sourceAtRevision(view.root, report.mergeBase, path);
+    const headDigest = headExists ? hashContent(headRaw) : undefined;
+    const baseDigest = baseState.exists ? hashContent(baseState.raw) : undefined;
+    // A stale declaration that is absent from both revisions was removed from
+    // `declarations` above. Changed files always exist on at least one side,
+    // and exact declarations retain their path when one side is deleted.
+    if (!headExists && !baseState.exists) continue;
+    const lifecycle: FocusedSourceBinding["lifecycle"] = headExists && baseState.exists
       ? headDigest === baseDigest ? "unchanged" : "changed"
-      : headDigest ? "added" : "removed";
+      : headExists ? "added" : "removed";
     sourceBindings.push({
       path,
       roles: [...roles].sort((a, b) => a.localeCompare(b)),
@@ -3213,6 +3252,7 @@ export function validateFocusedReviewManifest(
     declarationsById.set(declaration.id, declaration);
   }
   const seenSources = new Set<string>();
+  const referencedDeclarationIds = new Set<string>();
   if (!Array.isArray(focused.source_roles)) error("focused-manifest-source-roles", "source_roles must be an array");
   for (const [index, source] of (Array.isArray(focused.source_roles) ? focused.source_roles : []).entries()) {
     const valid = source != null && typeof source === "object" && typeof source.path === "string" && source.path.length > 0
@@ -3230,14 +3270,39 @@ export function validateFocusedReviewManifest(
     seenSources.add(source.path);
     if (source.roles.includes("changed_source") && !(focused.changed_files as string[]).includes(source.path)) error("focused-manifest-changed-source-missing", `changed_source role is not bound to changed_files: ${source.path}`, source.path);
     if (source.roles.includes("relevant_test") && !focusedSourcePath(source.path)) error("focused-manifest-test-misclassified", `relevant_test role is not a test path: ${source.path}`, source.path);
-    if (source.roles.includes("affected_authority_source") && source.declared_by.length === 0) error("focused-manifest-authority-provenance", `affected_authority_source requires declaring page provenance: ${source.path}`, source.path);
+    const hasHead = source.head_digest != null;
+    const hasMergeBase = source.merge_base_digest != null;
+    const sameDigest = hasHead && hasMergeBase && source.head_digest === source.merge_base_digest;
+    const lifecycleConsistent = source.lifecycle === "added" || source.lifecycle === "head"
+      ? hasHead && !hasMergeBase
+      : source.lifecycle === "removed" || source.lifecycle === "merge-base"
+        ? !hasHead && hasMergeBase
+        : source.lifecycle === "changed"
+          ? hasHead && hasMergeBase && !sameDigest
+          : source.lifecycle === "unchanged"
+            ? hasHead && hasMergeBase && sameDigest
+            : false;
+    if (!lifecycleConsistent) error("focused-manifest-lifecycle-binding", `source lifecycle does not match its head/merge-base digests: ${source.path}`, source.path);
+    if (source.roles.includes("affected_authority_source") && (source.declared_by.length === 0 || source.declaration_ids.length === 0)) error("focused-manifest-authority-provenance", `affected_authority_source requires declaring page and declaration provenance: ${source.path}`, source.path);
+    const declarationOwners = [...new Set(source.declaration_ids.map((id) => declarationsById.get(id)?.page_id).filter((id): id is string => id != null))].sort((a, b) => a.localeCompare(b));
+    const declaredBy = [...new Set(source.declared_by)].sort((a, b) => a.localeCompare(b));
+    if (jsonStable(declarationOwners) !== jsonStable(declaredBy)) error("focused-manifest-declared-by", `declared_by does not exactly match source declaration owners: ${source.path}`, source.path);
     for (const declarationId of source.declaration_ids) {
+      referencedDeclarationIds.add(declarationId);
       const declaration = declarationsById.get(declarationId);
       if (!declaration) continue;
       if (!source.declared_by.includes(declaration.page_id)) error("focused-manifest-declaration-owner", `source declaration owner is missing from declared_by: ${source.path}`, source.path);
-      if (declaration.matched_via === "path" && ("path" in declaration.declaration) && declaration.declaration.path !== source.path) error("focused-manifest-declaration-path", `exact source declaration does not bind its source path: ${source.path}`, source.path);
-      if (declaration.matched_via === "glob" && (typeof declaration.expanded_glob !== "string" || declaration.expanded_glob.length === 0)) error("focused-manifest-declaration-glob", `glob source declaration is missing expanded provenance: ${source.path}`, source.path);
+      const declarationValue = declaration.declaration as Record<string, unknown>;
+      const exactPath = typeof declarationValue.path === "string" ? declarationValue.path : undefined;
+      const globPattern = typeof declarationValue.glob === "string" ? declarationValue.glob : undefined;
+      if (declaration.matched_via === "path" && exactPath == null) error("focused-manifest-declaration-shape", `exact source declaration is missing its path provenance: ${source.path}`, source.path);
+      if (declaration.matched_via === "glob" && globPattern == null) error("focused-manifest-declaration-shape", `glob source declaration is missing its glob provenance: ${source.path}`, source.path);
+      if (declaration.matched_via === "path" && exactPath != null && exactPath !== source.path) error("focused-manifest-declaration-path", `exact source declaration does not bind its source path: ${source.path}`, source.path);
+      if (declaration.matched_via === "glob" && (typeof declaration.expanded_glob !== "string" || declaration.expanded_glob.length === 0 || declaration.expanded_glob !== globPattern)) error("focused-manifest-declaration-glob", `glob source declaration is missing or misclassified expanded provenance: ${source.path}`, source.path);
     }
+  }
+  for (const declarationId of declarationsById.keys()) {
+    if (!referencedDeclarationIds.has(declarationId)) error("focused-manifest-declaration-unreferenced", `source declaration is not bound to any source role: ${declarationId}`, `focused-manifest.json:source_declarations`);
   }
   if (expected) {
     if (focused.head_sha !== expected.head_sha) error("focused-manifest-head-binding", "focused manifest HEAD does not match the enclosing ReviewManifest");
@@ -3270,6 +3335,12 @@ export function validateFocusedReviewManifest(
       }
     }
     if (expected.focused_manifest_digest && Object.keys(files).length > 0 && files["focused-manifest.json"] != null && hashContent(files["focused-manifest.json"]) !== expected.focused_manifest_digest) error("focused-manifest-digest-binding", "focused manifest digest does not match the enclosing ReviewManifest");
+    const authorityPageIds = new Set([...expected.affected_page_ids, ...expected.affected_invariant_ids]);
+    for (const source of Array.isArray(focused.source_roles) ? focused.source_roles : []) {
+      const hasAuthorityDeclaration = source.declaration_ids.some((id) => authorityPageIds.has(declarationsById.get(id)?.page_id ?? ""));
+      if (hasAuthorityDeclaration && !source.roles.includes("affected_authority_source")) error("focused-manifest-authority-role-required", `source declaration from an affected authority page is missing affected_authority_source: ${source.path}`, source.path);
+      if (!hasAuthorityDeclaration && source.roles.includes("affected_authority_source")) error("focused-manifest-authority-role-misclassified", `affected_authority_source is not backed by an affected authority declaration: ${source.path}`, source.path);
+    }
   }
   return findings;
 }

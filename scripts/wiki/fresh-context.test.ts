@@ -205,6 +205,39 @@ function tempFocusedReviewRepo(): string {
   return root;
 }
 
+/** A merge-base glob fixture with empty blobs on both lifecycle edges. */
+function tempMergeBaseGlobReviewRepo(): string {
+  const root = mkdtempSync(join(tmpdir(), "wiki-review-merge-base-glob-"));
+  temporary.push(root);
+  run(root, ["git", "init", "-q"]);
+  run(root, ["git", "config", "user.name", "Wiki Test"]);
+  run(root, ["git", "config", "user.email", "wiki@example.invalid"]);
+  put(root, ".wiki/config.json", jsonStable({ version: 1, name: "merge-base-glob", highRisk: ["src/**/*.ts"], freshContext: policy() }));
+  put(root, "src/removed.ts", "");
+  put(root, "src/empty-head.ts", "seed");
+  put(root, "wiki/product/invariants.md", page("src/**/*.ts", "The invariant contract is version one.", "invariant")
+    .replace("id: product/test", "id: product/invariants")
+    .replace("  - path: src/**/*.ts", "  - glob: \"src/**/*.ts\""));
+  let view = createRepoView(root);
+  put(root, ".wiki/state.json", jsonStable(verifyState(view, loadWikiPages(view).pages, [], undefined)));
+  run(root, ["git", "add", "."]);
+  run(root, ["git", "commit", "-qm", "merge-base glob baseline"]);
+
+  rmSync(join(root, "src/removed.ts"));
+  put(root, "src/empty-head.ts", "");
+  put(root, "wiki/product/invariants.md", page("src/**/*.ts", "The invariant contract is version two.", "invariant")
+    .replace("id: product/test", "id: product/invariants")
+    .replace("  - path: src/**/*.ts", "  - glob: \"src/**/*.ts\""));
+  // Refresh the index before constructing the working-tree view so a deleted
+  // tracked path is not reported as readable by createRepoView.
+  run(root, ["git", "add", "-A"]);
+  view = createRepoView(root);
+  put(root, ".wiki/state.json", jsonStable(verifyState(view, loadWikiPages(view).pages, [], undefined)));
+  run(root, ["git", "add", "."]);
+  run(root, ["git", "commit", "-qm", "merge-base glob change"]);
+  return root;
+}
+
 function manifestFor(root: string, prMetadata = metadata()): ReviewManifest {
   const view = createRepoView(root);
   const pages = loadWikiPages(view).pages;
@@ -375,6 +408,60 @@ describe("fresh-context review manifest", () => {
     const objectPath = tampered.objects[0].object_path;
     const tamperedFiles = { ...files, [objectPath]: `${files[objectPath]}tampered` };
     expect(validateFocusedReviewManifest(tampered, tamperedFiles, reviewManifest).map((finding) => finding.code)).toContain("focused-manifest-object-digest");
+  });
+
+  test("expands merge-base glob provenance for removed sources and hashes empty blobs", () => {
+    const root = tempMergeBaseGlobReviewRepo();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const prMetadata = metadata({ affected_pages: ["product/invariants"], affected_invariants: ["product/invariants"] });
+    const report = impactReport(view, pages, { base: "HEAD~1", metadata: prMetadata });
+    const focused = buildFocusedReviewManifest(view, pages, report, prMetadata);
+    const removed = focused.source_roles.find((source) => source.path === "src/removed.ts");
+    const emptyHead = focused.source_roles.find((source) => source.path === "src/empty-head.ts");
+    if (!removed || !emptyHead) throw new Error("merge-base glob fixture did not bind both changed source paths");
+
+    expect(removed.lifecycle).toBe("removed");
+    expect(removed.head_digest).toBeUndefined();
+    expect(removed.merge_base_digest).toBe(hashContent(""));
+    expect(removed.roles).toEqual(expect.arrayContaining(["changed_source", "affected_authority_source"]));
+    expect(removed.declared_by).toContain("product/invariants");
+    expect(removed.declaration_ids).toHaveLength(1);
+    const removedDeclaration = focused.source_declarations.find((declaration) => declaration.id === removed.declaration_ids[0]);
+    expect(removedDeclaration).toMatchObject({
+      page_id: "product/invariants",
+      matched_via: "glob",
+      expanded_glob: "src/**/*.ts",
+      declaration: { glob: "src/**/*.ts" },
+    });
+
+    expect(emptyHead.lifecycle).toBe("changed");
+    expect(emptyHead.head_digest).toBe(hashContent(""));
+    expect(emptyHead.merge_base_digest).toBe(hashContent("seed"));
+
+    const bundle = makeReviewBundle(view, pages, report, "merge-base-glob-bundle", prMetadata);
+    const reviewManifest = JSON.parse(readFileSync(join(bundle, "manifest.json"), "utf8")) as ReviewManifest;
+    const files: Record<string, string> = {};
+    for (const path of Object.keys(reviewManifest.file_digests)) files[path] = readFileSync(join(bundle, path), "utf8");
+    expect(validateFocusedReviewManifest(focused, files, reviewManifest)).toEqual([]);
+
+    const missingProvenance = JSON.parse(JSON.stringify(focused)) as FocusedReviewManifest;
+    const missingSource = missingProvenance.source_roles.find((source) => source.path === "src/removed.ts");
+    if (!missingSource) throw new Error("removed source provenance disappeared");
+    missingSource.declaration_ids = [];
+    expect(validateFocusedReviewManifest(missingProvenance, files, reviewManifest).map((finding) => finding.code)).toContain("focused-manifest-authority-provenance");
+
+    const misclassified = JSON.parse(JSON.stringify(focused)) as FocusedReviewManifest;
+    const misclassifiedSource = misclassified.source_roles.find((source) => source.path === "src/removed.ts");
+    if (!misclassifiedSource) throw new Error("removed source role disappeared");
+    misclassifiedSource.roles = misclassifiedSource.roles.filter((role) => role !== "affected_authority_source");
+    expect(validateFocusedReviewManifest(misclassified, files, reviewManifest).map((finding) => finding.code)).toContain("focused-manifest-authority-role-required");
+
+    const invalidLifecycle = JSON.parse(JSON.stringify(focused)) as FocusedReviewManifest;
+    const invalidSource = invalidLifecycle.source_roles.find((source) => source.path === "src/empty-head.ts");
+    if (!invalidSource) throw new Error("empty-head source lifecycle disappeared");
+    invalidSource.lifecycle = "unchanged";
+    expect(validateFocusedReviewManifest(invalidLifecycle, files, reviewManifest).map((finding) => finding.code)).toContain("focused-manifest-lifecycle-binding");
   });
 
   test("changes when canonical PR metadata changes without changing HEAD", () => {
