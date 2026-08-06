@@ -18,6 +18,8 @@ import {
 } from "./te06-exit-validation";
 import {
   buildTe06ControlledComparison,
+  renderTe06ControlledComparisonCompact,
+  validateTe06ControlledComparisonCompact,
   TE06_COMPARISON_TASK_DIGEST,
   TE06_CONTROLLED_COMPARISON_ORCHESTRATION,
   TE06_CONTROLLED_COMPARISON_REVISION,
@@ -26,14 +28,24 @@ import {
 
 const root = resolve(import.meta.dir, "../..");
 let report: Te06ExitValidationReport;
+let controlledComparisonFull: ReturnType<typeof buildTe06ControlledComparison>;
+let controlledComparisonCompact: unknown;
 
 beforeAll(() => {
   const comparisonPath = resolve(root, "docs/evidence/te-06-controlled-comparison.json");
-  const comparison = existsSync(comparisonPath)
+  controlledComparisonFull = existsSync(comparisonPath)
     ? JSON.parse(readFileSync(comparisonPath, "utf8"))
     : buildTe06ControlledComparison(root);
+  const compactPath = resolve(root, "docs/evidence/te-06-controlled-comparison-compact.json");
+  controlledComparisonCompact = existsSync(compactPath)
+    ? JSON.parse(readFileSync(compactPath, "utf8"))
+    : JSON.parse(renderTe06ControlledComparisonCompact(controlledComparisonFull));
   const controlled = JSON.parse(readFileSync(resolve(root, "docs/evidence/te-06-controlled-publisher.json"), "utf8"));
-  report = buildTe06ExitValidation({ controlledComparison: comparison, controlledPublisherAfter: controlled });
+  report = buildTe06ExitValidation({
+    controlledComparison: controlledComparisonFull,
+    controlledComparisonCompact,
+    controlledPublisherAfter: controlled,
+  });
 }, 180_000);
 
 describe("TE-06 exact-revision exit validation", () => {
@@ -56,13 +68,17 @@ describe("TE-06 exact-revision exit validation", () => {
 
   test("rejects controlled-comparison revision, task, and orchestration substitution", () => {
     if (report.controlledComparison.availability !== "available") throw new Error("controlled comparison unavailable");
-    const comparison = report.controlledComparison.comparison;
-    expect(() => validateTe06ControlledComparison({ ...comparison, exactRevision: "0".repeat(40) }, report.exactRevision))
+    expect(() => validateTe06ControlledComparison({ ...controlledComparisonFull, exactRevision: "0".repeat(40) }, report.exactRevision))
       .toThrow("does not bind the TE-06 exact revision");
-    expect(() => validateTe06ControlledComparison({ ...comparison, comparisonTask: { ...comparison.comparisonTask, focusedTopic: "all source" } }, report.exactRevision))
+    expect(() => validateTe06ControlledComparison({ ...controlledComparisonFull, comparisonTask: { ...controlledComparisonFull.comparisonTask, focusedTopic: "all source" } }, report.exactRevision))
       .toThrow("task identity does not match");
-    expect(() => validateTe06ControlledComparison({ ...comparison, orchestration: "complete exit correctness suite" }, report.exactRevision))
+    expect(() => validateTe06ControlledComparison({ ...controlledComparisonFull, orchestration: "complete exit correctness suite" }, report.exactRevision))
       .toThrow("orchestration does not match");
+    expect(report.controlledComparison.comparison).not.toHaveProperty("deterministic");
+    expect(() => validateTe06ControlledComparisonCompact({
+      ...controlledComparisonCompact as Record<string, unknown>,
+      reportDigest: "0".repeat(64),
+    }, controlledComparisonFull)).toThrow("does not bind the full report digest");
   });
 
   test("retains full output while compact text and JSON are smaller and semantically identical", () => {

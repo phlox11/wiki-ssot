@@ -20,6 +20,8 @@ sources:
   - path: scripts/wiki/token-efficiency-baseline.test.ts
   - path: scripts/wiki/te04-focused-review.ts
   - path: scripts/wiki/te04-focused-review.test.ts
+  - path: scripts/wiki/te06-controlled-comparison.ts
+  - path: scripts/wiki/te06-controlled-comparison.test.ts
   - path: scripts/wiki/te06-exit-validation.ts
   - path: scripts/wiki/te06-exit-validation.test.ts
   - path: docs/commands.md
@@ -33,6 +35,8 @@ sources:
   - path: docs/evidence/te-01-02-context-projection.md
   - path: docs/evidence/te-04-focused-review.json
   - path: docs/evidence/te-04-focused-review.md
+  - path: docs/evidence/te-06-controlled-comparison-compact.json
+  - path: docs/evidence/te-06-controlled-comparison.json
   - path: docs/evidence/te-06-controlled-publisher.json
   - path: docs/evidence/te-06-token-performance.json
   - path: docs/evidence/te-06-token-performance.md
@@ -206,8 +210,12 @@ work_items:
       - Remaining misses are classified as a concrete defect, owner decision, orchestrator limitation, or explicitly accepted limitation.
       - The evidence presents token efficiency validated, another bounded cycle, and not adopted as explicit owner-decision options without selecting one on the owner's behalf.
     evidence:
+      - scripts/wiki/te06-controlled-comparison.ts
+      - scripts/wiki/te06-controlled-comparison.test.ts
       - scripts/wiki/te06-exit-validation.ts
       - scripts/wiki/te06-exit-validation.test.ts
+      - docs/evidence/te-06-controlled-comparison-compact.json
+      - docs/evidence/te-06-controlled-comparison.json
       - docs/evidence/te-06-controlled-publisher.json
       - docs/evidence/te-06-token-performance.json
       - docs/evidence/te-06-token-performance.md
@@ -449,18 +457,27 @@ exact-review checks passed. The three controlled default text outputs fell from
 respectively, while explicit full output remained available and compact/full
 semantic digests matched.
 
-The same one-agent `gpt-5.6-sol / high` control reduced model calls from eight
-to five, tool-protocol calls from seven to four, raw input from 218,077 to
-129,274 tokens, and uncached input from 10,205 to 6,650 tokens. Coordination
-wait fell from 21,471 ms to zero. Output tokens, tool spans, and active wall time
-rose in the after-case because the exit command ran the complete deterministic
-correctness suite and final result preparation dominated publication; the
-evidence keeps those regressions visible under the ratified no-fixed-percentage
-contract. Request-start, first-token, and completion latency remain unavailable,
-and no Guardian, external merge, or separate cleanup phase was observed.
+The same one-agent `gpt-5.6-sol / high` control ran the same fixed five-surface
+TE-00 task: task digest
+`4812fe4f0e227750fc1051dc14327c8739c327ae2358e90c97f4c10a90f9f00d`
+binds all selectors and the byte-identical review-candidate recipe. Model calls
+fell from eight to two, tool-protocol calls from seven to one, raw input from
+218,077 to 50,469 tokens, uncached input from 10,205 to 5,925 tokens, output
+from 3,607 to 480 tokens, sanitized result bytes from 5,190 to 1,082, and
+active wall time from 106,071 ms to 18,386 ms. Coordination wait fell from
+21,471 ms to zero. The broader correctness suite remained separate from this
+controlled rollout. Request-start, first-token, and completion latency remain
+unavailable, and no Guardian, external merge, or separate cleanup phase was
+observed.
+
+Recursive TypeScript source bytes grew from 588,463 to 842,820 and the
+same-recipe raw review comparison grew from 60,946 to 75,912. Those repository
+growth diagnostics are not presented as efficiency gains. Exact focused review
+still passes with portable correctness, source breadth 7, and 49,937 non-diff
+bytes, so the growth alone does not activate deferred TE-03.
 
 The machine report digest is
-`048520ca2bb066102eb41d007c047433429180750c8842a36e3a58072627412f`.
+`50ee372d28282fd8388d42a62703e58da6a2fdc4ff6e24ece78c08610036b7c8`.
 It records no remaining correctness miss and leaves all three owner outcomes
 unselected. TE-03 remains deferred because this evidence does not show its
 recursive-source partition activation condition.

@@ -37,6 +37,8 @@ import {
   normalizeTe06ComparisonTask,
   validateTe06ControlledComparison as validateControlledComparisonRecord,
   validateTe06ControlledComparisonCompact,
+  compactTe06ControlledComparison,
+  type Te06ControlledComparisonCompact,
   type Te06ControlledComparisonRecord,
 } from "./te06-controlled-comparison";
 
@@ -98,7 +100,7 @@ export type Te06ControlledAfter = {
 export type Te06ControlledComparison = {
   availability: "available";
   source: "separately supplied deterministic controlled comparison";
-  comparison: Te06ControlledComparisonRecord;
+  comparison: Te06ControlledComparisonCompact;
 };
 
 export type Te06ExitValidationReport = {
@@ -421,9 +423,10 @@ export function buildTe06ExitValidation(options: {
       limitation: "No separately supplied deterministic TE-00 comparison record was supplied to this exit harness.",
     };
     if (options.controlledComparison !== undefined) {
-      const comparison = validateTe06ControlledComparison(options.controlledComparison, revision);
+      const fullComparison = validateTe06ControlledComparison(options.controlledComparison, revision);
+      let comparison = compactTe06ControlledComparison(fullComparison);
       if (options.controlledComparisonCompact !== undefined) {
-        validateTe06ControlledComparisonCompact(options.controlledComparisonCompact, comparison);
+        comparison = validateTe06ControlledComparisonCompact(options.controlledComparisonCompact, fullComparison);
       }
       controlledComparison = {
         availability: "available",

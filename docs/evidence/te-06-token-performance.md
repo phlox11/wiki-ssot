@@ -2,7 +2,7 @@
 
 The deterministic exit report is bound to exact combined publisher revision
 `76e5d97a410d8e67659835e059e7b721541113c5` and report digest
-`048520ca2bb066102eb41d007c047433429180750c8842a36e3a58072627412f`.
+`50ee372d28282fd8388d42a62703e58da6a2fdc4ff6e24ece78c08610036b7c8`.
 The harness itself made zero model or provider calls; the separately audited
 controlled publisher used one `gpt-5.6-sol / high` default agent with no child
 agent or Guardian.
@@ -41,37 +41,51 @@ grew; their role is to prove exhaustive compatibility remains available.
 
 Both controls used one default `gpt-5.6-sol / high` agent. Cached input is
 included in raw input, uncached input is derived as raw minus cached, and
-reasoning output is included in output.
+reasoning output is included in output. The after-case ran only the same fixed
+five-surface task recorded at TE-00. Task identity digest
+`4812fe4f0e227750fc1051dc14327c8739c327ae2358e90c97f4c10a90f9f00d`
+binds the three context selectors, recursive source glob, deterministic review
+bundle, and byte-identical TE-00 review-candidate recipe. Its full deterministic
+record is bound to `0bca638d3a7e1fcc8ebb7ac619431bd8775c4abc67962b6ee050314dde525f72`;
+default successful output is the 1,082-byte compact projection.
 
 | Observation | TE-00 before | TE-06 after | Change |
 | --- | ---: | ---: | ---: |
-| Model calls | 8 | 5 | -3 (-37.5%) |
-| Raw input tokens | 218,077 | 129,274 | -88,803 (-40.7%) |
-| Cached input tokens | 207,872 | 122,624 | -85,248 (-41.0%) |
-| Uncached input tokens | 10,205 | 6,650 | -3,555 (-34.8%) |
-| Output tokens | 3,607 | 7,339 | +3,732 (+103.5%) |
-| Tool-protocol calls | 7 | 4 | -3 (-42.9%) |
-| Sanitized result bytes | 5,190 | 6,929 | +1,739 (+33.5%) |
+| Model calls | 8 | 2 | -6 (-75.0%) |
+| Raw input tokens | 218,077 | 50,469 | -167,608 (-76.9%) |
+| Cached input tokens | 207,872 | 44,544 | -163,328 (-78.6%) |
+| Uncached input tokens | 10,205 | 5,925 | -4,280 (-41.9%) |
+| Output tokens | 3,607 | 480 | -3,127 (-86.7%) |
+| Tool-protocol calls | 7 | 1 | -6 (-85.7%) |
+| Sanitized result bytes | 5,190 | 1,082 | -4,108 (-79.2%) |
 | Coordination wait | 21,471 ms | 0 ms | -21,471 ms |
-| Tool call-to-output spans | 6,081 ms | 22,109 ms | +16,028 ms |
-| Active wall excluding user idle | 106,071 ms | 189,535 ms | +83,464 ms |
+| Tool call-to-output spans | 6,081 ms | 3,489 ms | -2,592 ms (-42.6%) |
+| Active wall excluding user idle | 106,071 ms | 18,386 ms | -87,685 ms (-82.7%) |
 
-The controlled after-case therefore demonstrates fewer structural model and
-tool round trips, lower raw/cached/uncached input, and removal of the reproduced
-coordination wait. It does **not** demonstrate a lower total output, tool span,
-or active wall time: the exit command runs the full deterministic Primary,
-portable, adoption, context, and review suite, and final result preparation
-dominated the after-case publication phase. The ratified contract rejects fixed
-percentage gates, so these regressions remain visible diagnostic evidence
-rather than being hidden or converted into a correctness waiver.
+The fixed-task after-case therefore demonstrates fewer structural model and
+tool round trips, lower raw/cached/uncached input and output, smaller successful
+output, removal of the reproduced coordination wait, and lower observed tool
+and active-wall spans. The broader exit correctness suite is executed and
+reported separately by the model-free exit harness; none of its work is hidden
+inside the controlled rollout.
+
+Two deterministic task surfaces grew with the repository: recursive TypeScript
+source bytes rose from 588,463 to 842,820 (+43.2%), and the same-recipe raw
+review comparison rose from 60,946 to 75,912 bytes (+24.6%). They remain visible
+diagnostics rather than being presented as token gains. The dedicated focused
+review regression still proves exact PASS, portable correctness, reviewer
+source breadth 7, and 49,937 non-diff bytes. The source-total growth alone does
+not identify unrelated required-source breadth or a coherent partition, so it
+does not activate deferred TE-03.
 
 ## Timing and ownership boundaries
 
-The after-case implementation phase was 45,999 ms across four model calls and
-four asynchronous tool-protocol calls. Publication to the parent task was
-135,501 ms and one model call. No external PR merge occurred, and disposable
-clone cleanup happened inside the deterministic command, so separate merge and
-cleanup phase timings are unavailable.
+The after-case command-to-compact-output implementation phase was 3,489 ms
+across one model call and one tool-protocol call. Verbatim publication to the
+parent task was 8,986 ms and one model call. Total active wall time, including
+pre-command task preparation, was 18,386 ms. No external PR merge occurred,
+and disposable clone cleanup happened inside the deterministic command, so
+separate merge and cleanup phase timings are unavailable.
 
 Model request-start, first-token, and completion latency are not exposed by the
 local rollout and remain `null`. Cache continuity, model routing, Guardian

@@ -1,0 +1,23 @@
+{
+  "comparisonTask": {
+    "broadDiscovery": "token context runtime cost efficiency",
+    "focusedTopic": "recursive source mapping",
+    "reviewBundle": "deterministic current review bundle measurement",
+    "reviewCandidateRecipeDigest": "d101e02a10eb28586a9e36cdf57413506c5de2224c8fc0bb8f4820db351d7b50",
+    "selectedWork": "TE-00",
+    "sourceExpansion": "scripts/wiki/**/*.ts"
+  },
+  "comparisonTaskDigest": "4812fe4f0e227750fc1051dc14327c8739c327ae2358e90c97f4c10a90f9f00d",
+  "exactRevision": "76e5d97a410d8e67659835e059e7b721541113c5",
+  "kind": "te06-controlled-comparison-compact",
+  "orchestration": "one default measurement agent on gpt-5.6-sol high; no child agents or guardians; deterministic harness uses disposable local clones and makes no model or provider call",
+  "reportDigest": "0bca638d3a7e1fcc8ebb7ac619431bd8775c4abc67962b6ee050314dde525f72",
+  "summary": {
+    "broadContextBytes": 3893,
+    "focusedContextBytes": 13617,
+    "recursiveTypeScriptBytes": 842820,
+    "reviewBundleBytes": 75912,
+    "selectedWorkContextBytes": 16253
+  },
+  "version": 1
+}

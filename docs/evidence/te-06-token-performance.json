@@ -18,62 +18,89 @@
       "Phase handoffs, bounded reads, and optional role orchestration are repository guidance; the engine does not force provider fan-out."
     ]
   },
+  "controlledComparison": {
+    "availability": "available",
+    "comparison": {
+      "comparisonTask": {
+        "broadDiscovery": "token context runtime cost efficiency",
+        "focusedTopic": "recursive source mapping",
+        "reviewBundle": "deterministic current review bundle measurement",
+        "reviewCandidateRecipeDigest": "d101e02a10eb28586a9e36cdf57413506c5de2224c8fc0bb8f4820db351d7b50",
+        "selectedWork": "TE-00",
+        "sourceExpansion": "scripts/wiki/**/*.ts"
+      },
+      "comparisonTaskDigest": "4812fe4f0e227750fc1051dc14327c8739c327ae2358e90c97f4c10a90f9f00d",
+      "exactRevision": "76e5d97a410d8e67659835e059e7b721541113c5",
+      "kind": "te06-controlled-comparison-compact",
+      "orchestration": "one default measurement agent on gpt-5.6-sol high; no child agents or guardians; deterministic harness uses disposable local clones and makes no model or provider call",
+      "reportDigest": "0bca638d3a7e1fcc8ebb7ac619431bd8775c4abc67962b6ee050314dde525f72",
+      "summary": {
+        "broadContextBytes": 3893,
+        "focusedContextBytes": 13617,
+        "recursiveTypeScriptBytes": 842820,
+        "reviewBundleBytes": 75912,
+        "selectedWorkContextBytes": 16253
+      },
+      "version": 1
+    },
+    "source": "separately supplied deterministic controlled comparison"
+  },
   "controlledPublisherAfter": {
     "availability": "available",
     "publisher": {
       "agents": [
         {
-          "activeMs": 189535,
-          "cachedInputTokens": 122624,
-          "calls": 5,
+          "activeMs": 18386,
+          "cachedInputTokens": 44544,
+          "calls": 2,
           "compactions": 0,
           "effort": "high",
           "model": "gpt-5.6-sol",
-          "outputBytes": 6929,
-          "outputTokens": 7339,
+          "outputBytes": 1082,
+          "outputTokens": 480,
           "pathLabel": "te06-publisher-after-control",
-          "rawInputTokens": 129274,
-          "reasoningOutputTokens": 6776,
+          "rawInputTokens": 50469,
+          "reasoningOutputTokens": 54,
           "role": "default",
-          "toolCalls": 4,
-          "totalTokens": 136613,
-          "uncachedInputTokens": 6650,
-          "wallMs": 189535
+          "toolCalls": 1,
+          "totalTokens": 50949,
+          "uncachedInputTokens": 5925,
+          "wallMs": 18386
         }
       ],
       "artifactCategories": {
-        "sanitizedReportPayload": 6929
+        "sanitizedCompactComparisonPayload": 1082
       },
       "exactRevision": "76e5d97a410d8e67659835e059e7b721541113c5",
       "inputDistribution": {
-        "outputMax": 6540,
-        "outputMedian": 198,
-        "outputMin": 44,
-        "outputP95": 6540,
-        "rawInputMax": 28326,
-        "rawInputMedian": 25373,
-        "rawInputMin": 24956,
-        "rawInputP95": 28326,
-        "uncachedInputMax": 2982,
-        "uncachedInputMedian": 1053,
-        "uncachedInputMin": 636,
-        "uncachedInputP95": 2982
+        "outputMax": 368,
+        "outputMedian": 240,
+        "outputMin": 112,
+        "outputP95": 368,
+        "rawInputMax": 25478,
+        "rawInputMedian": 25234.5,
+        "rawInputMin": 24991,
+        "rawInputP95": 25478,
+        "uncachedInputMax": 4767,
+        "uncachedInputMedian": 2962.5,
+        "uncachedInputMin": 1158,
+        "uncachedInputP95": 4767
       },
       "kind": "sanitized-controlled-publisher",
       "limitations": [
-        "The successful read-only publisher measurement ran one repository command; asynchronous completion required four tool-protocol calls, including bounded polling, and those calls remain visible in the comparison.",
+        "The successful read-only publisher measurement ran exactly one repository command for the fixed TE-00 comparison task and made one tool-protocol call.",
         "The controlled case publishes its result only to the parent task; external pull-request publication, merge, and cleanup phases were intentionally not performed.",
-        "Artifact bytes retain only the sanitized deterministic report payload, not prompt, source, command, private path, or tool-wrapper bodies.",
+        "Artifact bytes retain only the compact deterministic comparison payload; the separately retained full record is bound by report digest and contains no prompt, source body, command output, or private path.",
         "Raw local rollout usage is not billed API cost or exact subscription-credit consumption.",
         "Guardian routing and approval policy were not invoked in this controlled case and are not repository-engine gains."
       ],
-      "orchestration": "one default measurement agent on gpt-5.6-sol high; no child agents or guardians; one repository command with asynchronous tool-protocol polling; deterministic harness uses disposable local clones and makes no model or provider call",
+      "orchestration": "one default measurement agent on gpt-5.6-sol high; no child agents or guardians; deterministic harness uses disposable local clones and makes no model or provider call",
       "performance": {
         "activeWallExcludingUserIdle": {
           "availability": "available",
-          "limitation": "This span includes deterministic fixture execution and final model result preparation.",
+          "limitation": "This span includes initial task preparation, deterministic execution, and final result delivery.",
           "method": "task_started to task_complete event span with no end-user message or coordination pause inside the child task",
-          "valueMs": 189535
+          "valueMs": 18386
         },
         "approvalWait": {
           "availability": "available",
@@ -114,11 +141,11 @@
           },
           "implementation": {
             "availability": "available",
-            "limitation": "This phase includes bounded asynchronous polling while the deterministic harness ran.",
-            "method": "first repository-command tool invocation through successful sanitized report output",
-            "modelCalls": 4,
-            "toolCalls": 4,
-            "valueMs": 45999
+            "limitation": "The task-start to invocation preparation span remains included only in active wall time.",
+            "method": "fixed-comparison command invocation through compact digest-addressed output",
+            "modelCalls": 1,
+            "toolCalls": 1,
+            "valueMs": 3489
           },
           "merge": {
             "availability": "unavailable",
@@ -129,35 +156,35 @@
           "publication": {
             "availability": "available",
             "limitation": "This is result publication to the parent task, not external pull-request publication.",
-            "method": "successful sanitized report output through completed result delivery to the parent task",
+            "method": "compact comparison output through verbatim result delivery to the parent task",
             "modelCalls": 1,
             "toolCalls": 0,
-            "valueMs": 135501
+            "valueMs": 8986
           }
         },
         "toolDuration": {
           "availability": "available",
-          "limitation": "This measures tool-protocol call-to-output emission; the long-running repository command continued between bounded asynchronous polls.",
-          "method": "sum of four paired tool call-to-output event spans",
-          "valueMs": 22109
+          "limitation": "This measures local call-to-output emission, not model latency.",
+          "method": "one paired fixed-comparison tool call-to-output event span",
+          "valueMs": 3489
         }
       },
       "success": true,
       "taskLabel": "te06-publisher-after-control",
       "totals": {
-        "activeMs": 189535,
+        "activeMs": 18386,
         "agentCount": 1,
-        "cachedInputTokens": 122624,
-        "calls": 5,
+        "cachedInputTokens": 44544,
+        "calls": 2,
         "compactions": 0,
-        "outputBytes": 6929,
-        "outputTokens": 7339,
-        "rawInputTokens": 129274,
-        "reasoningOutputTokens": 6776,
-        "toolCalls": 4,
-        "totalTokens": 136613,
-        "uncachedInputTokens": 6650,
-        "wallMs": 189535
+        "outputBytes": 1082,
+        "outputTokens": 480,
+        "rawInputTokens": 50469,
+        "reasoningOutputTokens": 54,
+        "toolCalls": 1,
+        "totalTokens": 50949,
+        "uncachedInputTokens": 5925,
+        "wallMs": 18386
       },
       "version": 1
     },
@@ -318,7 +345,7 @@
     "selectedOption": null
   },
   "remainingMisses": [],
-  "reportDigest": "048520ca2bb066102eb41d007c047433429180750c8842a36e3a58072627412f",
+  "reportDigest": "50ee372d28282fd8388d42a62703e58da6a2fdc4ff6e24ece78c08610036b7c8",
   "version": 1,
   "workItem": "TE-06"
 }

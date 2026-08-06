@@ -92,13 +92,16 @@ records bundle and non-diff bytes, role-classified reviewer-source breadth,
 exact attestation validation, and explicit deterministic versus externally
 observed reviewer-call/time fields without invoking a model or provider.
 
-`scripts/wiki/te06-exit-validation.ts` is the publishing-only exit harness for
-the token-efficiency roadmap. It binds one exact combined revision, compares
-compact and retained-full context through content digests, reruns the Primary,
-kit, adoption, selected-work, and focused-review correctness floors, and joins
-them only with a separately sanitized controlled-publisher observation. Its
-successful suite diagnostics contain bounded counts and result digests instead
-of test bodies. The harness, its tests, and TE-06 evidence remain outside
+`scripts/wiki/te06-controlled-comparison.ts` is the publishing-only fixed-task
+comparison runner for the token-efficiency roadmap. It binds one exact combined
+revision and the same TE-00 five-surface task, including the byte-identical
+review-candidate recipe. Its default output is a compact projection bound to a
+retained full record by content digest. `scripts/wiki/te06-exit-validation.ts`
+is the separate publishing-only correctness harness: it validates those fixed
+comparison records and the sanitized controlled-publisher observation, then
+reruns the Primary, kit, adoption, selected-work, and focused-review floors.
+Successful suite diagnostics contain bounded counts and result digests instead
+of test bodies. Both harnesses, their tests, and TE-06 evidence remain outside
 `KIT_ENTRIES`; adopters receive the portable engine and regression behavior,
 not this publisher repository's performance pilot or owner decision.
 
