@@ -307,7 +307,7 @@ export type TokenEfficiencyEvidence = {
   cacheEffects: { rawInputIncludesCached: true; uncachedDefinition: string; externalCacheObservation: string };
   approvalEffects: { repositoryControlled: false; observation: string };
   limitations: string[];
-  ownerRatification: { decision: null; options: string[] };
+  ownerRatification: { decision: string; rationale: string; options: string[] };
 };
 
 function run(command: string[], cwd: string, extraEnvironment: Record<string, string | undefined> = {}): CommandResult {
@@ -977,13 +977,13 @@ export function buildTokenEfficiencyEvidence(
         "Do not trade source traceability, exact-HEAD binding, or independent review for smaller context or bundles.",
       ],
       optimizationTargets: [
-        "At most 40% of the reproduced deterministic context baseline for each topic and selected-work case.",
-        "At most 60% of the controlled end-to-end baseline for uncached input and review non-diff bytes under unchanged controls.",
-        "At most 70% of primary calls and active wall time, and at most 50% of publication-phase calls.",
+        "Remove repeated full-body expansion, broad re-reading, duplicate review input, repeated discovery and polling, oversized success output, and unnecessary role or phase round trips where the repository structure causes them.",
+        "Keep token, byte, call, tool, and elapsed-time measurements as before/after diagnostic evidence instead of standalone percentage pass thresholds.",
+        "Demonstrate that each structural change removes its reproduced waste without weakening the correctness floor or hiding work in an external orchestrator.",
       ],
       modelAndEffortControls: ["Keep task, role, model, reasoning effort, and call accounting fixed for before/after comparisons."],
       orchestrationControls: ["Keep orchestration/fan-out and approval policy fixed; repository code does not control provider routing or cache continuity."],
-      acceptedVarianceOptions: ["Record model/cache behavior, orchestration, approval, provider latency, or bounded sampling variance explicitly before accepting a comparison."],
+      acceptedVarianceOptions: ["No blanket percentage reduction or variance gate applies; record before/after values and attribute model/cache behavior, orchestration, approval, provider latency, and sampling limitations explicitly."],
       limitations: ["UTF-8 bytes and supplied token counts are evidence, not billed API cost, subscription credits, runtime latency, or proof of comprehension.", "Schooled diagnosis is external and sanitized; it is not a publisher-engine measurement.", "Sanitized evidence retains no transcript, prompt, private path, session body, or source/tool body."],
     },
     separation: {
@@ -996,8 +996,12 @@ export function buildTokenEfficiencyEvidence(
     },
     cacheEffects: { rawInputIncludesCached: true, uncachedDefinition: "uncachedInputTokens = rawInputTokens - cachedInputTokens", externalCacheObservation: "Cache continuity and misses are orchestrator observations, not engine guarantees." },
     approvalEffects: { repositoryControlled: false, observation: "Approval wait is recorded separately from request, tool, coordination, and active wall measurements." },
-    limitations: ["No model/provider calls are made by this harness.", "No comparison candidate is pushed; the disposable candidate is removed after bundle measurement.", "Owner decision remains pending until TE-00-OWNER ratification."],
-    ownerRatification: { decision: null, options: ["ratify the publisher contract", "request another bounded measurement cycle", "do not adopt the optimization"] },
+    limitations: ["No model/provider calls are made by this harness.", "No comparison candidate is pushed; the disposable candidate is removed after bundle measurement.", "The owner rejected fixed percentage reduction gates; measurements remain diagnostic evidence for structural improvements."],
+    ownerRatification: {
+      decision: "ratified: structural improvement without fixed percentage budgets",
+      rationale: "The measured time and token cost comes from structural waste. Remove reproduced unnecessary expansion, rereading, duplication, polling, and round trips while preserving correctness; do not substitute arbitrary reduction percentages for that work.",
+      options: ["ratify the publisher contract", "request another bounded measurement cycle", "do not adopt the optimization"],
+    },
   };
 }
 
@@ -1016,7 +1020,7 @@ export function renderTokenEfficiencyOwnerRatification(evidence: TokenEfficiency
     "",
     `The deterministic publisher evidence is pinned to \`${evidence.comparison.preOptimizationRevision}\` and measured as UTF-8 bytes. External schooled diagnosis and controlled publisher rollout metrics remain separate layers; neither claims billed cost or subscription credits.`,
     "",
-    "## Correctness floor and proposed targets",
+    "## Correctness floor and structural objectives",
     "",
     ...evidence.comparison.correctnessFloor.map((item) => `- ${item}`),
     ...evidence.comparison.optimizationTargets.map((item) => `- ${item}`),
@@ -1032,7 +1036,7 @@ export function renderTokenEfficiencyOwnerRatification(evidence: TokenEfficiency
     "- Request, first-token, completion, tool, approval, coordination, and active-wall metrics distinguish available values from unavailable values with explicit limitations.",
     "- Implementation, publication, merge, and cleanup phases are reported independently; a supplied merge/cleanup combined observation is retained separately when applicable.",
     "",
-    "## Layer separation, variance, and limitations",
+    "## Layer separation, measurement interpretation, and limitations",
     "",
     "- Cached input is included in raw input and is never added twice; reasoning output is a subset of output.",
     "- External cache continuity, approval behavior, provider latency, model routing, and optional orchestration are observations, not repository guarantees.",
@@ -1041,9 +1045,9 @@ export function renderTokenEfficiencyOwnerRatification(evidence: TokenEfficiency
     "",
     "## Owner ratification",
     "",
-    "Decision: **unselected**",
+    `Decision: **${evidence.ownerRatification.decision}**`,
     "",
-    "Choose one: ratify the publisher contract; request another bounded measurement cycle; or do not adopt the optimization.",
+    evidence.ownerRatification.rationale,
     "",
   ].join("\n");
 }

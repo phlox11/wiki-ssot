@@ -2,13 +2,13 @@
 
 The deterministic publisher evidence is pinned to `6fd3a85414e00892930557cb8335e2d88ec90d66` and measured as UTF-8 bytes. External schooled diagnosis and controlled publisher rollout metrics remain separate layers; neither claims billed cost or subscription credits.
 
-## Correctness floor and proposed targets
+## Correctness floor and structural objectives
 
 - PV-19 correctness floor: preserve 100% of current-page, invariant, conflict, implementation-source, authority/status, non-current-label, expected-change, Wiki-action, coverage, impact, review, and drift expectations.
 - Do not trade source traceability, exact-HEAD binding, or independent review for smaller context or bundles.
-- At most 40% of the reproduced deterministic context baseline for each topic and selected-work case.
-- At most 60% of the controlled end-to-end baseline for uncached input and review non-diff bytes under unchanged controls.
-- At most 70% of primary calls and active wall time, and at most 50% of publication-phase calls.
+- Remove repeated full-body expansion, broad re-reading, duplicate review input, repeated discovery and polling, oversized success output, and unnecessary role or phase round trips where the repository structure causes them.
+- Keep token, byte, call, tool, and elapsed-time measurements as before/after diagnostic evidence instead of standalone percentage pass thresholds.
+- Demonstrate that each structural change removes its reproduced waste without weakening the correctness floor or hiding work in an external orchestrator.
 
 ## Reproduced deterministic publisher bytes
 
@@ -21,7 +21,7 @@ The deterministic publisher evidence is pinned to `6fd3a85414e00892930557cb8335e
 - Request, first-token, completion, tool, approval, coordination, and active-wall metrics distinguish available values from unavailable values with explicit limitations.
 - Implementation, publication, merge, and cleanup phases are reported independently; a supplied merge/cleanup combined observation is retained separately when applicable.
 
-## Layer separation, variance, and limitations
+## Layer separation, measurement interpretation, and limitations
 
 - Cached input is included in raw input and is never added twice; reasoning output is a subset of output.
 - External cache continuity, approval behavior, provider latency, model routing, and optional orchestration are observations, not repository guarantees.
@@ -30,10 +30,10 @@ The deterministic publisher evidence is pinned to `6fd3a85414e00892930557cb8335e
 - Sanitized evidence retains no transcript, prompt, private path, session body, or source/tool body.
 - No model/provider calls are made by this harness.
 - No comparison candidate is pushed; the disposable candidate is removed after bundle measurement.
-- Owner decision remains pending until TE-00-OWNER ratification.
+- The owner rejected fixed percentage reduction gates; measurements remain diagnostic evidence for structural improvements.
 
 ## Owner ratification
 
-Decision: **unselected**
+Decision: **ratified: structural improvement without fixed percentage budgets**
 
-Choose one: ratify the publisher contract; request another bounded measurement cycle; or do not adopt the optimization.
+The measured time and token cost comes from structural waste. Remove reproduced unnecessary expansion, rereading, duplication, polling, and round trips while preserving correctness; do not substitute arbitrary reduction percentages for that work.
