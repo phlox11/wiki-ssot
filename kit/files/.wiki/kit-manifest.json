@@ -1,5 +1,5 @@
 {
-  "digest": "7f4acbd29917d42e8fc76597b5741a80abe61c4585675d1ea08f3064c7a50e79",
+  "digest": "0e61981b08cd1f10b3c176b36c72f98d63bde64706171ea88b69d50be779cad0",
   "files": {
     ".github/workflows/wiki-audit.yml": {
       "ownership": "kit",
@@ -31,7 +31,7 @@
     },
     "scripts/wiki/cli.ts": {
       "ownership": "kit",
-      "sha256": "ca736696e492ca919e1514b8256b42c6aabfe28bdf398f602826b36317f370c5"
+      "sha256": "6d0d9b9344ea64f602b9fbff7a313e7619c53210801f42da0b66d9727f2d8617"
     },
     "scripts/wiki/core.ts": {
       "ownership": "kit",
@@ -63,7 +63,7 @@
     },
     "scripts/wiki/work.test.ts": {
       "ownership": "kit",
-      "sha256": "b10df1bc1e3a02b57de65b7f08e93780d5344bc712181a2047dab86537bfb00a"
+      "sha256": "f55bf17000199c2655290f41dc213c2eec592e481a6b6beba911e15b15f729ba"
     },
     "tsconfig.json": {
       "ownership": "seed",

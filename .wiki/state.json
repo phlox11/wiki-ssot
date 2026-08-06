@@ -4,7 +4,7 @@
       "sources": {
         "scripts/wiki/apply.test.ts": "ab318b04cd21cc4e191066261e2c6cf8a09776d37635415032c30a66b2dc5dc2",
         "scripts/wiki/apply.ts": "5a273691372ff6fcfdd63214da513fa8b71b9fe8730ff2e49cdfec0793ad2c15",
-        "scripts/wiki/cli.ts": "ca736696e492ca919e1514b8256b42c6aabfe28bdf398f602826b36317f370c5",
+        "scripts/wiki/cli.ts": "6d0d9b9344ea64f602b9fbff7a313e7619c53210801f42da0b66d9727f2d8617",
         "scripts/wiki/core.ts": "590e7ef70383e831f6fa8f9ab310a6c80a29b71c4c5e3597fdc8b5597f23bc92",
         "scripts/wiki/existing-repo-bootstrap.test.ts": "90d75082e33ccdb3fe195b1bbbcbbc6be7646a55a948e1359be2d001e79e5eb2",
         "scripts/wiki/fresh-context.test.ts": "5e26d02abbca0a4e17c25be737242feb15d0091302682318e394b584fe29c7b4",
@@ -26,7 +26,7 @@
         "scripts/wiki/token-efficiency-baseline.ts": "9ddd771da463dbdf0a806aa82375c148b58e74521736ae3832e72f049581e3ca",
         "scripts/wiki/tsconfig.json": "e663640cb557e1d3fee0c2ffca227ad0832d3cd30a341813c4fd09f73bb0e65a",
         "scripts/wiki/wiki.test.ts": "00c5762f2fa69bf6830c10f70ca63ad12baa822c0fc1506603f89ff6fe77f7a4",
-        "scripts/wiki/work.test.ts": "b10df1bc1e3a02b57de65b7f08e93780d5344bc712181a2047dab86537bfb00a"
+        "scripts/wiki/work.test.ts": "f55bf17000199c2655290f41dc213c2eec592e481a6b6beba911e15b15f729ba"
       },
       "verification": {
         "kind": "updated"
@@ -45,7 +45,7 @@
         "AGENTS.md": "ce754be14c6dae7cb7bd70252e263842d960b8c8312170102cfae34bd8419746",
         "package.json": "e73eac7e5e309f816f1e35df44a8f11362282fee931c4db24e0a3a409da23934",
         "scripts/wiki/apply.ts": "5a273691372ff6fcfdd63214da513fa8b71b9fe8730ff2e49cdfec0793ad2c15",
-        "scripts/wiki/cli.ts": "ca736696e492ca919e1514b8256b42c6aabfe28bdf398f602826b36317f370c5",
+        "scripts/wiki/cli.ts": "6d0d9b9344ea64f602b9fbff7a313e7619c53210801f42da0b66d9727f2d8617",
         "scripts/wiki/core.ts": "590e7ef70383e831f6fa8f9ab310a6c80a29b71c4c5e3597fdc8b5597f23bc92",
         "scripts/wiki/github-attestation.ts": "cad5290748265f5b5cd1a5503f075cfb837283ca0e8b4e7c004567deb33139cb"
       },
@@ -57,7 +57,7 @@
       "sources": {
         "AGENTS.md": "ce754be14c6dae7cb7bd70252e263842d960b8c8312170102cfae34bd8419746",
         "scripts/wiki/apply.ts": "5a273691372ff6fcfdd63214da513fa8b71b9fe8730ff2e49cdfec0793ad2c15",
-        "scripts/wiki/cli.ts": "ca736696e492ca919e1514b8256b42c6aabfe28bdf398f602826b36317f370c5",
+        "scripts/wiki/cli.ts": "6d0d9b9344ea64f602b9fbff7a313e7619c53210801f42da0b66d9727f2d8617",
         "scripts/wiki/core.ts": "590e7ef70383e831f6fa8f9ab310a6c80a29b71c4c5e3597fdc8b5597f23bc92"
       },
       "verification": {

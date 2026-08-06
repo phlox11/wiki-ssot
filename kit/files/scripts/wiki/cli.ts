@@ -346,6 +346,8 @@ function compactTopicText(context: CompactTopicContext): string {
         `   Kind: ${candidate.kind}`,
         `   Status: ${candidate.status}`,
         `   Authority: ${candidate.authority}`,
+        `   Owners: ${candidate.owners.join(", ") || "none"}`,
+        `   Relevant open conflicts: ${candidate.relevantOpenConflicts.join(", ") || "none"}`,
         `   Wiki page: ${candidate.path}`,
         `   Summary: ${candidate.summary}`,
         `   Body digest: ${candidate.bodyDigest}`,
@@ -936,6 +938,7 @@ async function main() {
     if (requestedConflict) {
       const page = loaded.pages.find((item) => item.data.kind === "conflict" && (item.data.conflict_id === requestedConflict || item.data.id.toUpperCase() === requestedConflict));
       if (!page) throw new UsageError(`unknown conflict: ${requestedConflict}`);
+      if (!has(parsed, "all") && page.data.status !== "conflicted") throw new UsageError(`unknown open conflict: ${requestedConflict}`);
       conflictIds.add(page.data.conflict_id!);
       for (const id of page.data.affected_pages ?? []) ids.add(id);
       for (const id of page.data.affected_invariants ?? []) ids.add(id);
@@ -955,10 +958,46 @@ async function main() {
       for (const id of conflict?.data.affected_invariants ?? []) ids.add(id);
     }
     const pages = loaded.pages.filter((page) => page.data.kind !== "conflict" && ids.has(page.data.id)).map((page) => ({ id: page.data.id, path: page.path, summary: page.data.summary, sources: page.data.sources, body: page.body }));
-    const conflicts = openConflicts(loaded.pages).filter((page) => conflictIds.has(page.data.conflict_id!)).map(conflictSummary);
+    const conflictCandidates = requestedConflict && has(parsed, "all")
+      ? loaded.pages.filter((page) => page.data.kind === "conflict")
+      : openConflicts(loaded.pages);
+    const conflicts = conflictCandidates
+      .filter((page) => conflictIds.has(page.data.conflict_id!))
+      .map((page) => ({
+        ...conflictSummary(page),
+        kind: page.data.kind,
+        status: page.data.status,
+        authority: page.data.authority,
+        owners: page.data.owners,
+        ...(has(parsed, "full") ? { body: page.body, resolution: page.data.resolution } : {}),
+      }));
     if (json) emit({ query: null, requestedConflict: requestedConflict ?? null, conflicts, pages }, true);
     else {
-      const conflictText = conflicts.map((item) => `# OPEN CONFLICT ${item.id} [${item.severity}, ${item.type}, ${item.state}]\n\n${item.summary}\n\nSource file: ${item.path}\n\nAcceptance:\n${item.acceptance.map((criterion) => `- ${criterion}`).join("\n")}\n`).join("\n---\n\n");
+      const conflictText = conflicts.map((item) => [
+        item.status === "conflicted"
+          ? `# OPEN CONFLICT ${item.id} [${item.severity}, ${item.type}, ${item.state}]`
+          : `# RESOLVED CONFLICT ${item.id} [${item.status}, ${item.severity}, ${item.type}, ${item.state}]`,
+        "",
+        item.summary,
+        "",
+        `Kind: ${item.kind}`,
+        `Status: ${item.status}`,
+        `Authority: ${item.authority}`,
+        `Lifecycle: ${item.status === "conflicted" ? "open (current workflow)" : "resolved (non-current)"}`,
+        `Owners: ${item.owner.join(", ") || "none"}`,
+        `Wiki page: ${item.path}`,
+        `Source file: ${item.path}`,
+        "",
+        "Sources:",
+        sourceText(item.sources),
+        "",
+        "Acceptance:",
+        ...item.acceptance.map((criterion) => `- ${criterion}`),
+        ...(item.resolution?.decision ? ["", `Decision: ${item.resolution.decision}`] : []),
+        ...(item.resolution?.evidence?.length ? [`Evidence: ${item.resolution.evidence.join(", ")}`] : []),
+        ...(item.body != null ? ["", item.body.trim()] : []),
+        "",
+      ].join("\n")).join("\n---\n\n");
       const pageText = pages.map((page) => `# ${page.id}\n\nSource file: ${page.path}\n\n${page.body.trim()}\n`).join("\n---\n\n");
       emit([conflictText, pageText].filter(Boolean).join("\n---\n\n") || "no context pages or conflicts", false);
     }

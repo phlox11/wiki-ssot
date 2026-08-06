@@ -142,6 +142,17 @@ resolution:
 `;
 }
 
+function resolvedConflictPage(): string {
+  return conflictPage()
+    .replace("id: conflict/C-900", "id: conflict/C-901")
+    .replace("conflict_id: C-900", "conflict_id: C-901")
+    .replace("summary: Owner decision is required.", "summary: Resolved owner decision.")
+    .replace("status: conflicted", "status: archived")
+    .replace("state: decision_pending", "state: verified")
+    .replace("decision: null", "decision: Owner selected the documented implementation.")
+    .replace('acceptance: ["Record the owner decision."]', 'acceptance: ["Record the owner decision."]\n  evidence: ["source.ts"]');
+}
+
 function work(overrides: Partial<WorkItem> = {}): WorkItem {
   return {
     id: "WK-01",
@@ -815,6 +826,77 @@ describe("work CLI and selected context", () => {
     expect(text).not.toContain("Expanded source files:");
     expect(text).not.toContain("Detailed rationale stays");
     expect(run(root, [process.execPath, cli, "context", "test work", "--full"])).toContain("Detailed rationale stays");
+  });
+
+  test("renders candidate owners and relevant open conflicts in compact text", () => {
+    const root = cliRepo([work()], true);
+    const cli = join(process.cwd(), "scripts/wiki/cli.ts");
+    const compact = JSON.parse(run(root, [process.execPath, cli, "context", "test work", "--json"]));
+    const current = compact.candidates.find((candidate: { id: string }) => candidate.id === "product/test");
+    const nonCurrent = compact.candidates.find((candidate: { id: string }) => candidate.id === "proposal/work");
+    expect(current).toMatchObject({ owners: ["@owner"], relevantOpenConflicts: ["C-900"] });
+    expect(nonCurrent).toMatchObject({ owners: ["@owner"], relevantOpenConflicts: [] });
+
+    const text = run(root, [process.execPath, cli, "context", "test work"]);
+    expect(text).toContain(`Owners: ${current.owners.join(", ")}`);
+    expect(text).toContain(`Relevant open conflicts: ${current.relevantOpenConflicts.join(", ")}`);
+    expect(text).toContain(`Owners: ${nonCurrent.owners.join(", ")}`);
+    expect(text).toContain("Relevant open conflicts: none");
+  });
+
+  test("follows a resolved conflict candidate only through an --all focused command", () => {
+    const root = cliRepo([work()], false);
+    put(root, "wiki/conflicts/resolved/C-901.md", resolvedConflictPage());
+    run(root, ["git", "add", "."]);
+    run(root, ["git", "commit", "-qm", "resolved conflict"]);
+    const cli = join(process.cwd(), "scripts/wiki/cli.ts");
+
+    const compact = JSON.parse(run(root, [process.execPath, cli, "context", "resolved mystery", "--json"]));
+    expect(compact.matchMode).toBe("partial");
+    const candidate = compact.candidates.find((item: { id: string }) => item.id === "conflict/C-901");
+    expect(candidate).toMatchObject({
+      status: "archived",
+      authority: "observed",
+      owners: ["@owner"],
+      relevantOpenConflicts: [],
+      focusedCommand: "bun run wiki:context -- --all --conflict C-901 --full",
+    });
+
+    const withoutAll = runResult(root, [process.execPath, cli, "context", "--conflict", "C-901", "--full", "--json"]);
+    expect(withoutAll.exitCode).toBe(2);
+    expect(withoutAll.stderr).toContain("unknown open conflict: C-901");
+
+    const resolved = JSON.parse(run(root, [process.execPath, cli, "context", "--all", "--conflict", "C-901", "--full", "--json"]));
+    expect(resolved.conflicts).toHaveLength(1);
+    expect(resolved.conflicts[0]).toMatchObject({
+      id: "C-901",
+      pageId: "conflict/C-901",
+      path: "wiki/conflicts/resolved/C-901.md",
+      kind: "conflict",
+      status: "archived",
+      authority: "observed",
+      state: "verified",
+      acceptance: ["Record the owner decision."],
+      sources: [{ path: "source.ts" }],
+      resolution: {
+        state: "verified",
+        decision: "Owner selected the documented implementation.",
+        acceptance: ["Record the owner decision."],
+        evidence: ["source.ts"],
+      },
+      body: expect.stringContaining("# Decision"),
+    });
+
+    const text = run(root, [process.execPath, cli, "context", "--all", "--conflict", "C-901", "--full"]);
+    expect(text).toContain("# RESOLVED CONFLICT C-901 [archived, high, decision, verified]");
+    expect(text).toContain("Status: archived");
+    expect(text).toContain("Authority: observed");
+    expect(text).toContain("Lifecycle: resolved (non-current)");
+    expect(text).toContain("Source file: wiki/conflicts/resolved/C-901.md");
+    expect(text).toContain("Sources:\n- path: source.ts");
+    expect(text).toContain("Acceptance:\n- Record the owner decision.");
+    expect(text).toContain("Decision: Owner selected the documented implementation.");
+    expect(text).toContain("# Decision");
   });
 
   test("builds partial candidates without a RepoView or source-glob expansion", () => {
