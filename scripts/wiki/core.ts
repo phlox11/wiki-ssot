@@ -673,6 +673,62 @@ export type SelectedWorkContext = {
   sources: SelectedWorkContextSourceSummary[];
 };
 
+/**
+ * The compact context projection deliberately keeps routing and authority
+ * metadata while dropping page bodies.  `buildSelectedWorkContext` and
+ * `buildTopicContext` remain the exhaustive semantic models used by exact
+ * context artifacts and by the explicit `--full` CLI mode; this projection is
+ * only a presentation boundary for ordinary discovery.
+ */
+export type CompactContextPage = Omit<SelectedWorkContextPage, "body"> & {
+  bodyDigest: string;
+  focusedCommand: string;
+};
+
+export type CompactContextConflict = Omit<SelectedWorkContextConflict, "body"> & {
+  bodyDigest: string;
+  focusedCommand: string;
+};
+
+export type TopicContextCandidate = {
+  /** Stable one-based order in the deterministic search result. */
+  order: number;
+  score: number;
+  id: string;
+  kind: string;
+  path: string;
+  summary: string;
+  status: WikiStatus;
+  authority: WikiAuthority;
+  owners: string[];
+  bodyDigest: string;
+  relevantOpenConflicts: string[];
+  focusedCommand: string;
+};
+
+export type CompactSelectedWorkContext = Omit<
+  SelectedWorkContext,
+  "pages" | "conflicts" | "ownerPage" | "sources"
+> & {
+  mode: "compact";
+  pages: CompactContextPage[];
+  conflicts: CompactContextConflict[];
+  ownerPage: CompactContextPage;
+};
+
+export type CompactTopicContext = Omit<
+  TopicContext,
+  "pages" | "conflicts" | "nonCurrentPages" | "sources"
+> & {
+  mode: "compact";
+  /** `partial` exposes candidates before any focused body expansion. */
+  matchMode: "complete" | "partial" | "none";
+  pages: CompactContextPage[];
+  conflicts: CompactContextConflict[];
+  nonCurrentPages: CompactContextPage[];
+  candidates: TopicContextCandidate[];
+};
+
 export type TopicContext = {
   version: 1;
   query: string;
@@ -914,9 +970,227 @@ export function buildTopicContext(view: RepoView, pages: WikiPage[], query: stri
     .sort((a, b) => a.data.id.localeCompare(b.data.id))
     .map((page) => selectedWorkContextPage(view, page, selectedConflictPages));
 
-  return {
+  const context: TopicContext = {
     version: 1,
     query,
+    requestedConflict: null,
+    requestedWork: null,
+    readOrder: contextReadOrder(contextPages, conflicts),
+    pages: contextPages,
+    conflicts,
+    nonCurrentPages,
+    sources: [...contextPages, ...conflicts, ...nonCurrentPages].map(contextSourceSummary),
+  };
+  return context;
+}
+
+function focusedContextCommand(page: SelectedWorkContextPage | SelectedWorkContextConflict): string {
+  if (page.kind === "conflict") {
+    const conflictId = "id" in page && page.id.startsWith("C-") ? page.id : page.id.replace(/^conflict\//, "");
+    const all = page.status === "conflicted" ? "" : " --all";
+    return `bun run wiki:context --${all} --conflict ${conflictId} --full`;
+  }
+  return `bun run wiki:context -- --page ${page.id} --full`;
+}
+
+function compactContextPage(page: SelectedWorkContextPage): CompactContextPage {
+  const { body, ...metadata } = page;
+  return {
+    ...metadata,
+    bodyDigest: hashContent(body),
+    focusedCommand: focusedContextCommand(page),
+  };
+}
+
+function compactContextConflict(page: SelectedWorkContextConflict): CompactContextConflict {
+  const { body, ...metadata } = page;
+  return {
+    ...metadata,
+    bodyDigest: hashContent(body),
+    focusedCommand: focusedContextCommand(page),
+  };
+}
+
+function topicCandidate(
+  match: WikiSearchMatch,
+  order: number,
+  selectedConflicts: Array<WikiPage | SelectedWorkContextConflict>,
+): TopicContextCandidate {
+  const { page, score } = match;
+  const relevantOpenConflicts = selectedConflicts
+    .filter((conflict) => {
+      const affectedPages = "data" in conflict ? conflict.data.affected_pages ?? [] : conflict.affectedPages;
+      const affectedInvariants = "data" in conflict ? conflict.data.affected_invariants ?? [] : conflict.affectedInvariants;
+      return affectedPages.includes(page.data.id) || affectedInvariants.includes(page.data.id);
+    })
+    .map((conflict) => "data" in conflict ? conflict.data.conflict_id! : conflict.id)
+    .sort((a, b) => a.localeCompare(b));
+  if (page.data.kind === "conflict" && page.data.status === "conflicted" && page.data.conflict_id != null) {
+    relevantOpenConflicts.push(page.data.conflict_id);
+  }
+  relevantOpenConflicts.sort((a, b) => a.localeCompare(b));
+  const conflictCandidate = page.data.kind === "conflict";
+  const focusedCommand = conflictCandidate
+    ? `bun run wiki:context --${page.data.status === "conflicted" ? "" : " --all"} --conflict ${page.data.conflict_id ?? page.data.id.replace(/^conflict\//, "")} --full`
+    : `bun run wiki:context -- --page ${page.data.id} --full`;
+  return {
+    order,
+    score,
+    id: page.data.id,
+    kind: page.data.kind,
+    path: page.path,
+    summary: page.data.summary,
+    status: page.data.status,
+    authority: page.data.authority,
+    owners: [...page.data.owners],
+    bodyDigest: hashContent(page.body),
+    relevantOpenConflicts,
+    focusedCommand,
+  };
+}
+
+/**
+ * Build the bounded partial-match route directly from search results and Wiki
+ * frontmatter. This function intentionally accepts no RepoView: it cannot
+ * expand source globs, construct a source read order, or assemble page bodies.
+ * Candidates carry only routing metadata plus a stable body digest; callers
+ * follow the focused command before requesting exhaustive context.
+ */
+export function buildCompactTopicCandidateContext(
+  pages: WikiPage[],
+  query: string,
+  matches: WikiSearchMatch[] = searchWikiPages(pages, query),
+): CompactTopicContext {
+  const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+  const complete = matches.length > 0 && matches.some((match) => match.score === terms.length);
+  const matchMode: CompactTopicContext["matchMode"] = matches.length === 0 ? "none" : complete ? "complete" : "partial";
+  const candidates = matchMode === "partial"
+    ? matches.map((match, index) => topicCandidate(match, index + 1, openConflicts(pages)))
+    : [];
+  return {
+    version: 1,
+    mode: "compact",
+    query,
+    requestedConflict: null,
+    requestedWork: null,
+    matchMode,
+    readOrder: [],
+    pages: [],
+    conflicts: [],
+    nonCurrentPages: [],
+    candidates,
+  };
+}
+
+/**
+ * Project an exhaustive selected-work model for ordinary discovery.  Passing
+ * `full` returns the original object unchanged so reusable context digests and
+ * the historical exhaustive representation remain stable.
+ */
+export function projectSelectedWorkContext(
+  context: SelectedWorkContext,
+  mode: "compact" | "full" = "compact",
+): SelectedWorkContext | CompactSelectedWorkContext {
+  if (mode === "full") return context;
+  return {
+    version: context.version,
+    mode: "compact",
+    query: context.query,
+    requestedConflict: context.requestedConflict,
+    requestedWork: context.requestedWork,
+    work: context.work,
+    readOrder: context.readOrder,
+    pages: context.pages.map(compactContextPage),
+    conflicts: context.conflicts.map(compactContextConflict),
+    ownerPage: compactContextPage(context.ownerPage),
+  };
+}
+
+/**
+ * Project an exhaustive topic model for complete-match discovery. The optional
+ * explicit search results preserve deterministic match-mode/candidate metadata
+ * for callers that already built the exhaustive model (the default partial
+ * route uses buildCompactTopicCandidateContext before that model is built).
+ */
+export function projectTopicContext(
+  context: TopicContext,
+  mode: "compact" | "full" = "compact",
+  matches: WikiSearchMatch[] = [],
+): TopicContext | CompactTopicContext {
+  if (mode === "full") return context;
+  const terms = context.query.toLowerCase().split(/\s+/).filter(Boolean);
+  const complete = matches.length > 0 && matches.some((match) => match.score === terms.length);
+  const matchMode: CompactTopicContext["matchMode"] = matches.length === 0 ? "none" : complete ? "complete" : "partial";
+  const conflicts = context.conflicts.map(compactContextConflict);
+  const candidates = matchMode === "partial"
+    ? matches.map((match, index) => topicCandidate(match, index + 1, context.conflicts))
+    : [];
+  // Partial-only discovery is deliberately a routing surface: candidates carry
+  // the metadata needed to choose a page or conflict, while the caller must
+  // follow a focused command before any page/source expansion occurs.
+  if (matchMode === "partial") {
+    return {
+      version: context.version,
+      mode: "compact",
+      query: context.query,
+      requestedConflict: context.requestedConflict,
+      requestedWork: context.requestedWork,
+      matchMode,
+      readOrder: [],
+      pages: [],
+      conflicts: [],
+      nonCurrentPages: [],
+      candidates,
+    };
+  }
+  return {
+    version: context.version,
+    mode: "compact",
+    query: context.query,
+    requestedConflict: context.requestedConflict,
+    requestedWork: context.requestedWork,
+    matchMode,
+    readOrder: context.readOrder,
+    pages: context.pages.map(compactContextPage),
+    conflicts,
+    nonCurrentPages: context.nonCurrentPages.map(compactContextPage),
+    candidates,
+  };
+}
+
+/**
+ * Build a focused page context used by compact candidate follow-up commands.
+ * It intentionally uses the same current-authority/conflict/source ordering as
+ * topic and selected-work context, but selects one exact page ID rather than a
+ * substring query.
+ */
+export function buildPageContext(view: RepoView, pages: WikiPage[], pageId: string): TopicContext {
+  const target = pages.find((page) => page.data.id === pageId);
+  if (!target) throw new Error(`unknown page: ${pageId}`);
+  if (target.data.kind === "conflict") throw new Error(`conflict pages require --conflict ${target.data.conflict_id ?? pageId}`);
+
+  const requestedIds = new Set<string>();
+  if (target.data.status === "current") requestedIds.add(target.data.id);
+  for (const page of currentPages(pages)) if (page.data.kind === "invariant") requestedIds.add(page.data.id);
+
+  const relevantConflictPages = openConflicts(pages).filter((page) => (page.data.affected_pages ?? []).includes(target.data.id)
+    || (page.data.affected_invariants ?? []).includes(target.data.id));
+  for (const conflict of relevantConflictPages) {
+    for (const id of [...(conflict.data.affected_pages ?? []), ...(conflict.data.affected_invariants ?? [])]) {
+      const affected = pages.find((page) => page.data.id === id);
+      if (affected?.data.status === "current" && affected.data.kind !== "conflict") requestedIds.add(id);
+    }
+  }
+  const selectedCurrentPages = currentPages(pages).filter((page) => requestedIds.has(page.data.id));
+  const contextPages = [
+    ...selectedCurrentPages.filter((page) => page.data.kind === "invariant"),
+    ...selectedCurrentPages.filter((page) => page.data.kind !== "invariant"),
+  ].map((page) => selectedWorkContextPage(view, page, relevantConflictPages));
+  const conflicts = relevantConflictPages.map((page) => selectedWorkContextConflict(view, page));
+  const nonCurrentPages = target.data.status === "current" ? [] : [selectedWorkContextPage(view, target, relevantConflictPages)];
+  return {
+    version: 1,
+    query: pageId,
     requestedConflict: null,
     requestedWork: null,
     readOrder: contextReadOrder(contextPages, conflicts),

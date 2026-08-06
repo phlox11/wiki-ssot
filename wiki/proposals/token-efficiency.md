@@ -25,6 +25,8 @@ sources:
   - path: docs/evidence/te-00-controlled-publisher.json
   - path: docs/evidence/te-00-token-efficiency-baseline.json
   - path: docs/evidence/te-00-token-efficiency-baseline.md
+  - path: docs/evidence/te-01-02-context-projection.json
+  - path: docs/evidence/te-01-02-context-projection.md
 affects: [product/scope, product/invariants, architecture/engine, operations/enforcement]
 related: [proposal/primary-findability-validation, product/scope, product/invariants, architecture/engine, operations/enforcement]
 tags: [roadmap, token, performance, latency, context, efficiency, search, sources, review, orchestration]
@@ -68,7 +70,7 @@ work_items:
       - docs/evidence/te-00-token-efficiency-baseline.md
   - id: TE-01
     title: Add compact context projections with explicit full expansion
-    state: not-started
+    state: done
     executor: agent
     priority: high
     depends_on: [TE-00-OWNER, TE-05]
@@ -81,10 +83,20 @@ work_items:
       - Focused publisher regressions prove that compact output removes reproduced full-body duplication and broad rereading, while recording before/after bytes, calls, and time without reducing PV-19 authority, conflict, source, status, or expected-action recall; existing kit and adoption tests preserve portable correctness.
       - Any change to the current context-completeness contract updates current Wiki pages, code, tests, and downstream kit documentation in the same implementation PR.
       - TE-01 and TE-02 ship as one inseparable implementation PR because they change the same search, semantic context, text, JSON, test, and adoption surfaces; each stable work ID retains its own acceptance evidence.
-    evidence: []
+    evidence:
+      - scripts/wiki/core.ts
+      - scripts/wiki/cli.ts
+      - scripts/wiki/work.test.ts
+      - docs/commands.md
+      - docs/evidence/te-01-02-context-projection.json
+      - docs/evidence/te-01-02-context-projection.md
+      - wiki/architecture/engine.md
+      - wiki/operations/enforcement.md
+      - wiki/product/invariants.md
+      - wiki/product/scope.md
   - id: TE-02
     title: Bound partial-match discovery before full context expansion
-    state: not-started
+    state: done
     executor: agent
     priority: high
     depends_on: [TE-00-OWNER, TE-05]
@@ -96,7 +108,17 @@ work_items:
       - Stop-word, score, field-weighting, or result-limit choices are justified by reproduced real-repository misses and do not silently hide a controlling current page or open conflict.
       - The publisher token-efficiency diagnostic query no longer produces an unbounded multi-page body expansion, while JSON and text results remain semantically aligned and portable fixture tests preserve the same semantics downstream.
       - TE-01 and TE-02 ship as one inseparable implementation PR, and the combined candidate satisfies both work contracts before either item is marked done.
-    evidence: []
+    evidence:
+      - scripts/wiki/core.ts
+      - scripts/wiki/cli.ts
+      - scripts/wiki/work.test.ts
+      - docs/commands.md
+      - docs/evidence/te-01-02-context-projection.json
+      - docs/evidence/te-01-02-context-projection.md
+      - wiki/architecture/engine.md
+      - wiki/operations/enforcement.md
+      - wiki/product/invariants.md
+      - wiki/product/scope.md
   - id: TE-03
     title: Partition the recursive engine source authority boundary
     state: deferred

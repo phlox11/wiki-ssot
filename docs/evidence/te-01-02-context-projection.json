@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "workItems": [
+    "TE-01",
+    "TE-02"
+  ],
+  "implementationRevision": "f43e4b4edf63e3e314cfff255b726ffdb06627c2",
+  "historicalBaselineRevision": "6fd3a85414e00892930557cb8335e2d88ec90d66",
+  "historicalBaselineTextBytes": {
+    "focused": 55043,
+    "broad": 114294,
+    "selectedWork": 66479
+  },
+  "sameRevisionProjectionComparison": [
+    {
+      "label": "focused",
+      "query": "recursive source mapping",
+      "compactBytes": 12471,
+      "fullBytes": 74014,
+      "removedOutputBytes": 61543,
+      "compactMedianMs": 136.33,
+      "fullMedianMs": 136.955,
+      "cliCallsPerProjection": 1
+    },
+    {
+      "label": "broad",
+      "query": "token context runtime cost efficiency",
+      "compactBytes": 3080,
+      "fullBytes": 15711,
+      "removedOutputBytes": 12631,
+      "compactMedianMs": 136.879,
+      "fullMedianMs": 136.077,
+      "cliCallsPerProjection": 1
+    },
+    {
+      "label": "selected-work",
+      "workId": "TE-01",
+      "compactBytes": 14299,
+      "fullBytes": 74962,
+      "removedOutputBytes": 60663,
+      "compactMedianMs": 136.488,
+      "fullMedianMs": 135.137,
+      "cliCallsPerProjection": 1
+    }
+  ],
+  "method": {
+    "encoding": "UTF-8",
+    "runtime": "Bun 1.3.10 on macOS arm64",
+    "timing": "One warm-up followed by seven synchronous CLI processes; median wall time includes Bun process startup.",
+    "modelCalls": 0,
+    "providerCalls": 0,
+    "notes": [
+      "Same-revision compact/full pairs isolate representation cost; historical TE-00 bytes remain a separate longitudinal diagnostic because repository content and matching evolved.",
+      "Default partial-only topic discovery builds candidates from search results and Wiki frontmatter without a RepoView, source-glob expansion, read-order construction, or page-body context assembly.",
+      "Compact selected-work and complete-match context retain authority, status, paths, source declarations and expansion, conflict IDs, read order, body digests, and focused commands.",
+      "Full mode retains the exhaustive historical representation and exact-revision reusable-context artifacts continue to bind the exhaustive semantic model.",
+      "The local wall-time samples show no measurable latency improvement because process startup dominates; they are observations, not a pass threshold or provider-performance claim."
+    ]
+  }
+}

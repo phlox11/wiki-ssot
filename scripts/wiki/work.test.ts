@@ -3,8 +3,11 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "nod
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import {
+  buildCompactTopicCandidateContext,
+  buildTopicContext,
   buildWorkQueue,
   compareGenerated,
+  createRepoView,
   generateCurrentStatus,
   generateWorkQueue,
   jsonStable,
@@ -137,6 +140,17 @@ resolution:
 
 # Decision
 `;
+}
+
+function resolvedConflictPage(): string {
+  return conflictPage()
+    .replace("id: conflict/C-900", "id: conflict/C-901")
+    .replace("conflict_id: C-900", "conflict_id: C-901")
+    .replace("summary: Owner decision is required.", "summary: Resolved owner decision.")
+    .replace("status: conflicted", "status: archived")
+    .replace("state: decision_pending", "state: verified")
+    .replace("decision: null", "decision: Owner selected the documented implementation.")
+    .replace('acceptance: ["Record the owner decision."]', 'acceptance: ["Record the owner decision."]\n  evidence: ["source.ts"]');
 }
 
 function work(overrides: Partial<WorkItem> = {}): WorkItem {
@@ -448,7 +462,7 @@ describe("work CLI and selected context", () => {
   test("assembles authoritative current context and labels the proposal non-current", () => {
     const root = cliRepo([work({ id: "WK-01", context_pages: ["product/test"] })]);
     const cli = join(process.cwd(), "scripts/wiki/cli.ts");
-    const json = JSON.parse(run(root, [process.execPath, cli, "context", "--work", "WK-01", "--json"]));
+    const json = JSON.parse(run(root, [process.execPath, cli, "context", "--work", "WK-01", "--full", "--json"]));
     expect(json.version).toBe(1);
     expect(json.requestedWork).toBe("WK-01");
     expect(json.pages.map((page: { id: string }) => page.id)).toEqual(["product/invariant", "product/test"]);
@@ -479,7 +493,7 @@ describe("work CLI and selected context", () => {
       { kind: "source", path: "src/z.ts", declaredBy: ["product/test"] },
     ]);
     expect(json.sources.find((item: { pageId: string }) => item.pageId === "proposal/work").declared).toEqual([{ path: "source.ts" }]);
-    const text = run(root, [process.execPath, cli, "context", "--work", "WK-01"]);
+    const text = run(root, [process.execPath, cli, "context", "--work", "WK-01", "--full"]);
     expect(text).toContain("# CURRENT INVARIANT product/invariant");
     expect(text).toContain("# CURRENT PAGE product/test");
     expect(text).toContain("# NON-CURRENT WORK OWNER proposal/work");
@@ -493,6 +507,38 @@ describe("work CLI and selected context", () => {
     expect(text.indexOf("# SOURCE READ ORDER")).toBeLessThan(text.indexOf("# NON-CURRENT WORK OWNER"));
     expect(text).toContain("Declared sources:");
     expect(text).not.toContain("# CURRENT PAGE proposal/work");
+  });
+
+  test("projects selected-work context compactly by default and preserves exhaustive --full", () => {
+    const root = cliRepo([work({ id: "WK-01", context_pages: ["product/test"] })]);
+    const cli = join(process.cwd(), "scripts/wiki/cli.ts");
+    const compact = JSON.parse(run(root, [process.execPath, cli, "context", "--work", "WK-01", "--json"]));
+    const full = JSON.parse(run(root, [process.execPath, cli, "context", "--work", "WK-01", "--full", "--json"]));
+    expect(compact.mode).toBe("compact");
+    expect(compact.pages.map((page: { id: string }) => page.id)).toEqual(full.pages.map((page: { id: string }) => page.id));
+    expect(compact.conflicts.map((conflict: { id: string }) => conflict.id)).toEqual(full.conflicts.map((conflict: { id: string }) => conflict.id));
+    expect(compact.readOrder).toEqual(full.readOrder);
+    expect(compact.ownerPage.id).toBe(full.ownerPage.id);
+    for (const page of [...compact.pages, compact.ownerPage]) {
+      expect(page.body).toBeUndefined();
+      expect(page.bodyDigest).toMatch(/^[0-9a-f]{64}$/);
+      expect(page.focusedCommand).toContain(`--page ${page.id}`);
+      expect(page.sources).toBeDefined();
+      expect(page.sourceFiles).toEqual(full.pages.find((item: { id: string }) => item.id === page.id)?.sourceFiles
+        ?? full.ownerPage.sourceFiles);
+    }
+    expect(compact.sources).toBeUndefined();
+    expect(full.sources.find((source: { pageId: string }) => source.pageId === "proposal/work").declared).toEqual([{ path: "source.ts" }]);
+    expect(full.pages[1].body).toContain("Current contract body.");
+    expect(compact.pages[1].body).toBeUndefined();
+    const text = run(root, [process.execPath, cli, "context", "--work", "WK-01"]);
+    expect(text).toContain("Projection: compact");
+    expect(text).toContain("Body digest:");
+    expect(text).toContain("Body omitted in compact mode");
+    expect(text).toContain("SOURCE source.ts");
+    expect((text.match(/# SOURCE READ ORDER/g) ?? []).length).toBe(0);
+    expect(text).not.toContain("Current contract body.");
+    expect(run(root, [process.execPath, cli, "context", "--work", "WK-01", "--full"])).toContain("Current contract body.");
   });
 
   test("exposes executor in generated/context projections and hands human work off", () => {
@@ -660,8 +706,8 @@ describe("work CLI and selected context", () => {
       "proposal/topic",
     ]);
 
-    const first = run(root, [process.execPath, cli, "context", "shared topic", "--json"]);
-    expect(run(root, [process.execPath, cli, "context", "shared topic", "--json"])).toBe(first);
+    const first = run(root, [process.execPath, cli, "context", "shared topic", "--full", "--json"]);
+    expect(run(root, [process.execPath, cli, "context", "shared topic", "--full", "--json"])).toBe(first);
     const context = JSON.parse(first);
     expect(context).toMatchObject({
       version: 1,
@@ -734,7 +780,7 @@ describe("work CLI and selected context", () => {
       "proposal/topic",
     ]);
 
-    const text = run(root, [process.execPath, cli, "context", "shared topic"]);
+    const text = run(root, [process.execPath, cli, "context", "shared topic", "--full"]);
     expect(text).toContain("# TOPIC CONTEXT\n\nQuery: shared topic");
     expect(text).toContain("# CURRENT INVARIANT product/invariant");
     expect(text).toContain("# OPEN CONFLICT C-900 [high, decision, decision_pending]");
@@ -750,6 +796,161 @@ describe("work CLI and selected context", () => {
     expect(text.indexOf("# SOURCE READ ORDER")).toBeLessThan(text.indexOf("# NON-CURRENT RATIONALE"));
   });
 
+  test("returns compact topic metadata and focused commands for partial fallback", () => {
+    const root = cliRepo([work()], false);
+    const cli = join(process.cwd(), "scripts/wiki/cli.ts");
+    const compact = JSON.parse(run(root, [process.execPath, cli, "context", "test work", "--json"]));
+    const full = JSON.parse(run(root, [process.execPath, cli, "context", "test work", "--full", "--json"]));
+    expect(compact.mode).toBe("compact");
+    expect(compact.matchMode).toBe("partial");
+    expect(compact.candidates.map((candidate: { id: string; order: number; score: number }) => [candidate.id, candidate.order, candidate.score])).toEqual([
+      ["product/test", 1, 1],
+      ["proposal/work", 2, 1],
+    ]);
+    expect(compact.pages).toEqual([]);
+    expect(compact.conflicts).toEqual([]);
+    expect(compact.nonCurrentPages).toEqual([]);
+    expect(compact.readOrder).toEqual([]);
+    for (const candidate of compact.candidates) {
+      expect(candidate.body).toBeUndefined();
+      expect(candidate.bodyDigest).toMatch(/^[0-9a-f]{64}$/);
+      expect(candidate.focusedCommand).toContain(`--page ${candidate.id} --full`);
+    }
+    expect(full.nonCurrentPages[0].body).toContain("Detailed rationale stays");
+    const text = run(root, [process.execPath, cli, "context", "test work"]);
+    expect(text).toContain("# PARTIAL-MATCH CANDIDATES");
+    expect(text).toContain("Focused context: bun run wiki:context -- --page product/test --full");
+    expect(text.indexOf("# PARTIAL-MATCH CANDIDATES")).toBeGreaterThan(text.indexOf("# TOPIC CONTEXT"));
+    expect(text).not.toContain("# AUTHORITATIVE READ ORDER");
+    expect(text).not.toContain("# SOURCE READ ORDER");
+    expect(text).not.toContain("Expanded source files:");
+    expect(text).not.toContain("Detailed rationale stays");
+    expect(run(root, [process.execPath, cli, "context", "test work", "--full"])).toContain("Detailed rationale stays");
+  });
+
+  test("renders candidate owners and relevant open conflicts in compact text", () => {
+    const root = cliRepo([work()], true);
+    const cli = join(process.cwd(), "scripts/wiki/cli.ts");
+    const compact = JSON.parse(run(root, [process.execPath, cli, "context", "test work", "--json"]));
+    const current = compact.candidates.find((candidate: { id: string }) => candidate.id === "product/test");
+    const nonCurrent = compact.candidates.find((candidate: { id: string }) => candidate.id === "proposal/work");
+    expect(current).toMatchObject({ owners: ["@owner"], relevantOpenConflicts: ["C-900"] });
+    expect(nonCurrent).toMatchObject({ owners: ["@owner"], relevantOpenConflicts: [] });
+
+    const text = run(root, [process.execPath, cli, "context", "test work"]);
+    expect(text).toContain(`Owners: ${current.owners.join(", ")}`);
+    expect(text).toContain(`Relevant open conflicts: ${current.relevantOpenConflicts.join(", ")}`);
+    expect(text).toContain(`Owners: ${nonCurrent.owners.join(", ")}`);
+    expect(text).toContain("Relevant open conflicts: none");
+  });
+
+  test("follows a resolved conflict candidate only through an --all focused command", () => {
+    const root = cliRepo([work()], false);
+    put(root, "wiki/conflicts/resolved/C-901.md", resolvedConflictPage());
+    run(root, ["git", "add", "."]);
+    run(root, ["git", "commit", "-qm", "resolved conflict"]);
+    const cli = join(process.cwd(), "scripts/wiki/cli.ts");
+
+    const compact = JSON.parse(run(root, [process.execPath, cli, "context", "resolved mystery", "--json"]));
+    expect(compact.matchMode).toBe("partial");
+    const candidate = compact.candidates.find((item: { id: string }) => item.id === "conflict/C-901");
+    expect(candidate).toMatchObject({
+      status: "archived",
+      authority: "observed",
+      owners: ["@owner"],
+      relevantOpenConflicts: [],
+      focusedCommand: "bun run wiki:context -- --all --conflict C-901 --full",
+    });
+
+    const withoutAll = runResult(root, [process.execPath, cli, "context", "--conflict", "C-901", "--full", "--json"]);
+    expect(withoutAll.exitCode).toBe(2);
+    expect(withoutAll.stderr).toContain("unknown open conflict: C-901");
+
+    const resolved = JSON.parse(run(root, [process.execPath, cli, "context", "--all", "--conflict", "C-901", "--full", "--json"]));
+    expect(resolved.conflicts).toHaveLength(1);
+    expect(resolved.conflicts[0]).toMatchObject({
+      id: "C-901",
+      pageId: "conflict/C-901",
+      path: "wiki/conflicts/resolved/C-901.md",
+      kind: "conflict",
+      status: "archived",
+      authority: "observed",
+      state: "verified",
+      acceptance: ["Record the owner decision."],
+      sources: [{ path: "source.ts" }],
+      resolution: {
+        state: "verified",
+        decision: "Owner selected the documented implementation.",
+        acceptance: ["Record the owner decision."],
+        evidence: ["source.ts"],
+      },
+      body: expect.stringContaining("# Decision"),
+    });
+
+    const text = run(root, [process.execPath, cli, "context", "--all", "--conflict", "C-901", "--full"]);
+    expect(text).toContain("# RESOLVED CONFLICT C-901 [archived, high, decision, verified]");
+    expect(text).toContain("Status: archived");
+    expect(text).toContain("Authority: observed");
+    expect(text).toContain("Lifecycle: resolved (non-current)");
+    expect(text).toContain("Source file: wiki/conflicts/resolved/C-901.md");
+    expect(text).toContain("Sources:\n- path: source.ts");
+    expect(text).toContain("Acceptance:\n- Record the owner decision.");
+    expect(text).toContain("Decision: Owner selected the documented implementation.");
+    expect(text).toContain("# Decision");
+  });
+
+  test("builds partial candidates without a RepoView or source-glob expansion", () => {
+    const root = cliRepo([work()], true);
+    const view = createRepoView(root);
+    const loaded = loadWikiPages(view);
+    const compact = buildCompactTopicCandidateContext(loaded.pages, "test work");
+    expect(compact.matchMode).toBe("partial");
+    expect(compact.pages).toEqual([]);
+    expect(compact.conflicts).toEqual([]);
+    expect(compact.nonCurrentPages).toEqual([]);
+    expect(compact.readOrder).toEqual([]);
+    expect(compact.candidates.map((candidate) => candidate.id)).toEqual(["product/test", "proposal/work"]);
+    expect(compact.candidates.every((candidate) => !("sourceFiles" in candidate) && !("sourceGlobs" in candidate))).toBe(true);
+
+    const exhaustive = buildTopicContext(view, loaded.pages, "test work");
+    expect(exhaustive.pages.find((page) => page.id === "product/test")?.sourceFiles).toEqual(["source.ts", "src/a.ts", "src/z.ts"]);
+    expect(exhaustive.conflicts.map((conflict) => conflict.id)).toEqual(["C-900"]);
+  });
+
+  test("follows a candidate page command into exact full context and rejects invalid page selectors", () => {
+    const root = cliRepo([work()], true);
+    const cli = join(process.cwd(), "scripts/wiki/cli.ts");
+    const compact = JSON.parse(run(root, [process.execPath, cli, "context", "test work", "--json"]));
+    const currentCandidate = compact.candidates.find((candidate: { id: string }) => candidate.id === "product/test");
+    expect(currentCandidate.focusedCommand).toBe("bun run wiki:context -- --page product/test --full");
+    expect(currentCandidate.relevantOpenConflicts).toEqual(["C-900"]);
+
+    const current = JSON.parse(run(root, [process.execPath, cli, "context", "--page", "product/test", "--full", "--json"]));
+    expect(current.pages.map((page: { id: string }) => page.id)).toEqual(["product/invariant", "product/test"]);
+    expect(current.conflicts.map((conflict: { id: string }) => conflict.id)).toEqual(["C-900"]);
+    expect(current.pages.find((page: { id: string }) => page.id === "product/test").body).toContain("Current contract body.");
+    expect(current.readOrder).toEqual([
+      { kind: "invariant", id: "product/invariant", path: "wiki/product/invariant.md" },
+      { kind: "conflict", id: "C-900", path: "wiki/conflicts/open/C-900.md" },
+      { kind: "page", id: "product/test", path: "wiki/product/test.md" },
+      { kind: "source", path: "source.ts", declaredBy: ["C-900", "product/invariant", "product/test"] },
+      { kind: "source", path: "src/a.ts", declaredBy: ["product/test"] },
+      { kind: "source", path: "src/z.ts", declaredBy: ["product/test"] },
+    ]);
+
+    const nonCurrent = JSON.parse(run(root, [process.execPath, cli, "context", "--page", "proposal/work", "--full", "--json"]));
+    expect(nonCurrent.nonCurrentPages[0].id).toBe("proposal/work");
+    expect(nonCurrent.nonCurrentPages[0].body).toContain("Detailed rationale stays");
+    expect(nonCurrent.pages.map((page: { id: string }) => page.id)).toEqual(["product/invariant"]);
+
+    const unknown = runResult(root, [process.execPath, cli, "context", "--page", "missing/page", "--full"]);
+    expect(unknown.exitCode).toBe(2);
+    expect(unknown.stderr).toContain("unknown page");
+    const conflict = runResult(root, [process.execPath, cli, "context", "--page", "conflict/C-900", "--full"]);
+    expect(conflict.exitCode).toBe(2);
+    expect(conflict.stderr).toContain("conflict pages require --conflict C-900");
+  });
+
   test("keeps PV-07 partial-fallback matching unchanged in generic context", () => {
     const root = cliRepo([work()], false);
     const cli = join(process.cwd(), "scripts/wiki/cli.ts");
@@ -758,7 +959,7 @@ describe("work CLI and selected context", () => {
       ["product/test", 1],
       ["proposal/work", 1],
     ]);
-    const context = JSON.parse(run(root, [process.execPath, cli, "context", "test work", "--json"]));
+    const context = JSON.parse(run(root, [process.execPath, cli, "context", "test work", "--full", "--json"]));
     expect(context.pages.map((page: { id: string }) => page.id)).toEqual(["product/test"]);
     expect(context.conflicts).toEqual([]);
     expect(context.nonCurrentPages.map((page: { id: string; status: string }) => [page.id, page.status])).toEqual([
@@ -799,6 +1000,9 @@ describe("work CLI and selected context", () => {
   test("rejects unknown work IDs and mixed context selectors as usage errors", () => {
     const root = cliRepo([work({ id: "WK-01" })], false);
     const cli = join(process.cwd(), "scripts/wiki/cli.ts");
+    const help = run(root, [process.execPath, cli, "context", "--help"]);
+    expect(help).toContain("--page <ID>");
+    expect(help).toContain("--full");
     const unknown = Bun.spawnSync([process.execPath, cli, "context", "--work", "WK-MISSING"], { cwd: root, stdout: "pipe", stderr: "pipe" });
     expect(unknown.exitCode).toBe(2);
     expect(unknown.stderr.toString()).toContain("unknown work item");
