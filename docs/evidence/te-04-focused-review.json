@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "workItem": "TE-04",
+  "implementationRevision": "b86ad76f13c475942d09f0b977c3dda133dcd6f7",
+  "historicalBaseline": {
+    "revision": "6fd3a85414e00892930557cb8335e2d88ec90d66",
+    "taskLabel": "te00-publisher-before-control",
+    "nonDiffBundleBytes": 57344,
+    "reviewerSourceBreadth": 33,
+    "modelCalls": 8,
+    "reviewerActiveMs": 84600,
+    "wallMs": 106071
+  },
+  "deterministicFocusedReview": {
+    "baseSha": "b86ad76f13c475942d09f0b977c3dda133dcd6f7",
+    "candidateSha": "c751f6dcb176103f9917b462a35dbb9df020e3b5",
+    "bundleDigest": "d9e4f72f562e03f5e90a2e6d726a84111b9053b6ccfe82ce41e488606f1235cd",
+    "rawBundleBytes": 52499,
+    "diffBytes": 2562,
+    "nonDiffBundleBytes": 49937,
+    "reviewerSourceBreadth": 7,
+    "reviewerSourcePaths": [
+      ".wiki/state.json",
+      "AGENTS.md",
+      "scripts/wiki/apply.ts",
+      "scripts/wiki/cli.ts",
+      "scripts/wiki/core.ts",
+      "scripts/wiki/tsconfig.json",
+      "wiki/architecture/engine.md"
+    ],
+    "exactPass": true,
+    "portableFixtureCorrect": true,
+    "localHarnessMs": 2399.3105,
+    "modelCalls": 0,
+    "providerCalls": 0
+  },
+  "controlledPublisherAfter": {
+    "taskLabel": "te04-publisher-after-focused-review",
+    "orchestration": "one default measurement agent; no child agent, guardian, broad discovery, or publication mutation",
+    "agent": {
+      "role": "default",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "calls": 3,
+      "rawInputTokens": 77964,
+      "cachedInputTokens": 42240,
+      "uncachedInputTokens": 35724,
+      "outputTokens": 957,
+      "reasoningOutputTokens": 479,
+      "totalTokens": 78921,
+      "compactions": 0,
+      "toolCalls": 1,
+      "activeMs": 35861,
+      "wallMs": 48170
+    },
+    "inputDistribution": {
+      "rawInputMin": 25097,
+      "rawInputMedian": 26116,
+      "rawInputP95": 26751,
+      "rawInputMax": 26751,
+      "uncachedInputMin": 2431,
+      "uncachedInputMedian": 14089,
+      "uncachedInputP95": 19204,
+      "uncachedInputMax": 19204,
+      "outputMin": 218,
+      "outputMedian": 302,
+      "outputP95": 437,
+      "outputMax": 437
+    },
+    "performance": {
+      "toolDurationMs": 2211,
+      "approvalWaitMs": 0,
+      "coordinationWaitMs": 12309,
+      "activeWallExcludingCoordinationMs": 35861,
+      "modelRequestMs": null,
+      "firstTokenMs": null,
+      "completionMs": null
+    },
+    "preflightBundleDigest": "a76d0c652ba162a20a70d87073456baaf626ce37461dd48e65e1f31ad8cb23d8",
+    "exactPass": true,
+    "portableFixtureCorrect": true,
+    "success": true
+  },
+  "comparison": {
+    "nonDiffBundleBytesRemoved": 7407,
+    "reviewerSourcesRemoved": 26,
+    "modelCallsRemoved": 5,
+    "reviewerActiveMsRemoved": 48739,
+    "correctnessRetained": true
+  },
+  "limitations": [
+    "The deterministic harness makes no model or provider call; model and timing observations come from the separate controlled publisher rollout.",
+    "Raw local rollout tokens are not billed API cost or exact subscription-credit consumption; cached input is included in raw input and reasoning output is included in output.",
+    "Request-start, first-token, and model-completion latency are not exposed by the rollout and remain null rather than being inferred.",
+    "The three model calls include one correction after the pilot initially compared the disposable harness digest with the separate exact-HEAD preflight digest; no second tool call was made.",
+    "The first independent SSOT review found merge-base glob and empty-blob regressions. Those findings were fixed before this successful controlled after-case and are not omitted from the implementation history.",
+    "The final publication review is a separate mandatory exact-HEAD gate and is not counted as part of this paired performance pilot."
+  ]
+}
