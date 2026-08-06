@@ -17,7 +17,7 @@ It is derived from Andrej Karpathy's [LLM wiki](https://gist.github.com/karpathy
 - Each page's frontmatter lists its **`sources`** (real paths / globs). The engine builds a reverse index and **hashes those sources**. When a source changes, its page goes *stale* and must be updated or explicitly verified — in the same PR.
 - A **configured coverage** gate ensures every file matched by `.wiki/coverage.json` maps to a current page or a reasoned exclusion, so the repository can make its declared code boundary findable without pretending to cover files outside that boundary.
 - When intent is unclear or code and wiki disagree, you open a **conflict** — a first-class, machine-tracked record with acceptance criteria — instead of guessing.
-- Proposal frontmatter carries a validated, repository-wide **work queue**. An optional `executor: agent | human | either` classifies who can perform a task independently from its lifecycle state; omission remains backward-compatible `agent`. A fresh session can run `wiki:work` with no topic, node, or task ID, see human work without auto-selecting it, then load a selected item's current invariants, context pages, conflicts, sources, and non-current proposal owner.
+- Proposal frontmatter carries a validated, repository-wide **work queue**. An optional `executor: agent | human | either` classifies who can perform a task independently from its lifecycle state; omission remains backward-compatible `agent`. A fresh session can run `wiki:work` with no topic, node, or task ID, see human work without auto-selecting it, then load a selected item's current invariants, context pages, conflicts, sources, and non-current proposal owner through a compact default projection. Stable digests and focused commands route to detail, while `wiki:context -- --full` retains exhaustive body inspection.
 - `wiki:review-preflight` decides whether independent reconciliation is required before a PR exists, prepares the exact bundle, and validates the separate review context's report. Draft PRs do not emit an expected Fresh-context failure; applicable Ready PRs reject missing, non-PASS, stale, malformed, empty-evidence, or untrusted reports.
 
 Full rationale: [docs/design.md](docs/design.md).
@@ -82,7 +82,8 @@ bun run wiki:audit       # full repo audit: structure + generated + every page's
 bun run wiki:doctor      # required downstream integration seams
 bun run wiki:work        # repository-wide outstanding work, no query or ID required
 bun run wiki:work -- --executor human  # human/either work to report and hand off
-bun run wiki:context -- "enforcement"   # what an agent reads before touching enforcement
+bun run wiki:context -- "enforcement"   # compact authority/source routing before a change
+bun run wiki:context -- "enforcement" --full  # exhaustive page bodies when needed
 ```
 
 ## What's in the box

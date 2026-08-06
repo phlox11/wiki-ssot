@@ -4,6 +4,8 @@ import { isAbsolute, relative, resolve } from "node:path";
 import {
   UsageError,
   allLintFindings,
+  buildCompactTopicCandidateContext,
+  buildPageContext,
   buildSelectedWorkContext,
   buildReusableWorkContextArtifact,
   buildTopicContext,
@@ -24,6 +26,8 @@ import {
   parseFreshContextReport,
   parseFreshContextPolicy,
   projectWorkQueue,
+  projectSelectedWorkContext,
+  projectTopicContext,
   readConfig,
   reviewCheck,
   searchWikiPages,
@@ -38,6 +42,10 @@ import {
   type PrMetadata,
   type SelectedWorkContextConflict,
   type SelectedWorkContextPage,
+  type CompactContextConflict,
+  type CompactContextPage,
+  type CompactSelectedWorkContext,
+  type CompactTopicContext,
   type WikiSource,
   type WorkExecutorFilter,
   type WorkQueueItem,
@@ -47,7 +55,7 @@ import { generateInventories } from "./inventories";
 
 type ParsedArgs = { positional: string[]; flags: Map<string, string[]> };
 
-const BOOLEAN_FLAGS = new Set(["json", "staged", "check", "enforce", "enforce-conflicts", "all"]);
+const BOOLEAN_FLAGS = new Set(["json", "staged", "check", "enforce", "enforce-conflicts", "all", "full"]);
 
 function args(input: string[]): ParsedArgs {
   const positional: string[] = [];
@@ -133,6 +141,19 @@ function workHelp(): string {
   ].join("\n");
 }
 
+function contextHelp(): string {
+  return [
+    "Usage: bun run wiki:context -- \"<terms>\" [--full] [--json]",
+    "       bun run wiki:context -- --work <ID> [--full] [--json]",
+    "       bun run wiki:context -- --page <ID> [--full] [--json]",
+    "       bun run wiki:context -- --conflict C-NNN [--all] [--full] [--json]",
+    "",
+    "Default topic and selected-work output is compact and body-free.",
+    "Use --full for exhaustive page and conflict bodies.",
+    "Partial-only topic queries return ordered candidates with focused commands.",
+  ].join("\n");
+}
+
 function workExecutorFilter(parsed: ParsedArgs): WorkExecutorFilter {
   if (!has(parsed, "executor")) return "all";
   const value = one(parsed, "executor");
@@ -158,7 +179,7 @@ function stringListText(values: string[]): string {
   return values.length > 0 ? values.map((value) => `- ${value}`).join("\n") : "- none";
 }
 
-function contextSourceText(page: SelectedWorkContextPage | SelectedWorkContextConflict): string[] {
+function contextSourceText(page: SelectedWorkContextPage | SelectedWorkContextConflict | CompactContextPage | CompactContextConflict): string[] {
   return [
     "Relevant open conflicts:",
     stringListText(page.relevantOpenConflicts),
@@ -195,6 +216,149 @@ function contextPageText(page: SelectedWorkContextPage, label: string): string {
   ].join("\n");
 }
 
+function compactContextPageText(page: CompactContextPage, label: string): string {
+  return [
+    `# ${label} ${page.id}`,
+    "",
+    `Kind: ${page.kind}`,
+    `Status: ${page.status}`,
+    `Authority: ${page.authority}`,
+    `Owners: ${page.owners.join(", ")}`,
+    `Wiki page: ${page.path}`,
+    `Summary: ${page.summary}`,
+    `Body digest: ${page.bodyDigest}`,
+    `Focused context: ${page.focusedCommand}`,
+    "",
+    ...contextSourceText(page),
+    "",
+    "Body omitted in compact mode; use the focused context command for full text.",
+    "",
+  ].join("\n");
+}
+
+function compactContextConflictText(conflict: CompactContextConflict, label = "OPEN CONFLICT"): string {
+  return [
+    `# ${label} ${conflict.id} [${conflict.severity}, ${conflict.type}, ${conflict.state}]`,
+    "",
+    conflict.summary,
+    "",
+    `Kind: ${conflict.kind}`,
+    `Status: ${conflict.status}`,
+    `Authority: ${conflict.authority}`,
+    `Owners: ${conflict.owner.join(", ")}`,
+    `Wiki page: ${conflict.path}`,
+    `Body digest: ${conflict.bodyDigest}`,
+    `Focused context: ${conflict.focusedCommand}`,
+    "",
+    ...contextSourceText(conflict),
+    "",
+    "Acceptance:",
+    ...conflict.acceptance.map((criterion) => `- ${criterion}`),
+    "",
+    "Body omitted in compact mode; use the focused context command for full text.",
+    "",
+  ].join("\n");
+}
+
+function compactWorkText(context: CompactSelectedWorkContext): string {
+  const work = context.work;
+  const workSection = [
+    `# WORK ${work.id} [${work.queue_state}, ${work.priority}]`,
+    "",
+    work.title,
+    "",
+    "Projection: compact",
+    `Stored state: ${work.state}`,
+    `Executor: ${work.executor}`,
+    ...(work.executor === "human"
+      ? ["Execution guardrail: This work requires human execution. Agents must not execute it or assume credentials or authority; report the procedure and hand off to a human."]
+      : work.executor === "either"
+        ? ["Authorization guardrail: Either permits agent or human execution but does not grant additional credentials or authority; follow the existing authority boundary."]
+        : ["Authorization guardrail: Executor metadata does not grant credentials or authority; follow the existing authority boundary."]),
+    `Owner proposal: ${work.owner_page.id} (${work.owner_page.path})`,
+    `Dependencies: ${work.depends_on.join(", ") || "none"}`,
+    `Unmet dependencies: ${work.unmet_dependencies.join(", ") || "none"}`,
+    ...(work.blocker ? [`Blocker: ${work.blocker}`] : []),
+    ...(work.deferred_reason ? [`Deferred reason: ${work.deferred_reason}`] : []),
+    `Evidence: ${work.evidence.join("; ") || "none"}`,
+    `Next context command: ${work.context_command}`,
+    "",
+    "Acceptance:",
+    ...work.acceptance.map((criterion) => `- ${criterion}`),
+    "",
+  ].join("\n");
+  const readOrderSection = [
+    "# AUTHORITATIVE READ ORDER",
+    "",
+    "Current authority is read before non-current proposal rationale:",
+    ...context.readOrder.map((entry, index) => entry.kind === "source"
+      ? `${index + 1}. SOURCE ${entry.path} (declared by ${entry.declaredBy.join(", ")})`
+      : `${index + 1}. ${entry.kind.toUpperCase()} ${entry.id} (${entry.path})`),
+    "",
+  ].join("\n");
+  const currentSections = context.pages
+    .filter((page) => page.kind === "invariant")
+    .map((page) => compactContextPageText(page, "CURRENT INVARIANT"));
+  const conflictSections = context.conflicts.map((conflict) => compactContextConflictText(conflict));
+  const pageSections = context.pages
+    .filter((page) => page.kind !== "invariant")
+    .map((page) => compactContextPageText(page, "CURRENT PAGE"));
+  const ownerSection = compactContextPageText(context.ownerPage, "NON-CURRENT WORK OWNER");
+  return [workSection, readOrderSection, ...currentSections, ...conflictSections, ...pageSections, ownerSection].join("\n---\n\n");
+}
+
+function compactTopicText(context: CompactTopicContext): string {
+  const topicSection = [
+    "# TOPIC CONTEXT",
+    "",
+    `Query: ${context.query}`,
+    `Projection: compact (${context.matchMode} match${context.matchMode === "partial" ? ", candidates shown before body expansion" : ""})`,
+    "",
+  ].join("\n");
+  const readOrderSection = [
+    "# AUTHORITATIVE READ ORDER",
+    "",
+    "Current authority and open conflict resolution contracts are read before non-current rationale:",
+    ...(context.readOrder.length > 0
+      ? context.readOrder.map((entry, index) => entry.kind === "source"
+        ? `${index + 1}. SOURCE ${entry.path} (declared by ${entry.declaredBy.join(", ")})`
+        : `${index + 1}. ${entry.kind.toUpperCase()} ${entry.id} (${entry.path})`)
+      : ["- none"]),
+    "",
+  ].join("\n");
+  const currentSections = context.pages
+    .filter((page) => page.kind === "invariant")
+    .map((page) => compactContextPageText(page, "CURRENT INVARIANT"));
+  const conflictSections = context.conflicts.map((conflict) => compactContextConflictText(conflict));
+  const pageSections = context.pages
+    .filter((page) => page.kind !== "invariant")
+    .map((page) => compactContextPageText(page, "CURRENT PAGE"));
+  const rationaleSections = context.nonCurrentPages
+    .map((page) => compactContextPageText(page, `NON-CURRENT RATIONALE [${page.status.toUpperCase()}]`));
+  const candidateSection = context.candidates.length === 0
+    ? ""
+    : [
+      "# PARTIAL-MATCH CANDIDATES",
+      "",
+      "Candidates are compact metadata; use each focused command for full page or conflict context.",
+      ...context.candidates.map((candidate) => [
+        `${candidate.order}. ${candidate.id} [score ${candidate.score}]`,
+        `   Kind: ${candidate.kind}`,
+        `   Status: ${candidate.status}`,
+        `   Authority: ${candidate.authority}`,
+        `   Wiki page: ${candidate.path}`,
+        `   Summary: ${candidate.summary}`,
+        `   Body digest: ${candidate.bodyDigest}`,
+        `   Focused context: ${candidate.focusedCommand}`,
+      ].join("\n")),
+      "",
+    ].join("\n");
+  if (context.matchMode === "partial") return [topicSection, candidateSection].filter((section) => section.length > 0).join("\n---\n\n");
+  return [topicSection, readOrderSection, ...currentSections, ...conflictSections, ...pageSections, ...rationaleSections, candidateSection]
+    .filter((section) => section.length > 0)
+    .join("\n---\n\n");
+}
+
 async function main() {
   const parsed = args(process.argv.slice(2));
   const command = parsed.positional.shift() ?? usage();
@@ -208,6 +372,12 @@ async function main() {
   if (command === "work" && has(parsed, "help")) {
     if (parsed.positional.length > 0) throw new UsageError("work --help does not accept a query or work ID");
     emit(workHelp(), false);
+    return;
+  }
+
+  if (command === "context" && has(parsed, "help")) {
+    if (parsed.positional.length > 0) throw new UsageError("context --help does not accept a query or selector");
+    emit(contextHelp(), false);
     return;
   }
 
@@ -418,12 +588,14 @@ async function main() {
     const query = parsed.positional.join(" ").trim() || one(parsed, "query")?.trim();
     const requestedConflict = one(parsed, "conflict")?.toUpperCase();
     const requestedWorkInput = one(parsed, "work")?.trim();
+    const requestedPageInput = one(parsed, "page")?.trim();
     const artifactPath = one(parsed, "artifact");
     const reusePath = one(parsed, "reuse");
     const artifactMode = artifactPath != null || reusePath != null;
     if (artifactPath && reusePath) throw new UsageError("context --artifact and --reuse are mutually exclusive");
     if (artifactMode && !requestedWorkInput) throw new UsageError("context --artifact/--reuse requires --work <ID>");
-    if (requestedWorkInput && (requestedConflict || query || (has(parsed, "base") && !artifactMode))) throw new UsageError("context --work cannot be combined with a query, --conflict, or --base unless creating or reusing an artifact");
+    if (requestedWorkInput && (requestedConflict || requestedPageInput || query || (has(parsed, "base") && !artifactMode))) throw new UsageError("context --work cannot be combined with a query, --page, --conflict, or --base unless creating or reusing an artifact");
+    if (requestedPageInput && (requestedConflict || requestedWorkInput || query || artifactMode || has(parsed, "base"))) throw new UsageError("context --page cannot be combined with a query, --work, --conflict, --artifact, --reuse, or --base");
     if (artifactMode && (!one(parsed, "base") || !one(parsed, "metadata"))) throw new UsageError("context --artifact/--reuse requires --base <ref> and --metadata <pr-body>");
     if (requestedWorkInput) {
       const findings = validatePages(view, loaded.pages);
@@ -521,8 +693,12 @@ async function main() {
         return;
       }
       const context = buildSelectedWorkContext(view, loaded.pages, work);
-      if (json) {
-        emit(context, true);
+      if (!has(parsed, "full")) {
+        const compact = projectSelectedWorkContext(context, "compact") as CompactSelectedWorkContext;
+        if (json) emit(compact, true);
+        else emit(compactWorkText(compact), false);
+      } else if (json) {
+        emit(projectSelectedWorkContext(context, "full"), true);
       } else {
         const workSection = [
           `# WORK ${work.id} [${work.queue_state}, ${work.priority}]`,
@@ -593,10 +769,102 @@ async function main() {
       }
       return;
     }
+    if (requestedPageInput) {
+      let context;
+      try {
+        context = buildPageContext(view, loaded.pages, requestedPageInput);
+      } catch (error) {
+        throw new UsageError(error instanceof Error ? error.message : String(error));
+      }
+      if (!has(parsed, "full")) {
+        const compact = projectTopicContext(context, "compact") as CompactTopicContext;
+        if (json) emit(compact, true);
+        else emit(compactTopicText(compact), false);
+      } else if (json) {
+        emit(projectTopicContext(context, "full"), true);
+      } else {
+        const topicSection = [
+          "# TOPIC CONTEXT",
+          "",
+          `Query: ${context.query}`,
+          "",
+        ].join("\n");
+        const readOrderSection = [
+          "# AUTHORITATIVE READ ORDER",
+          "",
+          "Current authority and open conflict resolution contracts are read before non-current rationale:",
+          ...(context.readOrder.length > 0
+            ? context.readOrder.map((entry, index) => entry.kind === "source"
+              ? `${index + 1}. SOURCE ${entry.path} (declared by ${entry.declaredBy.join(", ")})`
+              : `${index + 1}. ${entry.kind.toUpperCase()} ${entry.id} (${entry.path})`)
+            : ["- none"]),
+          "",
+        ].join("\n");
+        const currentSections = [
+          ...context.pages.filter((page) => page.kind === "invariant").map((page) => contextPageText(page, "CURRENT INVARIANT")),
+        ];
+        const conflictSections = context.conflicts.map((item) => [
+          `# OPEN CONFLICT ${item.id} [${item.severity}, ${item.type}, ${item.state}]`,
+          "",
+          item.summary,
+          "",
+          `Kind: ${item.kind}`,
+          `Status: ${item.status}`,
+          `Authority: ${item.authority}`,
+          `Owners: ${item.owner.join(", ")}`,
+          `Wiki page: ${item.path}`,
+          "",
+          ...contextSourceText(item),
+          "",
+          "Acceptance:",
+          ...item.acceptance.map((criterion) => `- ${criterion}`),
+          "",
+          item.body.trim(),
+          "",
+        ].join("\n"));
+        const pageSections = context.pages
+          .filter((page) => page.kind !== "invariant")
+          .map((page) => contextPageText(page, "CURRENT PAGE"));
+        const sourceEntries = context.readOrder.filter((entry) => entry.kind === "source");
+        const sourceSection = [
+          "# SOURCE READ ORDER",
+          "",
+          ...(sourceEntries.length > 0
+            ? sourceEntries.map((entry) => `- ${entry.path} (declared by ${entry.declaredBy.join(", ")})`)
+            : ["- none"]),
+          "",
+        ].join("\n");
+        const rationaleSections = context.nonCurrentPages
+          .map((page) => contextPageText(page, `NON-CURRENT RATIONALE [${page.status.toUpperCase()}]`));
+        emit([
+          topicSection,
+          readOrderSection,
+          ...currentSections,
+          ...conflictSections,
+          ...pageSections,
+          sourceSection,
+          ...rationaleSections,
+        ].join("\n---\n\n"), false);
+      }
+      return;
+    }
     if (query) {
+      const matches = searchWikiPages(loaded.pages, query);
+      const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+      const complete = matches.length > 0 && matches.some((match) => match.score === terms.length);
+      if (!has(parsed, "full") && !complete) {
+        const compact = buildCompactTopicCandidateContext(loaded.pages, query, matches);
+        if (json) emit(compact, true);
+        else emit(compactTopicText(compact), false);
+        return;
+      }
       const context = buildTopicContext(view, loaded.pages, query);
-      if (json) {
-        emit(context, true);
+      if (!has(parsed, "full")) {
+        const compact = projectTopicContext(context, "compact", matches) as CompactTopicContext;
+        if (json) emit(compact, true);
+        else emit(compactTopicText(compact), false);
+      } else if (json) {
+        emit(projectTopicContext(context, "full"), true);
       } else {
         const topicSection = [
           "# TOPIC CONTEXT",

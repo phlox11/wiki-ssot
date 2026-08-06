@@ -1,5 +1,5 @@
 {
-  "digest": "6e71033cbf61d8b7471f48fc327efa19a3ce780572a45b9650f28d41502a3cc9",
+  "digest": "7f4acbd29917d42e8fc76597b5741a80abe61c4585675d1ea08f3064c7a50e79",
   "files": {
     ".github/workflows/wiki-audit.yml": {
       "ownership": "kit",
@@ -31,11 +31,11 @@
     },
     "scripts/wiki/cli.ts": {
       "ownership": "kit",
-      "sha256": "01dcb2fb86794eb69b04c247b4ee70e67c9c1c90e21e8ad5f3660411a8f89d87"
+      "sha256": "ca736696e492ca919e1514b8256b42c6aabfe28bdf398f602826b36317f370c5"
     },
     "scripts/wiki/core.ts": {
       "ownership": "kit",
-      "sha256": "f0f759ac5012d774be79bc74f91df7ff446be8780ae88339a9a1cc6c0000e5cb"
+      "sha256": "590e7ef70383e831f6fa8f9ab310a6c80a29b71c4c5e3597fdc8b5597f23bc92"
     },
     "scripts/wiki/fresh-context.test.ts": {
       "ownership": "kit",
@@ -63,7 +63,7 @@
     },
     "scripts/wiki/work.test.ts": {
       "ownership": "kit",
-      "sha256": "6d46a4e59e38bb22abd4df6961579c2a305592f216189a984655cdbcc8b053e6"
+      "sha256": "b10df1bc1e3a02b57de65b7f08e93780d5344bc712181a2047dab86537bfb00a"
     },
     "tsconfig.json": {
       "ownership": "seed",
@@ -83,7 +83,7 @@
     },
     "wiki/WORKFLOW.md": {
       "ownership": "kit",
-      "sha256": "a11761d3234d5c4e4a232a95c9df5333c78a87598b0ca1271b84bae49167a9f5"
+      "sha256": "afbea05762141e7012fdc86c95727dc3792f1beba0df4dd2e92e1a0e1f3f9d92"
     }
   },
   "kit": "wiki-ssot",
