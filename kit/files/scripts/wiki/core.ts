@@ -2922,22 +2922,42 @@ function focusedReviewData(view: RepoView, pages: WikiPage[], report: ImpactRepo
 
   const currentById = new Map(pages.map((page) => [page.data.id, page]));
   const changedSet = new Set(report.changedFiles);
+  const authorityIds = new Set([
+    ...report.affectedPages,
+    ...(metadata?.affected_invariants ?? []),
+    ...report.affectedConflicts.flatMap((conflict) => conflict.affectedInvariants),
+  ]);
+  const canonicalPageSources = (page: WikiPage): WikiSource[] => page.data.sources
+    .map(canonicalSourceDeclaration)
+    .sort((a, b) => jsonStable(a).localeCompare(jsonStable(b)));
+  const sourceDeclarationsDiffer = (headPage: WikiPage, basePage: WikiPage): boolean => jsonStable(canonicalPageSources(headPage)) !== jsonStable(canonicalPageSources(basePage));
   for (const id of [...report.affectedPages].sort((a, b) => a.localeCompare(b))) {
     const page = currentById.get(id);
     if (page) addBody("affected_page", id, page.path, "head", page.raw);
   }
   const invariants = currentPages(pages).filter((page) => page.data.kind === "invariant");
   for (const page of invariants) addBody("invariant", page.data.id, page.path, "head", page.raw);
-  // A current invariant may be demoted or removed by the candidate. Preserve
-  // its merge-base authority body whenever the enclosing manifest still binds
-  // its ID, so the risk signal cannot disappear with the HEAD page kind.
-  const baseInvariantPaths = git(view.root, ["ls-tree", "-r", "--name-only", report.mergeBase, "--", "wiki"], true)
+  // Preserve a merge-base authority body when a current affected page changed
+  // its source declarations. This is intentionally limited to declaration
+  // differences so ordinary focused bundles do not duplicate unchanged page
+  // bodies. Demoted/removed invariants retain their historical body as before.
+  const baseAuthorityPaths = git(view.root, ["ls-tree", "-r", "--name-only", report.mergeBase, "--", "wiki"], true)
     .split("\n").filter(isContentPage);
-  for (const path of baseInvariantPaths) {
+  for (const path of baseAuthorityPaths) {
     const basePage = pageAtRevision(view.root, report.mergeBase, path);
     if (!basePage || basePage.data.status !== "current" || basePage.data.kind !== "invariant") continue;
     const headPage = currentById.get(basePage.data.id);
-    if (!headPage || headPage.data.kind !== "invariant" || headPage.data.status !== "current") addBody("invariant", basePage.data.id, basePage.path, "merge-base", basePage.raw);
+    if (!headPage || headPage.data.kind !== "invariant" || headPage.data.status !== "current" || (authorityIds.has(basePage.data.id) && sourceDeclarationsDiffer(headPage, basePage))) {
+      addBody("invariant", basePage.data.id, basePage.path, "merge-base", basePage.raw);
+    }
+  }
+  for (const path of baseAuthorityPaths) {
+    const basePage = pageAtRevision(view.root, report.mergeBase, path);
+    const headPage = basePage ? currentById.get(basePage.data.id) : undefined;
+    if (!basePage || basePage.data.status !== "current" || basePage.data.kind === "invariant" || !headPage || headPage.data.status !== "current") continue;
+    if (authorityIds.has(basePage.data.id) && sourceDeclarationsDiffer(headPage, basePage)) {
+      addBody("affected_page", basePage.data.id, basePage.path, "merge-base", basePage.raw);
+    }
   }
   for (const removed of [...report.removedCurrentPages].sort((a, b) => a.id.localeCompare(b.id))) {
     const raw = git(view.root, ["show", `${report.mergeBase}:${removed.path}`], true);
@@ -2948,18 +2968,17 @@ function focusedReviewData(view: RepoView, pages: WikiPage[], report: ImpactRepo
     const raw = page?.raw ?? git(view.root, ["show", `${report.mergeBase}:${conflict.path}`], true);
     if (raw) addBody("conflict", conflict.id, page?.path ?? conflict.path, page ? "head" : "merge-base", raw);
   }
-  const bodyBindings = bodyRoles.sort((a, b) => a.role.localeCompare(b.role) || a.id.localeCompare(b.id));
+  const bodyBindings = bodyRoles.sort((a, b) => a.role.localeCompare(b.role)
+    || a.id.localeCompare(b.id)
+    || a.lifecycle.localeCompare(b.lifecycle)
+    || a.digest.localeCompare(b.digest)
+    || a.wiki_path.localeCompare(b.wiki_path));
   const objectRefs: FocusedBodyObject[] = [...objects.entries()]
     .map(([digest, raw]) => ({ digest, object_path: `objects/${digest}.md`, bytes: Buffer.byteLength(raw, "utf8") }))
     .sort((a, b) => a.digest.localeCompare(b.digest));
 
   type UndigestedDeclaration = Omit<FocusedSourceDeclaration, "id">;
   const declarations = new Map<string, UndigestedDeclaration[]>();
-  const authorityIds = new Set([
-    ...report.affectedPages,
-    ...(metadata?.affected_invariants ?? []),
-    ...report.affectedConflicts.flatMap((conflict) => conflict.affectedInvariants),
-  ]);
   const mergeBaseFiles = filesAtRevision(view.root, report.mergeBase);
   const headFiles = new Set(view.listFiles());
   const addDeclarations = (page: WikiPage, authority: boolean, revision: "head" | "merge-base") => {
@@ -3000,8 +3019,6 @@ function focusedReviewData(view: RepoView, pages: WikiPage[], report: ImpactRepo
   // authority page, not only invariants. Keep all merge-base invariants for
   // their independent authority bodies, then add affected product/architecture
   // pages whose globs can still explain a deleted source at HEAD.
-  const baseAuthorityPaths = git(view.root, ["ls-tree", "-r", "--name-only", report.mergeBase, "--", "wiki"], true)
-    .split("\n").filter(isContentPage);
   for (const path of baseAuthorityPaths) {
     const basePage = pageAtRevision(view.root, report.mergeBase, path);
     if (basePage?.data.status !== "current") continue;
