@@ -1,18 +1,18 @@
 # TE-04 focused exact-HEAD review evidence
 
-The focused-review implementation is bound to `a097a7a69c152b2867c89b945a42c8ca59e53757`. The paired historical control remains the TE-00 publisher case at `6fd3a85414e00892930557cb8335e2d88ec90d66`; both controlled rollouts used one `gpt-5.6-sol / high` default agent.
+The focused-review implementation is bound to `4f1ff4ddab59fe56723237ff4c7e875666b12aeb`. The paired historical control remains the TE-00 publisher case at `6fd3a85414e00892930557cb8335e2d88ec90d66`; both controlled rollouts used one `gpt-5.6-sol / high` default agent.
 
 | Measure | TE-00 before | TE-04 after | Change |
 |---|---:|---:|---:|
 | Non-diff review-bundle bytes | 57,344 | 49,937 | -7,407 |
 | Reviewer source breadth | 33 | 7 | -26 |
 | Model calls | 8 | 2 | -6 |
-| Reviewer active time | 84,600 ms | 19,757 ms | -64,843 ms |
+| Reviewer active time | 84,600 ms | 16,463 ms | -68,137 ms |
 | Exact PASS | yes | yes | retained |
 | Portable review-fixture correctness | yes | yes | retained |
 
-The candidate stores each Wiki body once in a content-addressed object and assigns affected-page, invariant, changed-source, authority-source, relevant-test, conflict, and supporting-source relationships through one focused manifest. Diff, metadata, source declarations, exact HEAD, merge base, object hashes, file hashes, and bundle digest remain independently checkable. Merge-base glob expansion preserves deleted-source provenance, empty source blobs receive their normal SHA-256 digest and lifecycle instead of being mistaken for missing files, and required HEAD and conditional merge-base bodies are independently checked against the actual bytes at their declared Git revisions.
+The candidate stores each Wiki body once in a content-addressed object and assigns affected-page, invariant, changed-source, authority-source, relevant-test, conflict, and supporting-source relationships through one focused manifest. Diff, metadata, source declarations, exact HEAD, merge base, object hashes, file hashes, and bundle digest remain independently checkable. Merge-base glob expansion preserves deleted-source provenance, empty source blobs receive their normal SHA-256 digest and lifecycle instead of being mistaken for missing files, required bodies are checked against the actual bytes at their declared Git revisions, and stable page/conflict identities plus every focused source digest are verified repository-wide.
 
-The controlled after-case used two model calls, 50,732 raw input tokens including 30,208 cached and 20,524 derived uncached tokens, 251 output tokens including 54 reasoning tokens, one tool call, zero compactions, 19,757 ms of active task time, and 19,757 ms wall time. The earlier superseded pilots are disclosed in the JSON limitations but are not substituted for the final exact-revision measurement.
+The controlled after-case used two model calls, 50,750 raw input tokens including 48,640 cached and 2,110 derived uncached tokens, 300 output tokens including 84 reasoning tokens, one tool call, zero compactions, 16,463 ms of active task time, and 16,463 ms wall time. The earlier superseded pilots are disclosed in the JSON limitations but are not substituted for the final exact-revision measurement.
 
 The deterministic harness itself makes zero model or provider calls. Provider request-start, first-token, and completion latency are unavailable and remain `null`; local rollout usage is not billed API cost or exact subscription-credit consumption. The mandatory final exact-HEAD publication review remains separate from this paired performance pilot.
