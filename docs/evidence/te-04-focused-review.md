@@ -1,18 +1,18 @@
 # TE-04 focused exact-HEAD review evidence
 
-The focused-review implementation is bound to `1c9b37d3730c627a9be23955c638f69abeb893f1`. The paired historical control remains the TE-00 publisher case at `6fd3a85414e00892930557cb8335e2d88ec90d66`; both controlled rollouts used one `gpt-5.6-sol / high` default agent.
+The focused-review implementation is bound to `6453ff6cc323725bb9e3b7b8a0b8011aee627f1b`. The paired historical control remains the TE-00 publisher case at `6fd3a85414e00892930557cb8335e2d88ec90d66`; both controlled rollouts used one `gpt-5.6-sol / high` default agent.
 
 | Measure | TE-00 before | TE-04 after | Change |
 |---|---:|---:|---:|
 | Non-diff review-bundle bytes | 57,344 | 49,937 | -7,407 |
 | Reviewer source breadth | 33 | 7 | -26 |
 | Model calls | 8 | 2 | -6 |
-| Reviewer active time | 84,600 ms | 16,599 ms | -68,001 ms |
+| Reviewer active time | 84,600 ms | 20,548 ms | -64,052 ms |
 | Exact PASS | yes | yes | retained |
 | Portable review-fixture correctness | yes | yes | retained |
 
 The candidate stores each Wiki body once in a content-addressed object and assigns affected-page, invariant, changed-source, authority-source, relevant-test, conflict, and supporting-source relationships through one focused manifest. Diff, metadata, source declarations, exact HEAD, merge base, object hashes, file hashes, and bundle digest remain independently checkable. Merge-base glob expansion preserves deleted-source provenance, and empty source blobs receive their normal SHA-256 digest and lifecycle instead of being mistaken for missing files.
 
-The controlled after-case used two model calls, 50,946 raw input tokens including 48,640 cached and 2,306 derived uncached tokens, 457 output tokens including 209 reasoning tokens, one tool call, zero compactions, 16,599 ms of active task time, and 16,599 ms wall time. The earlier superseded pilots are disclosed in the JSON limitations but are not substituted for the final exact-revision measurement.
+The controlled after-case used two model calls, 50,935 raw input tokens including 48,640 cached and 2,295 derived uncached tokens, 512 output tokens including 239 reasoning tokens, one tool call, zero compactions, 20,548 ms of active task time, and 20,548 ms wall time. The earlier superseded pilots are disclosed in the JSON limitations but are not substituted for the final exact-revision measurement.
 
 The deterministic harness itself makes zero model or provider calls. Provider request-start, first-token, and completion latency are unavailable and remain `null`; local rollout usage is not billed API cost or exact subscription-credit consumption. The mandatory final exact-HEAD publication review remains separate from this paired performance pilot.

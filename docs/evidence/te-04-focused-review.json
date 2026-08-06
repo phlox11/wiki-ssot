@@ -1,7 +1,7 @@
 {
   "version": 1,
   "workItem": "TE-04",
-  "implementationRevision": "1c9b37d3730c627a9be23955c638f69abeb893f1",
+  "implementationRevision": "6453ff6cc323725bb9e3b7b8a0b8011aee627f1b",
   "historicalBaseline": {
     "revision": "6fd3a85414e00892930557cb8335e2d88ec90d66",
     "taskLabel": "te00-publisher-before-control",
@@ -12,11 +12,11 @@
     "wallMs": 106071
   },
   "deterministicFocusedReview": {
-    "baseSha": "1c9b37d3730c627a9be23955c638f69abeb893f1",
-    "candidateSha": "8cf588f994a8e8ce4d68f0a4b77ed12d51b32912",
-    "bundleDigest": "3376a9da7d18965b1b78371a9456110f391160466f7fcf9351f9da484777928d",
-    "rawBundleBytes": 52493,
-    "diffBytes": 2556,
+    "baseSha": "6453ff6cc323725bb9e3b7b8a0b8011aee627f1b",
+    "candidateSha": "4b1040ecb58f58b16dddf1bf0394453d94b89ce9",
+    "bundleDigest": "f5a4bd5b87548564967cb670d6a30ad874daa6e22ab33fe11e70d364a4f44908",
+    "rawBundleBytes": 52502,
+    "diffBytes": 2565,
     "nonDiffBundleBytes": 49937,
     "reviewerSourceBreadth": 7,
     "reviewerSourcePaths": [
@@ -30,7 +30,7 @@
     ],
     "exactPass": true,
     "portableFixtureCorrect": true,
-    "localHarnessMs": 1890.7720840000002,
+    "localHarnessMs": 2138.2453339999997,
     "modelCalls": 0,
     "providerCalls": 0
   },
@@ -42,41 +42,41 @@
       "model": "gpt-5.6-sol",
       "effort": "high",
       "calls": 2,
-      "rawInputTokens": 50946,
+      "rawInputTokens": 50935,
       "cachedInputTokens": 48640,
-      "uncachedInputTokens": 2306,
-      "outputTokens": 457,
-      "reasoningOutputTokens": 209,
-      "totalTokens": 51403,
+      "uncachedInputTokens": 2295,
+      "outputTokens": 512,
+      "reasoningOutputTokens": 239,
+      "totalTokens": 51447,
       "compactions": 0,
       "toolCalls": 1,
-      "activeMs": 16599,
-      "wallMs": 16599
+      "activeMs": 20548,
+      "wallMs": 20548
     },
     "inputDistribution": {
-      "rawInputMin": 25015,
-      "rawInputMedian": 25473,
-      "rawInputP95": 25931,
-      "rawInputMax": 25931,
-      "uncachedInputMin": 695,
-      "uncachedInputMedian": 1153,
-      "uncachedInputP95": 1611,
-      "uncachedInputMax": 1611,
-      "outputMin": 203,
-      "outputMedian": 228.5,
-      "outputP95": 254,
-      "outputMax": 254
+      "rawInputMin": 25010,
+      "rawInputMedian": 25467.5,
+      "rawInputP95": 25925,
+      "rawInputMax": 25925,
+      "uncachedInputMin": 690,
+      "uncachedInputMedian": 1147.5,
+      "uncachedInputP95": 1605,
+      "uncachedInputMax": 1605,
+      "outputMin": 201,
+      "outputMedian": 256,
+      "outputP95": 311,
+      "outputMax": 311
     },
     "performance": {
-      "toolDurationMs": 2086,
+      "toolDurationMs": 2354,
       "approvalWaitMs": 0,
       "coordinationWaitMs": 0,
-      "activeWallExcludingCoordinationMs": 16599,
+      "activeWallExcludingCoordinationMs": 20548,
       "modelRequestMs": null,
       "firstTokenMs": null,
       "completionMs": null
     },
-    "preflightBundleDigest": "774b59661fa8160a3d4deef1c1f8e812b1b426cc3363338b8ba64eb9038d4d6c",
+    "preflightBundleDigest": "d9c654514755889686d168984ad2d7a8ee68f496b0a35c144bfa9b6f5239e871",
     "exactPass": true,
     "portableFixtureCorrect": true,
     "success": true
@@ -85,7 +85,7 @@
     "nonDiffBundleBytesRemoved": 7407,
     "reviewerSourcesRemoved": 26,
     "modelCallsRemoved": 6,
-    "reviewerActiveMsRemoved": 68001,
+    "reviewerActiveMsRemoved": 64052,
     "correctnessRetained": true
   },
   "limitations": [
@@ -93,7 +93,7 @@
     "Raw local rollout tokens are not billed API cost or exact subscription-credit consumption; cached input is included in raw input and reasoning output is included in output.",
     "Request-start, first-token, and model-completion latency are not exposed by the rollout and remain null rather than being inferred.",
     "The final controlled after-case completed without a clarification turn; the earlier superseded pilot and its digest-label correction are not used as final evidence.",
-    "Five pre-publication review rounds found merge-base glob, empty-blob, changed-files omission, authority-provenance laundering, non-invariant affected-page deletion, and conflict-derived invariant regressions. All findings were fixed before this successful controlled after-case and are not omitted from the implementation history.",
+    "Six pre-publication review rounds found merge-base glob, empty-blob, changed-files omission, authority-provenance laundering, non-invariant affected-page deletion, conflict-derived invariant, and removed merge-base authority-declaration regressions. All findings were fixed before this successful controlled after-case and are not omitted from the implementation history.",
     "The final publication review is a separate mandatory exact-HEAD gate and is not counted as part of this paired performance pilot."
   ]
 }
