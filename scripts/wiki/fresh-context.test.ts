@@ -238,6 +238,47 @@ function tempMergeBaseGlobReviewRepo(): string {
   return root;
 }
 
+/** A fixture with one unchanged exact authority source and one changed exact authority source. */
+function tempAuthoritySourceReviewRepo(): string {
+  const root = mkdtempSync(join(tmpdir(), "wiki-review-authority-source-"));
+  temporary.push(root);
+  run(root, ["git", "init", "-q"]);
+  run(root, ["git", "config", "user.name", "Wiki Test"]);
+  run(root, ["git", "config", "user.email", "wiki@example.invalid"]);
+  put(root, ".wiki/config.json", jsonStable({ version: 1, name: "authority-source", highRisk: ["README.md"], freshContext: policy() }));
+  put(root, "README.md", "authority source baseline\n");
+  put(root, "wiki/product/invariants.md", page("README.md", "The authority contract is version one.", "invariant")
+    .replace("id: product/test", "id: product/invariants")
+    .replace("  - path: README.md", "  - path: .wiki/config.json\n  - path: README.md"));
+  let view = createRepoView(root);
+  put(root, ".wiki/state.json", jsonStable(verifyState(view, loadWikiPages(view).pages, [], undefined)));
+  run(root, ["git", "add", "."]);
+  run(root, ["git", "commit", "-qm", "authority source baseline"]);
+
+  put(root, "README.md", "authority source changed\n");
+  put(root, "wiki/product/invariants.md", page("README.md", "The authority contract is version two.", "invariant")
+    .replace("id: product/test", "id: product/invariants")
+    .replace("  - path: README.md", "  - path: .wiki/config.json\n  - path: README.md"));
+  view = createRepoView(root);
+  put(root, ".wiki/state.json", jsonStable(verifyState(view, loadWikiPages(view).pages, [], undefined)));
+  run(root, ["git", "add", "."]);
+  run(root, ["git", "commit", "-qm", "authority source change"]);
+  return root;
+}
+
+function rebindFocusedBundle(candidate: FocusedReviewManifest, files: Record<string, string>, manifest: ReviewManifest): { files: Record<string, string>; manifest: ReviewManifest } {
+  const focusedRaw = jsonStable(candidate);
+  const rebound = {
+    ...manifest,
+    file_digests: { ...manifest.file_digests, "focused-manifest.json": hashContent(focusedRaw) },
+    focused_manifest_digest: hashContent(focusedRaw),
+  } as ReviewManifest;
+  const core = { ...rebound } as Record<string, unknown>;
+  delete core.bundle_digest;
+  rebound.bundle_digest = hashContent(jsonStable(core));
+  return { files: { ...files, "focused-manifest.json": focusedRaw }, manifest: rebound };
+}
+
 function manifestFor(root: string, prMetadata = metadata()): ReviewManifest {
   const view = createRepoView(root);
   const pages = loadWikiPages(view).pages;
@@ -486,6 +527,58 @@ describe("fresh-context review manifest", () => {
     if (!invalidSource) throw new Error("empty-head source lifecycle disappeared");
     invalidSource.lifecycle = "unchanged";
     expect(validateFocusedReviewManifest(invalidLifecycle, files, reviewManifest).map((finding) => finding.code)).toContain("focused-manifest-lifecycle-binding");
+  });
+
+  test("rejects digest-rebound omission of an unchanged exact authority source", () => {
+    const root = tempAuthoritySourceReviewRepo();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const prMetadata = metadata({ affected_pages: ["product/invariants"], affected_invariants: ["product/invariants"] });
+    const report = impactReport(view, pages, { base: "HEAD~1", metadata: prMetadata });
+    const focused = buildFocusedReviewManifest(view, pages, report, prMetadata);
+    const bundle = makeReviewBundle(view, pages, report, "authority-source-bundle", prMetadata);
+    const reviewManifest = JSON.parse(readFileSync(join(bundle, "manifest.json"), "utf8")) as ReviewManifest;
+    const files: Record<string, string> = {};
+    for (const path of Object.keys(reviewManifest.file_digests)) files[path] = readFileSync(join(bundle, path), "utf8");
+    expect(validateFocusedReviewManifest(focused, files, reviewManifest)).toEqual([]);
+
+    const omitted = JSON.parse(JSON.stringify(focused)) as FocusedReviewManifest;
+    const configSource = omitted.source_roles.find((source) => source.path === ".wiki/config.json");
+    if (!configSource) throw new Error("authority fixture did not bind .wiki/config.json");
+    const omittedDeclarationIds = new Set(configSource.declaration_ids);
+    omitted.source_roles = omitted.source_roles.filter((source) => source.path !== ".wiki/config.json");
+    omitted.source_declarations = omitted.source_declarations.filter((declaration) => !omittedDeclarationIds.has(declaration.id));
+    const rebound = rebindFocusedBundle(omitted, files, reviewManifest);
+    const codes = validateFocusedReviewManifest(omitted, rebound.files, rebound.manifest).map((finding) => finding.code);
+    expect(codes).toContain("focused-manifest-authority-source-required");
+  });
+
+  test("rejects digest-rebound relabeling of a changed exact authority source", () => {
+    const root = tempAuthoritySourceReviewRepo();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const prMetadata = metadata({ affected_pages: ["product/invariants"], affected_invariants: ["product/invariants"] });
+    const report = impactReport(view, pages, { base: "HEAD~1", metadata: prMetadata });
+    const focused = buildFocusedReviewManifest(view, pages, report, prMetadata);
+    const bundle = makeReviewBundle(view, pages, report, "authority-source-changed-bundle", prMetadata);
+    const reviewManifest = JSON.parse(readFileSync(join(bundle, "manifest.json"), "utf8")) as ReviewManifest;
+    const files: Record<string, string> = {};
+    for (const path of Object.keys(reviewManifest.file_digests)) files[path] = readFileSync(join(bundle, path), "utf8");
+    expect(validateFocusedReviewManifest(focused, files, reviewManifest)).toEqual([]);
+
+    const relabeled = JSON.parse(JSON.stringify(focused)) as FocusedReviewManifest;
+    const readmeSource = relabeled.source_roles.find((source) => source.path === "README.md");
+    if (!readmeSource) throw new Error("authority fixture did not bind changed README.md");
+    const removedDeclarationIds = new Set(readmeSource.declaration_ids);
+    readmeSource.roles = ["changed_source", "supporting_source"];
+    readmeSource.declared_by = [];
+    readmeSource.declaration_ids = [];
+    relabeled.source_declarations = relabeled.source_declarations.filter((declaration) => !removedDeclarationIds.has(declaration.id));
+    const rebound = rebindFocusedBundle(relabeled, files, reviewManifest);
+    const codes = validateFocusedReviewManifest(relabeled, rebound.files, rebound.manifest).map((finding) => finding.code);
+    expect(codes).toContain("focused-manifest-authority-role-required");
+    expect(codes).toContain("focused-manifest-authority-provenance");
+    expect(codes).toContain("focused-manifest-authority-declaration-required");
   });
 
   test("changes when canonical PR metadata changes without changing HEAD", () => {

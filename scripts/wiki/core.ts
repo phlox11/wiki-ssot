@@ -3352,6 +3352,89 @@ export function validateFocusedReviewManifest(
       }
     }
     const authorityPageIds = new Set([...expected.affected_page_ids, ...expected.affected_invariant_ids]);
+    type AuthorityDeclaration = { page_id: string; declaration: WikiSource; matched_via: "path" | "glob" };
+    const authorityExact = new Map<string, AuthorityDeclaration[]>();
+    const authorityGlobs: AuthorityDeclaration[] = [];
+    const authorityBodyKeys = new Set<string>();
+    for (const bodyRole of Array.isArray(focused.body_roles) ? focused.body_roles : []) {
+      const isAuthorityBody = (bodyRole.role === "affected_page" && expected.affected_page_ids.includes(bodyRole.id))
+        || (bodyRole.role === "invariant" && expected.affected_invariant_ids.includes(bodyRole.id));
+      if (!isAuthorityBody) continue;
+      const bodyObject = objects.get(bodyRole.digest);
+      const raw = bodyObject ? files[bodyObject.object_path] : undefined;
+      if (raw == null) continue;
+      const bodyKey = `${bodyRole.role}:${bodyRole.id}:${bodyRole.digest}`;
+      if (authorityBodyKeys.has(bodyKey)) continue;
+      authorityBodyKeys.add(bodyKey);
+      let authorityPage: WikiPage;
+      try {
+        authorityPage = parseWikiPage(bodyRole.wiki_path, raw);
+      } catch {
+        error("focused-manifest-authority-body", `authority body cannot be parsed for ${bodyRole.id}`, bodyRole.wiki_path);
+        continue;
+      }
+      if (authorityPage.data.id !== bodyRole.id) error("focused-manifest-authority-body", `authority body ID does not match its bound role: ${bodyRole.id}`, bodyRole.wiki_path);
+      for (const rawDeclaration of authorityPage.data.sources) {
+        const declaration: AuthorityDeclaration = {
+          page_id: authorityPage.data.id,
+          declaration: canonicalSourceDeclaration(rawDeclaration),
+          matched_via: "path" in rawDeclaration ? "path" : "glob",
+        };
+        if ("path" in rawDeclaration) {
+          const path = rawDeclaration.path;
+          const records = authorityExact.get(path) ?? [];
+          if (!records.some((record) => record.page_id === declaration.page_id && jsonStable(record.declaration) === jsonStable(declaration.declaration))) records.push(declaration);
+          authorityExact.set(path, records);
+        } else {
+          if (!authorityGlobs.some((record) => record.page_id === declaration.page_id && jsonStable(record.declaration) === jsonStable(declaration.declaration))) {
+            authorityGlobs.push(declaration);
+          }
+        }
+      }
+    }
+    const declarationMatches = (source: FocusedSourceBinding, requirement: AuthorityDeclaration): boolean => source.declaration_ids.some((id) => {
+      const declaration = declarationsById.get(id);
+      if (!declaration || declaration.page_id !== requirement.page_id || declaration.matched_via !== requirement.matched_via) return false;
+      if (jsonStable(declaration.declaration) !== jsonStable(requirement.declaration)) return false;
+      return requirement.matched_via !== "glob" || ("glob" in requirement.declaration && declaration.expanded_glob === requirement.declaration.glob);
+    });
+    for (const [path, requirements] of authorityExact.entries()) {
+      const matches = (Array.isArray(focused.source_roles) ? focused.source_roles : []).filter((source) => source.path === path);
+      if (matches.length !== 1) {
+        error("focused-manifest-authority-source-required", `exact affected authority source is missing its sole source binding: ${path}`, path);
+        continue;
+      }
+      const source = matches[0];
+      if (!source.roles.includes("affected_authority_source")) error("focused-manifest-authority-role-required", `exact affected authority source is missing affected_authority_source: ${path}`, path);
+      for (const requirement of requirements) {
+        if (!source.declared_by.includes(requirement.page_id)) error("focused-manifest-authority-provenance", `exact authority source is missing declaring page provenance: ${path}`, path);
+        if (!declarationMatches(source, requirement)) error("focused-manifest-authority-declaration-required", `exact authority source is missing its canonical declaration ID: ${path}`, path);
+      }
+    }
+    if (canonicalChangedFiles) {
+      for (const requirement of authorityGlobs) {
+        if (!("glob" in requirement.declaration)) continue;
+        const pattern = requirement.declaration.glob;
+        let glob: Bun.Glob;
+        try {
+          glob = new Bun.Glob(pattern);
+        } catch {
+          error("focused-manifest-authority-glob", `authority source glob is invalid: ${pattern}`);
+          continue;
+        }
+        for (const path of canonicalChangedFiles.filter((candidate) => glob.match(candidate))) {
+          const matches = (Array.isArray(focused.source_roles) ? focused.source_roles : []).filter((source) => source.path === path);
+          if (matches.length !== 1) {
+            error("focused-manifest-authority-source-required", `changed authority glob match is missing its sole source binding: ${path}`, path);
+            continue;
+          }
+          const source = matches[0];
+          if (!source.roles.includes("affected_authority_source")) error("focused-manifest-authority-role-required", `changed authority glob match is missing affected_authority_source: ${path}`, path);
+          if (!source.declared_by.includes(requirement.page_id)) error("focused-manifest-authority-provenance", `changed authority glob match is missing declaring page provenance: ${path}`, path);
+          if (!declarationMatches(source, requirement)) error("focused-manifest-authority-declaration-required", `changed authority glob match is missing its canonical declaration ID: ${path}`, path);
+        }
+      }
+    }
     for (const source of Array.isArray(focused.source_roles) ? focused.source_roles : []) {
       const hasAuthorityDeclaration = source.declaration_ids.some((id) => authorityPageIds.has(declarationsById.get(id)?.page_id ?? ""));
       if (hasAuthorityDeclaration && !source.roles.includes("affected_authority_source")) error("focused-manifest-authority-role-required", `source declaration from an affected authority page is missing affected_authority_source: ${source.path}`, source.path);
