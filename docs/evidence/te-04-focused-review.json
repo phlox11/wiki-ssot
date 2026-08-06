@@ -1,7 +1,7 @@
 {
   "version": 1,
   "workItem": "TE-04",
-  "implementationRevision": "b86ad76f13c475942d09f0b977c3dda133dcd6f7",
+  "implementationRevision": "fa332b19f19a5f9333fe64e3bd2d80c0e766885f",
   "historicalBaseline": {
     "revision": "6fd3a85414e00892930557cb8335e2d88ec90d66",
     "taskLabel": "te00-publisher-before-control",
@@ -12,11 +12,11 @@
     "wallMs": 106071
   },
   "deterministicFocusedReview": {
-    "baseSha": "b86ad76f13c475942d09f0b977c3dda133dcd6f7",
-    "candidateSha": "c751f6dcb176103f9917b462a35dbb9df020e3b5",
-    "bundleDigest": "d9e4f72f562e03f5e90a2e6d726a84111b9053b6ccfe82ce41e488606f1235cd",
-    "rawBundleBytes": 52499,
-    "diffBytes": 2562,
+    "baseSha": "fa332b19f19a5f9333fe64e3bd2d80c0e766885f",
+    "candidateSha": "e18c4287fbc0a2e2d58e28aa93ca837de5c16067",
+    "bundleDigest": "683b029236650af6dbf0b56394390dafdea3bc2351ed19c2e255914757dcb525",
+    "rawBundleBytes": 52502,
+    "diffBytes": 2565,
     "nonDiffBundleBytes": 49937,
     "reviewerSourceBreadth": 7,
     "reviewerSourcePaths": [
@@ -30,7 +30,7 @@
     ],
     "exactPass": true,
     "portableFixtureCorrect": true,
-    "localHarnessMs": 2399.3105,
+    "localHarnessMs": 1877.996042,
     "modelCalls": 0,
     "providerCalls": 0
   },
@@ -41,42 +41,42 @@
       "role": "default",
       "model": "gpt-5.6-sol",
       "effort": "high",
-      "calls": 3,
-      "rawInputTokens": 77964,
-      "cachedInputTokens": 42240,
-      "uncachedInputTokens": 35724,
-      "outputTokens": 957,
-      "reasoningOutputTokens": 479,
-      "totalTokens": 78921,
+      "calls": 2,
+      "rawInputTokens": 51054,
+      "cachedInputTokens": 31232,
+      "uncachedInputTokens": 19822,
+      "outputTokens": 365,
+      "reasoningOutputTokens": 120,
+      "totalTokens": 51419,
       "compactions": 0,
       "toolCalls": 1,
-      "activeMs": 35861,
-      "wallMs": 48170
+      "activeMs": 16970,
+      "wallMs": 16970
     },
     "inputDistribution": {
-      "rawInputMin": 25097,
-      "rawInputMedian": 26116,
-      "rawInputP95": 26751,
-      "rawInputMax": 26751,
-      "uncachedInputMin": 2431,
-      "uncachedInputMedian": 14089,
-      "uncachedInputP95": 19204,
-      "uncachedInputMax": 19204,
-      "outputMin": 218,
-      "outputMedian": 302,
-      "outputP95": 437,
-      "outputMax": 437
+      "rawInputMin": 25084,
+      "rawInputMedian": 25527,
+      "rawInputP95": 25970,
+      "rawInputMax": 25970,
+      "uncachedInputMin": 1650,
+      "uncachedInputMedian": 9911,
+      "uncachedInputP95": 18172,
+      "uncachedInputMax": 18172,
+      "outputMin": 176,
+      "outputMedian": 182.5,
+      "outputP95": 189,
+      "outputMax": 189
     },
     "performance": {
-      "toolDurationMs": 2211,
+      "toolDurationMs": 2025,
       "approvalWaitMs": 0,
-      "coordinationWaitMs": 12309,
-      "activeWallExcludingCoordinationMs": 35861,
+      "coordinationWaitMs": 0,
+      "activeWallExcludingCoordinationMs": 16970,
       "modelRequestMs": null,
       "firstTokenMs": null,
       "completionMs": null
     },
-    "preflightBundleDigest": "a76d0c652ba162a20a70d87073456baaf626ce37461dd48e65e1f31ad8cb23d8",
+    "preflightBundleDigest": "a00ad5229c9f34693fada2a548e3caf9812bef283a407699fd1d897db2cb3fc8",
     "exactPass": true,
     "portableFixtureCorrect": true,
     "success": true
@@ -84,16 +84,16 @@
   "comparison": {
     "nonDiffBundleBytesRemoved": 7407,
     "reviewerSourcesRemoved": 26,
-    "modelCallsRemoved": 5,
-    "reviewerActiveMsRemoved": 48739,
+    "modelCallsRemoved": 6,
+    "reviewerActiveMsRemoved": 67630,
     "correctnessRetained": true
   },
   "limitations": [
     "The deterministic harness makes no model or provider call; model and timing observations come from the separate controlled publisher rollout.",
     "Raw local rollout tokens are not billed API cost or exact subscription-credit consumption; cached input is included in raw input and reasoning output is included in output.",
     "Request-start, first-token, and model-completion latency are not exposed by the rollout and remain null rather than being inferred.",
-    "The three model calls include one correction after the pilot initially compared the disposable harness digest with the separate exact-HEAD preflight digest; no second tool call was made.",
-    "The first independent SSOT review found merge-base glob and empty-blob regressions. Those findings were fixed before this successful controlled after-case and are not omitted from the implementation history.",
+    "The final controlled after-case completed without a clarification turn; the earlier superseded pilot and its digest-label correction are not used as final evidence.",
+    "Two pre-publication reviews found merge-base glob, empty-blob, and changed-files omission regressions. All findings were fixed before this successful controlled after-case and are not omitted from the implementation history.",
     "The final publication review is a separate mandatory exact-HEAD gate and is not counted as part of this paired performance pilot."
   ]
 }
