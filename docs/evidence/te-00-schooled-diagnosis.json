@@ -1,0 +1,255 @@
+{
+  "version": 1,
+  "kind": "sanitized-schooled-diagnosis",
+  "sessionId": "019fd1e6-816a-7742-b356-f28c945d6110",
+  "repository": {
+    "label": "true-dragonsnest/schooled",
+    "url": "https://github.com/true-dragonsnest/schooled"
+  },
+  "agents": [
+    {
+      "role": "primary",
+      "pathLabel": "root",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "calls": 169,
+      "rawInputTokens": 23772818,
+      "cachedInputTokens": 23357440,
+      "uncachedInputTokens": 415378,
+      "outputTokens": 41895,
+      "reasoningOutputTokens": 13722,
+      "totalTokens": 23814713,
+      "compactions": 1,
+      "toolCalls": 160,
+      "outputBytes": 723917,
+      "activeMs": 2281203,
+      "wallMs": 18755769
+    },
+    {
+      "role": "explorer",
+      "pathLabel": "map-wiki-ssot-update",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "calls": 19,
+      "rawInputTokens": 1808617,
+      "cachedInputTokens": 1649920,
+      "uncachedInputTokens": 158697,
+      "outputTokens": 11822,
+      "reasoningOutputTokens": 2797,
+      "totalTokens": 1820439,
+      "compactions": 0,
+      "toolCalls": 18,
+      "outputBytes": 466260,
+      "activeMs": 452195,
+      "wallMs": 456319
+    },
+    {
+      "role": "guardian",
+      "pathLabel": "guardian-primary",
+      "model": "codex-auto-review",
+      "effort": "low",
+      "calls": 32,
+      "rawInputTokens": 2061333,
+      "cachedInputTokens": 1734656,
+      "uncachedInputTokens": 326677,
+      "outputTokens": 3120,
+      "reasoningOutputTokens": 1344,
+      "totalTokens": 2064453,
+      "compactions": 0,
+      "toolCalls": 0,
+      "outputBytes": 0,
+      "activeMs": 109635,
+      "wallMs": 2510476
+    },
+    {
+      "role": "guardian",
+      "pathLabel": "guardian-explorer",
+      "model": "codex-auto-review",
+      "effort": "low",
+      "calls": 4,
+      "rawInputTokens": 100702,
+      "cachedInputTokens": 74752,
+      "uncachedInputTokens": 25950,
+      "outputTokens": 332,
+      "reasoningOutputTokens": 144,
+      "totalTokens": 101034,
+      "compactions": 0,
+      "toolCalls": 0,
+      "outputBytes": 0,
+      "activeMs": 12136,
+      "wallMs": 154941
+    },
+    {
+      "role": "code_worker",
+      "pathLabel": "integrate-executor-engine",
+      "model": "gpt-5.6-luna",
+      "effort": "max",
+      "calls": 49,
+      "rawInputTokens": 3597125,
+      "cachedInputTokens": 3464192,
+      "uncachedInputTokens": 132933,
+      "outputTokens": 18513,
+      "reasoningOutputTokens": 3524,
+      "totalTokens": 3615638,
+      "compactions": 0,
+      "toolCalls": 48,
+      "outputBytes": 241875,
+      "activeMs": 465300,
+      "wallMs": 465212
+    },
+    {
+      "role": "ssot_reviewer",
+      "pathLabel": "review-executor-update",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "calls": 32,
+      "rawInputTokens": 3000942,
+      "cachedInputTokens": 2838528,
+      "uncachedInputTokens": 162414,
+      "outputTokens": 9594,
+      "reasoningOutputTokens": 4452,
+      "totalTokens": 3010536,
+      "compactions": 0,
+      "toolCalls": 31,
+      "outputBytes": 562361,
+      "activeMs": 339002,
+      "wallMs": 338980
+    }
+  ],
+  "totals": {
+    "agentCount": 6,
+    "calls": 305,
+    "rawInputTokens": 34341537,
+    "cachedInputTokens": 33119488,
+    "uncachedInputTokens": 1222049,
+    "outputTokens": 85276,
+    "reasoningOutputTokens": 25983,
+    "totalTokens": 34426813,
+    "compactions": 1,
+    "toolCalls": 257,
+    "outputBytes": 1994413,
+    "activeMs": 3659471,
+    "wallMs": 22681697
+  },
+  "inputDistribution": {
+    "primaryInputMedian": 155486,
+    "primaryInputP95": 216343,
+    "primaryInputMax": 222974,
+    "primaryUncachedMedian": 1190,
+    "primaryUncachedP95": 12492,
+    "primaryUncachedMax": 31368,
+    "explorerInputMedian": 92921,
+    "explorerInputP95": 158747,
+    "explorerInputMax": 158747,
+    "guardianPrimaryInputMedian": 70291,
+    "guardianPrimaryInputP95": 85115,
+    "guardianPrimaryInputMax": 86469,
+    "guardianExplorerInputMedian": 27379,
+    "guardianExplorerInputP95": 29523,
+    "guardianExplorerInputMax": 29523,
+    "codeWorkerInputMedian": 78000,
+    "codeWorkerInputP95": 101343,
+    "codeWorkerInputMax": 101923,
+    "reviewerInputMedian": 95648,
+    "reviewerInputP95": 158855,
+    "reviewerInputMax": 162152
+  },
+  "artifactCategories": {
+    "testAndValidation": 493762,
+    "workContext": 232166,
+    "diff": 209049,
+    "reviewBundle": 142761,
+    "compactionSummary": 64701,
+    "agentResult": 20623,
+    "spawnContext": 5812,
+    "agentContext": 5300,
+    "unclassifiedToolOutput": 820239
+  },
+  "success": true,
+  "limitations": [
+    "This sanitized diagnosis is bound to the audit cutoff 2026-08-05T17:42:08.923Z; later rollout events are intentionally excluded.",
+    "The six agent wall spans sum to 22681697 ms and overlap; the end-to-end event span was 18755769 ms, including about 4 hours 34 minutes of non-active gap.",
+    "The supplied phase labels identify 101 implementation calls and 50 publication plus merge-cleanup calls, but the sanitized tables do not contain reproducible phase boundaries, so phase durations remain unavailable.",
+    "The classified artifact categories total 1174174 bytes; 820239 serialized tool-output bytes have no safe artifact category.",
+    "Prompt bodies, source bodies, command bodies, tool-output bodies, private local paths, and billed-cost interpretations are not retained."
+  ],
+  "performance": {
+    "modelRequest": {
+      "availability": "unavailable",
+      "valueMs": null,
+      "method": "sanitized rollout audit",
+      "limitation": "The audit has response-level usage but no model request-start timestamp."
+    },
+    "firstToken": {
+      "availability": "unavailable",
+      "valueMs": null,
+      "method": "sanitized rollout audit",
+      "limitation": "The audit has no first streamed-token timestamp."
+    },
+    "completion": {
+      "availability": "unavailable",
+      "valueMs": null,
+      "method": "sanitized rollout audit",
+      "limitation": "The audit cannot split queue, prefill, first-token, and response completion latency."
+    },
+    "toolDuration": {
+      "availability": "unavailable",
+      "valueMs": null,
+      "method": "sanitized tool-call CSV",
+      "limitation": "The source table retains one timestamp per tool call rather than paired start and completion timestamps."
+    },
+    "approvalWait": {
+      "availability": "unavailable",
+      "valueMs": null,
+      "method": "guardian aggregate",
+      "limitation": "Guardian calls and active spans are known, but approval request-to-decision pairs were not retained."
+    },
+    "coordinationWait": {
+      "availability": "unavailable",
+      "valueMs": null,
+      "method": "orchestration aggregate",
+      "limitation": "Wait-call counts exist without boundaries that distinguish coordination, execution, polling, and user idle."
+    },
+    "activeWallExcludingUserIdle": {
+      "availability": "available",
+      "valueMs": 3659471,
+      "method": "sum of sanitized per-agent active spans",
+      "limitation": "Concurrent agent spans overlap, so this is workload time rather than end-to-end elapsed time."
+    },
+    "phases": {
+      "implementation": {
+        "availability": "unavailable",
+        "valueMs": null,
+        "method": "supplied phase classification",
+        "limitation": "The supplied diagnosis reports 101 primary model calls but no reproducible sanitized timing boundary.",
+        "modelCalls": 101
+      },
+      "publication": {
+        "availability": "unavailable",
+        "valueMs": null,
+        "method": "supplied phase classification",
+        "limitation": "The supplied diagnosis reports 20 primary model calls but no reproducible sanitized timing boundary.",
+        "modelCalls": 20
+      },
+      "merge": {
+        "availability": "unavailable",
+        "valueMs": null,
+        "method": "supplied combined classification",
+        "limitation": "Merge and cleanup were recorded only as one combined 30-call group and cannot be separated."
+      },
+      "cleanup": {
+        "availability": "unavailable",
+        "valueMs": null,
+        "method": "supplied combined classification",
+        "limitation": "Merge and cleanup were recorded only as one combined 30-call group and cannot be separated."
+      },
+      "mergeCleanupCombined": {
+        "availability": "unavailable",
+        "valueMs": null,
+        "method": "supplied combined classification",
+        "limitation": "Thirty primary model calls are reproducibly reported, but their combined duration is not present in the sanitized source tables.",
+        "modelCalls": 30
+      }
+    }
+  }
+}

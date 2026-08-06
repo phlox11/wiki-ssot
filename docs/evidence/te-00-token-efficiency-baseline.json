@@ -1,0 +1,1570 @@
+{
+  "approvalEffects": {
+    "observation": "Approval wait is recorded separately from request, tool, coordination, and active wall measurements.",
+    "repositoryControlled": false
+  },
+  "cacheEffects": {
+    "externalCacheObservation": "Cache continuity and misses are orchestrator observations, not engine guarantees.",
+    "rawInputIncludesCached": true,
+    "uncachedDefinition": "uncachedInputTokens = rawInputTokens - cachedInputTokens"
+  },
+  "comparison": {
+    "acceptedVarianceOptions": [
+      "Record model/cache behavior, orchestration, approval, provider latency, or bounded sampling variance explicitly before accepting a comparison."
+    ],
+    "correctnessFloor": [
+      "PV-19 correctness floor: preserve 100% of current-page, invariant, conflict, implementation-source, authority/status, non-current-label, expected-change, Wiki-action, coverage, impact, review, and drift expectations.",
+      "Do not trade source traceability, exact-HEAD binding, or independent review for smaller context or bundles."
+    ],
+    "exactTask": "Measure focused topic, broad discovery, selected-work, recursive TypeScript source expansion, and a deterministic review bundle from the pinned publisher revision.",
+    "limitations": [
+      "UTF-8 bytes and supplied token counts are evidence, not billed API cost, subscription credits, runtime latency, or proof of comprehension.",
+      "Schooled diagnosis is external and sanitized; it is not a publisher-engine measurement.",
+      "Sanitized evidence retains no transcript, prompt, private path, session body, or source/tool body."
+    ],
+    "modelAndEffortControls": [
+      "Keep task, role, model, reasoning effort, and call accounting fixed for before/after comparisons."
+    ],
+    "optimizationTargets": [
+      "At most 40% of the reproduced deterministic context baseline for each topic and selected-work case.",
+      "At most 60% of the controlled end-to-end baseline for uncached input and review non-diff bytes under unchanged controls.",
+      "At most 70% of primary calls and active wall time, and at most 50% of publication-phase calls."
+    ],
+    "orchestrationControls": [
+      "Keep orchestration/fan-out and approval policy fixed; repository code does not control provider routing or cache continuity."
+    ],
+    "preOptimizationRevision": "6fd3a85414e00892930557cb8335e2d88ec90d66"
+  },
+  "controlledPublisher": {
+    "agents": [
+      {
+        "activeMs": 84600,
+        "cachedInputTokens": 207872,
+        "calls": 8,
+        "compactions": 0,
+        "effort": "high",
+        "model": "gpt-5.6-sol",
+        "outputBytes": 5190,
+        "outputTokens": 3607,
+        "pathLabel": "te00-publisher-before-control",
+        "rawInputTokens": 218077,
+        "reasoningOutputTokens": 1372,
+        "role": "default",
+        "toolCalls": 7,
+        "totalTokens": 221684,
+        "uncachedInputTokens": 10205,
+        "wallMs": 106071
+      }
+    ],
+    "artifactCategories": {
+      "sanitizedToolOutputPayloads": 5190
+    },
+    "exactRevision": "6fd3a85414e00892930557cb8335e2d88ec90d66",
+    "inputDistribution": {
+      "outputMax": 904,
+      "outputMedian": 429,
+      "outputMin": 196,
+      "outputP95": 904,
+      "rawInputMax": 29824,
+      "rawInputMedian": 27302,
+      "rawInputMin": 24955,
+      "rawInputP95": 29824,
+      "uncachedInputMax": 1926,
+      "uncachedInputMedian": 1408,
+      "uncachedInputMin": 635,
+      "uncachedInputP95": 1926
+    },
+    "kind": "sanitized-controlled-publisher",
+    "limitations": [
+      "The first sanitized formatter used an incorrect field path and was retried; all eight positive-usage model calls remain in the baseline.",
+      "The controlled case is a successful read-only publisher measurement; external PR publication and merge were intentionally not performed.",
+      "The artifact classifier retains only serialized sanitized tool-output payload bytes, not prompt, source, command, or tool-output bodies.",
+      "Raw local rollout usage is not billed API cost or exact subscription-credit consumption."
+    ],
+    "orchestration": "one default measurement agent on gpt-5.6-sol high; no child agents or guardians; deterministic harness uses disposable local clones and makes no model or provider call",
+    "performance": {
+      "activeWallExcludingUserIdle": {
+        "availability": "available",
+        "limitation": "This span includes 21471 ms of separately reported agent coordination wait.",
+        "method": "task_started to task_complete event span with no end-user message inside the child task",
+        "valueMs": 106071
+      },
+      "approvalWait": {
+        "availability": "available",
+        "limitation": "This zero is specific to the read-only controlled case and is not a repository guarantee.",
+        "method": "absence of approval or guardian events in the controlled child rollout",
+        "valueMs": 0
+      },
+      "completion": {
+        "availability": "unavailable",
+        "limitation": "Token-count events are response aggregates and cannot separate model queue, prefill, and completion latency.",
+        "method": "local rollout event audit",
+        "valueMs": null
+      },
+      "coordinationWait": {
+        "availability": "available",
+        "limitation": "The waits were caused by report-schema clarification and should remain visible in before-after comparisons.",
+        "method": "two paired child-result question to parent-reply event spans",
+        "valueMs": 21471
+      },
+      "firstToken": {
+        "availability": "unavailable",
+        "limitation": "The rollout does not expose first streamed-token timestamps.",
+        "method": "local rollout event audit",
+        "valueMs": null
+      },
+      "modelRequest": {
+        "availability": "unavailable",
+        "limitation": "The rollout does not expose model request-start timestamps.",
+        "method": "local rollout event audit",
+        "valueMs": null
+      },
+      "phases": {
+        "cleanup": {
+          "availability": "available",
+          "limitation": "The deterministic harness removed its clones internally; this metric covers only the explicit final verification call.",
+          "method": "final repository status call-to-output span after disposable-clone cleanup",
+          "modelCalls": 1,
+          "toolCalls": 1,
+          "valueMs": 115
+        },
+        "implementation": {
+          "availability": "available",
+          "limitation": "This phase includes one failed formatter and one coordination clarification before the successful retry.",
+          "method": "first deterministic API invocation start through successful sanitized measurement output",
+          "modelCalls": 4,
+          "toolCalls": 4,
+          "valueMs": 29189
+        },
+        "merge": {
+          "availability": "unavailable",
+          "limitation": "No branch or pull request was merged in this measurement-only case.",
+          "method": "read-only controlled case",
+          "valueMs": null
+        },
+        "publication": {
+          "availability": "available",
+          "limitation": "This is result publication to the parent task, not an external PR publication.",
+          "method": "final clean-status output through completed sanitized result",
+          "modelCalls": 1,
+          "toolCalls": 0,
+          "valueMs": 17359
+        }
+      },
+      "toolDuration": {
+        "availability": "available",
+        "limitation": "This measures local call-to-output emission, not model latency.",
+        "method": "sum of seven paired tool call-to-output event spans",
+        "valueMs": 6081
+      }
+    },
+    "success": true,
+    "taskLabel": "te00-publisher-before-control",
+    "totals": {
+      "activeMs": 84600,
+      "agentCount": 1,
+      "cachedInputTokens": 207872,
+      "calls": 8,
+      "compactions": 0,
+      "outputBytes": 5190,
+      "outputTokens": 3607,
+      "rawInputTokens": 218077,
+      "reasoningOutputTokens": 1372,
+      "toolCalls": 7,
+      "totalTokens": 221684,
+      "uncachedInputTokens": 10205,
+      "wallMs": 106071
+    },
+    "version": 1
+  },
+  "deterministic": {
+    "contractVersion": 1,
+    "deterministic": {
+      "broad": {
+        "json": {
+          "bytes": 142186,
+          "lines": 1758,
+          "words": 14698
+        },
+        "label": "broad",
+        "query": "token context runtime cost efficiency",
+        "semantic": {
+          "conflictCount": 0,
+          "conflictIds": [],
+          "currentPageCount": 4,
+          "nonCurrentPageCount": 4,
+          "nonCurrentPageIds": [
+            "proposal/kit-code-splitting",
+            "proposal/primary-findability-validation",
+            "proposal/primary-interpretation-decision-gate",
+            "proposal/token-efficiency"
+          ],
+          "pageCount": 4,
+          "pageIds": [
+            "architecture/engine",
+            "operations/enforcement",
+            "product/invariants",
+            "product/scope"
+          ],
+          "readOrderCount": 39,
+          "sourceDeclarationCount": 79,
+          "sourceFileCount": 55,
+          "sourceIds": [
+            "architecture/engine",
+            "operations/enforcement",
+            "product/invariants",
+            "product/scope",
+            "proposal/kit-code-splitting",
+            "proposal/primary-findability-validation",
+            "proposal/primary-interpretation-decision-gate",
+            "proposal/token-efficiency"
+          ]
+        },
+        "text": {
+          "bytes": 114294,
+          "lines": 1670,
+          "words": 14484
+        },
+        "workId": null
+      },
+      "contextSourceRevision": "6fd3a85414e00892930557cb8335e2d88ec90d66",
+      "entry": {
+        "files": {
+          "AGENTS.md": {
+            "bytes": 7924,
+            "lines": 59,
+            "words": 1144
+          },
+          "wiki/current-status.md": {
+            "bytes": 856,
+            "lines": 27,
+            "words": 128
+          },
+          "wiki/index.md": {
+            "bytes": 1330,
+            "lines": 22,
+            "words": 152
+          },
+          "wiki/product/invariants.md": {
+            "bytes": 6809,
+            "lines": 27,
+            "words": 936
+          }
+        },
+        "json": {
+          "bytes": 513,
+          "lines": 30,
+          "words": 48
+        },
+        "paths": [
+          "AGENTS.md",
+          "wiki/index.md",
+          "wiki/current-status.md",
+          "wiki/product/invariants.md"
+        ],
+        "semantic": {
+          "currentAuthorityFileCount": 1,
+          "fileCount": 4,
+          "sourcePathCount": 4
+        },
+        "text": {
+          "bytes": 16919,
+          "lines": 135,
+          "words": 2360
+        }
+      },
+      "focused": {
+        "json": {
+          "bytes": 69125,
+          "lines": 859,
+          "words": 6780
+        },
+        "label": "focused",
+        "query": "recursive source mapping",
+        "semantic": {
+          "conflictCount": 0,
+          "conflictIds": [],
+          "currentPageCount": 1,
+          "nonCurrentPageCount": 1,
+          "nonCurrentPageIds": [
+            "proposal/primary-findability-validation"
+          ],
+          "pageCount": 1,
+          "pageIds": [
+            "architecture/engine"
+          ],
+          "readOrderCount": 24,
+          "sourceDeclarationCount": 37,
+          "sourceFileCount": 47,
+          "sourceIds": [
+            "architecture/engine",
+            "proposal/primary-findability-validation"
+          ]
+        },
+        "text": {
+          "bytes": 55043,
+          "lines": 706,
+          "words": 6675
+        },
+        "workId": null
+      },
+      "recursiveTypeScript": {
+        "fileCount": 22,
+        "files": {
+          "scripts/wiki/apply.test.ts": {
+            "bytes": 25701,
+            "lines": 559,
+            "words": 2062
+          },
+          "scripts/wiki/apply.ts": {
+            "bytes": 29454,
+            "lines": 655,
+            "words": 3260
+          },
+          "scripts/wiki/cli.ts": {
+            "bytes": 39867,
+            "lines": 880,
+            "words": 3873
+          },
+          "scripts/wiki/core.ts": {
+            "bytes": 159745,
+            "lines": 2972,
+            "words": 16296
+          },
+          "scripts/wiki/existing-repo-bootstrap.test.ts": {
+            "bytes": 16315,
+            "lines": 377,
+            "words": 1448
+          },
+          "scripts/wiki/fresh-context.test.ts": {
+            "bytes": 69390,
+            "lines": 1566,
+            "words": 6058
+          },
+          "scripts/wiki/github-attestation.ts": {
+            "bytes": 10013,
+            "lines": 189,
+            "words": 965
+          },
+          "scripts/wiki/inventories.example.ts": {
+            "bytes": 5827,
+            "lines": 96,
+            "words": 605
+          },
+          "scripts/wiki/inventories.ts": {
+            "bytes": 1304,
+            "lines": 26,
+            "words": 193
+          },
+          "scripts/wiki/kit-sync.ts": {
+            "bytes": 14096,
+            "lines": 307,
+            "words": 1747
+          },
+          "scripts/wiki/kit.test.ts": {
+            "bytes": 27905,
+            "lines": 634,
+            "words": 2540
+          },
+          "scripts/wiki/new-repository-adoption.test.ts": {
+            "bytes": 11609,
+            "lines": 320,
+            "words": 1026
+          },
+          "scripts/wiki/primary-baseline.test.ts": {
+            "bytes": 7043,
+            "lines": 169,
+            "words": 481
+          },
+          "scripts/wiki/primary-baseline.ts": {
+            "bytes": 30496,
+            "lines": 798,
+            "words": 2774
+          },
+          "scripts/wiki/primary-current.test.ts": {
+            "bytes": 5375,
+            "lines": 139,
+            "words": 397
+          },
+          "scripts/wiki/primary-current.ts": {
+            "bytes": 27114,
+            "lines": 664,
+            "words": 2288
+          },
+          "scripts/wiki/primary-scenarios.test.ts": {
+            "bytes": 6102,
+            "lines": 133,
+            "words": 376
+          },
+          "scripts/wiki/primary-scenarios.ts": {
+            "bytes": 16528,
+            "lines": 414,
+            "words": 1355
+          },
+          "scripts/wiki/publisher-boundary.test.ts": {
+            "bytes": 10083,
+            "lines": 297,
+            "words": 818
+          },
+          "scripts/wiki/test-runner.ts": {
+            "bytes": 1767,
+            "lines": 47,
+            "words": 202
+          },
+          "scripts/wiki/wiki.test.ts": {
+            "bytes": 41668,
+            "lines": 745,
+            "words": 3605
+          },
+          "scripts/wiki/work.test.ts": {
+            "bytes": 31061,
+            "lines": 660,
+            "words": 2704
+          }
+        },
+        "glob": "scripts/wiki/**/*.ts",
+        "paths": [
+          "scripts/wiki/apply.test.ts",
+          "scripts/wiki/apply.ts",
+          "scripts/wiki/cli.ts",
+          "scripts/wiki/core.ts",
+          "scripts/wiki/existing-repo-bootstrap.test.ts",
+          "scripts/wiki/fresh-context.test.ts",
+          "scripts/wiki/github-attestation.ts",
+          "scripts/wiki/inventories.example.ts",
+          "scripts/wiki/inventories.ts",
+          "scripts/wiki/kit-sync.ts",
+          "scripts/wiki/kit.test.ts",
+          "scripts/wiki/new-repository-adoption.test.ts",
+          "scripts/wiki/primary-baseline.test.ts",
+          "scripts/wiki/primary-baseline.ts",
+          "scripts/wiki/primary-current.test.ts",
+          "scripts/wiki/primary-current.ts",
+          "scripts/wiki/primary-scenarios.test.ts",
+          "scripts/wiki/primary-scenarios.ts",
+          "scripts/wiki/publisher-boundary.test.ts",
+          "scripts/wiki/test-runner.ts",
+          "scripts/wiki/wiki.test.ts",
+          "scripts/wiki/work.test.ts"
+        ],
+        "text": {
+          "bytes": 588463,
+          "lines": 12647,
+          "words": 55073
+        }
+      },
+      "reviewBundle": {
+        "baseRef": "6fd3a85414e00892930557cb8335e2d88ec90d66",
+        "baseSha": "6fd3a85414e00892930557cb8335e2d88ec90d66",
+        "candidateBaseRef": "6fd3a85414e00892930557cb8335e2d88ec90d66",
+        "candidateCommit": {
+          "author": "TE-00 fixture <te00-fixture@example.invalid>",
+          "authoredAt": "2000-01-01T00:00:00Z",
+          "message": "TE-00 deterministic disposable publisher candidate"
+        },
+        "candidateRef": "d70befec1ac13e173ea3cc5b004d789b58a98368",
+        "candidateSha": "d70befec1ac13e173ea3cc5b004d789b58a98368",
+        "comparisonDiffBytes": 3602,
+        "comparisonNonDiffBytes": 57344,
+        "comparisonTotalBytes": 60946,
+        "componentBytes": {
+          "diff": 3602,
+          "impact": 1316,
+          "invariants": 6809,
+          "manifest": 1928,
+          "metadata": 194,
+          "pages": 37924,
+          "review-contract": 7874,
+          "sources": 1386
+        },
+        "diffBytes": 3602,
+        "digest": "e88a852c88dbd86357740c7afd8c9b856003721b1c2d35c318e1b4e9a590ef76",
+        "digestBindingBytes": 87,
+        "fileBytes": {
+          "diff.patch": 3602,
+          "impact.json": 1316,
+          "invariants/product_invariants.md": 6809,
+          "manifest.json": 1928,
+          "pages/architecture_engine.md": 21186,
+          "pages/operations_enforcement.md": 9929,
+          "pages/product_invariants.md": 6809,
+          "pr-metadata.json": 194,
+          "PROMPT.md": 2102,
+          "REPORT.example.json": 417,
+          "REPORT.findings.example.json": 1761,
+          "REPORT.md": 3594,
+          "sources.json": 1386
+        },
+        "files": [
+          {
+            "bytes": 3602,
+            "component": "diff",
+            "path": "diff.patch"
+          },
+          {
+            "bytes": 1316,
+            "component": "impact",
+            "path": "impact.json"
+          },
+          {
+            "bytes": 6809,
+            "component": "invariants",
+            "path": "invariants/product_invariants.md"
+          },
+          {
+            "bytes": 1928,
+            "component": "manifest",
+            "path": "manifest.json"
+          },
+          {
+            "bytes": 21186,
+            "component": "pages",
+            "path": "pages/architecture_engine.md"
+          },
+          {
+            "bytes": 9929,
+            "component": "pages",
+            "path": "pages/operations_enforcement.md"
+          },
+          {
+            "bytes": 6809,
+            "component": "pages",
+            "path": "pages/product_invariants.md"
+          },
+          {
+            "bytes": 194,
+            "component": "metadata",
+            "path": "pr-metadata.json"
+          },
+          {
+            "bytes": 2102,
+            "component": "review-contract",
+            "path": "PROMPT.md"
+          },
+          {
+            "bytes": 417,
+            "component": "review-contract",
+            "path": "REPORT.example.json"
+          },
+          {
+            "bytes": 1761,
+            "component": "review-contract",
+            "path": "REPORT.findings.example.json"
+          },
+          {
+            "bytes": 3594,
+            "component": "review-contract",
+            "path": "REPORT.md"
+          },
+          {
+            "bytes": 1386,
+            "component": "sources",
+            "path": "sources.json"
+          }
+        ],
+        "metadata": {
+          "affectedInvariants": [],
+          "affectedPages": [
+            "architecture/engine"
+          ],
+          "changeType": "feature",
+          "semanticChange": true,
+          "touchedConflicts": [],
+          "wikiAction": "update"
+        },
+        "nonDiffBytes": 57431,
+        "rawDiffBytes": 3602,
+        "rawNonDiffBytes": 57431,
+        "rawTotalBytes": 61033,
+        "sourceBreadth": {
+          "affectedPageCount": 1,
+          "conflictCount": 0,
+          "globMatches": {
+            "scripts/wiki/**/*.ts": [
+              "scripts/wiki/apply.test.ts",
+              "scripts/wiki/apply.ts",
+              "scripts/wiki/cli.ts",
+              "scripts/wiki/core.ts",
+              "scripts/wiki/existing-repo-bootstrap.test.ts",
+              "scripts/wiki/fresh-context.test.ts",
+              "scripts/wiki/github-attestation.ts",
+              "scripts/wiki/inventories.example.ts",
+              "scripts/wiki/inventories.ts",
+              "scripts/wiki/kit-sync.ts",
+              "scripts/wiki/kit.test.ts",
+              "scripts/wiki/new-repository-adoption.test.ts",
+              "scripts/wiki/primary-baseline.test.ts",
+              "scripts/wiki/primary-baseline.ts",
+              "scripts/wiki/primary-current.test.ts",
+              "scripts/wiki/primary-current.ts",
+              "scripts/wiki/primary-scenarios.test.ts",
+              "scripts/wiki/primary-scenarios.ts",
+              "scripts/wiki/publisher-boundary.test.ts",
+              "scripts/wiki/test-runner.ts",
+              "scripts/wiki/wiki.test.ts",
+              "scripts/wiki/work.test.ts"
+            ]
+          },
+          "invariantCount": 0,
+          "sourceFileCount": 33,
+          "sourceFiles": [
+            ".github/pull_request_template.md",
+            ".github/workflows/checks.yml",
+            ".github/workflows/kit.yml",
+            ".github/workflows/wiki-audit.yml",
+            ".github/workflows/wiki-ssot.yml",
+            ".husky/pre-commit",
+            ".husky/pre-push",
+            ".wiki/config.json",
+            "AGENTS.md",
+            "package.json",
+            "scripts/wiki/apply.test.ts",
+            "scripts/wiki/apply.ts",
+            "scripts/wiki/cli.ts",
+            "scripts/wiki/core.ts",
+            "scripts/wiki/existing-repo-bootstrap.test.ts",
+            "scripts/wiki/fresh-context.test.ts",
+            "scripts/wiki/github-attestation.ts",
+            "scripts/wiki/inventories.example.ts",
+            "scripts/wiki/inventories.ts",
+            "scripts/wiki/kit-sync.ts",
+            "scripts/wiki/kit.test.ts",
+            "scripts/wiki/new-repository-adoption.test.ts",
+            "scripts/wiki/primary-baseline.test.ts",
+            "scripts/wiki/primary-baseline.ts",
+            "scripts/wiki/primary-current.test.ts",
+            "scripts/wiki/primary-current.ts",
+            "scripts/wiki/primary-scenarios.test.ts",
+            "scripts/wiki/primary-scenarios.ts",
+            "scripts/wiki/publisher-boundary.test.ts",
+            "scripts/wiki/test-runner.ts",
+            "scripts/wiki/tsconfig.json",
+            "scripts/wiki/wiki.test.ts",
+            "scripts/wiki/work.test.ts"
+          ],
+          "sourcePathCount": 15,
+          "sourcePaths": [
+            ".github/pull_request_template.md",
+            ".github/workflows/checks.yml",
+            ".github/workflows/kit.yml",
+            ".github/workflows/wiki-audit.yml",
+            ".github/workflows/wiki-ssot.yml",
+            ".husky/pre-commit",
+            ".husky/pre-push",
+            ".wiki/config.json",
+            "AGENTS.md",
+            "package.json",
+            "scripts/wiki/apply.ts",
+            "scripts/wiki/cli.ts",
+            "scripts/wiki/core.ts",
+            "scripts/wiki/github-attestation.ts",
+            "scripts/wiki/tsconfig.json"
+          ]
+        },
+        "totalBytes": 61033
+      },
+      "selectedWork": {
+        "json": {
+          "bytes": 79920,
+          "lines": 1047,
+          "words": 8504
+        },
+        "label": "selected-work",
+        "query": null,
+        "semantic": {
+          "conflictCount": 0,
+          "conflictIds": [],
+          "currentPageCount": 4,
+          "nonCurrentPageCount": 0,
+          "nonCurrentPageIds": [],
+          "pageCount": 4,
+          "pageIds": [
+            "architecture/engine",
+            "operations/enforcement",
+            "product/invariants",
+            "product/scope"
+          ],
+          "readOrderCount": 39,
+          "sourceDeclarationCount": 33,
+          "sourceFileCount": 38,
+          "sourceIds": [
+            "architecture/engine",
+            "operations/enforcement",
+            "product/invariants",
+            "product/scope",
+            "proposal/token-efficiency"
+          ]
+        },
+        "text": {
+          "bytes": 66479,
+          "lines": 723,
+          "words": 8308
+        },
+        "workId": "TE-00"
+      }
+    },
+    "method": {
+      "contextCommands": [
+        "bun run wiki:context -- \"recursive source mapping\"",
+        "bun run wiki:context -- \"token context runtime cost efficiency\"",
+        "bun run wiki:context -- --work TE-00"
+      ],
+      "historicalCheckout": "git clone --shared --no-checkout; git checkout --detach 6fd3a85414e00892930557cb8335e2d88ec90d66",
+      "notes": [
+        "Deterministic measurements are UTF-8 bytes and are not model-token, runtime, billing, or subscription-credit claims.",
+        "The context/source and disposable review candidate are local immutable checkouts; no candidate is pushed.",
+        "The copied TE-00 runner is excluded from the pinned scripts/wiki/**/*.ts source expansion."
+      ],
+      "reviewBundleCommand": "bun run wiki:review-bundle -- --base 6fd3a85414e00892930557cb8335e2d88ec90d66",
+      "sourceExpansion": "scripts/wiki/**/*.ts",
+      "textEncoding": "UTF-8"
+    },
+    "reportVersion": 1,
+    "summary": {
+      "broadContextBytes": 114294,
+      "focusedContextBytes": 55043,
+      "mandatoryEntryBytes": 16919,
+      "mandatoryEntryLines": 135,
+      "recursiveTypeScriptBytes": 588463,
+      "recursiveTypeScriptLines": 12647,
+      "reviewBundleBytes": 60946,
+      "reviewDiffBytes": 3602,
+      "reviewNonDiffBytes": 57344,
+      "selectedWorkContextBytes": 66479
+    }
+  },
+  "deterministicPublisherBytes": {
+    "contractVersion": 1,
+    "deterministic": {
+      "broad": {
+        "json": {
+          "bytes": 142186,
+          "lines": 1758,
+          "words": 14698
+        },
+        "label": "broad",
+        "query": "token context runtime cost efficiency",
+        "semantic": {
+          "conflictCount": 0,
+          "conflictIds": [],
+          "currentPageCount": 4,
+          "nonCurrentPageCount": 4,
+          "nonCurrentPageIds": [
+            "proposal/kit-code-splitting",
+            "proposal/primary-findability-validation",
+            "proposal/primary-interpretation-decision-gate",
+            "proposal/token-efficiency"
+          ],
+          "pageCount": 4,
+          "pageIds": [
+            "architecture/engine",
+            "operations/enforcement",
+            "product/invariants",
+            "product/scope"
+          ],
+          "readOrderCount": 39,
+          "sourceDeclarationCount": 79,
+          "sourceFileCount": 55,
+          "sourceIds": [
+            "architecture/engine",
+            "operations/enforcement",
+            "product/invariants",
+            "product/scope",
+            "proposal/kit-code-splitting",
+            "proposal/primary-findability-validation",
+            "proposal/primary-interpretation-decision-gate",
+            "proposal/token-efficiency"
+          ]
+        },
+        "text": {
+          "bytes": 114294,
+          "lines": 1670,
+          "words": 14484
+        },
+        "workId": null
+      },
+      "contextSourceRevision": "6fd3a85414e00892930557cb8335e2d88ec90d66",
+      "entry": {
+        "files": {
+          "AGENTS.md": {
+            "bytes": 7924,
+            "lines": 59,
+            "words": 1144
+          },
+          "wiki/current-status.md": {
+            "bytes": 856,
+            "lines": 27,
+            "words": 128
+          },
+          "wiki/index.md": {
+            "bytes": 1330,
+            "lines": 22,
+            "words": 152
+          },
+          "wiki/product/invariants.md": {
+            "bytes": 6809,
+            "lines": 27,
+            "words": 936
+          }
+        },
+        "json": {
+          "bytes": 513,
+          "lines": 30,
+          "words": 48
+        },
+        "paths": [
+          "AGENTS.md",
+          "wiki/index.md",
+          "wiki/current-status.md",
+          "wiki/product/invariants.md"
+        ],
+        "semantic": {
+          "currentAuthorityFileCount": 1,
+          "fileCount": 4,
+          "sourcePathCount": 4
+        },
+        "text": {
+          "bytes": 16919,
+          "lines": 135,
+          "words": 2360
+        }
+      },
+      "focused": {
+        "json": {
+          "bytes": 69125,
+          "lines": 859,
+          "words": 6780
+        },
+        "label": "focused",
+        "query": "recursive source mapping",
+        "semantic": {
+          "conflictCount": 0,
+          "conflictIds": [],
+          "currentPageCount": 1,
+          "nonCurrentPageCount": 1,
+          "nonCurrentPageIds": [
+            "proposal/primary-findability-validation"
+          ],
+          "pageCount": 1,
+          "pageIds": [
+            "architecture/engine"
+          ],
+          "readOrderCount": 24,
+          "sourceDeclarationCount": 37,
+          "sourceFileCount": 47,
+          "sourceIds": [
+            "architecture/engine",
+            "proposal/primary-findability-validation"
+          ]
+        },
+        "text": {
+          "bytes": 55043,
+          "lines": 706,
+          "words": 6675
+        },
+        "workId": null
+      },
+      "recursiveTypeScript": {
+        "fileCount": 22,
+        "files": {
+          "scripts/wiki/apply.test.ts": {
+            "bytes": 25701,
+            "lines": 559,
+            "words": 2062
+          },
+          "scripts/wiki/apply.ts": {
+            "bytes": 29454,
+            "lines": 655,
+            "words": 3260
+          },
+          "scripts/wiki/cli.ts": {
+            "bytes": 39867,
+            "lines": 880,
+            "words": 3873
+          },
+          "scripts/wiki/core.ts": {
+            "bytes": 159745,
+            "lines": 2972,
+            "words": 16296
+          },
+          "scripts/wiki/existing-repo-bootstrap.test.ts": {
+            "bytes": 16315,
+            "lines": 377,
+            "words": 1448
+          },
+          "scripts/wiki/fresh-context.test.ts": {
+            "bytes": 69390,
+            "lines": 1566,
+            "words": 6058
+          },
+          "scripts/wiki/github-attestation.ts": {
+            "bytes": 10013,
+            "lines": 189,
+            "words": 965
+          },
+          "scripts/wiki/inventories.example.ts": {
+            "bytes": 5827,
+            "lines": 96,
+            "words": 605
+          },
+          "scripts/wiki/inventories.ts": {
+            "bytes": 1304,
+            "lines": 26,
+            "words": 193
+          },
+          "scripts/wiki/kit-sync.ts": {
+            "bytes": 14096,
+            "lines": 307,
+            "words": 1747
+          },
+          "scripts/wiki/kit.test.ts": {
+            "bytes": 27905,
+            "lines": 634,
+            "words": 2540
+          },
+          "scripts/wiki/new-repository-adoption.test.ts": {
+            "bytes": 11609,
+            "lines": 320,
+            "words": 1026
+          },
+          "scripts/wiki/primary-baseline.test.ts": {
+            "bytes": 7043,
+            "lines": 169,
+            "words": 481
+          },
+          "scripts/wiki/primary-baseline.ts": {
+            "bytes": 30496,
+            "lines": 798,
+            "words": 2774
+          },
+          "scripts/wiki/primary-current.test.ts": {
+            "bytes": 5375,
+            "lines": 139,
+            "words": 397
+          },
+          "scripts/wiki/primary-current.ts": {
+            "bytes": 27114,
+            "lines": 664,
+            "words": 2288
+          },
+          "scripts/wiki/primary-scenarios.test.ts": {
+            "bytes": 6102,
+            "lines": 133,
+            "words": 376
+          },
+          "scripts/wiki/primary-scenarios.ts": {
+            "bytes": 16528,
+            "lines": 414,
+            "words": 1355
+          },
+          "scripts/wiki/publisher-boundary.test.ts": {
+            "bytes": 10083,
+            "lines": 297,
+            "words": 818
+          },
+          "scripts/wiki/test-runner.ts": {
+            "bytes": 1767,
+            "lines": 47,
+            "words": 202
+          },
+          "scripts/wiki/wiki.test.ts": {
+            "bytes": 41668,
+            "lines": 745,
+            "words": 3605
+          },
+          "scripts/wiki/work.test.ts": {
+            "bytes": 31061,
+            "lines": 660,
+            "words": 2704
+          }
+        },
+        "glob": "scripts/wiki/**/*.ts",
+        "paths": [
+          "scripts/wiki/apply.test.ts",
+          "scripts/wiki/apply.ts",
+          "scripts/wiki/cli.ts",
+          "scripts/wiki/core.ts",
+          "scripts/wiki/existing-repo-bootstrap.test.ts",
+          "scripts/wiki/fresh-context.test.ts",
+          "scripts/wiki/github-attestation.ts",
+          "scripts/wiki/inventories.example.ts",
+          "scripts/wiki/inventories.ts",
+          "scripts/wiki/kit-sync.ts",
+          "scripts/wiki/kit.test.ts",
+          "scripts/wiki/new-repository-adoption.test.ts",
+          "scripts/wiki/primary-baseline.test.ts",
+          "scripts/wiki/primary-baseline.ts",
+          "scripts/wiki/primary-current.test.ts",
+          "scripts/wiki/primary-current.ts",
+          "scripts/wiki/primary-scenarios.test.ts",
+          "scripts/wiki/primary-scenarios.ts",
+          "scripts/wiki/publisher-boundary.test.ts",
+          "scripts/wiki/test-runner.ts",
+          "scripts/wiki/wiki.test.ts",
+          "scripts/wiki/work.test.ts"
+        ],
+        "text": {
+          "bytes": 588463,
+          "lines": 12647,
+          "words": 55073
+        }
+      },
+      "reviewBundle": {
+        "baseRef": "6fd3a85414e00892930557cb8335e2d88ec90d66",
+        "baseSha": "6fd3a85414e00892930557cb8335e2d88ec90d66",
+        "candidateBaseRef": "6fd3a85414e00892930557cb8335e2d88ec90d66",
+        "candidateCommit": {
+          "author": "TE-00 fixture <te00-fixture@example.invalid>",
+          "authoredAt": "2000-01-01T00:00:00Z",
+          "message": "TE-00 deterministic disposable publisher candidate"
+        },
+        "candidateRef": "d70befec1ac13e173ea3cc5b004d789b58a98368",
+        "candidateSha": "d70befec1ac13e173ea3cc5b004d789b58a98368",
+        "comparisonDiffBytes": 3602,
+        "comparisonNonDiffBytes": 57344,
+        "comparisonTotalBytes": 60946,
+        "componentBytes": {
+          "diff": 3602,
+          "impact": 1316,
+          "invariants": 6809,
+          "manifest": 1928,
+          "metadata": 194,
+          "pages": 37924,
+          "review-contract": 7874,
+          "sources": 1386
+        },
+        "diffBytes": 3602,
+        "digest": "e88a852c88dbd86357740c7afd8c9b856003721b1c2d35c318e1b4e9a590ef76",
+        "digestBindingBytes": 87,
+        "fileBytes": {
+          "diff.patch": 3602,
+          "impact.json": 1316,
+          "invariants/product_invariants.md": 6809,
+          "manifest.json": 1928,
+          "pages/architecture_engine.md": 21186,
+          "pages/operations_enforcement.md": 9929,
+          "pages/product_invariants.md": 6809,
+          "pr-metadata.json": 194,
+          "PROMPT.md": 2102,
+          "REPORT.example.json": 417,
+          "REPORT.findings.example.json": 1761,
+          "REPORT.md": 3594,
+          "sources.json": 1386
+        },
+        "files": [
+          {
+            "bytes": 3602,
+            "component": "diff",
+            "path": "diff.patch"
+          },
+          {
+            "bytes": 1316,
+            "component": "impact",
+            "path": "impact.json"
+          },
+          {
+            "bytes": 6809,
+            "component": "invariants",
+            "path": "invariants/product_invariants.md"
+          },
+          {
+            "bytes": 1928,
+            "component": "manifest",
+            "path": "manifest.json"
+          },
+          {
+            "bytes": 21186,
+            "component": "pages",
+            "path": "pages/architecture_engine.md"
+          },
+          {
+            "bytes": 9929,
+            "component": "pages",
+            "path": "pages/operations_enforcement.md"
+          },
+          {
+            "bytes": 6809,
+            "component": "pages",
+            "path": "pages/product_invariants.md"
+          },
+          {
+            "bytes": 194,
+            "component": "metadata",
+            "path": "pr-metadata.json"
+          },
+          {
+            "bytes": 2102,
+            "component": "review-contract",
+            "path": "PROMPT.md"
+          },
+          {
+            "bytes": 417,
+            "component": "review-contract",
+            "path": "REPORT.example.json"
+          },
+          {
+            "bytes": 1761,
+            "component": "review-contract",
+            "path": "REPORT.findings.example.json"
+          },
+          {
+            "bytes": 3594,
+            "component": "review-contract",
+            "path": "REPORT.md"
+          },
+          {
+            "bytes": 1386,
+            "component": "sources",
+            "path": "sources.json"
+          }
+        ],
+        "metadata": {
+          "affectedInvariants": [],
+          "affectedPages": [
+            "architecture/engine"
+          ],
+          "changeType": "feature",
+          "semanticChange": true,
+          "touchedConflicts": [],
+          "wikiAction": "update"
+        },
+        "nonDiffBytes": 57431,
+        "rawDiffBytes": 3602,
+        "rawNonDiffBytes": 57431,
+        "rawTotalBytes": 61033,
+        "sourceBreadth": {
+          "affectedPageCount": 1,
+          "conflictCount": 0,
+          "globMatches": {
+            "scripts/wiki/**/*.ts": [
+              "scripts/wiki/apply.test.ts",
+              "scripts/wiki/apply.ts",
+              "scripts/wiki/cli.ts",
+              "scripts/wiki/core.ts",
+              "scripts/wiki/existing-repo-bootstrap.test.ts",
+              "scripts/wiki/fresh-context.test.ts",
+              "scripts/wiki/github-attestation.ts",
+              "scripts/wiki/inventories.example.ts",
+              "scripts/wiki/inventories.ts",
+              "scripts/wiki/kit-sync.ts",
+              "scripts/wiki/kit.test.ts",
+              "scripts/wiki/new-repository-adoption.test.ts",
+              "scripts/wiki/primary-baseline.test.ts",
+              "scripts/wiki/primary-baseline.ts",
+              "scripts/wiki/primary-current.test.ts",
+              "scripts/wiki/primary-current.ts",
+              "scripts/wiki/primary-scenarios.test.ts",
+              "scripts/wiki/primary-scenarios.ts",
+              "scripts/wiki/publisher-boundary.test.ts",
+              "scripts/wiki/test-runner.ts",
+              "scripts/wiki/wiki.test.ts",
+              "scripts/wiki/work.test.ts"
+            ]
+          },
+          "invariantCount": 0,
+          "sourceFileCount": 33,
+          "sourceFiles": [
+            ".github/pull_request_template.md",
+            ".github/workflows/checks.yml",
+            ".github/workflows/kit.yml",
+            ".github/workflows/wiki-audit.yml",
+            ".github/workflows/wiki-ssot.yml",
+            ".husky/pre-commit",
+            ".husky/pre-push",
+            ".wiki/config.json",
+            "AGENTS.md",
+            "package.json",
+            "scripts/wiki/apply.test.ts",
+            "scripts/wiki/apply.ts",
+            "scripts/wiki/cli.ts",
+            "scripts/wiki/core.ts",
+            "scripts/wiki/existing-repo-bootstrap.test.ts",
+            "scripts/wiki/fresh-context.test.ts",
+            "scripts/wiki/github-attestation.ts",
+            "scripts/wiki/inventories.example.ts",
+            "scripts/wiki/inventories.ts",
+            "scripts/wiki/kit-sync.ts",
+            "scripts/wiki/kit.test.ts",
+            "scripts/wiki/new-repository-adoption.test.ts",
+            "scripts/wiki/primary-baseline.test.ts",
+            "scripts/wiki/primary-baseline.ts",
+            "scripts/wiki/primary-current.test.ts",
+            "scripts/wiki/primary-current.ts",
+            "scripts/wiki/primary-scenarios.test.ts",
+            "scripts/wiki/primary-scenarios.ts",
+            "scripts/wiki/publisher-boundary.test.ts",
+            "scripts/wiki/test-runner.ts",
+            "scripts/wiki/tsconfig.json",
+            "scripts/wiki/wiki.test.ts",
+            "scripts/wiki/work.test.ts"
+          ],
+          "sourcePathCount": 15,
+          "sourcePaths": [
+            ".github/pull_request_template.md",
+            ".github/workflows/checks.yml",
+            ".github/workflows/kit.yml",
+            ".github/workflows/wiki-audit.yml",
+            ".github/workflows/wiki-ssot.yml",
+            ".husky/pre-commit",
+            ".husky/pre-push",
+            ".wiki/config.json",
+            "AGENTS.md",
+            "package.json",
+            "scripts/wiki/apply.ts",
+            "scripts/wiki/cli.ts",
+            "scripts/wiki/core.ts",
+            "scripts/wiki/github-attestation.ts",
+            "scripts/wiki/tsconfig.json"
+          ]
+        },
+        "totalBytes": 61033
+      },
+      "selectedWork": {
+        "json": {
+          "bytes": 79920,
+          "lines": 1047,
+          "words": 8504
+        },
+        "label": "selected-work",
+        "query": null,
+        "semantic": {
+          "conflictCount": 0,
+          "conflictIds": [],
+          "currentPageCount": 4,
+          "nonCurrentPageCount": 0,
+          "nonCurrentPageIds": [],
+          "pageCount": 4,
+          "pageIds": [
+            "architecture/engine",
+            "operations/enforcement",
+            "product/invariants",
+            "product/scope"
+          ],
+          "readOrderCount": 39,
+          "sourceDeclarationCount": 33,
+          "sourceFileCount": 38,
+          "sourceIds": [
+            "architecture/engine",
+            "operations/enforcement",
+            "product/invariants",
+            "product/scope",
+            "proposal/token-efficiency"
+          ]
+        },
+        "text": {
+          "bytes": 66479,
+          "lines": 723,
+          "words": 8308
+        },
+        "workId": "TE-00"
+      }
+    },
+    "method": {
+      "contextCommands": [
+        "bun run wiki:context -- \"recursive source mapping\"",
+        "bun run wiki:context -- \"token context runtime cost efficiency\"",
+        "bun run wiki:context -- --work TE-00"
+      ],
+      "historicalCheckout": "git clone --shared --no-checkout; git checkout --detach 6fd3a85414e00892930557cb8335e2d88ec90d66",
+      "notes": [
+        "Deterministic measurements are UTF-8 bytes and are not model-token, runtime, billing, or subscription-credit claims.",
+        "The context/source and disposable review candidate are local immutable checkouts; no candidate is pushed.",
+        "The copied TE-00 runner is excluded from the pinned scripts/wiki/**/*.ts source expansion."
+      ],
+      "reviewBundleCommand": "bun run wiki:review-bundle -- --base 6fd3a85414e00892930557cb8335e2d88ec90d66",
+      "sourceExpansion": "scripts/wiki/**/*.ts",
+      "textEncoding": "UTF-8"
+    },
+    "reportVersion": 1,
+    "summary": {
+      "broadContextBytes": 114294,
+      "focusedContextBytes": 55043,
+      "mandatoryEntryBytes": 16919,
+      "mandatoryEntryLines": 135,
+      "recursiveTypeScriptBytes": 588463,
+      "recursiveTypeScriptLines": 12647,
+      "reviewBundleBytes": 60946,
+      "reviewDiffBytes": 3602,
+      "reviewNonDiffBytes": 57344,
+      "selectedWorkContextBytes": 66479
+    }
+  },
+  "evidenceVersion": 1,
+  "externalSchooledDiagnosis": {
+    "agents": [
+      {
+        "activeMs": 2281203,
+        "cachedInputTokens": 23357440,
+        "calls": 169,
+        "compactions": 1,
+        "effort": "high",
+        "model": "gpt-5.6-sol",
+        "outputBytes": 723917,
+        "outputTokens": 41895,
+        "pathLabel": "root",
+        "rawInputTokens": 23772818,
+        "reasoningOutputTokens": 13722,
+        "role": "primary",
+        "toolCalls": 160,
+        "totalTokens": 23814713,
+        "uncachedInputTokens": 415378,
+        "wallMs": 18755769
+      },
+      {
+        "activeMs": 452195,
+        "cachedInputTokens": 1649920,
+        "calls": 19,
+        "compactions": 0,
+        "effort": "high",
+        "model": "gpt-5.6-sol",
+        "outputBytes": 466260,
+        "outputTokens": 11822,
+        "pathLabel": "map-wiki-ssot-update",
+        "rawInputTokens": 1808617,
+        "reasoningOutputTokens": 2797,
+        "role": "explorer",
+        "toolCalls": 18,
+        "totalTokens": 1820439,
+        "uncachedInputTokens": 158697,
+        "wallMs": 456319
+      },
+      {
+        "activeMs": 109635,
+        "cachedInputTokens": 1734656,
+        "calls": 32,
+        "compactions": 0,
+        "effort": "low",
+        "model": "codex-auto-review",
+        "outputBytes": 0,
+        "outputTokens": 3120,
+        "pathLabel": "guardian-primary",
+        "rawInputTokens": 2061333,
+        "reasoningOutputTokens": 1344,
+        "role": "guardian",
+        "toolCalls": 0,
+        "totalTokens": 2064453,
+        "uncachedInputTokens": 326677,
+        "wallMs": 2510476
+      },
+      {
+        "activeMs": 12136,
+        "cachedInputTokens": 74752,
+        "calls": 4,
+        "compactions": 0,
+        "effort": "low",
+        "model": "codex-auto-review",
+        "outputBytes": 0,
+        "outputTokens": 332,
+        "pathLabel": "guardian-explorer",
+        "rawInputTokens": 100702,
+        "reasoningOutputTokens": 144,
+        "role": "guardian",
+        "toolCalls": 0,
+        "totalTokens": 101034,
+        "uncachedInputTokens": 25950,
+        "wallMs": 154941
+      },
+      {
+        "activeMs": 465300,
+        "cachedInputTokens": 3464192,
+        "calls": 49,
+        "compactions": 0,
+        "effort": "max",
+        "model": "gpt-5.6-luna",
+        "outputBytes": 241875,
+        "outputTokens": 18513,
+        "pathLabel": "integrate-executor-engine",
+        "rawInputTokens": 3597125,
+        "reasoningOutputTokens": 3524,
+        "role": "code_worker",
+        "toolCalls": 48,
+        "totalTokens": 3615638,
+        "uncachedInputTokens": 132933,
+        "wallMs": 465212
+      },
+      {
+        "activeMs": 339002,
+        "cachedInputTokens": 2838528,
+        "calls": 32,
+        "compactions": 0,
+        "effort": "high",
+        "model": "gpt-5.6-sol",
+        "outputBytes": 562361,
+        "outputTokens": 9594,
+        "pathLabel": "review-executor-update",
+        "rawInputTokens": 3000942,
+        "reasoningOutputTokens": 4452,
+        "role": "ssot_reviewer",
+        "toolCalls": 31,
+        "totalTokens": 3010536,
+        "uncachedInputTokens": 162414,
+        "wallMs": 338980
+      }
+    ],
+    "artifactCategories": {
+      "agentContext": 5300,
+      "agentResult": 20623,
+      "compactionSummary": 64701,
+      "diff": 209049,
+      "reviewBundle": 142761,
+      "spawnContext": 5812,
+      "testAndValidation": 493762,
+      "unclassifiedToolOutput": 820239,
+      "workContext": 232166
+    },
+    "inputDistribution": {
+      "codeWorkerInputMax": 101923,
+      "codeWorkerInputMedian": 78000,
+      "codeWorkerInputP95": 101343,
+      "explorerInputMax": 158747,
+      "explorerInputMedian": 92921,
+      "explorerInputP95": 158747,
+      "guardianExplorerInputMax": 29523,
+      "guardianExplorerInputMedian": 27379,
+      "guardianExplorerInputP95": 29523,
+      "guardianPrimaryInputMax": 86469,
+      "guardianPrimaryInputMedian": 70291,
+      "guardianPrimaryInputP95": 85115,
+      "primaryInputMax": 222974,
+      "primaryInputMedian": 155486,
+      "primaryInputP95": 216343,
+      "primaryUncachedMax": 31368,
+      "primaryUncachedMedian": 1190,
+      "primaryUncachedP95": 12492,
+      "reviewerInputMax": 162152,
+      "reviewerInputMedian": 95648,
+      "reviewerInputP95": 158855
+    },
+    "kind": "sanitized-schooled-diagnosis",
+    "limitations": [
+      "This sanitized diagnosis is bound to the audit cutoff 2026-08-05T17:42:08.923Z; later rollout events are intentionally excluded.",
+      "The six agent wall spans sum to 22681697 ms and overlap; the end-to-end event span was 18755769 ms, including about 4 hours 34 minutes of non-active gap.",
+      "The supplied phase labels identify 101 implementation calls and 50 publication plus merge-cleanup calls, but the sanitized tables do not contain reproducible phase boundaries, so phase durations remain unavailable.",
+      "The classified artifact categories total 1174174 bytes; 820239 serialized tool-output bytes have no safe artifact category.",
+      "Prompt bodies, source bodies, command bodies, tool-output bodies, private local paths, and billed-cost interpretations are not retained."
+    ],
+    "performance": {
+      "activeWallExcludingUserIdle": {
+        "availability": "available",
+        "limitation": "Concurrent agent spans overlap, so this is workload time rather than end-to-end elapsed time.",
+        "method": "sum of sanitized per-agent active spans",
+        "valueMs": 3659471
+      },
+      "approvalWait": {
+        "availability": "unavailable",
+        "limitation": "Guardian calls and active spans are known, but approval request-to-decision pairs were not retained.",
+        "method": "guardian aggregate",
+        "valueMs": null
+      },
+      "completion": {
+        "availability": "unavailable",
+        "limitation": "The audit cannot split queue, prefill, first-token, and response completion latency.",
+        "method": "sanitized rollout audit",
+        "valueMs": null
+      },
+      "coordinationWait": {
+        "availability": "unavailable",
+        "limitation": "Wait-call counts exist without boundaries that distinguish coordination, execution, polling, and user idle.",
+        "method": "orchestration aggregate",
+        "valueMs": null
+      },
+      "firstToken": {
+        "availability": "unavailable",
+        "limitation": "The audit has no first streamed-token timestamp.",
+        "method": "sanitized rollout audit",
+        "valueMs": null
+      },
+      "modelRequest": {
+        "availability": "unavailable",
+        "limitation": "The audit has response-level usage but no model request-start timestamp.",
+        "method": "sanitized rollout audit",
+        "valueMs": null
+      },
+      "phases": {
+        "cleanup": {
+          "availability": "unavailable",
+          "limitation": "Merge and cleanup were recorded only as one combined 30-call group and cannot be separated.",
+          "method": "supplied combined classification",
+          "valueMs": null
+        },
+        "implementation": {
+          "availability": "unavailable",
+          "limitation": "The supplied diagnosis reports 101 primary model calls but no reproducible sanitized timing boundary.",
+          "method": "supplied phase classification",
+          "modelCalls": 101,
+          "valueMs": null
+        },
+        "merge": {
+          "availability": "unavailable",
+          "limitation": "Merge and cleanup were recorded only as one combined 30-call group and cannot be separated.",
+          "method": "supplied combined classification",
+          "valueMs": null
+        },
+        "mergeCleanupCombined": {
+          "availability": "unavailable",
+          "limitation": "Thirty primary model calls are reproducibly reported, but their combined duration is not present in the sanitized source tables.",
+          "method": "supplied combined classification",
+          "modelCalls": 30,
+          "valueMs": null
+        },
+        "publication": {
+          "availability": "unavailable",
+          "limitation": "The supplied diagnosis reports 20 primary model calls but no reproducible sanitized timing boundary.",
+          "method": "supplied phase classification",
+          "modelCalls": 20,
+          "valueMs": null
+        }
+      },
+      "toolDuration": {
+        "availability": "unavailable",
+        "limitation": "The source table retains one timestamp per tool call rather than paired start and completion timestamps.",
+        "method": "sanitized tool-call CSV",
+        "valueMs": null
+      }
+    },
+    "repository": {
+      "label": "true-dragonsnest/schooled",
+      "url": "https://github.com/true-dragonsnest/schooled"
+    },
+    "sessionId": "019fd1e6-816a-7742-b356-f28c945d6110",
+    "success": true,
+    "totals": {
+      "activeMs": 3659471,
+      "agentCount": 6,
+      "cachedInputTokens": 33119488,
+      "calls": 305,
+      "compactions": 1,
+      "outputBytes": 1994413,
+      "outputTokens": 85276,
+      "rawInputTokens": 34341537,
+      "reasoningOutputTokens": 25983,
+      "toolCalls": 257,
+      "totalTokens": 34426813,
+      "uncachedInputTokens": 1222049,
+      "wallMs": 22681697
+    },
+    "version": 1
+  },
+  "kind": "te-00-token-efficiency-baseline",
+  "limitations": [
+    "No model/provider calls are made by this harness.",
+    "No comparison candidate is pushed; the disposable candidate is removed after bundle measurement.",
+    "Owner decision remains pending until TE-00-OWNER ratification."
+  ],
+  "ownerRatification": {
+    "decision": null,
+    "options": [
+      "ratify the publisher contract",
+      "request another bounded measurement cycle",
+      "do not adopt the optimization"
+    ]
+  },
+  "separation": {
+    "approvalEffects": "Approval waits are reported when available and remain external approval-system observations.",
+    "cacheEffects": "Raw input includes cached input; uncached input is derived as raw minus cached and is not added twice.",
+    "controlledPublisherOrchestrator": "Publisher agents, calls, models, effort, tool/artifact totals, and performance are controlled rollout observations.",
+    "deterministicEngine": "Pinned repository text/JSON bytes, semantic counts, source breadth, and review bundle accounting are deterministic engine evidence.",
+    "externalDiagnosis": "Schooled session usage and timings are supplied external diagnosis; no transcript, prompt, source body, or tool body is retained.",
+    "limitations": "Unavailable performance fields retain null values and non-empty limitations instead of being interpreted as zero."
+  }
+}
