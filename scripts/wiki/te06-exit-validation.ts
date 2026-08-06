@@ -29,11 +29,21 @@ import {
   validateControlledPublisherPerformance,
   type ControlledPublisher,
 } from "./token-efficiency-baseline";
+import {
+  TE06_COMPARISON_TASK_DIGEST,
+  TE06_CONTROLLED_COMPARISON_ORCHESTRATION,
+  TE06_CONTROLLED_COMPARISON_REVISION,
+  TE06_CONTROLLED_PUBLISHER_TASK_LABEL,
+  normalizeTe06ComparisonTask,
+  validateTe06ControlledComparison as validateControlledComparisonRecord,
+  validateTe06ControlledComparisonCompact,
+  type Te06ControlledComparisonRecord,
+} from "./te06-controlled-comparison";
 
 const PROJECT_ROOT = resolve(import.meta.dir, "../..");
 
 /** Exact combined revision after TE-05, TE-01/02, and TE-04 were merged. */
-export const TE06_COMBINED_REVISION = "76e5d97a410d8e67659835e059e7b721541113c5" as const;
+export const TE06_COMBINED_REVISION = TE06_CONTROLLED_COMPARISON_REVISION;
 
 export const TE06_CONTEXT_CASES = [
   { id: "focused", selector: "recursive source mapping", kind: "topic" },
@@ -85,6 +95,12 @@ export type Te06ControlledAfter = {
   publisher: ControlledPublisher;
 };
 
+export type Te06ControlledComparison = {
+  availability: "available";
+  source: "separately supplied deterministic controlled comparison";
+  comparison: Te06ControlledComparisonRecord;
+};
+
 export type Te06ExitValidationReport = {
   version: 1;
   workItem: "TE-06";
@@ -110,6 +126,11 @@ export type Te06ExitValidationReport = {
       nonDiffBundleBytes: number;
     };
     suites: SuiteResult[];
+  };
+  controlledComparison: Te06ControlledComparison | {
+    availability: "unavailable";
+    source: "separately supplied deterministic controlled comparison";
+    limitation: string;
   };
   controlledPublisherAfter: Te06ControlledAfter | {
     availability: "unavailable";
@@ -292,12 +313,44 @@ export function validateTe06ControlledPublisherAfter(input: unknown, revision: s
   const publisher = validateControlledPublisher(input);
   validateControlledPublisherPerformance(publisher.performance);
   if (publisher.exactRevision !== revision) throw new Error("controlled publisher after-case does not bind the TE-06 exact revision");
+  if (publisher.taskLabel !== TE06_CONTROLLED_PUBLISHER_TASK_LABEL) {
+    throw new Error("controlled publisher after-case task does not match the fixed TE-00 comparison task");
+  }
+  if (publisher.orchestration !== TE06_CONTROLLED_COMPARISON_ORCHESTRATION) {
+    throw new Error("controlled publisher after-case orchestration does not match TE-00 controls");
+  }
+  if (input != null && typeof input === "object" && !Array.isArray(input)) {
+    const raw = input as Record<string, unknown>;
+    const suppliedDigest = raw.comparisonTaskDigest ?? raw.taskDigest;
+    if (suppliedDigest !== undefined && suppliedDigest !== TE06_COMPARISON_TASK_DIGEST) {
+      throw new Error("controlled publisher after-case task digest does not match the fixed TE-00 comparison task");
+    }
+    const suppliedTask = raw.comparisonTask ?? raw.taskIdentity;
+    if (suppliedTask !== undefined) {
+      normalizeTe06ComparisonTask(suppliedTask);
+      if (suppliedDigest === undefined) throw new Error("controlled publisher after-case task identity requires its digest");
+    }
+  }
   return publisher;
+}
+
+/** Validate a separately supplied deterministic TE-00 comparison artifact. */
+export function validateTe06ControlledComparison(input: unknown, revision: string): Te06ControlledComparisonRecord {
+  const comparison = validateControlledComparisonRecord(input, revision);
+  if (comparison.comparisonTaskDigest !== TE06_COMPARISON_TASK_DIGEST) {
+    throw new Error("controlled comparison task digest does not match the fixed TE-00 comparison task");
+  }
+  if (comparison.orchestration !== TE06_CONTROLLED_COMPARISON_ORCHESTRATION) {
+    throw new Error("controlled comparison orchestration does not match TE-00 controls");
+  }
+  return comparison;
 }
 
 export function buildTe06ExitValidation(options: {
   root?: string;
   revision?: string;
+  controlledComparison?: unknown;
+  controlledComparisonCompact?: unknown;
   controlledPublisherAfter?: unknown;
   remainingMisses?: Te06RemainingMiss[];
 } = {}): Te06ExitValidationReport {
@@ -362,6 +415,25 @@ export function buildTe06ExitValidation(options: {
       },
     ];
 
+    let controlledComparison: Te06ExitValidationReport["controlledComparison"] = {
+      availability: "unavailable",
+      source: "separately supplied deterministic controlled comparison",
+      limitation: "No separately supplied deterministic TE-00 comparison record was supplied to this exit harness.",
+    };
+    if (options.controlledComparison !== undefined) {
+      const comparison = validateTe06ControlledComparison(options.controlledComparison, revision);
+      if (options.controlledComparisonCompact !== undefined) {
+        validateTe06ControlledComparisonCompact(options.controlledComparisonCompact, comparison);
+      }
+      controlledComparison = {
+        availability: "available",
+        source: "separately supplied deterministic controlled comparison",
+        comparison,
+      };
+    } else if (options.controlledComparisonCompact !== undefined) {
+      throw new Error("TE-06 compact controlled comparison requires the separately retained full record");
+    }
+
     let controlledPublisherAfter: Te06ExitValidationReport["controlledPublisherAfter"] = {
       availability: "unavailable",
       source: "separately supplied sanitized controlled publisher",
@@ -405,6 +477,7 @@ export function buildTe06ExitValidation(options: {
         },
         suites,
       },
+      controlledComparison,
       controlledPublisherAfter,
       attribution: {
         engineOwned: [
@@ -452,9 +525,13 @@ function flagValue(flag: string): string | undefined {
 }
 
 if (import.meta.main) {
+  const comparisonCompactPath = flagValue("--controlled-comparison-compact");
+  const comparisonPath = flagValue("--controlled-comparison");
   const afterPath = flagValue("--controlled-publisher-after");
   const report = buildTe06ExitValidation({
     revision: flagValue("--revision"),
+    controlledComparison: comparisonPath ? JSON.parse(readFileSync(resolve(PROJECT_ROOT, comparisonPath), "utf8")) : undefined,
+    controlledComparisonCompact: comparisonCompactPath ? JSON.parse(readFileSync(resolve(PROJECT_ROOT, comparisonCompactPath), "utf8")) : undefined,
     controlledPublisherAfter: afterPath ? JSON.parse(readFileSync(resolve(PROJECT_ROOT, afterPath), "utf8")) : undefined,
   });
   process.stdout.write(renderTe06ExitValidation(report));

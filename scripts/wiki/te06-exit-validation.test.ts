@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { jsonStable } from "./core";
 import {
@@ -12,16 +12,28 @@ import {
   TE06_MISS_CLASSIFICATIONS,
   TE06_OWNER_OPTIONS,
   validateTe06ControlledPublisherAfter,
+  validateTe06ControlledComparison,
   validateTe06RemainingMisses,
   type Te06ExitValidationReport,
 } from "./te06-exit-validation";
+import {
+  buildTe06ControlledComparison,
+  TE06_COMPARISON_TASK_DIGEST,
+  TE06_CONTROLLED_COMPARISON_ORCHESTRATION,
+  TE06_CONTROLLED_COMPARISON_REVISION,
+  TE06_CONTROLLED_PUBLISHER_TASK_LABEL,
+} from "./te06-controlled-comparison";
 
 const root = resolve(import.meta.dir, "../..");
 let report: Te06ExitValidationReport;
 
 beforeAll(() => {
+  const comparisonPath = resolve(root, "docs/evidence/te-06-controlled-comparison.json");
+  const comparison = existsSync(comparisonPath)
+    ? JSON.parse(readFileSync(comparisonPath, "utf8"))
+    : buildTe06ControlledComparison(root);
   const controlled = JSON.parse(readFileSync(resolve(root, "docs/evidence/te-06-controlled-publisher.json"), "utf8"));
-  report = buildTe06ExitValidation({ controlledPublisherAfter: controlled });
+  report = buildTe06ExitValidation({ controlledComparison: comparison, controlledPublisherAfter: controlled });
 }, 180_000);
 
 describe("TE-06 exact-revision exit validation", () => {
@@ -35,6 +47,22 @@ describe("TE-06 exact-revision exit validation", () => {
     expect(report.deterministic.kitManifest.digest).toMatch(/^[0-9a-f]{64}$/);
     expect(report.deterministic.modelCalls).toBe(0);
     expect(report.deterministic.providerCalls).toBe(0);
+    expect(report.controlledComparison.availability).toBe("available");
+    if (report.controlledComparison.availability !== "available") throw new Error("controlled comparison unavailable");
+    expect(report.controlledComparison.comparison.exactRevision).toBe(TE06_CONTROLLED_COMPARISON_REVISION);
+    expect(report.controlledComparison.comparison.comparisonTaskDigest).toBe(TE06_COMPARISON_TASK_DIGEST);
+    expect(report.controlledComparison.comparison.orchestration).toBe(TE06_CONTROLLED_COMPARISON_ORCHESTRATION);
+  });
+
+  test("rejects controlled-comparison revision, task, and orchestration substitution", () => {
+    if (report.controlledComparison.availability !== "available") throw new Error("controlled comparison unavailable");
+    const comparison = report.controlledComparison.comparison;
+    expect(() => validateTe06ControlledComparison({ ...comparison, exactRevision: "0".repeat(40) }, report.exactRevision))
+      .toThrow("does not bind the TE-06 exact revision");
+    expect(() => validateTe06ControlledComparison({ ...comparison, comparisonTask: { ...comparison.comparisonTask, focusedTopic: "all source" } }, report.exactRevision))
+      .toThrow("task identity does not match");
+    expect(() => validateTe06ControlledComparison({ ...comparison, orchestration: "complete exit correctness suite" }, report.exactRevision))
+      .toThrow("orchestration does not match");
   });
 
   test("retains full output while compact text and JSON are smaller and semantically identical", () => {
@@ -109,6 +137,8 @@ describe("TE-06 exact-revision exit validation", () => {
     if (report.controlledPublisherAfter.availability !== "available") throw new Error("controlled after-case unavailable");
     const publisher = report.controlledPublisherAfter.publisher;
     expect(publisher.exactRevision).toBe(report.exactRevision);
+    expect(publisher.taskLabel).toBe(TE06_CONTROLLED_PUBLISHER_TASK_LABEL);
+    expect(publisher.orchestration).toBe(TE06_CONTROLLED_COMPARISON_ORCHESTRATION);
     expect(publisher.agents.length).toBeGreaterThan(0);
     for (const agent of publisher.agents) {
       expect(agent.uncachedInputTokens).toBe(agent.rawInputTokens - agent.cachedInputTokens);
@@ -131,6 +161,10 @@ describe("TE-06 exact-revision exit validation", () => {
       .toThrow("invalid controlled publisher");
     expect(() => validateTe06ControlledPublisherAfter({ ...publisher, exactRevision: "0".repeat(40) }, report.exactRevision))
       .toThrow("does not bind the TE-06 exact revision");
+    expect(() => validateTe06ControlledPublisherAfter({ ...publisher, taskLabel: "te06-broad-exit-suite" }, report.exactRevision))
+      .toThrow("task does not match the fixed TE-00 comparison task");
+    expect(() => validateTe06ControlledPublisherAfter({ ...publisher, orchestration: "full TE-06 exit suite" }, report.exactRevision))
+      .toThrow("orchestration does not match TE-00 controls");
   });
 
   test("separates attribution layers and limits miss classification vocabulary", () => {

@@ -18,6 +18,7 @@ import {
   symlinkSync,
   writeFileSync,
 } from "node:fs";
+import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import { jsonStable } from "./core";
@@ -47,6 +48,42 @@ export const TOKEN_EFFICIENCY_ENTRY_PATHS = [
   "wiki/product/invariants.md",
 ] as const;
 export const TOKEN_EFFICIENCY_SOURCE_GLOB = "scripts/wiki/**/*.ts" as const;
+
+/** Byte-stable disposable review-candidate recipe shared by TE-00 and TE-06. */
+export const TOKEN_EFFICIENCY_REVIEW_CANDIDATE_RECIPE = {
+  candidateMessage: "TE-00 deterministic disposable publisher candidate",
+  candidateAuthor: "TE-00 fixture <te00-fixture@example.invalid>",
+  candidateDate: "2000-01-01T00:00:00Z",
+  cliMarker: "// TE-00 deterministic candidate marker.",
+  pageMarker: "## TE-00 disposable candidate\n\nThis marker exists only in the fixed review fixture.",
+  metadataProfile: "feature/architecture-engine/no-invariants/no-conflicts",
+} as const;
+
+export const TOKEN_EFFICIENCY_REVIEW_CANDIDATE_RECIPE_DIGEST = createHash("sha256")
+  .update(jsonStable(TOKEN_EFFICIENCY_REVIEW_CANDIDATE_RECIPE))
+  .digest("hex") as string;
+
+/**
+ * The fixed TE-00 comparison task reused by the TE-06 controlled after-case.
+ * Keep this identity free of revision and runtime observations so the digest
+ * remains stable across the before and after publisher records.
+ */
+export const TOKEN_EFFICIENCY_COMPARISON_TASK = {
+  focusedTopic: TOKEN_EFFICIENCY_QUERIES.focused,
+  broadDiscovery: TOKEN_EFFICIENCY_QUERIES.broad,
+  selectedWork: TOKEN_EFFICIENCY_QUERIES.selectedWork,
+  sourceExpansion: TOKEN_EFFICIENCY_SOURCE_GLOB,
+  reviewBundle: "deterministic current review bundle measurement",
+  reviewCandidateRecipeDigest: TOKEN_EFFICIENCY_REVIEW_CANDIDATE_RECIPE_DIGEST,
+} as const;
+
+export const TOKEN_EFFICIENCY_COMPARISON_TASK_DIGEST = createHash("sha256")
+  .update(jsonStable(TOKEN_EFFICIENCY_COMPARISON_TASK))
+  .digest("hex") as string;
+
+/** Controls held constant for the TE-00 publisher before/after records. */
+export const TOKEN_EFFICIENCY_ORCHESTRATION =
+  "one default measurement agent on gpt-5.6-sol high; no child agents or guardians; deterministic harness uses disposable local clones and makes no model or provider call" as const;
 
 /** Reproduced values for the pinned revision; tests bind the report to these bytes. */
 export const TOKEN_EFFICIENCY_EXPECTED = {
@@ -495,9 +532,9 @@ function reviewBundleMeasurement(root: string): ReviewBundleMeasurement {
   const candidateRoot = join(temporaryRoot, "candidate");
   const metadataPath = join(temporaryRoot, "metadata.md");
   const outputPath = join(temporaryRoot, "bundle");
-  const candidateMessage = "TE-00 deterministic disposable publisher candidate";
-  const candidateAuthor = "TE-00 fixture <te00-fixture@example.invalid>";
-  const candidateDate = "2000-01-01T00:00:00Z";
+  const candidateMessage = TOKEN_EFFICIENCY_REVIEW_CANDIDATE_RECIPE.candidateMessage;
+  const candidateAuthor = TOKEN_EFFICIENCY_REVIEW_CANDIDATE_RECIPE.candidateAuthor;
+  const candidateDate = TOKEN_EFFICIENCY_REVIEW_CANDIDATE_RECIPE.candidateDate;
   try {
     required(["git", "clone", "--quiet", "--shared", "--no-checkout", root, candidateRoot], root);
     required(["git", "checkout", "--quiet", "--detach", TOKEN_EFFICIENCY_CONTEXT_SOURCE_REF], candidateRoot);
@@ -507,9 +544,9 @@ function reviewBundleMeasurement(root: string): ReviewBundleMeasurement {
     if (!existsSync(cliPath)) throw new Error("TE-00 candidate checkout does not contain the Wiki CLI");
     // The candidate is a fixed, semantics-preserving source marker plus a
     // current-page reconciliation marker.  It is never pushed or retained.
-    writeFileSync(join(candidateRoot, "scripts/wiki/cli.ts"), `${readFileSync(join(candidateRoot, "scripts/wiki/cli.ts"), "utf8")}\n// TE-00 deterministic candidate marker.\n`, "utf8");
+    writeFileSync(join(candidateRoot, "scripts/wiki/cli.ts"), `${readFileSync(join(candidateRoot, "scripts/wiki/cli.ts"), "utf8")}\n${TOKEN_EFFICIENCY_REVIEW_CANDIDATE_RECIPE.cliMarker}\n`, "utf8");
     const pagePath = join(candidateRoot, "wiki/architecture/engine.md");
-    writeFileSync(pagePath, `${readFileSync(pagePath, "utf8")}\n## TE-00 disposable candidate\n\nThis marker exists only in the fixed review fixture.\n`, "utf8");
+    writeFileSync(pagePath, `${readFileSync(pagePath, "utf8")}\n${TOKEN_EFFICIENCY_REVIEW_CANDIDATE_RECIPE.pageMarker}\n`, "utf8");
     writeFileSync(metadataPath, canonicalMetadata(), "utf8");
     requiredCli(candidateRoot, ["verify", "--page", "architecture/engine"]);
     required(["git", "add", "scripts/wiki/cli.ts", "wiki/architecture/engine.md", ".wiki/state.json"], candidateRoot);
