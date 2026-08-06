@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "workItem": "TE-04",
+  "implementationRevision": "4f1ff4ddab59fe56723237ff4c7e875666b12aeb",
+  "historicalBaseline": {
+    "revision": "6fd3a85414e00892930557cb8335e2d88ec90d66",
+    "taskLabel": "te00-publisher-before-control",
+    "nonDiffBundleBytes": 57344,
+    "reviewerSourceBreadth": 33,
+    "modelCalls": 8,
+    "reviewerActiveMs": 84600,
+    "wallMs": 106071
+  },
+  "deterministicFocusedReview": {
+    "baseSha": "4f1ff4ddab59fe56723237ff4c7e875666b12aeb",
+    "candidateSha": "00f7646200875e990f64bf27c817c7fa6e48b2d1",
+    "bundleDigest": "51fc30dc044ab30ba04fb5675a60ab66b04e3e64b902fd34d43a991774d2b8ea",
+    "rawBundleBytes": 52507,
+    "diffBytes": 2570,
+    "nonDiffBundleBytes": 49937,
+    "reviewerSourceBreadth": 7,
+    "reviewerSourcePaths": [
+      ".wiki/state.json",
+      "AGENTS.md",
+      "scripts/wiki/apply.ts",
+      "scripts/wiki/cli.ts",
+      "scripts/wiki/core.ts",
+      "scripts/wiki/tsconfig.json",
+      "wiki/architecture/engine.md"
+    ],
+    "exactPass": true,
+    "portableFixtureCorrect": true,
+    "localHarnessMs": 2868.0155,
+    "modelCalls": 0,
+    "providerCalls": 0
+  },
+  "controlledPublisherAfter": {
+    "taskLabel": "te04-publisher-after-focused-review",
+    "orchestration": "one default measurement agent; no child agent, guardian, broad discovery, or publication mutation",
+    "agent": {
+      "role": "default",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "calls": 2,
+      "rawInputTokens": 50750,
+      "cachedInputTokens": 48640,
+      "uncachedInputTokens": 2110,
+      "outputTokens": 300,
+      "reasoningOutputTokens": 84,
+      "totalTokens": 51050,
+      "compactions": 0,
+      "toolCalls": 1,
+      "activeMs": 16463,
+      "wallMs": 16463
+    },
+    "inputDistribution": {
+      "rawInputMin": 24950,
+      "rawInputMedian": 25375,
+      "rawInputP95": 25800,
+      "rawInputMax": 25800,
+      "uncachedInputMin": 630,
+      "uncachedInputMedian": 1055,
+      "uncachedInputP95": 1480,
+      "uncachedInputMax": 1480,
+      "outputMin": 142,
+      "outputMedian": 150,
+      "outputP95": 158,
+      "outputMax": 158
+    },
+    "performance": {
+      "toolDurationMs": 3069,
+      "approvalWaitMs": 0,
+      "coordinationWaitMs": 0,
+      "activeWallExcludingCoordinationMs": 16463,
+      "modelRequestMs": null,
+      "firstTokenMs": null,
+      "completionMs": null
+    },
+    "preflightBundleDigest": "06b04094687f6eaf4afbf5887b8eed0e92f084d488a0d4c8ee9ecbc7167a4f03",
+    "exactPass": true,
+    "portableFixtureCorrect": true,
+    "success": true
+  },
+  "comparison": {
+    "nonDiffBundleBytesRemoved": 7407,
+    "reviewerSourcesRemoved": 26,
+    "modelCallsRemoved": 6,
+    "reviewerActiveMsRemoved": 68137,
+    "correctnessRetained": true
+  },
+  "limitations": [
+    "The deterministic harness makes no model or provider call; model and timing observations come from the separate controlled publisher rollout.",
+    "Raw local rollout tokens are not billed API cost or exact subscription-credit consumption; cached input is included in raw input and reasoning output is included in output.",
+    "Request-start, first-token, and model-completion latency are not exposed by the rollout and remain null rather than being inferred.",
+    "The final controlled after-case completed without a clarification turn; the earlier superseded pilot and its digest-label correction are not used as final evidence.",
+    "Nine pre-publication review rounds found merge-base glob, empty-blob, changed-files omission, authority-provenance laundering, non-invariant affected-page deletion, conflict-derived invariant, removed merge-base authority-declaration, lifecycle-specific required-body omission, lifecycle substitution, path-moved identity exceptions, and arbitrary source-digest regressions. All findings were fixed before this successful controlled after-case and are not omitted from the implementation history.",
+    "The final publication review is a separate mandatory exact-HEAD gate and is not counted as part of this paired performance pilot."
+  ]
+}

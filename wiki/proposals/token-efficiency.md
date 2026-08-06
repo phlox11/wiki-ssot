@@ -18,6 +18,8 @@ sources:
   - path: scripts/wiki/primary-current.ts
   - path: scripts/wiki/token-efficiency-baseline.ts
   - path: scripts/wiki/token-efficiency-baseline.test.ts
+  - path: scripts/wiki/te04-focused-review.ts
+  - path: scripts/wiki/te04-focused-review.test.ts
   - path: docs/commands.md
   - path: docs/evidence/pv-19-primary-current.json
   - path: docs/evidence/pv-19-primary-current.md
@@ -27,6 +29,8 @@ sources:
   - path: docs/evidence/te-00-token-efficiency-baseline.md
   - path: docs/evidence/te-01-02-context-projection.json
   - path: docs/evidence/te-01-02-context-projection.md
+  - path: docs/evidence/te-04-focused-review.json
+  - path: docs/evidence/te-04-focused-review.md
 affects: [product/scope, product/invariants, architecture/engine, operations/enforcement]
 related: [proposal/primary-findability-validation, product/scope, product/invariants, architecture/engine, operations/enforcement]
 tags: [roadmap, token, performance, latency, context, efficiency, search, sources, review, orchestration]
@@ -138,7 +142,7 @@ work_items:
     evidence: []
   - id: TE-04
     title: Focus exact-HEAD review inputs and reduce reviewer round trips
-    state: not-started
+    state: done
     executor: agent
     priority: high
     depends_on: [TE-00-OWNER, TE-01, TE-02]
@@ -150,7 +154,13 @@ work_items:
       - The context-isolated reviewer requirement and classification-to-disposition contract remain unchanged; no optimization permits author self-PASS or stale attestation reuse.
       - Adversarial tests fail when a required page, invariant, conflict, changed source, relevant test, or digest binding is absent or misclassified.
       - The reproduced publisher review candidate reduces non-diff bundle bytes, reviewer source breadth, model-call count, and reviewer active time against TE-00 while retaining exact PASS and portable review-fixture correctness.
-    evidence: []
+    evidence:
+      - scripts/wiki/core.ts
+      - scripts/wiki/fresh-context.test.ts
+      - scripts/wiki/te04-focused-review.ts
+      - scripts/wiki/te04-focused-review.test.ts
+      - docs/evidence/te-04-focused-review.json
+      - docs/evidence/te-04-focused-review.md
   - id: TE-05
     title: Bound orchestration round trips and reusable context boundaries
     state: done
