@@ -266,6 +266,33 @@ function tempAuthoritySourceReviewRepo(): string {
   return root;
 }
 
+/** A non-invariant current page whose merge-base glob explains a deleted empty source. */
+function tempNonInvariantMergeBaseGlobReviewRepo(): string {
+  const root = mkdtempSync(join(tmpdir(), "wiki-review-product-merge-base-glob-"));
+  temporary.push(root);
+  run(root, ["git", "init", "-q"]);
+  run(root, ["git", "config", "user.name", "Wiki Test"]);
+  run(root, ["git", "config", "user.email", "wiki@example.invalid"]);
+  put(root, ".wiki/config.json", jsonStable({ version: 1, name: "product-merge-base-glob", highRisk: ["src/**/*.ts"], freshContext: policy() }));
+  put(root, "src/removed.ts", "");
+  put(root, "wiki/product/test.md", page("src/**/*.ts", "The product contract is version one.")
+    .replace("  - path: src/**/*.ts", "  - glob: \"src/**/*.ts\""));
+  let view = createRepoView(root);
+  put(root, ".wiki/state.json", jsonStable(verifyState(view, loadWikiPages(view).pages, [], undefined)));
+  run(root, ["git", "add", "."]);
+  run(root, ["git", "commit", "-qm", "product merge-base glob baseline"]);
+
+  rmSync(join(root, "src/removed.ts"));
+  put(root, "wiki/product/test.md", page("src/**/*.ts", "The product contract is version two.")
+    .replace("  - path: src/**/*.ts", "  - glob: \"src/**/*.ts\""));
+  run(root, ["git", "add", "-A"]);
+  view = createRepoView(root);
+  put(root, ".wiki/state.json", jsonStable(verifyState(view, loadWikiPages(view).pages, [], undefined)));
+  run(root, ["git", "add", "."]);
+  run(root, ["git", "commit", "-qm", "product merge-base glob change"]);
+  return root;
+}
+
 function rebindFocusedBundle(candidate: FocusedReviewManifest, files: Record<string, string>, manifest: ReviewManifest): { files: Record<string, string>; manifest: ReviewManifest } {
   const focusedRaw = jsonStable(candidate);
   const rebound = {
@@ -527,6 +554,61 @@ describe("fresh-context review manifest", () => {
     if (!invalidSource) throw new Error("empty-head source lifecycle disappeared");
     invalidSource.lifecycle = "unchanged";
     expect(validateFocusedReviewManifest(invalidLifecycle, files, reviewManifest).map((finding) => finding.code)).toContain("focused-manifest-lifecycle-binding");
+  });
+
+  test("preserves a removed empty merge-base glob source for an affected product page", () => {
+    const root = tempNonInvariantMergeBaseGlobReviewRepo();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const prMetadata = metadata({ affected_pages: ["product/test"] });
+    const report = impactReport(view, pages, { base: "HEAD~1", metadata: prMetadata });
+    expect(report.affectedPages).toContain("product/test");
+    const focused = buildFocusedReviewManifest(view, pages, report, prMetadata);
+    const removed = focused.source_roles.find((source) => source.path === "src/removed.ts");
+    if (!removed) throw new Error("product authority fixture did not bind the removed source");
+    expect(removed.lifecycle).toBe("removed");
+    expect(removed.head_digest).toBeUndefined();
+    expect(removed.merge_base_digest).toBe(hashContent(""));
+    expect(removed.roles).toEqual(expect.arrayContaining(["changed_source", "affected_authority_source"]));
+    expect(removed.declared_by).toEqual(["product/test"]);
+    expect(removed.declaration_ids).toHaveLength(1);
+    const declaration = focused.source_declarations.find((item) => item.id === removed.declaration_ids[0]);
+    expect(declaration).toMatchObject({
+      page_id: "product/test",
+      matched_via: "glob",
+      expanded_glob: "src/**/*.ts",
+      declaration: { glob: "src/**/*.ts" },
+    });
+
+    const bundle = makeReviewBundle(view, pages, report, "product-merge-base-glob-bundle", prMetadata);
+    const reviewManifest = JSON.parse(readFileSync(join(bundle, "manifest.json"), "utf8")) as ReviewManifest;
+    const files: Record<string, string> = {};
+    for (const path of Object.keys(reviewManifest.file_digests)) files[path] = readFileSync(join(bundle, path), "utf8");
+    expect(validateFocusedReviewManifest(focused, files, reviewManifest)).toEqual([]);
+
+    const omitted = JSON.parse(JSON.stringify(focused)) as FocusedReviewManifest;
+    const omittedSource = omitted.source_roles.find((source) => source.path === "src/removed.ts");
+    if (!omittedSource) throw new Error("product removed-source provenance disappeared");
+    const omittedDeclarationIds = new Set(omittedSource.declaration_ids);
+    omitted.source_roles = omitted.source_roles.filter((source) => source.path !== "src/removed.ts");
+    omitted.source_declarations = omitted.source_declarations.filter((item) => !omittedDeclarationIds.has(item.id));
+    const omittedRebound = rebindFocusedBundle(omitted, files, reviewManifest);
+    const omittedCodes = validateFocusedReviewManifest(omitted, omittedRebound.files, omittedRebound.manifest).map((finding) => finding.code);
+    expect(omittedCodes).toContain("focused-manifest-authority-source-required");
+
+    const relabeled = JSON.parse(JSON.stringify(focused)) as FocusedReviewManifest;
+    const relabeledSource = relabeled.source_roles.find((source) => source.path === "src/removed.ts");
+    if (!relabeledSource) throw new Error("product removed-source role disappeared");
+    const relabeledDeclarationIds = new Set(relabeledSource.declaration_ids);
+    relabeledSource.roles = ["changed_source", "supporting_source"];
+    relabeledSource.declared_by = [];
+    relabeledSource.declaration_ids = [];
+    relabeled.source_declarations = relabeled.source_declarations.filter((item) => !relabeledDeclarationIds.has(item.id));
+    const relabeledRebound = rebindFocusedBundle(relabeled, files, reviewManifest);
+    const relabeledCodes = validateFocusedReviewManifest(relabeled, relabeledRebound.files, relabeledRebound.manifest).map((finding) => finding.code);
+    expect(relabeledCodes).toContain("focused-manifest-authority-role-required");
+    expect(relabeledCodes).toContain("focused-manifest-authority-provenance");
+    expect(relabeledCodes).toContain("focused-manifest-authority-declaration-required");
   });
 
   test("rejects digest-rebound omission of an unchanged exact authority source", () => {

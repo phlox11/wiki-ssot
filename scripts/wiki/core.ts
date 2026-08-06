@@ -2992,9 +2992,16 @@ function focusedReviewData(view: RepoView, pages: WikiPage[], report: ImpactRepo
   };
   const requiredPageIds = new Set([...report.affectedPages, ...invariants.map((page) => page.data.id)]);
   for (const page of pages.filter((item) => item.data.status === "current" && requiredPageIds.has(item.data.id))) addDeclarations(page, authorityIds.has(page.data.id), "head");
-  for (const path of baseInvariantPaths) {
+  // The merge-base declaration view is required for every affected current
+  // authority page, not only invariants. Keep all merge-base invariants for
+  // their independent authority bodies, then add affected product/architecture
+  // pages whose globs can still explain a deleted source at HEAD.
+  const baseAuthorityPaths = git(view.root, ["ls-tree", "-r", "--name-only", report.mergeBase, "--", "wiki"], true)
+    .split("\n").filter(isContentPage);
+  for (const path of baseAuthorityPaths) {
     const basePage = pageAtRevision(view.root, report.mergeBase, path);
-    if (basePage?.data.status === "current" && basePage.data.kind === "invariant") addDeclarations(basePage, authorityIds.has(basePage.data.id), "merge-base");
+    if (basePage?.data.status !== "current") continue;
+    if (basePage.data.kind === "invariant" || authorityIds.has(basePage.data.id)) addDeclarations(basePage, authorityIds.has(basePage.data.id), "merge-base");
   }
   for (const conflictPage of pages.filter((item) => item.data.kind === "conflict" && report.affectedConflicts.some((summary) => summary.id === item.data.conflict_id))) addDeclarations(conflictPage, false, "head");
   for (const summary of report.affectedConflicts) {

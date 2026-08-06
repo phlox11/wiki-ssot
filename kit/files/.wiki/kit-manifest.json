@@ -1,5 +1,5 @@
 {
-  "digest": "3516d48f0b13daeb50840ed770e7b1631e088188f73f4b7e20191d6797ec413c",
+  "digest": "b64c3f12c3095766917174a3962234b659b25ac59cb24bf5618010cf26a484f3",
   "files": {
     ".github/workflows/wiki-audit.yml": {
       "ownership": "kit",
@@ -35,11 +35,11 @@
     },
     "scripts/wiki/core.ts": {
       "ownership": "kit",
-      "sha256": "bac669468501aee81eba5f66c137dee85866c40e2cb5e3256895c898adf3bb65"
+      "sha256": "ed9b11765d5d1c956c01c8dffbf244c67ba5d4bda3c7276d17ccc59bf8152da3"
     },
     "scripts/wiki/fresh-context.test.ts": {
       "ownership": "kit",
-      "sha256": "7970b150a6befa8aa9058f330e16a9763613eabab2c8bb37d273ceb00c063a7c"
+      "sha256": "178ed9ce87ea351defc25b31de0cf73e17f373e1625171f404f7abb694e11817"
     },
     "scripts/wiki/github-attestation.ts": {
       "ownership": "kit",
