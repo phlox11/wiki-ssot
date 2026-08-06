@@ -2955,7 +2955,11 @@ function focusedReviewData(view: RepoView, pages: WikiPage[], report: ImpactRepo
 
   type UndigestedDeclaration = Omit<FocusedSourceDeclaration, "id">;
   const declarations = new Map<string, UndigestedDeclaration[]>();
-  const authorityIds = new Set([...report.affectedPages, ...(metadata?.affected_invariants ?? [])]);
+  const authorityIds = new Set([
+    ...report.affectedPages,
+    ...(metadata?.affected_invariants ?? []),
+    ...report.affectedConflicts.flatMap((conflict) => conflict.affectedInvariants),
+  ]);
   const mergeBaseFiles = filesAtRevision(view.root, report.mergeBase);
   const headFiles = new Set(view.listFiles());
   const addDeclarations = (page: WikiPage, authority: boolean, revision: "head" | "merge-base") => {

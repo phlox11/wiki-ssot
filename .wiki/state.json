@@ -5,9 +5,9 @@
         "scripts/wiki/apply.test.ts": "ab318b04cd21cc4e191066261e2c6cf8a09776d37635415032c30a66b2dc5dc2",
         "scripts/wiki/apply.ts": "5a273691372ff6fcfdd63214da513fa8b71b9fe8730ff2e49cdfec0793ad2c15",
         "scripts/wiki/cli.ts": "6d0d9b9344ea64f602b9fbff7a313e7619c53210801f42da0b66d9727f2d8617",
-        "scripts/wiki/core.ts": "ed9b11765d5d1c956c01c8dffbf244c67ba5d4bda3c7276d17ccc59bf8152da3",
+        "scripts/wiki/core.ts": "f3683aa1de659871ce949a479e3a8c6ce797a8e17da45cfdb9f02a34ee0d5d1f",
         "scripts/wiki/existing-repo-bootstrap.test.ts": "90d75082e33ccdb3fe195b1bbbcbbc6be7646a55a948e1359be2d001e79e5eb2",
-        "scripts/wiki/fresh-context.test.ts": "178ed9ce87ea351defc25b31de0cf73e17f373e1625171f404f7abb694e11817",
+        "scripts/wiki/fresh-context.test.ts": "bd1c98ee0bf03311e8912c33851a49be325b378bac05d2330fe0daf43c62834b",
         "scripts/wiki/github-attestation.ts": "cad5290748265f5b5cd1a5503f075cfb837283ca0e8b4e7c004567deb33139cb",
         "scripts/wiki/inventories.example.ts": "c77492bf25a8e89d6c5f2de5d1238bb426e41b81cd255d7c153e05d295e91c4e",
         "scripts/wiki/inventories.ts": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca",
@@ -32,7 +32,7 @@
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "Merge-base expansion now covers every affected authority page as required by the documented focused-review contract."
+        "reason": "Conflict-derived invariant authority IDs now match the already documented ReviewManifest completeness contract."
       }
     },
     "operations/enforcement": {
@@ -49,12 +49,12 @@
         "package.json": "e73eac7e5e309f816f1e35df44a8f11362282fee931c4db24e0a3a409da23934",
         "scripts/wiki/apply.ts": "5a273691372ff6fcfdd63214da513fa8b71b9fe8730ff2e49cdfec0793ad2c15",
         "scripts/wiki/cli.ts": "6d0d9b9344ea64f602b9fbff7a313e7619c53210801f42da0b66d9727f2d8617",
-        "scripts/wiki/core.ts": "ed9b11765d5d1c956c01c8dffbf244c67ba5d4bda3c7276d17ccc59bf8152da3",
+        "scripts/wiki/core.ts": "f3683aa1de659871ce949a479e3a8c6ce797a8e17da45cfdb9f02a34ee0d5d1f",
         "scripts/wiki/github-attestation.ts": "cad5290748265f5b5cd1a5503f075cfb837283ca0e8b4e7c004567deb33139cb"
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "Non-invariant authority deletion provenance now satisfies the existing exact preflight enforcement policy."
+        "reason": "Conflict-only invariant provenance now satisfies the existing deterministic preflight enforcement policy."
       }
     },
     "product/invariants": {
@@ -62,11 +62,11 @@
         "AGENTS.md": "ce754be14c6dae7cb7bd70252e263842d960b8c8312170102cfae34bd8419746",
         "scripts/wiki/apply.ts": "5a273691372ff6fcfdd63214da513fa8b71b9fe8730ff2e49cdfec0793ad2c15",
         "scripts/wiki/cli.ts": "6d0d9b9344ea64f602b9fbff7a313e7619c53210801f42da0b66d9727f2d8617",
-        "scripts/wiki/core.ts": "ed9b11765d5d1c956c01c8dffbf244c67ba5d4bda3c7276d17ccc59bf8152da3"
+        "scripts/wiki/core.ts": "f3683aa1de659871ce949a479e3a8c6ce797a8e17da45cfdb9f02a34ee0d5d1f"
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "Generalized authority glob recovery enforces the existing changed-primary-source traceability invariant."
+        "reason": "Conflict-derived authority sources now enforce the existing invariant and conflict traceability rule."
       }
     },
     "product/scope": {
@@ -76,7 +76,7 @@
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "Affected-page merge-base provenance remains within the documented review and publication scope."
+        "reason": "Conflict-derived invariant source binding remains within the documented toolkit review scope."
       }
     }
   },

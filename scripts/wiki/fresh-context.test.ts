@@ -293,6 +293,35 @@ function tempNonInvariantMergeBaseGlobReviewRepo(): string {
   return root;
 }
 
+/** A conflict-only change whose affected invariant is not otherwise impacted. */
+function tempConflictInvariantAuthorityReviewRepo(): string {
+  const root = mkdtempSync(join(tmpdir(), "wiki-review-conflict-invariant-authority-"));
+  temporary.push(root);
+  run(root, ["git", "init", "-q"]);
+  run(root, ["git", "config", "user.name", "Wiki Test"]);
+  run(root, ["git", "config", "user.email", "wiki@example.invalid"]);
+  put(root, ".wiki/config.json", jsonStable({ version: 1, name: "conflict-invariant-authority", highRisk: [], freshContext: policy() }));
+  put(root, "invariant.ts", "export const invariant = true;\n");
+  put(root, "conflict.ts", "export const conflict = false;\n");
+  put(root, "wiki/product/invariants.md", page("invariant.ts", "The invariant contract remains stable.", "invariant").replace("id: product/test", "id: product/invariants"));
+  const conflict = conflictPage()
+    .replace("  - path: source.ts", "  - path: conflict.ts")
+    .replace("affected_pages: [product/test]", "affected_pages: []")
+    .replace("affected_invariants: []", "affected_invariants: [product/invariants]");
+  put(root, "wiki/conflicts/open/C-001.md", conflict);
+  let view = createRepoView(root);
+  put(root, ".wiki/state.json", jsonStable(verifyState(view, loadWikiPages(view).pages, [], undefined)));
+  run(root, ["git", "add", "."]);
+  run(root, ["git", "commit", "-qm", "conflict invariant authority baseline"]);
+
+  put(root, "wiki/conflicts/open/C-001.md", `${conflict}\nCandidate evidence was refreshed.\n`);
+  view = createRepoView(root);
+  put(root, ".wiki/state.json", jsonStable(verifyState(view, loadWikiPages(view).pages, [], undefined)));
+  run(root, ["git", "add", "."]);
+  run(root, ["git", "commit", "-qm", "conflict-only change"]);
+  return root;
+}
+
 function rebindFocusedBundle(candidate: FocusedReviewManifest, files: Record<string, string>, manifest: ReviewManifest): { files: Record<string, string>; manifest: ReviewManifest } {
   const focusedRaw = jsonStable(candidate);
   const rebound = {
@@ -601,6 +630,64 @@ describe("fresh-context review manifest", () => {
     if (!relabeledSource) throw new Error("product removed-source role disappeared");
     const relabeledDeclarationIds = new Set(relabeledSource.declaration_ids);
     relabeledSource.roles = ["changed_source", "supporting_source"];
+    relabeledSource.declared_by = [];
+    relabeledSource.declaration_ids = [];
+    relabeled.source_declarations = relabeled.source_declarations.filter((item) => !relabeledDeclarationIds.has(item.id));
+    const relabeledRebound = rebindFocusedBundle(relabeled, files, reviewManifest);
+    const relabeledCodes = validateFocusedReviewManifest(relabeled, relabeledRebound.files, relabeledRebound.manifest).map((finding) => finding.code);
+    expect(relabeledCodes).toContain("focused-manifest-authority-role-required");
+    expect(relabeledCodes).toContain("focused-manifest-authority-provenance");
+    expect(relabeledCodes).toContain("focused-manifest-authority-declaration-required");
+  });
+
+  test("binds conflict-derived invariant authority sources even when the invariant is otherwise unaffected", () => {
+    const root = tempConflictInvariantAuthorityReviewRepo();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const prMetadata = metadata({
+      affected_pages: [],
+      affected_invariants: [],
+      semantic_change: false,
+      touched_conflicts: [{ id: "C-001", action: "retain", reason: "The conflict remains open while its evidence is refreshed." }],
+    });
+    const report = impactReport(view, pages, { base: "HEAD~1", metadata: prMetadata });
+    expect(report.affectedPages).not.toContain("product/invariants");
+    expect(report.affectedConflicts.map((conflict) => conflict.id)).toContain("C-001");
+    expect(prMetadata.affected_invariants).toEqual([]);
+    const focused = buildFocusedReviewManifest(view, pages, report, prMetadata);
+    const invariantSource = focused.source_roles.find((source) => source.path === "invariant.ts");
+    if (!invariantSource) throw new Error("conflict-derived invariant source was not focused");
+    expect(invariantSource.lifecycle).toBe("unchanged");
+    expect(invariantSource.roles).toContain("affected_authority_source");
+    expect(invariantSource.declared_by).toEqual(["product/invariants"]);
+    expect(invariantSource.declaration_ids).toHaveLength(1);
+    expect(focused.source_declarations.find((item) => item.id === invariantSource.declaration_ids[0])).toMatchObject({
+      page_id: "product/invariants",
+      matched_via: "path",
+      declaration: { path: "invariant.ts" },
+    });
+
+    const bundle = makeReviewBundle(view, pages, report, "conflict-invariant-authority-bundle", prMetadata);
+    const reviewManifest = JSON.parse(readFileSync(join(bundle, "manifest.json"), "utf8")) as ReviewManifest;
+    const files: Record<string, string> = {};
+    for (const path of Object.keys(reviewManifest.file_digests)) files[path] = readFileSync(join(bundle, path), "utf8");
+    expect(reviewManifest.affected_invariant_ids).toContain("product/invariants");
+    expect(validateFocusedReviewManifest(focused, files, reviewManifest)).toEqual([]);
+
+    const omitted = JSON.parse(JSON.stringify(focused)) as FocusedReviewManifest;
+    const omittedSource = omitted.source_roles.find((source) => source.path === "invariant.ts");
+    if (!omittedSource) throw new Error("conflict-derived invariant source disappeared");
+    const omittedDeclarationIds = new Set(omittedSource.declaration_ids);
+    omitted.source_roles = omitted.source_roles.filter((source) => source.path !== "invariant.ts");
+    omitted.source_declarations = omitted.source_declarations.filter((item) => !omittedDeclarationIds.has(item.id));
+    const omittedRebound = rebindFocusedBundle(omitted, files, reviewManifest);
+    expect(validateFocusedReviewManifest(omitted, omittedRebound.files, omittedRebound.manifest).map((finding) => finding.code)).toContain("focused-manifest-authority-source-required");
+
+    const relabeled = JSON.parse(JSON.stringify(focused)) as FocusedReviewManifest;
+    const relabeledSource = relabeled.source_roles.find((source) => source.path === "invariant.ts");
+    if (!relabeledSource) throw new Error("conflict-derived invariant role disappeared");
+    const relabeledDeclarationIds = new Set(relabeledSource.declaration_ids);
+    relabeledSource.roles = ["supporting_source"];
     relabeledSource.declared_by = [];
     relabeledSource.declaration_ids = [];
     relabeled.source_declarations = relabeled.source_declarations.filter((item) => !relabeledDeclarationIds.has(item.id));
