@@ -23,13 +23,13 @@ Outstanding work: 24. Completed work hidden: 22; run `bun run wiki:work -- --all
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| — | — | — | — | — | None | — |
+| TE-04 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-00-OWNER, TE-01, TE-02 | Focus exact-HEAD review inputs and reduce reviewer round trips | `bun run wiki:context -- --work TE-04` |
 
 ## Ready
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| TE-04 | high | agent | [proposal/token-efficiency](./proposals/token-efficiency.md) | TE-00-OWNER, TE-01, TE-02 | Focus exact-HEAD review inputs and reduce reviewer round trips | `bun run wiki:context -- --work TE-04` |
+| — | — | — | — | — | None | — |
 
 ## Waiting
 

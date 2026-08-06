@@ -1,5 +1,5 @@
 {
-  "digest": "0e61981b08cd1f10b3c176b36c72f98d63bde64706171ea88b69d50be779cad0",
+  "digest": "cf775702c6dc2fe29a1f1af68d63933c98658df9084ce9a4fd33a9bde83963c3",
   "files": {
     ".github/workflows/wiki-audit.yml": {
       "ownership": "kit",
@@ -35,11 +35,11 @@
     },
     "scripts/wiki/core.ts": {
       "ownership": "kit",
-      "sha256": "590e7ef70383e831f6fa8f9ab310a6c80a29b71c4c5e3597fdc8b5597f23bc92"
+      "sha256": "cbb80a64920bc34ec35a1aeabb51230dc9356054332b70a89863a008acfbe309"
     },
     "scripts/wiki/fresh-context.test.ts": {
       "ownership": "kit",
-      "sha256": "5e26d02abbca0a4e17c25be737242feb15d0091302682318e394b584fe29c7b4"
+      "sha256": "89cfa58ee9bf2fe95057a0d5c959e92e1f99af778e66f3b1e119eb66ced5a8c0"
     },
     "scripts/wiki/github-attestation.ts": {
       "ownership": "kit",
@@ -83,7 +83,7 @@
     },
     "wiki/WORKFLOW.md": {
       "ownership": "kit",
-      "sha256": "afbea05762141e7012fdc86c95727dc3792f1beba0df4dd2e92e1a0e1f3f9d92"
+      "sha256": "128968524b941bb2d3c5d9d4b9966d2fbd1e35fe39afcd2a4f3811c3ca6c2cb9"
     }
   },
   "kit": "wiki-ssot",

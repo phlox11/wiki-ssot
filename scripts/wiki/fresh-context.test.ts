@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, mkdtempSync, mkdirSync, readFileSync, readlinkSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import {
+  buildFocusedReviewManifest,
   buildReviewManifest,
   createRepoView,
   evaluateFreshContextRequirement,
@@ -15,6 +16,7 @@ import {
   reviewCheck,
   validateFreshContextAttestation,
   validateFreshContextFindings,
+  validateFocusedReviewManifest,
   validateIntegrationSeams,
   validatePrMetadata,
   verifyState,
@@ -25,6 +27,7 @@ import {
   type FreshContextReportV2,
   type PrMetadata,
   type ReviewManifest,
+  type FocusedReviewManifest,
 } from "./core";
 import { GITHUB_ATTESTATION_MARKER, selectGitHubAttestation, validateGitHubIntegrationSeams } from "./github-attestation";
 
@@ -173,6 +176,35 @@ function tempReviewRepo(): string {
   return root;
 }
 
+/** A small in-repository fixture exercising every TE-04 focused role. */
+function tempFocusedReviewRepo(): string {
+  const root = mkdtempSync(join(tmpdir(), "wiki-review-focused-"));
+  temporary.push(root);
+  run(root, ["git", "init", "-q"]);
+  run(root, ["git", "config", "user.name", "Wiki Test"]);
+  run(root, ["git", "config", "user.email", "wiki@example.invalid"]);
+  put(root, ".wiki/config.json", jsonStable({ version: 1, name: "focused", highRisk: ["source.ts", "scripts/wiki/**/*.ts"], freshContext: policy() }));
+  put(root, "source.ts", "export const contract = 'v1';\n");
+  put(root, "scripts/wiki/te04.test.ts", "test('contract', () => expect(true).toBe(true));\n");
+  put(root, "wiki/product/invariants.md", page("source.ts", "The invariant contract is version one.", "invariant").replace("id: product/test", "id: product/invariants"));
+  put(root, "wiki/product/test.md", page("source.ts", "The current contract is version one."));
+  put(root, "wiki/conflicts/open/C-001.md", conflictPage());
+  let view = createRepoView(root);
+  put(root, ".wiki/state.json", jsonStable(verifyState(view, loadWikiPages(view).pages, [], undefined)));
+  run(root, ["git", "add", "."]);
+  run(root, ["git", "commit", "-qm", "focused baseline"]);
+
+  put(root, "source.ts", "export const contract = 'v2';\n");
+  put(root, "scripts/wiki/te04.test.ts", "test('contract', () => expect('v2').toBe('v2'));\n");
+  put(root, "wiki/product/invariants.md", page("source.ts", "The invariant contract is version two.", "invariant").replace("id: product/test", "id: product/invariants"));
+  put(root, "wiki/product/test.md", page("source.ts", "The current contract is version two."));
+  view = createRepoView(root);
+  put(root, ".wiki/state.json", jsonStable(verifyState(view, loadWikiPages(view).pages, [], undefined)));
+  run(root, ["git", "add", "."]);
+  run(root, ["git", "commit", "-qm", "focused change"]);
+  return root;
+}
+
 function manifestFor(root: string, prMetadata = metadata()): ReviewManifest {
   const view = createRepoView(root);
   const pages = loadWikiPages(view).pages;
@@ -284,11 +316,65 @@ describe("fresh-context review manifest", () => {
     const one = makeReviewBundle(createRepoView(root), loadWikiPages(createRepoView(root)).pages, impactReport(createRepoView(root), loadWikiPages(createRepoView(root)).pages, { base: "HEAD~1", metadata: metadata() }), "bundle-one", metadata());
     const two = makeReviewBundle(createRepoView(root), loadWikiPages(createRepoView(root)).pages, impactReport(createRepoView(root), loadWikiPages(createRepoView(root)).pages, { base: "HEAD~1", metadata: metadata() }), "bundle-two", metadata());
     expect(readFileSync(join(one, "manifest.json"), "utf8")).toBe(readFileSync(join(two, "manifest.json"), "utf8"));
-    expect(hashContent(readFileSync(join(one, "PROMPT.md"), "utf8"))).toBe("48ab078132b552b2622a9ca63e094623cacd990e556b6f4a93eb610668d7d109");
+    expect(hashContent(readFileSync(join(one, "PROMPT.md"), "utf8"))).toBe("62172d6a4e012dafb52e5172c4b98c90e7ace311f0bb9dfcaf82f0ca6a3c795f");
     expect(hashContent(readFileSync(join(one, "REPORT.md"), "utf8"))).toBe("67e53b0950c120a27d7c6ae2bb9312094216f04eaf7df7f42f983e214dd7767e");
     expect(JSON.parse(readFileSync(join(one, "impact.json"), "utf8")).affectedInvariants).toBeUndefined();
     expect(existsSync(join(one, "REPORT.example.json"))).toBe(true);
     expect(existsSync(join(one, "REPORT.md"))).toBe(true);
+  });
+
+  test("stores overlapping page and invariant bodies once and rejects focused-input tampering", () => {
+    const root = tempFocusedReviewRepo();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const prMetadata = metadata({
+      affected_pages: ["product/invariants", "product/test"],
+      affected_invariants: ["product/invariants"],
+      touched_conflicts: [{ id: "C-001", action: "retain", reason: "The baseline conflict remains relevant to this focused review." }],
+    });
+    const report = impactReport(view, pages, { base: "HEAD~1", metadata: prMetadata });
+    expect(report.affectedPages).toContain("product/invariants");
+    expect(report.affectedConflicts.map((conflict) => conflict.id)).toContain("C-001");
+    const focused = buildFocusedReviewManifest(view, pages, report, prMetadata);
+    const bundle = makeReviewBundle(view, pages, report, "focused-bundle", prMetadata);
+    const reviewManifest = JSON.parse(readFileSync(join(bundle, "manifest.json"), "utf8")) as ReviewManifest;
+    const files: Record<string, string> = {};
+    for (const path of Object.keys(reviewManifest.file_digests)) files[path] = readFileSync(join(bundle, path), "utf8");
+    const invariantRoles = focused.body_roles.filter((role) => role.id === "product/invariants");
+    expect(invariantRoles.map((role) => role.role)).toEqual(["affected_page", "invariant"]);
+    expect(invariantRoles[0].digest).toBe(invariantRoles[1].digest);
+    expect(focused.objects.filter((object) => object.digest === invariantRoles[0].digest)).toHaveLength(1);
+    const conflictAlias = join(bundle, "conflicts/C-001.md");
+    expect(lstatSync(conflictAlias).isSymbolicLink()).toBe(true);
+    expect(readlinkSync(conflictAlias)).toContain("../objects/");
+    expect(validateFocusedReviewManifest(focused, files, reviewManifest)).toEqual([]);
+
+    const clone = (): FocusedReviewManifest => JSON.parse(JSON.stringify(focused)) as FocusedReviewManifest;
+    const missing = (role: string, id: string) => {
+      const candidate = clone();
+      candidate.body_roles = candidate.body_roles.filter((item) => !(item.role === role && item.id === id));
+      return validateFocusedReviewManifest(candidate, files, reviewManifest).map((finding) => finding.code);
+    };
+    expect(missing("affected_page", "product/invariants")).toContain("focused-manifest-affected_page-missing");
+    expect(missing("invariant", "product/invariants")).toContain("focused-manifest-invariant-missing");
+    expect(missing("conflict", "C-001")).toContain("focused-manifest-conflict-missing");
+
+    const changedSource = clone();
+    const source = changedSource.source_roles.find((item) => item.path === "source.ts");
+    if (!source) throw new Error("focused source fixture did not classify source.ts");
+    source.roles = source.roles.filter((role) => role !== "changed_source");
+    expect(validateFocusedReviewManifest(changedSource, files, reviewManifest).map((finding) => finding.code)).toContain("focused-manifest-changed-source-required");
+
+    const changedTest = clone();
+    const testSource = changedTest.source_roles.find((item) => item.path === "scripts/wiki/te04.test.ts");
+    if (!testSource) throw new Error("focused source fixture did not classify the changed test");
+    testSource.roles = testSource.roles.filter((role) => role !== "relevant_test");
+    expect(validateFocusedReviewManifest(changedTest, files, reviewManifest).map((finding) => finding.code)).toContain("focused-manifest-relevant-test-required");
+
+    const tampered = clone();
+    const objectPath = tampered.objects[0].object_path;
+    const tamperedFiles = { ...files, [objectPath]: `${files[objectPath]}tampered` };
+    expect(validateFocusedReviewManifest(tampered, tamperedFiles, reviewManifest).map((finding) => finding.code)).toContain("focused-manifest-object-digest");
   });
 
   test("changes when canonical PR metadata changes without changing HEAD", () => {
@@ -468,6 +554,8 @@ describe("fresh-context report validation", () => {
       required: true,
       requirementReasons: ["affected invariants: product/test"],
     });
+    const focused = buildFocusedReviewManifest(view, pages, result.impact, metadata({ change_type: "editorial", affected_invariants: [] }));
+    expect(focused.body_roles).toContainEqual(expect.objectContaining({ role: "invariant", id: "product/test", lifecycle: "merge-base" }));
   });
 
   test("risk classification covers conflicts and removed current pages", () => {

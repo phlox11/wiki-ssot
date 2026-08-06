@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { dirname, extname, join, normalize, relative, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
@@ -2674,6 +2674,57 @@ export type ReviewManifest = {
   affected_conflict_ids: string[];
   file_digests: Record<string, string>;
   bundle_digest: string;
+  /**
+   * TE-04 keeps the v1 manifest envelope so existing Fresh-context reports
+   * remain valid, while binding the new focused reviewer-input projection by
+   * digest.  The field is optional on hand-authored v1 fixtures for backwards
+   * compatibility; publisher-generated manifests always populate it.
+   */
+  focused_manifest_digest?: string;
+};
+
+export type FocusedBodyRole = "affected_page" | "invariant" | "removed_page" | "conflict";
+export type FocusedSourceRole = "changed_source" | "affected_authority_source" | "relevant_test" | "supporting_source";
+export type FocusedBodyBinding = {
+  role: FocusedBodyRole;
+  id: string;
+  wiki_path: string;
+  lifecycle: "head" | "merge-base";
+  digest: string;
+};
+export type FocusedBodyObject = {
+  digest: string;
+  object_path: string;
+  bytes: number;
+};
+export type FocusedSourceDeclaration = {
+  id: string;
+  page_id: string;
+  declaration: WikiSource;
+  matched_via: "path" | "glob";
+  expanded_glob?: string;
+};
+export type FocusedSourceBinding = {
+  path: string;
+  roles: FocusedSourceRole[];
+  declared_by: string[];
+  declaration_ids: string[];
+  head_digest?: string;
+  merge_base_digest?: string;
+  lifecycle: "head" | "merge-base" | "added" | "removed" | "changed" | "unchanged";
+};
+export type FocusedReviewManifest = {
+  version: 1;
+  head_sha: string;
+  merge_base_sha: string;
+  diff_digest: string;
+  impact_report_digest: string;
+  pr_metadata_digest: string;
+  changed_files: string[];
+  body_roles: FocusedBodyBinding[];
+  objects: FocusedBodyObject[];
+  source_declarations: FocusedSourceDeclaration[];
+  source_roles: FocusedSourceBinding[];
 };
 
 export type FreshContextVerdict = "PENDING" | "PASS" | "NEEDS_RECONCILE";
@@ -2810,29 +2861,179 @@ function canonicalImpactReport(report: ImpactReport): ImpactReport {
   };
 }
 
+type FocusedReviewData = {
+  manifest: FocusedReviewManifest;
+  objects: Record<string, string>;
+};
+
+function focusedSourcePath(path: string): boolean {
+  return /(^|\/)[^/]+\.(?:test|spec)\.[^/]+$/.test(path) || path.endsWith(".test.ts") || path.endsWith(".spec.ts");
+}
+
+function canonicalSourceDeclaration(source: WikiSource): WikiSource {
+  return "path" in source
+    ? { path: source.path, ...(source.symbols ? { symbols: [...source.symbols].sort((a, b) => a.localeCompare(b)) } : {}) }
+    : { glob: source.glob };
+}
+
+function pageAtRevision(root: string, revision: string, path: string): WikiPage | undefined {
+  const raw = git(root, ["show", `${revision}:${path}`], true);
+  if (!raw) return undefined;
+  try { return parseWikiPage(path, raw); } catch { return undefined; }
+}
+
+function focusedReviewData(view: RepoView, pages: WikiPage[], report: ImpactReport, metadata?: PrMetadata): FocusedReviewData {
+  const headSha = git(view.root, ["rev-parse", "--verify", "HEAD^{commit}"]).trim();
+  const diff = git(view.root, ["diff", "--binary", "--full-index", "--no-color", "--no-ext-diff", `${report.mergeBase}..HEAD`], true);
+  const impact = jsonStable(canonicalImpactReport(report));
+  const metadataDigest = hashContent(jsonStable(canonicalPrMetadata(metadata)));
+  const objects = new Map<string, string>();
+  const bodyRoles: FocusedBodyBinding[] = [];
+  const addBody = (role: FocusedBodyRole, id: string, wikiPath: string, lifecycle: "head" | "merge-base", raw: string) => {
+    if (!raw) return;
+    const digest = hashContent(raw);
+    const objectPath = `objects/${digest}.md`;
+    objects.set(digest, raw);
+    bodyRoles.push({ role, id, wiki_path: wikiPath, lifecycle, digest });
+  };
+
+  const currentById = new Map(pages.map((page) => [page.data.id, page]));
+  const changedSet = new Set(report.changedFiles);
+  for (const id of [...report.affectedPages].sort((a, b) => a.localeCompare(b))) {
+    const page = currentById.get(id);
+    if (page) addBody("affected_page", id, page.path, "head", page.raw);
+  }
+  const invariants = currentPages(pages).filter((page) => page.data.kind === "invariant");
+  for (const page of invariants) addBody("invariant", page.data.id, page.path, "head", page.raw);
+  // A current invariant may be demoted or removed by the candidate. Preserve
+  // its merge-base authority body whenever the enclosing manifest still binds
+  // its ID, so the risk signal cannot disappear with the HEAD page kind.
+  const baseInvariantPaths = git(view.root, ["ls-tree", "-r", "--name-only", report.mergeBase, "--", "wiki"], true)
+    .split("\n").filter(isContentPage);
+  for (const path of baseInvariantPaths) {
+    const basePage = pageAtRevision(view.root, report.mergeBase, path);
+    if (!basePage || basePage.data.status !== "current" || basePage.data.kind !== "invariant") continue;
+    const headPage = currentById.get(basePage.data.id);
+    if (!headPage || headPage.data.kind !== "invariant" || headPage.data.status !== "current") addBody("invariant", basePage.data.id, basePage.path, "merge-base", basePage.raw);
+  }
+  for (const removed of [...report.removedCurrentPages].sort((a, b) => a.id.localeCompare(b.id))) {
+    const raw = git(view.root, ["show", `${report.mergeBase}:${removed.path}`], true);
+    if (raw) addBody("removed_page", removed.id, removed.path, "merge-base", raw);
+  }
+  for (const conflict of [...report.affectedConflicts].sort((a, b) => a.id.localeCompare(b.id))) {
+    const page = pages.find((item) => item.data.kind === "conflict" && item.data.conflict_id === conflict.id);
+    const raw = page?.raw ?? git(view.root, ["show", `${report.mergeBase}:${conflict.path}`], true);
+    if (raw) addBody("conflict", conflict.id, page?.path ?? conflict.path, page ? "head" : "merge-base", raw);
+  }
+  const bodyBindings = bodyRoles.sort((a, b) => a.role.localeCompare(b.role) || a.id.localeCompare(b.id));
+  const objectRefs: FocusedBodyObject[] = [...objects.entries()]
+    .map(([digest, raw]) => ({ digest, object_path: `objects/${digest}.md`, bytes: Buffer.byteLength(raw, "utf8") }))
+    .sort((a, b) => a.digest.localeCompare(b.digest));
+
+  type UndigestedDeclaration = Omit<FocusedSourceDeclaration, "id">;
+  const declarations = new Map<string, UndigestedDeclaration[]>();
+  const authorityIds = new Set([...report.affectedPages, ...(metadata?.affected_invariants ?? [])]);
+  const addDeclarations = (page: WikiPage, authority: boolean) => {
+    for (const rawDeclaration of page.data.sources) {
+      const declaration = canonicalSourceDeclaration(rawDeclaration);
+      // Exact declarations remain explicit primary inputs.  Broad globs are
+      // focused to changed matches; otherwise a recursive publisher glob would
+      // reintroduce the unrelated source breadth TE-04 is removing.
+      const paths = "path" in rawDeclaration
+        ? expandSource(view, rawDeclaration)
+        : expandSource(view, rawDeclaration).filter((path) => changedSet.has(path));
+      // Keep an exact declaration even when the file was deleted from HEAD;
+      // its merge-base digest remains independently verifiable.
+      const candidates = "path" in rawDeclaration && paths.length === 0 ? [rawDeclaration.path] : paths;
+      for (const path of candidates) {
+        const item: UndigestedDeclaration = {
+          page_id: page.data.id,
+          declaration,
+          matched_via: "path" in rawDeclaration ? "path" : "glob",
+          ...( "glob" in rawDeclaration ? { expanded_glob: rawDeclaration.glob } : {}),
+        };
+        const existing = declarations.get(path) ?? [];
+        if (!existing.some((entry) => jsonStable(entry) === jsonStable(item))) existing.push(item);
+        declarations.set(path, existing);
+      }
+    }
+    // `authority` is consumed below when role sets are assigned.  Keep the
+    // argument explicit so adding a second provenance boundary cannot silently
+    // drop the page identity.
+    void authority;
+  };
+  const requiredPageIds = new Set([...report.affectedPages, ...invariants.map((page) => page.data.id)]);
+  for (const page of pages.filter((item) => item.data.status === "current" && requiredPageIds.has(item.data.id))) addDeclarations(page, authorityIds.has(page.data.id));
+  for (const path of baseInvariantPaths) {
+    const basePage = pageAtRevision(view.root, report.mergeBase, path);
+    if (basePage?.data.status === "current" && basePage.data.kind === "invariant") addDeclarations(basePage, authorityIds.has(basePage.data.id));
+  }
+  for (const conflictPage of pages.filter((item) => item.data.kind === "conflict" && report.affectedConflicts.some((summary) => summary.id === item.data.conflict_id))) addDeclarations(conflictPage, false);
+  for (const summary of report.affectedConflicts) {
+    if (pages.some((page) => page.data.kind === "conflict" && page.data.conflict_id === summary.id)) continue;
+    const basePage = pageAtRevision(view.root, report.mergeBase, summary.path);
+    if (basePage?.data.kind === "conflict") addDeclarations(basePage, false);
+  }
+
+  const headFiles = new Set(view.listFiles());
+  const sourceBindings: FocusedSourceBinding[] = [];
+  const declarationEntries = [...new Map(
+    [...declarations.values()].flat().map((entry) => [jsonStable(entry), entry] as const),
+  ).values()]
+    .sort((a, b) => jsonStable(a).localeCompare(jsonStable(b)))
+    .map((entry, index) => ({ ...entry, id: `D-${String(index + 1).padStart(4, "0")}` }));
+  const declarationIds = new Map(declarationEntries.map((entry) => [jsonStable({ ...entry, id: undefined }), entry.id]));
+  const sourcePaths = new Set([...declarations.keys(), ...report.changedFiles]);
+  for (const path of [...sourcePaths].sort((a, b) => a.localeCompare(b))) {
+    const records = (declarations.get(path) ?? []).sort((a, b) => a.page_id.localeCompare(b.page_id) || jsonStable(a.declaration).localeCompare(jsonStable(b.declaration)) || a.matched_via.localeCompare(b.matched_via));
+    const declaredBy = [...new Set(records.map((entry) => entry.page_id))].sort((a, b) => a.localeCompare(b));
+    const roles = new Set<FocusedSourceRole>();
+    if (changedSet.has(path)) roles.add("changed_source");
+    if (records.some((entry) => authorityIds.has(entry.page_id))) roles.add("affected_authority_source");
+    if (focusedSourcePath(path)) roles.add("relevant_test");
+    if (roles.size === 0 || (roles.size === 1 && roles.has("changed_source") && declaredBy.length === 0)) roles.add("supporting_source");
+    const headRaw = headFiles.has(path) ? view.read(path) : "";
+    const baseRaw = git(view.root, ["show", `${report.mergeBase}:${path}`], true);
+    const headDigest = headRaw ? hashContent(headRaw) : undefined;
+    const baseDigest = baseRaw ? hashContent(baseRaw) : undefined;
+    const lifecycle: FocusedSourceBinding["lifecycle"] = headDigest && baseDigest
+      ? headDigest === baseDigest ? "unchanged" : "changed"
+      : headDigest ? "added" : "removed";
+    sourceBindings.push({
+      path,
+      roles: [...roles].sort((a, b) => a.localeCompare(b)),
+      declared_by: declaredBy,
+      declaration_ids: records.map((entry) => declarationIds.get(jsonStable(entry))).filter((id): id is string => id != null).sort((a, b) => a.localeCompare(b)),
+      ...(headDigest ? { head_digest: headDigest } : {}),
+      ...(baseDigest ? { merge_base_digest: baseDigest } : {}),
+      lifecycle,
+    });
+  }
+
+  const manifest: FocusedReviewManifest = {
+    version: 1,
+    head_sha: headSha,
+    merge_base_sha: report.mergeBase,
+    diff_digest: hashContent(diff),
+    impact_report_digest: hashContent(impact),
+    pr_metadata_digest: metadataDigest,
+    changed_files: [...report.changedFiles].sort((a, b) => a.localeCompare(b)),
+    body_roles: bodyBindings,
+    objects: objectRefs,
+    source_declarations: declarationEntries,
+    source_roles: sourceBindings,
+  };
+  return { manifest, objects: Object.fromEntries([...objects.entries()].map(([digest, raw]) => [`objects/${digest}.md`, raw])) };
+}
+
 function reviewBundleFiles(view: RepoView, pages: WikiPage[], report: ImpactReport, metadata?: PrMetadata): Record<string, string> {
   const files: Record<string, string> = {};
   files["diff.patch"] = git(view.root, ["diff", "--binary", "--full-index", "--no-color", "--no-ext-diff", `${report.mergeBase}..HEAD`], true);
   files["impact.json"] = jsonStable(canonicalImpactReport(report));
   files["pr-metadata.json"] = jsonStable(canonicalPrMetadata(metadata));
-  for (const id of [...report.affectedPages].sort((a, b) => a.localeCompare(b))) {
-    const page = pages.find((item) => item.data.id === id);
-    if (page) files[`pages/${id.replaceAll("/", "_")}.md`] = page.raw;
-  }
-  for (const removed of [...report.removedCurrentPages].sort((a, b) => a.id.localeCompare(b.id))) {
-    const baseRaw = git(view.root, ["show", `${report.mergeBase}:${removed.path}`], true);
-    if (baseRaw) files[`pages/removed_${removed.id.replaceAll("/", "_")}.md`] = baseRaw;
-  }
+  const focused = focusedReviewData(view, pages, report, metadata);
+  for (const [path, content] of Object.entries(focused.objects)) files[path] = content;
   const invariants = currentPages(pages).filter((page) => page.data.kind === "invariant");
-  for (const page of invariants) files[`invariants/${page.data.id.replaceAll("/", "_")}.md`] = page.raw;
-  for (const conflict of [...report.affectedConflicts].sort((a, b) => a.id.localeCompare(b.id))) {
-    const page = pages.find((item) => item.data.kind === "conflict" && item.data.conflict_id === conflict.id);
-    if (page) files[`conflicts/${conflict.id}.md`] = page.raw;
-    else {
-      const baseRaw = git(view.root, ["show", `${report.mergeBase}:${conflict.path}`], true);
-      if (baseRaw) files[`conflicts/${conflict.id}.md`] = baseRaw;
-    }
-  }
   const affectedSources = Object.fromEntries([...report.affectedPages].sort((a, b) => a.localeCompare(b)).map((id) => {
     const page = pages.find((item) => item.data.id === id);
     return [id, page?.data.sources ?? []];
@@ -2842,10 +3043,12 @@ function reviewBundleFiles(view: RepoView, pages: WikiPage[], report: ImpactRepo
     affectedConflicts: [...report.affectedConflicts].sort((a, b) => a.id.localeCompare(b.id)),
     removedCurrentPages: [...report.removedCurrentPages].sort((a, b) => a.id.localeCompare(b.id)),
     invariants: invariants.map((page) => page.data.id),
+    focusedManifest: "focused-manifest.json",
   });
+  files["focused-manifest.json"] = jsonStable(focused.manifest);
   files["PROMPT.md"] = `# Fresh-context wiki reconciliation
 
-Read \`manifest.json\`, \`impact.json\`, \`pr-metadata.json\`, \`diff.patch\`, \`pages/**\`, \`invariants/**\`, \`conflicts/**\`, and \`sources.json\`. Inspect the referenced repository primary sources directly. Verify current behavior, intent, invariants, conflict actions, acceptance criteria, and sources independently. Do not trust the author summary and do not resolve an open decision conflict without an explicit owner decision.
+Read \`manifest.json\`, \`focused-manifest.json\`, \`impact.json\`, \`pr-metadata.json\`, \`diff.patch\`, \`objects/**\`, and \`sources.json\`. The focused manifest is the single deterministic index of reviewer inputs: body roles point at content-addressed \`objects/<sha256>.md\` files, while source roles carry changed, affected-authority, relevant-test, and supporting provenance. An affected page that is also an invariant intentionally has two role records sharing one object digest. Removed-page and conflict role aliases, when present for compatibility, are filesystem links to those objects rather than second body copies; reviewers should read the object path recorded by the role. Inspect the referenced repository primary sources directly. Verify current behavior, intent, invariants, conflict actions, acceptance criteria, and sources independently. Do not trust the author summary and do not resolve an open decision conflict without an explicit owner decision.
 
 Report every discrepancy as a structured finding described by \`REPORT.md\`, and decide its disposition instead of assuming this candidate must fix it:
 
@@ -2938,7 +3141,144 @@ Publish the report through the repository's trusted attestation channel. A repor
   return Object.fromEntries(Object.entries(files).sort(([a], [b]) => a.localeCompare(b)));
 }
 
+export function buildFocusedReviewManifest(view: RepoView, pages: WikiPage[], report: ImpactReport, metadata?: PrMetadata): FocusedReviewManifest {
+  return focusedReviewData(view, pages, report, metadata).manifest;
+}
+
+/** Validate focused reviewer inputs and their optional emitted object bytes. */
+export function validateFocusedReviewManifest(
+  focused: FocusedReviewManifest,
+  files: Record<string, string> = {},
+  expected?: ReviewManifest,
+  enforceRequired = true,
+): Finding[] {
+  const findings: Finding[] = [];
+  const error = (code: string, message: string, path = "focused-manifest.json") => findings.push({ code, message, path, severity: "error" });
+  if (focused == null || typeof focused !== "object") return [{ code: "focused-manifest-shape", message: "focused manifest must be an object", path: "focused-manifest.json", severity: "error" }];
+  if (focused.version !== 1) error("focused-manifest-version", "focused manifest version must be 1");
+  for (const [field, value, length] of [
+    ["head_sha", focused.head_sha, 40],
+    ["merge_base_sha", focused.merge_base_sha, 40],
+    ["diff_digest", focused.diff_digest, 64],
+    ["impact_report_digest", focused.impact_report_digest, 64],
+    ["pr_metadata_digest", focused.pr_metadata_digest, 64],
+  ] as const) {
+    if (typeof value !== "string" || !new RegExp(`^[0-9a-f]{${length}}$`).test(value)) error("focused-manifest-digest", `${field} must be a lowercase digest`, field);
+  }
+  if (!Array.isArray(focused.changed_files) || focused.changed_files.some((path) => typeof path !== "string" || path.length === 0)) error("focused-manifest-changed-files", "changed_files must be a string array");
+  const objects = new Map<string, FocusedBodyObject>();
+  if (!Array.isArray(focused.objects)) error("focused-manifest-objects", "objects must be an array");
+  for (const [index, object] of (Array.isArray(focused.objects) ? focused.objects : []).entries()) {
+    if (object == null || typeof object !== "object" || !/^[0-9a-f]{64}$/.test(object.digest) || object.object_path !== `objects/${object.digest}.md` || !Number.isInteger(object.bytes) || object.bytes < 0) {
+      error("focused-manifest-object-malformed", `objects[${index}] must bind a SHA-256 digest to objects/<digest>.md`, `focused-manifest.json:objects[${index}]`);
+      continue;
+    }
+    if (objects.has(object.digest)) error("focused-manifest-object-duplicate", `duplicate body object digest: ${object.digest}`, `focused-manifest.json:objects[${index}]`);
+    objects.set(object.digest, object);
+    if (Object.keys(files).length > 0) {
+      const raw = files[object.object_path];
+      if (raw == null) error("focused-manifest-object-missing", `body object is missing from bundle: ${object.object_path}`, object.object_path);
+      else {
+        if (hashContent(raw) !== object.digest) error("focused-manifest-object-digest", `body object digest does not match bytes: ${object.object_path}`, object.object_path);
+        if (Buffer.byteLength(raw, "utf8") !== object.bytes) error("focused-manifest-object-bytes", `body object byte count does not match bytes: ${object.object_path}`, object.object_path);
+      }
+    }
+  }
+  const bodyRoles = new Set<string>();
+  if (!Array.isArray(focused.body_roles)) error("focused-manifest-body-roles", "body_roles must be an array");
+  for (const [index, role] of (Array.isArray(focused.body_roles) ? focused.body_roles : []).entries()) {
+    const valid = role != null && typeof role === "object"
+      && ["affected_page", "invariant", "removed_page", "conflict"].includes(role.role)
+      && typeof role.id === "string" && typeof role.wiki_path === "string"
+      && ["head", "merge-base"].includes(role.lifecycle)
+      && /^[0-9a-f]{64}$/.test(role.digest)
+      && objects.has(role.digest);
+    if (!valid) {
+      error("focused-manifest-body-role", `body_roles[${index}] has an invalid or unbound object role`, `focused-manifest.json:body_roles[${index}]`);
+      continue;
+    }
+    const key = `${role.role}:${role.id}:${role.lifecycle}`;
+    if (bodyRoles.has(key)) error("focused-manifest-body-role-duplicate", `duplicate body role: ${key}`, `focused-manifest.json:body_roles[${index}]`);
+    bodyRoles.add(key);
+  }
+  const sourceRoles = new Set<FocusedSourceRole>(["changed_source", "affected_authority_source", "relevant_test", "supporting_source"]);
+  const declarationsById = new Map<string, FocusedSourceDeclaration>();
+  if (!Array.isArray(focused.source_declarations)) error("focused-manifest-source-declarations", "source_declarations must be an array");
+  for (const [index, declaration] of (Array.isArray(focused.source_declarations) ? focused.source_declarations : []).entries()) {
+    if (declaration == null || typeof declaration !== "object" || typeof declaration.id !== "string" || typeof declaration.page_id !== "string" || !["path", "glob"].includes(declaration.matched_via) || declaration.declaration == null || typeof declaration.declaration !== "object") {
+      error("focused-manifest-declaration", `source_declarations[${index}] is malformed`, `focused-manifest.json:source_declarations[${index}]`);
+      continue;
+    }
+    if (declarationsById.has(declaration.id)) error("focused-manifest-declaration-duplicate", `duplicate source declaration ID: ${declaration.id}`, `focused-manifest.json:source_declarations[${index}]`);
+    declarationsById.set(declaration.id, declaration);
+  }
+  const seenSources = new Set<string>();
+  if (!Array.isArray(focused.source_roles)) error("focused-manifest-source-roles", "source_roles must be an array");
+  for (const [index, source] of (Array.isArray(focused.source_roles) ? focused.source_roles : []).entries()) {
+    const valid = source != null && typeof source === "object" && typeof source.path === "string" && source.path.length > 0
+      && Array.isArray(source.roles) && source.roles.length > 0 && source.roles.every((role) => sourceRoles.has(role))
+      && Array.isArray(source.declared_by) && source.declared_by.every((id) => typeof id === "string")
+      && Array.isArray(source.declaration_ids) && source.declaration_ids.every((id) => typeof id === "string" && declarationsById.has(id))
+      && ["head", "merge-base", "added", "removed", "changed", "unchanged"].includes(source.lifecycle)
+      && (source.head_digest == null || /^[0-9a-f]{64}$/.test(source.head_digest))
+      && (source.merge_base_digest == null || /^[0-9a-f]{64}$/.test(source.merge_base_digest));
+    if (!valid) {
+      error("focused-manifest-source-role", `source_roles[${index}] is malformed or has an unknown role`, `focused-manifest.json:source_roles[${index}]`);
+      continue;
+    }
+    if (seenSources.has(source.path)) error("focused-manifest-source-duplicate", `source path appears more than once: ${source.path}`, `focused-manifest.json:source_roles[${index}]`);
+    seenSources.add(source.path);
+    if (source.roles.includes("changed_source") && !(focused.changed_files as string[]).includes(source.path)) error("focused-manifest-changed-source-missing", `changed_source role is not bound to changed_files: ${source.path}`, source.path);
+    if (source.roles.includes("relevant_test") && !focusedSourcePath(source.path)) error("focused-manifest-test-misclassified", `relevant_test role is not a test path: ${source.path}`, source.path);
+    if (source.roles.includes("affected_authority_source") && source.declared_by.length === 0) error("focused-manifest-authority-provenance", `affected_authority_source requires declaring page provenance: ${source.path}`, source.path);
+    for (const declarationId of source.declaration_ids) {
+      const declaration = declarationsById.get(declarationId);
+      if (!declaration) continue;
+      if (!source.declared_by.includes(declaration.page_id)) error("focused-manifest-declaration-owner", `source declaration owner is missing from declared_by: ${source.path}`, source.path);
+      if (declaration.matched_via === "path" && ("path" in declaration.declaration) && declaration.declaration.path !== source.path) error("focused-manifest-declaration-path", `exact source declaration does not bind its source path: ${source.path}`, source.path);
+      if (declaration.matched_via === "glob" && (typeof declaration.expanded_glob !== "string" || declaration.expanded_glob.length === 0)) error("focused-manifest-declaration-glob", `glob source declaration is missing expanded provenance: ${source.path}`, source.path);
+    }
+  }
+  if (expected) {
+    if (focused.head_sha !== expected.head_sha) error("focused-manifest-head-binding", "focused manifest HEAD does not match the enclosing ReviewManifest");
+    if (focused.merge_base_sha !== expected.merge_base_sha) error("focused-manifest-base-binding", "focused manifest merge base does not match the enclosing ReviewManifest");
+    if (focused.diff_digest !== expected.diff_digest) error("focused-manifest-diff-binding", "focused manifest diff digest does not match the enclosing ReviewManifest");
+    if (focused.impact_report_digest !== expected.impact_report_digest) error("focused-manifest-impact-binding", "focused manifest impact digest does not match the enclosing ReviewManifest");
+    if (focused.pr_metadata_digest !== expected.pr_metadata_digest) error("focused-manifest-metadata-binding", "focused manifest metadata digest does not match the enclosing ReviewManifest");
+    for (const [path, digest] of Object.entries(expected.file_digests)) {
+      const raw = files[path];
+      if (raw == null) error("focused-manifest-file-missing", `enclosing bundle file is missing: ${path}`, path);
+      else if (hashContent(raw) !== digest) error("focused-manifest-file-digest", `enclosing bundle file digest does not match manifest: ${path}`, path);
+    }
+    const core = { ...expected } as Record<string, unknown>;
+    delete core.bundle_digest;
+    if (hashContent(jsonStable(core)) !== expected.bundle_digest) error("focused-manifest-bundle-binding", "enclosing ReviewManifest bundle digest is not self-consistent", "manifest.json");
+    const requireBody = (role: FocusedBodyRole, id: string) => {
+      if (!bodyRoles.has(`${role}:${id}:head`) && !bodyRoles.has(`${role}:${id}:merge-base`)) error(`focused-manifest-${role}-missing`, `required ${role} role is missing: ${id}`);
+    };
+    if (enforceRequired) {
+      for (const id of expected.affected_page_ids) requireBody("affected_page", id);
+      for (const id of expected.affected_invariant_ids) requireBody("invariant", id);
+      for (const id of expected.affected_conflict_ids) requireBody("conflict", id);
+    }
+    const sourceByPath = new Map((Array.isArray(focused.source_roles) ? focused.source_roles : []).map((source) => [source.path, source]));
+    if (enforceRequired) {
+      for (const path of focused.changed_files) {
+        const source = sourceByPath.get(path);
+        if (!source || !source.roles.includes("changed_source")) error("focused-manifest-changed-source-required", `changed file is missing changed_source classification: ${path}`, path);
+        if (focusedSourcePath(path) && !source?.roles.includes("relevant_test")) error("focused-manifest-relevant-test-required", `changed test is missing relevant_test classification: ${path}`, path);
+      }
+    }
+    if (expected.focused_manifest_digest && Object.keys(files).length > 0 && files["focused-manifest.json"] != null && hashContent(files["focused-manifest.json"]) !== expected.focused_manifest_digest) error("focused-manifest-digest-binding", "focused manifest digest does not match the enclosing ReviewManifest");
+  }
+  return findings;
+}
+
+/** Alias used by callers that validate the complete bundle envelope. */
+export const validateReviewBundleBindings = validateFocusedReviewManifest;
+
 export function buildReviewManifest(view: RepoView, pages: WikiPage[], report: ImpactReport, metadata?: PrMetadata): ReviewManifest {
+  const focused = focusedReviewData(view, pages, report, metadata);
   const files = reviewBundleFiles(view, pages, report, metadata);
   const fileDigests = Object.fromEntries(Object.entries(files).map(([path, content]) => [path, hashContent(content)]).sort(([a], [b]) => a.localeCompare(b)));
   const baseInvariantIds = new Set(git(view.root, ["ls-tree", "-r", "--name-only", report.mergeBase, "--", "wiki"], true)
@@ -2971,16 +3311,33 @@ export function buildReviewManifest(view: RepoView, pages: WikiPage[], report: I
     affected_invariant_ids: [...affectedInvariantIds].sort((a, b) => a.localeCompare(b)),
     affected_conflict_ids: report.affectedConflicts.map((conflict) => conflict.id).sort((a, b) => a.localeCompare(b)),
     file_digests: fileDigests,
+    focused_manifest_digest: hashContent(files["focused-manifest.json"]),
   };
-  return { ...core, bundle_digest: hashContent(jsonStable(core)) };
+  const manifest = { ...core, bundle_digest: hashContent(jsonStable(core)) };
+  const bindingFindings = validateFocusedReviewManifest(focused.manifest, files, manifest, false);
+  if (bindingFindings.some((finding) => finding.severity === "error")) throw new Error(bindingFindings.map((finding) => finding.message).join("; "));
+  return manifest;
 }
 
 export function makeReviewBundle(view: RepoView, pages: WikiPage[], report: ImpactReport, output?: string, metadata?: PrMetadata): string {
   const directory = output ? resolve(view.root, output) : mkdtempSync(join(tmpdir(), "wiki-review-"));
-  const files = { ...reviewBundleFiles(view, pages, report, metadata), "manifest.json": jsonStable(buildReviewManifest(view, pages, report, metadata)) };
+  const files: Record<string, string> = { ...reviewBundleFiles(view, pages, report, metadata), "manifest.json": jsonStable(buildReviewManifest(view, pages, report, metadata)) };
   for (const [path, content] of Object.entries(files).sort(([a], [b]) => a.localeCompare(b))) {
     Bun.spawnSync(["mkdir", "-p", dirname(join(directory, path))]);
     writeFileSync(join(directory, path), content);
+  }
+  // Keep the old removed-page/conflict paths as compatibility links only. The
+  // body bytes live exactly once under objects/<sha256>.md and the focused
+  // manifest remains the authoritative role-to-object index.
+  const focused = JSON.parse(files["focused-manifest.json"]) as FocusedReviewManifest;
+  for (const role of focused.body_roles.filter((item) => item.role === "removed_page" || item.role === "conflict")) {
+    const alias = role.role === "removed_page"
+      ? `pages/removed_${role.id.replaceAll("/", "_")}.md`
+      : `conflicts/${role.id}.md`;
+    const aliasPath = join(directory, alias);
+    Bun.spawnSync(["mkdir", "-p", dirname(aliasPath)]);
+    rmSync(aliasPath, { force: true });
+    symlinkSync(relative(dirname(aliasPath), join(directory, `objects/${role.digest}.md`)), aliasPath);
   }
   return directory;
 }

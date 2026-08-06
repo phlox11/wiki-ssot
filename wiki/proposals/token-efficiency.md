@@ -18,6 +18,8 @@ sources:
   - path: scripts/wiki/primary-current.ts
   - path: scripts/wiki/token-efficiency-baseline.ts
   - path: scripts/wiki/token-efficiency-baseline.test.ts
+  - path: scripts/wiki/te04-focused-review.ts
+  - path: scripts/wiki/te04-focused-review.test.ts
   - path: docs/commands.md
   - path: docs/evidence/pv-19-primary-current.json
   - path: docs/evidence/pv-19-primary-current.md
@@ -138,7 +140,7 @@ work_items:
     evidence: []
   - id: TE-04
     title: Focus exact-HEAD review inputs and reduce reviewer round trips
-    state: not-started
+    state: active
     executor: agent
     priority: high
     depends_on: [TE-00-OWNER, TE-01, TE-02]
