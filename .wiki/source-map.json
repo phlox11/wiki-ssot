@@ -52,8 +52,28 @@
     "scripts/wiki/github-attestation.ts": [
       "operations/enforcement"
     ],
+    "scripts/wiki/model.ts": [
+      "operations/enforcement",
+      "product/invariants"
+    ],
+    "scripts/wiki/page-validation.ts": [
+      "operations/enforcement",
+      "product/invariants"
+    ],
+    "scripts/wiki/repository-view.ts": [
+      "operations/enforcement",
+      "product/invariants"
+    ],
+    "scripts/wiki/serialization.ts": [
+      "operations/enforcement",
+      "product/invariants"
+    ],
     "scripts/wiki/tsconfig.json": [
       "architecture/engine"
+    ],
+    "scripts/wiki/work-validation.ts": [
+      "operations/enforcement",
+      "product/invariants"
     ]
   },
   "globs": [

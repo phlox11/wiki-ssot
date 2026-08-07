@@ -26,6 +26,16 @@ import { jsonStable } from "./core";
 
 const PROJECT_ROOT = resolve(import.meta.dir, "../..");
 const CLI_PATH = "scripts/wiki/cli.ts";
+/** Engine entrypoints copied into the disposable candidate as one dependency closure. */
+export const TE04_ENGINE_PATHS = [
+  "scripts/wiki/core.ts",
+  "scripts/wiki/model.ts",
+  "scripts/wiki/serialization.ts",
+  "scripts/wiki/repository-view.ts",
+  "scripts/wiki/page-validation.ts",
+  "scripts/wiki/work-validation.ts",
+  CLI_PATH,
+] as const;
 /** TE-00 publisher review source breadth observed by the pinned baseline. */
 export const TE00_REVIEWER_SOURCE_BREADTH = 33;
 
@@ -79,6 +89,18 @@ function git(root: string, args: string[]): string {
   const result = Bun.spawnSync(["git", ...args], { cwd: root, stdout: "pipe", stderr: "pipe" });
   if (result.exitCode !== 0) throw new Error(result.stderr.toString().trim() || `git ${args.join(" ")} failed`);
   return result.stdout.toString().trim();
+}
+
+function engineSource(root: string, path: string): string {
+  const source = join(root, path);
+  if (existsSync(source)) return readFileSync(source, "utf8");
+  // Historical TE-06 checkouts predate the KM-01 split. Their copied core
+  // still needs the foundation modules when this harness runs from the
+  // current publisher checkout, so use the current source only for a missing
+  // dependency and keep the exact checkout as the candidate base.
+  const fallback = join(PROJECT_ROOT, path);
+  if (existsSync(fallback)) return readFileSync(fallback, "utf8");
+  throw new Error(`TE-04 engine source is missing from ${root} and ${PROJECT_ROOT}: ${path}`);
 }
 
 function recursiveFiles(root: string): string[] {
@@ -141,16 +163,26 @@ export function measureTe04FocusedReview(root = PROJECT_ROOT): Te04FocusedReview
     // two engine entrypoints into the disposable candidate so its exact
     // implementation revision includes the current focused-review code; the
     // candidate itself remains isolated and is never pushed.
-    for (const path of ["scripts/wiki/core.ts", CLI_PATH]) {
-      writeFileSync(join(candidateRoot, path), readFileSync(join(root, path), "utf8"), "utf8");
+    for (const path of TE04_ENGINE_PATHS) {
+      writeFileSync(join(candidateRoot, path), engineSource(root, path), "utf8");
     }
     // Use the Git blob to detect a dirty authoring checkout before the copy.
-    const copiedEngineDiffersFromRepository = ["scripts/wiki/core.ts", CLI_PATH].some((path) => {
+    // Historical exact-revision checkouts may not contain the newer foundation
+    // files. They are copied for module resolution and ignored in that
+    // historical fixture because its checked-out core does not import them;
+    // this keeps the pinned TE-06 bundle byte-stable.
+    const enginePathsInRoot = TE04_ENGINE_PATHS.filter((path) => existsSync(join(root, path)));
+    const historicalDependencyFallback = enginePathsInRoot.length < TE04_ENGINE_PATHS.length;
+    if (historicalDependencyFallback) {
+      const supplemental = TE04_ENGINE_PATHS.filter((path) => !enginePathsInRoot.includes(path));
+      writeFileSync(join(candidateRoot, ".git/info/exclude"), `\n${supplemental.join("\n")}\n`, { flag: "a" });
+    }
+    const copiedEngineDiffersFromRepository = enginePathsInRoot.some((path) => {
       const result = Bun.spawnSync(["git", "show", `${repositorySha}:${path}`], { cwd: root, stdout: "pipe", stderr: "pipe" });
-      return result.exitCode !== 0 || result.stdout.toString() !== readFileSync(join(root, path), "utf8");
+      return result.exitCode !== 0 || result.stdout.toString() !== engineSource(root, path);
     });
     if (copiedEngineDiffersFromRepository) {
-      requiredExternal(candidateRoot, ["git", "add", "scripts/wiki/core.ts", CLI_PATH]);
+      requiredExternal(candidateRoot, ["git", "add", ...enginePathsInRoot]);
       requiredExternal(candidateRoot, ["git", "-c", "user.name=TE-04 fixture", "-c", "user.email=te04-fixture@example.invalid", "commit", "--quiet", "-m", "TE-04 current engine snapshot"], {
         GIT_AUTHOR_NAME: "TE-04 fixture",
         GIT_AUTHOR_EMAIL: "te04-fixture@example.invalid",

@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, test } from "bun:test";
-import { measureTe04FocusedReview, TE00_REVIEWER_SOURCE_BREADTH, type Te04FocusedReviewMeasurement } from "./te04-focused-review";
+import { measureTe04FocusedReview, TE00_REVIEWER_SOURCE_BREADTH, TE04_ENGINE_PATHS, type Te04FocusedReviewMeasurement } from "./te04-focused-review";
 
 let measurement: Te04FocusedReviewMeasurement;
 
@@ -8,6 +8,18 @@ beforeAll(() => {
 }, 60_000);
 
 describe("TE-04 focused review measurement", () => {
+  test("copies the complete KM-01 engine dependency closure", () => {
+    expect(TE04_ENGINE_PATHS).toEqual(expect.arrayContaining([
+      "scripts/wiki/core.ts",
+      "scripts/wiki/model.ts",
+      "scripts/wiki/serialization.ts",
+      "scripts/wiki/repository-view.ts",
+      "scripts/wiki/page-validation.ts",
+      "scripts/wiki/work-validation.ts",
+      "scripts/wiki/cli.ts",
+    ]));
+  });
+
   test("retains exact PASS and portable fixture correctness", () => {
     expect(measurement.version).toBe(1);
     expect(measurement.base_sha).toMatch(/^[0-9a-f]{40}$/);
@@ -29,4 +41,3 @@ describe("TE-04 focused review measurement", () => {
     expect(measurement.reviewer_active_time.value).toBeGreaterThanOrEqual(0);
   });
 });
-

@@ -7,6 +7,11 @@ authority: normative
 owners: ["@phlox11"]
 sources:
   - path: scripts/wiki/core.ts
+  - path: scripts/wiki/model.ts
+  - path: scripts/wiki/serialization.ts
+  - path: scripts/wiki/repository-view.ts
+  - path: scripts/wiki/page-validation.ts
+  - path: scripts/wiki/work-validation.ts
   - path: scripts/wiki/cli.ts
   - path: scripts/wiki/apply.ts
   - path: AGENTS.md
