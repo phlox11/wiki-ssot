@@ -222,7 +222,7 @@ work_items:
       - wiki/architecture/engine.md
   - id: TE-06-OWNER
     title: Record the publisher-repository efficiency owner exit decision
-    state: not-started
+    state: done
     executor: human
     priority: high
     depends_on: [TE-06]
@@ -231,7 +231,10 @@ work_items:
       - The owner records publisher token and performance efficiency validated with portable correctness preserved, another bounded efficiency cycle, or the optimization not adopted against the exact TE-06 evidence.
       - The decision names any accepted limitations and does not silently weaken a current Wiki SSOT invariant.
       - The durable decision evidence closes the proposal cycle or names the exact bounded follow-up work.
-    evidence: []
+    evidence:
+      - wiki/proposals/token-efficiency.md
+      - docs/evidence/te-06-token-performance.json
+      - docs/evidence/te-06-token-performance.md
 ---
 
 # Token- and time-efficient Wiki SSOT
@@ -492,3 +495,27 @@ behavior, and orchestration choices visibly separate. `TE-06-OWNER` then
 records one of three outcomes: publisher efficiency validated with portable
 correctness preserved, another bounded efficiency cycle, or the optimization
 not adopted.
+
+## Owner exit decision
+
+The owner selected the first `TE-06-OWNER` outcome: publisher token and
+performance efficiency is validated with portable correctness preserved. This
+decision is bound to the exact TE-06 combined evidence revision
+`76e5d97a410d8e67659835e059e7b721541113c5` and machine report digest
+`b5b71a6da1cdab1815dfe1d02bdfecab0fa5dd36e2e8c6e7292bdaa8c9a6c27c`.
+The evidence records no remaining correctness miss, so this decision closes
+the token-efficiency proposal cycle without creating another bounded
+efficiency work item. TE-03 remains deferred because the measured repository
+growth does not satisfy its activation contract.
+
+The owner accepts the recorded measurement limitations: request-start,
+first-token, and completion latency remain unavailable; Guardian routing,
+approval behavior, an external PR merge, and a separate cleanup phase were not
+observed and are not repository guarantees; and raw rollout tokens do not
+represent billed API cost or subscription credits. Recursive TypeScript source
+bytes increased by 43.2%, and same-recipe raw review bytes increased by 24.6%;
+these remain visible growth diagnostics rather than efficiency gains. Focused
+exact review and portable correctness still pass. None of these accepted
+limitations weakens current authority, invariant, conflict, source
+traceability, coverage, impact, exact-HEAD review, or independent-attestation
+requirements.
