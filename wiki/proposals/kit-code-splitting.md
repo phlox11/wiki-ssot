@@ -12,6 +12,12 @@ sources:
   - path: scripts/wiki/repository-view.ts
   - path: scripts/wiki/page-validation.ts
   - path: scripts/wiki/work-validation.ts
+  - path: scripts/wiki/discovery.ts
+  - path: scripts/wiki/context.ts
+  - path: scripts/wiki/generated-views.ts
+  - path: scripts/wiki/discovery.test.ts
+  - path: scripts/wiki/context.test.ts
+  - path: scripts/wiki/generated-views.test.ts
   - path: scripts/wiki/cli.ts
   - path: scripts/wiki/fresh-context.test.ts
   - path: scripts/wiki/wiki.test.ts
@@ -95,7 +101,7 @@ work_items:
       - wiki/operations/enforcement.md
   - id: KM-02
     title: Extract work discovery, search, context, and generated-view modules
-    state: not-started
+    state: done
     executor: agent
     priority: normal
     depends_on: [KM-01]
@@ -106,7 +112,23 @@ work_items:
       - Work IDs, lifecycle validation, recommendation priority, human-work handoff, partial-match discovery, and selected-work behavior retain their focused regression coverage.
       - Domain tests move with the extracted behavior so work.test.ts no longer combines schema, queue, CLI, and context concerns in one file.
       - The split neither re-expands compact context nor weakens source traceability, coverage, drift detection, or open-conflict inclusion.
-    evidence: []
+    evidence:
+      - scripts/wiki/discovery.ts
+      - scripts/wiki/discovery.test.ts
+      - scripts/wiki/context.ts
+      - scripts/wiki/context.test.ts
+      - scripts/wiki/generated-views.ts
+      - scripts/wiki/generated-views.test.ts
+      - scripts/wiki/core.ts
+      - scripts/wiki/core-facade.test.ts
+      - scripts/wiki/work-validation.test.ts
+      - scripts/wiki/test-runner.test.ts
+      - scripts/wiki/kit.test.ts
+      - scripts/wiki/new-repository-adoption.test.ts
+      - scripts/wiki/existing-repo-bootstrap.test.ts
+      - wiki/architecture/engine.md
+      - wiki/product/invariants.md
+      - wiki/operations/enforcement.md
   - id: KM-03
     title: Extract portable-kit packaging and generation from the engine core
     state: not-started

@@ -220,6 +220,16 @@ describe("existing-repository bootstrap evidence", () => {
     const initial = planSync(kit, repo);
     expect(initial.conflicts).toEqual([]);
     applySync(kit, repo, initial);
+    for (const target of [
+      "scripts/wiki/discovery.ts",
+      "scripts/wiki/context.ts",
+      "scripts/wiki/generated-views.ts",
+      "scripts/wiki/discovery.test.ts",
+      "scripts/wiki/context.test.ts",
+      "scripts/wiki/generated-views.test.ts",
+    ]) {
+      expect(existsSync(join(repo, target))).toBe(true);
+    }
     const initialAgents = mergeManagedBlock(
       readFileSync(join(repo, "AGENTS.md"), "utf8"),
       readFileSync(join(kit, "managed/AGENTS.md"), "utf8"),
@@ -367,6 +377,16 @@ describe("existing-repository bootstrap evidence", () => {
     applySync(kit, repo, upgrade);
     expect(readFileSync(join(repo, "wiki/README.md"), "utf8")).toContain("Upstream kit v2");
     for (const path of adopterOwned) expect(readFileSync(join(repo, path), "utf8")).toBe(beforeUpgrade[path]);
+    for (const target of [
+      "scripts/wiki/discovery.ts",
+      "scripts/wiki/context.ts",
+      "scripts/wiki/generated-views.ts",
+      "scripts/wiki/discovery.test.ts",
+      "scripts/wiki/context.test.ts",
+      "scripts/wiki/generated-views.test.ts",
+    ]) {
+      expect(existsSync(join(repo, target))).toBe(true);
+    }
 
     const mergedUpgradeAgents = mergeManagedBlock(localAgents, incomingAgents);
     expect(mergedUpgradeAgents.status).toBe("ready");

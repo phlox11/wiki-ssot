@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -162,6 +162,16 @@ describe("new-repository adoption", () => {
       expect.objectContaining({ code: "bootstrap-current-page-required" }),
       expect.objectContaining({ code: "bootstrap-coverage-required" }),
     ]));
+    for (const target of [
+      "scripts/wiki/discovery.ts",
+      "scripts/wiki/context.ts",
+      "scripts/wiki/generated-views.ts",
+      "scripts/wiki/discovery.test.ts",
+      "scripts/wiki/context.test.ts",
+      "scripts/wiki/generated-views.test.ts",
+    ]) {
+      expect(existsSync(join(repo, target))).toBe(true);
+    }
     const config = JSON.parse(readFileSync(join(repo, ".wiki/config.json"), "utf8"));
     config.name = "adoption-fixture";
     config.highRisk = [];

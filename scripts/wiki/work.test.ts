@@ -3,20 +3,7 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "nod
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import {
-  buildCompactTopicCandidateContext,
-  buildTopicContext,
-  buildWorkQueue,
-  compareGenerated,
-  createRepoView,
-  generateCurrentStatus,
-  generateWorkQueue,
   jsonStable,
-  loadWikiPages,
-  parseWikiPage,
-  projectWorkQueue,
-  validateWorkItems,
-  type RepoView,
-  type WikiPage,
   type WorkItem,
 } from "./core";
 
@@ -73,11 +60,6 @@ function tempRepo(): string {
   run(root, ["git", "config", "user.name", "Wiki Work Test"]);
   run(root, ["git", "config", "user.email", "wiki-work@example.invalid"]);
   return root;
-}
-
-function memoryView(files: Record<string, string>): RepoView {
-  const paths = Object.keys(files).sort();
-  return { root: "/memory", mode: "working", listFiles: () => paths, exists: (path) => path in files, read: (path) => files[path] };
 }
 
 function currentPage(id: string, kind = "product", sources = "  - path: source.ts"): string {
@@ -166,207 +148,6 @@ function work(overrides: Partial<WorkItem> = {}): WorkItem {
     ...overrides,
   };
 }
-
-function pagesFor(items: WorkItem[], extras: Record<string, string> = {}): WikiPage[] {
-  const files = {
-    "source.ts": "export const value = true;\n",
-    "wiki/product/test.md": currentPage("product/test"),
-    "wiki/product/invariant.md": currentPage("product/invariant", "invariant"),
-    "wiki/proposals/work.md": proposalPage(items),
-    ...extras,
-  };
-  return loadWikiPages(memoryView(files)).pages;
-}
-
-describe("work item schema and queue", () => {
-  test("derives ready and waiting states and recommends by priority then ID", () => {
-    const pages = pagesFor([
-      work({ id: "WK-00", title: "Completed prerequisite", state: "done", priority: "critical", evidence: ["source.ts"] }),
-      work({ id: "WK-03", title: "Lower ready", priority: "normal", depends_on: ["WK-00"] }),
-      work({ id: "WK-02", title: "Highest ready", priority: "critical", depends_on: ["WK-00"] }),
-      work({ id: "WK-04", title: "Waiting", priority: "critical", depends_on: ["WK-03"] }),
-    ]);
-    expect(validateWorkItems(pages)).toEqual([]);
-    const queue = buildWorkQueue(pages);
-    expect(queue.recommended_next).toEqual({ kind: "work", id: "WK-02" });
-    expect(queue.groups.ready.map((item) => item.id)).toEqual(["WK-02", "WK-03"]);
-    expect(queue.groups.waiting.map((item) => [item.id, item.unmet_dependencies])).toEqual([["WK-04", ["WK-03"]]]);
-    expect(queue.groups.done.map((item) => item.id)).toEqual(["WK-00"]);
-  });
-
-  test("finishes active work before recommending another ready item", () => {
-    const pages = pagesFor([
-      work({ id: "WK-01", priority: "critical" }),
-      work({ id: "WK-02", state: "active", priority: "low" }),
-    ]);
-    expect(buildWorkQueue(pages).recommended_next).toEqual({ kind: "work", id: "WK-02" });
-  });
-
-  test("normalizes omitted executors and preserves explicit executor enums", () => {
-    const pages = pagesFor([
-      work({ id: "WK-OMITTED" }),
-      work({ id: "WK-HUMAN", executor: "human" }),
-      work({ id: "WK-EITHER", executor: "either" }),
-    ]);
-    expect(validateWorkItems(pages)).toEqual([]);
-    expect(buildWorkQueue(pages).groups.ready.map((item) => [item.id, item.executor])).toEqual([
-      ["WK-EITHER", "either"],
-      ["WK-HUMAN", "human"],
-      ["WK-OMITTED", "agent"],
-    ]);
-    expect(JSON.parse(jsonStable(buildWorkQueue(pages))).groups.ready.every((item: { executor?: string }) => item.executor != null)).toBe(true);
-  });
-
-  test("rejects invalid executor values and excludes them from the owned graph", () => {
-    const invalidExecutors: unknown[] = ["robot", null, [], 42];
-    for (const [index, executor] of invalidExecutors.entries()) {
-      const item = { ...work({ id: `WK-BAD-${index}` }), executor } as unknown as WorkItem;
-      const pages = pagesFor([item]);
-      const findings = validateWorkItems(pages);
-      expect(findings).toEqual(expect.arrayContaining([
-        expect.objectContaining({ code: "work-executor", message: expect.stringContaining("agent, human, or either") }),
-      ]));
-      expect(buildWorkQueue(pages).groups.ready).toEqual([]);
-    }
-  });
-
-  test("filters a complete graph without changing dependency state and never recommends human-only work", () => {
-    const pages = pagesFor([
-      work({ id: "WK-HUMAN", executor: "human", priority: "critical" }),
-      work({ id: "WK-EITHER", executor: "either", priority: "normal" }),
-      work({ id: "WK-AGENT-WAITING", executor: "agent", depends_on: ["WK-HUMAN"], priority: "critical" }),
-    ]);
-    const full = buildWorkQueue(pages);
-    expect(full.recommended_next).toEqual({ kind: "work", id: "WK-EITHER" });
-    expect(full.groups.ready.map((item) => item.id)).toEqual(["WK-HUMAN", "WK-EITHER"]);
-    expect(full.groups.waiting).toEqual([
-      expect.objectContaining({ id: "WK-AGENT-WAITING", unmet_dependencies: ["WK-HUMAN"], queue_state: "waiting" }),
-    ]);
-
-    const agent = projectWorkQueue(full, "agent");
-    expect(agent.groups.ready.map((item) => item.id)).toEqual(["WK-EITHER"]);
-    expect(agent.groups.waiting).toEqual([
-      expect.objectContaining({ id: "WK-AGENT-WAITING", unmet_dependencies: ["WK-HUMAN"], queue_state: "waiting" }),
-    ]);
-    expect(agent.recommended_next).toEqual({ kind: "work", id: "WK-EITHER" });
-
-    const human = projectWorkQueue(full, "human");
-    expect(human.groups.ready.map((item) => item.id)).toEqual(["WK-HUMAN", "WK-EITHER"]);
-    expect(human.recommended_next).toEqual({ kind: "work", id: "WK-EITHER" });
-  });
-
-  test("keeps a human-only active/ready queue visible with no recommendation", () => {
-    const queue = buildWorkQueue(pagesFor([
-      work({ id: "WK-HUMAN-ACTIVE", executor: "human", state: "active" }),
-      work({ id: "WK-HUMAN-READY", executor: "human" }),
-    ]));
-    expect(queue.recommended_next).toBeNull();
-    expect(queue.groups.active.map((item) => item.id)).toEqual(["WK-HUMAN-ACTIVE"]);
-    expect(queue.groups.ready.map((item) => item.id)).toEqual(["WK-HUMAN-READY"]);
-    expect(generateWorkQueue(pagesFor([
-      work({ id: "WK-HUMAN-READY", executor: "human" }),
-    ]))).toContain("no agent-recommendable work is available");
-    expect(generateCurrentStatus(pagesFor([
-      work({ id: "WK-HUMAN-READY", executor: "human" }),
-    ]))).toContain("human-only work remains");
-  });
-
-  test("rejects duplicate, unknown, self, cyclic, and illegal lifecycle records", () => {
-    const invalid = [
-      work({ id: "WK-DONE", state: "done", evidence: [] }),
-      work({ id: "WK-BLOCKED", state: "blocked", blocker: undefined }),
-      work({ id: "WK-DEFERRED", state: "deferred", deferred_reason: undefined }),
-      work({ id: "WK-WRONG-BLOCKER", blocker: "Stale blocker text." }),
-      work({ id: "WK-WRONG-DEFERRED", deferred_reason: "Stale deferred text." }),
-      work({ id: "WK-UNKNOWN", depends_on: ["WK-MISSING"] }),
-      work({ id: "WK-SELF", depends_on: ["WK-SELF"] }),
-      work({ id: "WK-CYCLE-A", depends_on: ["WK-CYCLE-B"] }),
-      work({ id: "WK-CYCLE-B", depends_on: ["WK-CYCLE-A"] }),
-      work({ id: "WK-PENDING" }),
-      work({ id: "WK-ACTIVE", state: "active", depends_on: ["WK-PENDING"] }),
-      work({ id: "WK-DONE-WAITING", state: "done", depends_on: ["WK-PENDING"], evidence: ["source.ts"] }),
-      work({ id: "WK-CONTEXT", context_pages: ["proposal/work"] }),
-    ];
-    const pages = pagesFor(invalid, {
-      "wiki/proposals/duplicate.md": proposalPage([work({ id: "WK-UNKNOWN", title: "Duplicate" })], "proposal/duplicate"),
-    });
-    const codes = validateWorkItems(pages).map((item) => item.code);
-    expect(codes).toEqual(expect.arrayContaining([
-      "work-done-evidence",
-      "work-blocker",
-      "work-deferred-reason",
-      "work-blocker-state",
-      "work-deferred-state",
-      "work-duplicate-id",
-      "work-dependency-unknown",
-      "work-self-dependency",
-      "work-dependency-cycle",
-      "work-state-dependencies",
-      "work-context-page-unknown",
-    ]));
-  });
-
-  test("rejects invalid enums, missing fields, whitespace IDs, and live work on archived proposals", () => {
-    const missingAcceptance = work({ id: "WK-MISSING-FIELD" }) as unknown as Record<string, unknown>;
-    delete missingAcceptance.acceptance;
-    const malformed = [
-      { ...work({ id: "WK-BAD-STATE" }), state: "ready" },
-      { ...work({ id: "WK-BAD-PRIORITY" }), priority: "urgent" },
-      { ...work({ id: "WK-BLANK-ACCEPTANCE" }), acceptance: ["   "] },
-      { ...work({ id: " WK-SPACED-ID" }) },
-      missingAcceptance,
-    ] as unknown as WorkItem[];
-    const pages = pagesFor(malformed, {
-      "wiki/proposals/archived.md": proposalPage([work({ id: "WK-ARCHIVED-LIVE" })], "proposal/archived")
-        .replace("status: proposed", "status: archived"),
-    });
-    const codes = validateWorkItems(pages).map((item) => item.code);
-    expect(codes).toEqual(expect.arrayContaining([
-      "work-state",
-      "work-priority",
-      "work-acceptance",
-      "work-id",
-      "work-owner-status",
-    ]));
-  });
-
-  test("generates a byte-stable human queue without completed rows", () => {
-    const pages = pagesFor([
-      work({ id: "WK-00", state: "done", evidence: ["source.ts"] }),
-      work({ id: "WK-01", state: "blocked", blocker: "Owner must choose a policy." }),
-      work({ id: "WK-02", state: "deferred", deferred_reason: "Wait for measured evidence." }),
-    ]);
-    const first = generateWorkQueue(pages);
-    expect(first).toBe(generateWorkQueue(pages));
-    expect(parseWikiPage("wiki/work-queue.md", first).data).toMatchObject({
-      id: "generated/work-queue",
-      status: "archived",
-      authority: "derived",
-      sources: [],
-    });
-    expect(compareGenerated(memoryView({ "wiki/work-queue.md": first }), { "wiki/work-queue.md": first })).toEqual([]);
-    expect(first).toContain("Repository work queue");
-    expect(first).toContain("WK-01");
-    expect(first).not.toContain("| WK-00 |");
-  });
-
-  test("orders equal-priority work by ID and detects a manually edited generated queue", () => {
-    const pages = pagesFor([
-      work({ id: "WK-02", priority: "high" }),
-      work({ id: "WK-01", priority: "high" }),
-    ]);
-    const queue = buildWorkQueue(pages);
-    expect(queue.recommended_next).toEqual({ kind: "work", id: "WK-01" });
-    expect(queue.groups.ready.map((item) => item.id)).toEqual(["WK-01", "WK-02"]);
-    const expected = { "wiki/work-queue.md": generateWorkQueue(pages) };
-    const files = {
-      "wiki/work-queue.md": `${expected["wiki/work-queue.md"]}manual edit\n`,
-    };
-    expect(compareGenerated(memoryView(files), expected)).toEqual([
-      expect.objectContaining({ code: "generated-stale", path: "wiki/work-queue.md" }),
-    ]);
-  });
-});
 
 describe("work CLI and selected context", () => {
   function cliRepo(items: WorkItem[], includeConflict = true): string {
@@ -899,24 +680,6 @@ describe("work CLI and selected context", () => {
     expect(text).toContain("# Decision");
   });
 
-  test("builds partial candidates without a RepoView or source-glob expansion", () => {
-    const root = cliRepo([work()], true);
-    const view = createRepoView(root);
-    const loaded = loadWikiPages(view);
-    const compact = buildCompactTopicCandidateContext(loaded.pages, "test work");
-    expect(compact.matchMode).toBe("partial");
-    expect(compact.pages).toEqual([]);
-    expect(compact.conflicts).toEqual([]);
-    expect(compact.nonCurrentPages).toEqual([]);
-    expect(compact.readOrder).toEqual([]);
-    expect(compact.candidates.map((candidate) => candidate.id)).toEqual(["product/test", "proposal/work"]);
-    expect(compact.candidates.every((candidate) => !("sourceFiles" in candidate) && !("sourceGlobs" in candidate))).toBe(true);
-
-    const exhaustive = buildTopicContext(view, loaded.pages, "test work");
-    expect(exhaustive.pages.find((page) => page.id === "product/test")?.sourceFiles).toEqual(["source.ts", "src/a.ts", "src/z.ts"]);
-    expect(exhaustive.conflicts.map((conflict) => conflict.id)).toEqual(["C-900"]);
-  });
-
   test("follows a candidate page command into exact full context and rejects invalid page selectors", () => {
     const root = cliRepo([work()], true);
     const cli = join(process.cwd(), "scripts/wiki/cli.ts");
@@ -1019,14 +782,5 @@ describe("work CLI and selected context", () => {
     expect(agents).toContain("run `bun run wiki:work`");
     expect(agents).toContain("할 일 남은 거 뭐야?");
     expect(agents).toContain("Do not require a proposal ID, work ID, or search term.");
-  });
-});
-
-test("stable JSON preserves the public queue shape", () => {
-  const queue = buildWorkQueue(pagesFor([work()]));
-  expect(JSON.parse(jsonStable(queue))).toMatchObject({
-    version: 1,
-    recommended_next: { kind: "work", id: "WK-01" },
-    groups: { ready: [{ id: "WK-01", queue_state: "ready" }] },
   });
 });

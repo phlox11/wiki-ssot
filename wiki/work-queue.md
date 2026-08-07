@@ -15,9 +15,9 @@ tags: [generated, work, queue]
 
 This is a deterministic view of structured `work_items` on proposal pages. It is not current product authority; open the owning proposal and then the returned current context.
 
-**Recommended next:** `KM-02` — run `bun run wiki:context -- --work KM-02`.
+**Recommended next:** `KM-03` — run `bun run wiki:context -- --work KM-03`.
 
-Outstanding work: 18. Completed work hidden: 28; run `bun run wiki:work -- --all` to inspect it.
+Outstanding work: 17. Completed work hidden: 29; run `bun run wiki:work -- --all` to inspect it.
 
 ## Active
 
@@ -29,13 +29,12 @@ Outstanding work: 18. Completed work hidden: 28; run `bun run wiki:work -- --all
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| KM-02 | normal | agent | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | KM-01 | Extract work discovery, search, context, and generated-view modules | `bun run wiki:context -- --work KM-02` |
+| KM-03 | normal | agent | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | KM-02 | Extract portable-kit packaging and generation from the engine core | `bun run wiki:context -- --work KM-03` |
 
 ## Waiting
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| KM-03 | normal | agent | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | KM-02 | Extract portable-kit packaging and generation from the engine core — Waiting on: KM-02 | `bun run wiki:context -- --work KM-03` |
 | KM-04 | normal | agent | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | KM-03 | Extract verification, impact, and exact-HEAD review modules — Waiting on: KM-03 | `bun run wiki:context -- --work KM-04` |
 | KM-05 | normal | agent | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | KM-04 | Replace the monolithic CLI dispatcher with bounded command handlers — Waiting on: KM-04 | `bun run wiki:context -- --work KM-05` |
 | KM-06 | normal | agent | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | KM-05 | Split portable regression suites and consolidate shared fixtures — Waiting on: KM-05 | `bun run wiki:context -- --work KM-06` |

@@ -26,4 +26,15 @@ describe("portable test discovery", () => {
     expect(discoverWikiTestFiles(root)).toEqual(expected);
     expect(new Set(discoverWikiTestFiles(root)).size).toBe(expected.length);
   });
+
+  test("discovers KM-02 suites exactly once", () => {
+    const files = discoverWikiTestFiles();
+    for (const file of [
+      "scripts/wiki/discovery.test.ts",
+      "scripts/wiki/context.test.ts",
+      "scripts/wiki/generated-views.test.ts",
+    ]) {
+      expect(files.filter((candidate) => candidate === file)).toHaveLength(1);
+    }
+  });
 });

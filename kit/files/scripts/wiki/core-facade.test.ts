@@ -5,6 +5,9 @@ import * as serialization from "./serialization";
 import * as repositoryView from "./repository-view";
 import * as pageValidation from "./page-validation";
 import * as workValidation from "./work-validation";
+import * as discovery from "./discovery";
+import * as context from "./context";
+import * as generatedViews from "./generated-views";
 
 describe("core compatibility facade", () => {
   test("re-exports shared value APIs by identity", () => {
@@ -23,5 +26,30 @@ describe("core compatibility facade", () => {
   test("keeps the one-argument Markdown-link facade while foundation accepts policy", () => {
     expect(core.validateMarkdownLinks.length).toBe(1);
     expect(pageValidation.validateMarkdownLinks.length).toBe(1);
+  });
+
+  test("re-exports discovery, context, and generated views by identity", () => {
+    expect(core.currentPages).toBe(discovery.currentPages);
+    expect(core.searchWikiPages).toBe(discovery.searchWikiPages);
+    expect(core.conflictSummary).toBe(discovery.conflictSummary);
+    expect(core.openConflicts).toBe(discovery.openConflicts);
+    expect(core.buildWorkQueue).toBe(discovery.buildWorkQueue);
+    expect(core.projectWorkQueue).toBe(discovery.projectWorkQueue);
+
+    expect(core.buildSelectedWorkContext).toBe(context.buildSelectedWorkContext);
+    expect(core.buildTopicContext).toBe(context.buildTopicContext);
+    expect(core.buildCompactTopicCandidateContext).toBe(context.buildCompactTopicCandidateContext);
+    expect(core.projectSelectedWorkContext).toBe(context.projectSelectedWorkContext);
+    expect(core.projectTopicContext).toBe(context.projectTopicContext);
+    expect(core.buildPageContext).toBe(context.buildPageContext);
+
+    expect(core.GENERATED_HEADER).toBe(generatedViews.GENERATED_HEADER);
+    expect(core.generateWorkQueue).toBe(generatedViews.generateWorkQueue);
+    expect(core.generateConflictsIndex).toBe(generatedViews.generateConflictsIndex);
+    expect(core.generateIndex).toBe(generatedViews.generateIndex);
+    expect(core.generateCurrentStatus).toBe(generatedViews.generateCurrentStatus);
+    expect(core.buildSourceMap).toBe(generatedViews.buildSourceMap);
+    expect(core.buildConflictMap).toBe(generatedViews.buildConflictMap);
+    expect(core.generatedCoreFiles).toBe(generatedViews.generatedCoreFiles);
   });
 });

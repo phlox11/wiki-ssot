@@ -251,6 +251,22 @@ describe("emitted kit", () => {
     expect(fragment.scripts["wiki:work"]).toBe("bun scripts/wiki/cli.ts work");
   });
 
+  test("ships each KM-02 module and focused suite exactly once", () => {
+    const { files } = realKit();
+    const targets = [
+      "scripts/wiki/discovery.ts",
+      "scripts/wiki/context.ts",
+      "scripts/wiki/generated-views.ts",
+      "scripts/wiki/discovery.test.ts",
+      "scripts/wiki/context.test.ts",
+      "scripts/wiki/generated-views.test.ts",
+    ];
+    for (const target of targets) {
+      expect(KIT_ENTRIES.filter((entry) => entry.target === target)).toHaveLength(1);
+      expect(files[`kit/files/${target}`]).toBeString();
+    }
+  });
+
   test("keeps publisher-only kit commands out of the downstream workflow", () => {
     const { view, files } = realKit();
     const publisherWorkflow = view.read("wiki/WORKFLOW.md");
