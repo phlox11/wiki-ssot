@@ -24,6 +24,7 @@
     "wiki:review-check": "bun scripts/wiki/cli.ts review-check",
     "wiki:review-preflight": "bun scripts/wiki/cli.ts review-preflight",
     "wiki:search": "bun scripts/wiki/cli.ts search",
+    "wiki:tooling:guard": "bun scripts/wiki/kit-growth-guard.ts",
     "wiki:tooling:test": "bun scripts/wiki/test-runner.ts",
     "wiki:tooling:typecheck": "tsc --noEmit -p scripts/wiki/tsconfig.json",
     "wiki:verify": "bun scripts/wiki/cli.ts verify",

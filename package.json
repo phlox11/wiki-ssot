@@ -30,7 +30,9 @@
     "wiki:audit": "bun scripts/wiki/cli.ts audit",
     "wiki:hooks:install": "husky",
     "wiki:tooling:typecheck": "tsc --noEmit -p scripts/wiki/tsconfig.json",
-    "wiki:tooling:test": "bun scripts/wiki/test-runner.ts"
+    "wiki:tooling:test": "bun scripts/wiki/test-runner.ts",
+    "wiki:tooling:guard": "bun scripts/wiki/kit-growth-guard.ts",
+    "wiki:tooling:exit": "bun scripts/wiki/kit-modularity-exit.ts"
   },
   "devDependencies": {
     "@types/bun": "^1.1.14",

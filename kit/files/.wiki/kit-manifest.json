@@ -1,5 +1,5 @@
 {
-  "digest": "c4636368edc3be15f4ca40df0742c19fb53ca4419a1832436808dceaae49b18c",
+  "digest": "dff1e635a8f6abd054c063c4211d58113f0e77442f111ff3526b501bfed48c08",
   "files": {
     ".github/workflows/wiki-audit.yml": {
       "ownership": "kit",
@@ -7,7 +7,7 @@
     },
     ".github/workflows/wiki-ssot.yml": {
       "ownership": "kit",
-      "sha256": "8735217c246e7b4dc9232144af3e8d9fc96d99288561d8d499a1c14f69802df5"
+      "sha256": "18d64a3cc0ce0ff542890777eff3876bd1128c92d92980f9910a7aebd9c7eb64"
     },
     ".gitignore": {
       "ownership": "seed",
@@ -129,13 +129,21 @@
       "ownership": "seed",
       "sha256": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca"
     },
+    "scripts/wiki/kit-growth-guard.test.ts": {
+      "ownership": "kit",
+      "sha256": "ba5d217ff983b4cf0610b4f529802c0605112df2611ce3b8691302ee27cec83e"
+    },
+    "scripts/wiki/kit-growth-guard.ts": {
+      "ownership": "kit",
+      "sha256": "2a0e2832de909d6af0245361edab0029bc7efd62ddfa7b7f9cd3ed4fb747fc0a"
+    },
     "scripts/wiki/kit-packaging.test.ts": {
       "ownership": "kit",
-      "sha256": "f08fe9df18e0a18061f42b2f2654c3b94bb8a9161a519210207e582ecf2192d1"
+      "sha256": "fc1ca1dfc576466ca5e9baa1db814a35919bcbb1dd4b4abb9d663793f7e8bf4a"
     },
     "scripts/wiki/kit-packaging.ts": {
       "ownership": "kit",
-      "sha256": "bb439781a49f18aae3bfdf6a10b26024dfd178059da4965ebf29987349068345"
+      "sha256": "c64fdb5b9ad4ed120587ad3e6b71bdb33b2ce1accd7c5d2b1924354b4b74fad0"
     },
     "scripts/wiki/model.ts": {
       "ownership": "kit",
@@ -195,7 +203,7 @@
     },
     "scripts/wiki/test-runner.test.ts": {
       "ownership": "kit",
-      "sha256": "cba07669776ece54ddd1671d5b2174bcd4511cd3f7425907559de1842288c964"
+      "sha256": "be479c7c1d9f817db09114b89ffbb7660f751464c1275d4b47b6b3064028c760"
     },
     "scripts/wiki/test-runner.ts": {
       "ownership": "kit",
@@ -306,9 +314,9 @@
     }
   },
   "reference": {
-    "migrations/v1/checks.yml": "53d46f240a5f4ee78327cae0d1e221ded01bd7b36b714c16121dd1256b1d92d5",
+    "migrations/v1/checks.yml": "7b80d39485cd5d7b65c088cea39cdf085866371f3c13ab012e760b7d66f0efac",
     "migrations/v1/host-checks.yml": "0aaea6d0903f1e951dfec6a1e3a4adcab38fd4c5d2389ca3d4ac87c0c4915cfa",
-    "package.kit.json": "c90e49d9266943f7dba2283504ecdd35046030b5a937e8303973a9a46a7856e7",
+    "package.kit.json": "46295e56fe6bb9326ff05715360ff9f42c1f98b455fbaa04ff9b18ec276513ea",
     "scripts/wiki/inventories.example.ts": "c77492bf25a8e89d6c5f2de5d1238bb426e41b81cd255d7c153e05d295e91c4e"
   },
   "version": 2

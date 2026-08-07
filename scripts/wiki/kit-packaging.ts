@@ -34,7 +34,11 @@ export const KIT_EXCLUDE_START = "<!-- kit:exclude:start -->";
 export const KIT_EXCLUDE_END = "<!-- kit:exclude:end -->";
 
 /** Scripts that drive this repository's own distribution and mean nothing downstream. */
-const KIT_OMITTED_SCRIPTS = new Set(["wiki:kit"]);
+// Publishing-only commands must not be copied into an adopter's package
+// fragment. The exit evidence runner measures this checkout against KM-00 and
+// intentionally is not shipped; `wiki:kit` is the generator for this checkout
+// itself. The guard is portable and remains in the fragment.
+const KIT_OMITTED_SCRIPTS = new Set(["wiki:kit", "wiki:tooling:exit"]);
 
 export type KitOwnership = "kit" | "seed";
 
@@ -100,6 +104,7 @@ export const KIT_ENTRIES: KitEntry[] = [
   { target: "scripts/wiki/review-bundle.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/review-bundle.ts" } },
   { target: "scripts/wiki/review-attestation.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/review-attestation.ts" } },
   { target: "scripts/wiki/kit-packaging.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/kit-packaging.ts" } },
+  { target: "scripts/wiki/kit-growth-guard.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/kit-growth-guard.ts" } },
   { target: "scripts/wiki/discovery.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/discovery.ts" } },
   { target: "scripts/wiki/context.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/context.ts" } },
   { target: "scripts/wiki/generated-views.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/generated-views.ts" } },
@@ -131,6 +136,7 @@ export const KIT_ENTRIES: KitEntry[] = [
   { target: "scripts/wiki/fresh-context-github.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/fresh-context-github.test.ts" } },
   { target: "scripts/wiki/fresh-context-integration.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/fresh-context-integration.test.ts" } },
   { target: "scripts/wiki/kit-packaging.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/kit-packaging.test.ts" } },
+  { target: "scripts/wiki/kit-growth-guard.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/kit-growth-guard.test.ts" } },
   { target: "scripts/wiki/wiki-pages.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/wiki-pages.test.ts" } },
   { target: "scripts/wiki/wiki-generated-data.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/wiki-generated-data.test.ts" } },
   { target: "scripts/wiki/wiki-coverage.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/wiki-coverage.test.ts" } },

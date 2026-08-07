@@ -1,6 +1,6 @@
 ---
 id: architecture/engine
-summary: A provider-neutral Bun/TypeScript engine drives deterministic wiki, work discovery, and Fresh-context attestation checks; thin CLI, GitHub adapter, and inventory seams connect it to repositories.
+summary: Provider-neutral Bun/TypeScript engine for deterministic Wiki, work discovery, portable growth, and exact-HEAD attestation.
 kind: architecture
 status: current
 authority: observed
@@ -42,6 +42,13 @@ under `scripts/wiki/test-fixtures/`; production modules never import that
 directory. The recursive test runner discovers every shipped `*.test.ts`
 exactly once in deterministic order, while fixture modules are shipped through
 the same Kit manifest without being test entrypoints themselves.
+
+`kit-growth-guard.ts` checks `KIT_ENTRIES` `files` TypeScript paths. Each names
+one production, regression, fixture, or test-infrastructure contract. Caps are
+1,000 LF lines/64 KiB, 250 lines for `cli.ts`, and 1,000 lines/68 KiB for the
+sole reported `review-bundle.ts` exception. Repository totals are ignored. The
+shipped workflow runs the guard; publisher-only `kit-modularity-exit.ts`
+records content-bound KM-00 module, dependency, test, and payload comparisons.
 
 Work records remain next to proposal rationale. `validateWorkItems` validates their repository-wide graph, including the optional `agent | human | either` executor whose omission normalizes to `agent`, and `buildWorkQueue` derives the execution view from validated records. Executor is independent from state. Stored `not-started` becomes `ready` only when every dependency is done and `waiting` otherwise; filtering never removes nodes before that calculation. Recommendation considers only `agent` or `either`, then prefers active over ready, `critical → high → normal → low`, and ID. The default/all projection keeps human work visible, while agent and human executor filters respectively show agent/either and human/either without making human-exclusive work recommendable. The generated `wiki/work-queue.md` and JSON/text CLI views are deterministic projections; proposal frontmatter remains the SSOT. Selected human context carries explicit reporting and handoff guidance without assumed credentials or authority. The generated queue carries inert archived/derived compatibility frontmatter so a trusted merge-base engine that does not yet recognize its generated path can parse the introducing PR without treating the queue as current authority.
 

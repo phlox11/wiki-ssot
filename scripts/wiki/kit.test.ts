@@ -189,10 +189,12 @@ describe("kit sync", () => {
       "scripts/wiki/impact.ts",
       "scripts/wiki/review-bundle.ts",
       "scripts/wiki/review-attestation.ts",
+      "scripts/wiki/kit-growth-guard.ts",
       "scripts/wiki/verification.test.ts",
       "scripts/wiki/impact.test.ts",
       "scripts/wiki/review-bundle.test.ts",
       "scripts/wiki/review-attestation.test.ts",
+      "scripts/wiki/kit-growth-guard.test.ts",
     ]) expect(readFileSync(join(repo, target), "utf8")).toContain("import");
   });
 
