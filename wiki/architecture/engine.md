@@ -106,6 +106,18 @@ of test bodies. Both harnesses, their tests, and TE-06 evidence remain outside
 `KIT_ENTRIES`; adopters receive the portable engine and regression behavior,
 not this publisher repository's performance pilot or owner decision.
 
+`scripts/wiki/kit-modularity-baseline.ts` is the publishing-only KM-00
+compatibility and module-inventory harness. It detaches a disposable local clone
+at the exact pre-motion revision, loads that revision's kit engine and inventory
+adapter, and uses the TypeScript compiler API to bind kit-owned bytes and lines,
+exports, re-exports, type-only declarations, import and caller edges, public CLI
+commands and representative output fixtures, generated paths, regression-suite
+boundaries, `KIT_ENTRIES`, lifecycle semantics, and the manifest-v2 digest. Its
+test locks the checked JSON and Markdown evidence and stale-output behavior. The
+harness makes no model or provider call, moves no production module, and remains
+outside `KIT_ENTRIES`; it is publishing evidence used to judge the later
+semantic-preserving KM split rather than adopter runtime.
+
 ## Kit distribution
 
 The engine also emits its own copy-paste distribution. `KIT_ENTRIES` in `scripts/wiki/core.ts` names every file the kit ships, how it is produced (verbatim copy, `kit:exclude` strip, declared managed-block extraction, literal template, or `package.json` fragment), and its placement; `wiki:kit` writes `kit/**` and `wiki:kit --check` fails on drift, deletes nothing silently, and reports a file under `kit/` the table no longer produces as an orphan. `kit/README.md` is hand-written and stays outside generator ownership.
