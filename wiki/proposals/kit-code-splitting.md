@@ -44,7 +44,7 @@ work_items:
       - wiki/proposals/kit-code-splitting.md
   - id: KM-00-OWNER
     title: Ratify the portable-kit module budget and split contract
-    state: not-started
+    state: done
     executor: human
     priority: normal
     depends_on: [KM-00]
@@ -53,7 +53,10 @@ work_items:
       - The owner explicitly ratifies the module-size and responsibility screen, exception rule, compatibility surface, target dependency graph, and delivery sequence before implementation begins.
       - Any changed numeric bound or accepted oversized exception is recorded with its evidence and rationale rather than being treated as current kit policy by implication.
       - The decision confirms that compatibility, coverage, exact-HEAD review, kit ownership, and adoption or upgrade safety take priority over satisfying a numeric size target.
-    evidence: []
+    evidence:
+      - wiki/proposals/kit-code-splitting.md
+      - docs/evidence/km-00-portable-kit-baseline.json
+      - docs/evidence/km-00-portable-kit-baseline.md
   - id: KM-01
     title: Extract shared model, repository-view, and page-validation primitives
     state: not-started
@@ -283,6 +286,36 @@ activated before that ratification, it must finish first and this baseline must
 be regenerated; otherwise it follows KM-07 so it cannot invalidate the module
 and source-boundary measurements mid-cycle. This KM-00 change moves or renames
 no production module.
+
+## Owner ratification
+
+The owner ratifies the KM-00 module budget and split contract without changing
+the proposed bounds. A kit-owned TypeScript file enters split review when it
+exceeds 1,000 lines or 64 KiB; when it exceeds 30 KiB or 10% of the copied
+portable payload and owns more than one independently testable contract area;
+when one top-level dispatcher or orchestrator exceeds 250 lines; or when
+non-merge history shows repeated unrelated change coupling. Passing the screen
+does not force a split. A stable responsibility seam, one-way dependency
+direction, focused regression ownership, and preserved compatibility remain
+required, and any retained oversized exception must record its evidence and
+rationale. No oversized exception is accepted by this decision in advance.
+
+This decision is bound to the exact KM-00 baseline revision
+`2f8629fdd37bbd4001ffc07e65964fcead1d16d4` and manifest-v2 digest
+`4963245ac4504cb8c6062dea1816a748af88f63deb669411ab6e242a4cd7b52e`.
+It ratifies the frozen 17-command CLI, public value and type exports, generated
+paths, kit placement and ownership, manifest semantics, deterministic test
+discovery, and new, adopt, upgrade, and dry-run behavior as compatibility
+constraints for KM-01 through KM-07. Compatibility, behavioral coverage,
+exact-HEAD independent review, kit ownership, and safe adoption or upgrade take
+priority over satisfying any numeric target.
+
+The owner also ratifies the target dependency direction and the sequential
+delivery order recorded below: KM-01 through KM-07 proceed only after their
+predecessor is merged and revalidated. `TE-03` remains deferred until after
+KM-07; activating it earlier would require it to finish first and KM-00 to be
+regenerated before code motion. The publishing-only `apply.ts` and Primary
+measurement runners remain outside this first portable-kit split cycle.
 
 ## Target module shape
 
