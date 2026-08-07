@@ -21,7 +21,7 @@
         "scripts/wiki/kit-modularity-baseline.test.ts": "ca357a96905b2a456545779650b4f49d8d0815c413eef589ac09ef57c0f6070b",
         "scripts/wiki/kit-modularity-baseline.ts": "a53b8c677ab07477bc13d2c30e8deb43b01755aded44f3cbfe9c41f6c664a266",
         "scripts/wiki/kit-packaging.test.ts": "2180ce6f8e5fcd6c9afae453b7b1ddb4d249d9aae3faf8540dbebacd0992820c",
-        "scripts/wiki/kit-packaging.ts": "fdd7c58f9090b718481f196d587c0649e9cf003cd5ec392e415246ceeaf9b864",
+        "scripts/wiki/kit-packaging.ts": "e4fdb9643d04fe4799a1e9ffb49ef05ec514b14ada2477096d255bc435857a30",
         "scripts/wiki/kit-sync.ts": "05d5d1d5187a4c470c47f52efe4483f5d05c27fc43f234f0ebfb071c8a57f9d9",
         "scripts/wiki/kit.test.ts": "61397c9b9c0c6b29f70fd7f6ac0a1650189c19b7c3dec3147c48a0fec9c9726a",
         "scripts/wiki/model.ts": "c8d8a131feeab09ab4b8d454d8559c4c9e4f5a7c1b4fdb74a191c636dedcca54",
