@@ -452,7 +452,7 @@ path, fixture, or generated kit copy silently points at stale code.
 
 ## KM-04 size-screen disposition
 
-The KM-04 extraction leaves `review-bundle.ts` at 978 lines and 67,473 UTF-8
+The KM-04 extraction leaves `review-bundle.ts` at 976 lines and 67,471 UTF-8
 bytes. It therefore enters the ratified 64 KiB review screen even though it is
 below 1,000 lines. This is a recorded, bounded exception for KM-04 rather than a
 claim that the screen passed: the file owns one fail-closed exact-revision
