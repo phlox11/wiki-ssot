@@ -72,13 +72,6 @@ export type SelectedWorkContext = {
   sources: SelectedWorkContextSourceSummary[];
 };
 
-/**
- * The compact context projection deliberately keeps routing and authority
- * metadata while dropping page bodies. `buildSelectedWorkContext` and
- * `buildTopicContext` remain the exhaustive semantic models used by exact
- * context artifacts and by the explicit `--full` CLI mode; this projection is
- * only a presentation boundary for ordinary discovery.
- */
 export type CompactContextPage = Omit<SelectedWorkContextPage, "body"> & {
   bodyDigest: string;
   focusedCommand: string;
@@ -457,9 +450,6 @@ export function projectTopicContext(
   const candidates = matchMode === "partial"
     ? matches.map((match, index) => topicCandidate(match, index + 1, context.conflicts))
     : [];
-  // Partial-only discovery is deliberately a routing surface: candidates carry
-  // the metadata needed to choose a page or conflict, while the caller must
-  // follow a focused command before any page/source expansion occurs.
   if (matchMode === "partial") {
     return {
       version: context.version,
