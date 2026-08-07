@@ -43,6 +43,12 @@ export const TE04_ENGINE_PATHS = [
   "scripts/wiki/page-validation.ts",
   "scripts/wiki/work-validation.ts",
   CLI_PATH,
+  "scripts/wiki/cli-runtime.ts",
+  "scripts/wiki/cli-render.ts",
+  "scripts/wiki/cli-discovery-handlers.ts",
+  "scripts/wiki/cli-generation-handlers.ts",
+  "scripts/wiki/cli-validation-handlers.ts",
+  "scripts/wiki/cli-review-handlers.ts",
 ] as const;
 /** TE-00 publisher review source breadth observed by the pinned baseline. */
 export const TE00_REVIEWER_SOURCE_BREADTH = 33;

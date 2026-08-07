@@ -25,6 +25,12 @@ describe("TE-04 focused review measurement", () => {
       "scripts/wiki/page-validation.ts",
       "scripts/wiki/work-validation.ts",
       "scripts/wiki/cli.ts",
+      "scripts/wiki/cli-runtime.ts",
+      "scripts/wiki/cli-render.ts",
+      "scripts/wiki/cli-discovery-handlers.ts",
+      "scripts/wiki/cli-generation-handlers.ts",
+      "scripts/wiki/cli-validation-handlers.ts",
+      "scripts/wiki/cli-review-handlers.ts",
     ]));
   });
 
