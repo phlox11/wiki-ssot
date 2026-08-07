@@ -8,6 +8,7 @@ import * as workValidation from "./work-validation";
 import * as discovery from "./discovery";
 import * as context from "./context";
 import * as generatedViews from "./generated-views";
+import * as kitPackaging from "./kit-packaging";
 
 describe("core compatibility facade", () => {
   test("re-exports shared value APIs by identity", () => {
@@ -51,5 +52,17 @@ describe("core compatibility facade", () => {
     expect(core.buildSourceMap).toBe(generatedViews.buildSourceMap);
     expect(core.buildConflictMap).toBe(generatedViews.buildConflictMap);
     expect(core.generatedCoreFiles).toBe(generatedViews.generatedCoreFiles);
+
+    expect(core.KIT_ROOT).toBe(kitPackaging.KIT_ROOT);
+    expect(core.KIT_MANIFEST_TARGET).toBe(kitPackaging.KIT_MANIFEST_TARGET);
+    expect(core.KIT_EXCLUDE_START).toBe(kitPackaging.KIT_EXCLUDE_START);
+    expect(core.KIT_EXCLUDE_END).toBe(kitPackaging.KIT_EXCLUDE_END);
+    expect(core.KIT_ENTRIES).toBe(kitPackaging.KIT_ENTRIES);
+    expect(core.kitPath).toBe(kitPackaging.kitPath);
+    expect(core.isKitManagedPath).toBe(kitPackaging.isKitManagedPath);
+    expect(core.stripKitExclusions).toBe(kitPackaging.stripKitExclusions);
+    expect(core.kitFiles).toBe(kitPackaging.kitFiles);
+    expect(core.compareKit).toBe(kitPackaging.compareKit);
+    expect(core.writeKit).toBe(kitPackaging.writeKit);
   });
 });

@@ -163,9 +163,11 @@ describe("new-repository adoption", () => {
       expect.objectContaining({ code: "bootstrap-coverage-required" }),
     ]));
     for (const target of [
+      "scripts/wiki/kit-packaging.ts",
       "scripts/wiki/discovery.ts",
       "scripts/wiki/context.ts",
       "scripts/wiki/generated-views.ts",
+      "scripts/wiki/kit-packaging.test.ts",
       "scripts/wiki/discovery.test.ts",
       "scripts/wiki/context.test.ts",
       "scripts/wiki/generated-views.test.ts",

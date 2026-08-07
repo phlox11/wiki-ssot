@@ -27,12 +27,13 @@ describe("portable test discovery", () => {
     expect(new Set(discoverWikiTestFiles(root)).size).toBe(expected.length);
   });
 
-  test("discovers KM-02 suites exactly once", () => {
+  test("discovers KM-02 and KM-03 suites exactly once", () => {
     const files = discoverWikiTestFiles();
     for (const file of [
       "scripts/wiki/discovery.test.ts",
       "scripts/wiki/context.test.ts",
       "scripts/wiki/generated-views.test.ts",
+      "scripts/wiki/kit-packaging.test.ts",
     ]) {
       expect(files.filter((candidate) => candidate === file)).toHaveLength(1);
     }

@@ -221,9 +221,11 @@ describe("existing-repository bootstrap evidence", () => {
     expect(initial.conflicts).toEqual([]);
     applySync(kit, repo, initial);
     for (const target of [
+      "scripts/wiki/kit-packaging.ts",
       "scripts/wiki/discovery.ts",
       "scripts/wiki/context.ts",
       "scripts/wiki/generated-views.ts",
+      "scripts/wiki/kit-packaging.test.ts",
       "scripts/wiki/discovery.test.ts",
       "scripts/wiki/context.test.ts",
       "scripts/wiki/generated-views.test.ts",
@@ -378,9 +380,11 @@ describe("existing-repository bootstrap evidence", () => {
     expect(readFileSync(join(repo, "wiki/README.md"), "utf8")).toContain("Upstream kit v2");
     for (const path of adopterOwned) expect(readFileSync(join(repo, path), "utf8")).toBe(beforeUpgrade[path]);
     for (const target of [
+      "scripts/wiki/kit-packaging.ts",
       "scripts/wiki/discovery.ts",
       "scripts/wiki/context.ts",
       "scripts/wiki/generated-views.ts",
+      "scripts/wiki/kit-packaging.test.ts",
       "scripts/wiki/discovery.test.ts",
       "scripts/wiki/context.test.ts",
       "scripts/wiki/generated-views.test.ts",
