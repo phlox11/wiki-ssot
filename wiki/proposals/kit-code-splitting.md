@@ -16,10 +16,18 @@ sources:
   - path: scripts/wiki/context.ts
   - path: scripts/wiki/generated-views.ts
   - path: scripts/wiki/kit-packaging.ts
+  - path: scripts/wiki/verification.ts
+  - path: scripts/wiki/impact.ts
+  - path: scripts/wiki/review-bundle.ts
+  - path: scripts/wiki/review-attestation.ts
   - path: scripts/wiki/discovery.test.ts
   - path: scripts/wiki/context.test.ts
   - path: scripts/wiki/generated-views.test.ts
   - path: scripts/wiki/kit-packaging.test.ts
+  - path: scripts/wiki/verification.test.ts
+  - path: scripts/wiki/impact.test.ts
+  - path: scripts/wiki/review-bundle.test.ts
+  - path: scripts/wiki/review-attestation.test.ts
   - path: scripts/wiki/cli.ts
   - path: scripts/wiki/fresh-context.test.ts
   - path: scripts/wiki/wiki.test.ts
@@ -161,7 +169,7 @@ work_items:
       - wiki/operations/enforcement.md
   - id: KM-04
     title: Extract verification, impact, and exact-HEAD review modules
-    state: not-started
+    state: done
     executor: agent
     priority: normal
     depends_on: [KM-03]
@@ -172,7 +180,28 @@ work_items:
       - Review-bundle tests retain fail-closed coverage for omitted authority, sources, tests, conflicts, and digest bindings, and do not permit authoring-session self-PASS.
       - The candidate is preflighted with the merge-base engine whenever its own bundle-content changes require that compatibility path.
       - Generated source maps, current Wiki authority, high-risk selection, Fresh-context selection, and implementation-source classification remain reconciled with the extracted paths.
-    evidence: []
+    evidence:
+      - scripts/wiki/verification.ts
+      - scripts/wiki/verification.test.ts
+      - scripts/wiki/impact.ts
+      - scripts/wiki/impact.test.ts
+      - scripts/wiki/review-bundle.ts
+      - scripts/wiki/review-bundle.test.ts
+      - scripts/wiki/review-attestation.ts
+      - scripts/wiki/review-attestation.test.ts
+      - scripts/wiki/core.ts
+      - scripts/wiki/core-facade.test.ts
+      - scripts/wiki/fresh-context.test.ts
+      - scripts/wiki/wiki.test.ts
+      - scripts/wiki/test-runner.test.ts
+      - scripts/wiki/te04-focused-review.ts
+      - scripts/wiki/te04-focused-review.test.ts
+      - scripts/wiki/new-repository-adoption.test.ts
+      - scripts/wiki/existing-repo-bootstrap.test.ts
+      - kit/files/.wiki/kit-manifest.json
+      - wiki/architecture/engine.md
+      - wiki/product/invariants.md
+      - wiki/operations/enforcement.md
   - id: KM-05
     title: Replace the monolithic CLI dispatcher with bounded command handlers
     state: not-started
@@ -420,6 +449,24 @@ approved current contract says otherwise. Every PR updates current Wiki source
 boundaries, verification state, generated maps, kit output, tests, and adoption
 evidence together. A moved function is not complete while an old compatibility
 path, fixture, or generated kit copy silently points at stale code.
+
+## KM-04 size-screen disposition
+
+The KM-04 extraction leaves `review-bundle.ts` at 978 lines and 67,473 UTF-8
+bytes. It therefore enters the ratified 64 KiB review screen even though it is
+below 1,000 lines. This is a recorded, bounded exception for KM-04 rather than a
+claim that the screen passed: the file owns one fail-closed exact-revision
+bundle contract, and its construction and binding validation share the same
+canonical manifest types, digest inputs, and lifecycle evidence. Splitting
+those mechanics during this compatibility move would add a new cross-module
+contract while the base engine must still emit byte-identical bundles.
+
+`KM-07` is the named follow-up that must remeasure this boundary at the final
+combined revision and either split it along a proven acyclic seam, retain the
+exception with final dependency and test-ownership evidence, or revise the
+bound through an explicit owner decision. Compatibility, omitted-input failure,
+and exact-HEAD digest behavior remain higher priority than reducing this file by
+an arbitrary number of bytes.
 
 ## Explicitly deferred large files
 

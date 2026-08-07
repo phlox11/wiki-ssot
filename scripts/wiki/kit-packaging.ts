@@ -95,6 +95,10 @@ Record only current-contract changes here: product-contract changes, significant
  */
 export const KIT_ENTRIES: KitEntry[] = [
   { target: "scripts/wiki/core.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/core.ts" } },
+  { target: "scripts/wiki/verification.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/verification.ts" } },
+  { target: "scripts/wiki/impact.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/impact.ts" } },
+  { target: "scripts/wiki/review-bundle.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/review-bundle.ts" } },
+  { target: "scripts/wiki/review-attestation.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/review-attestation.ts" } },
   { target: "scripts/wiki/kit-packaging.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/kit-packaging.ts" } },
   { target: "scripts/wiki/discovery.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/discovery.ts" } },
   { target: "scripts/wiki/context.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/context.ts" } },
@@ -123,6 +127,10 @@ export const KIT_ENTRIES: KitEntry[] = [
   { target: "scripts/wiki/page-validation.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/page-validation.test.ts" } },
   { target: "scripts/wiki/work-validation.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/work-validation.test.ts" } },
   { target: "scripts/wiki/core-facade.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/core-facade.test.ts" } },
+  { target: "scripts/wiki/verification.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/verification.test.ts" } },
+  { target: "scripts/wiki/impact.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/impact.test.ts" } },
+  { target: "scripts/wiki/review-bundle.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/review-bundle.test.ts" } },
+  { target: "scripts/wiki/review-attestation.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/review-attestation.test.ts" } },
   { target: "scripts/wiki/test-runner.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/test-runner.test.ts" } },
   { target: "scripts/wiki/fresh-context.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/fresh-context.test.ts" } },
   { target: "scripts/wiki/test-runner.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/test-runner.ts" } },

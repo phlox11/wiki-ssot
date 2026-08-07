@@ -16,6 +16,10 @@ sources:
   - path: scripts/wiki/context.ts
   - path: scripts/wiki/generated-views.ts
   - path: scripts/wiki/kit-packaging.ts
+  - path: scripts/wiki/verification.ts
+  - path: scripts/wiki/impact.ts
+  - path: scripts/wiki/review-bundle.ts
+  - path: scripts/wiki/review-attestation.ts
   - path: scripts/wiki/cli.ts
   - path: scripts/wiki/apply.ts
   - path: AGENTS.md

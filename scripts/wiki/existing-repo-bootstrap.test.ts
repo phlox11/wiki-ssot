@@ -225,10 +225,18 @@ describe("existing-repository bootstrap evidence", () => {
       "scripts/wiki/discovery.ts",
       "scripts/wiki/context.ts",
       "scripts/wiki/generated-views.ts",
+      "scripts/wiki/verification.ts",
+      "scripts/wiki/impact.ts",
+      "scripts/wiki/review-bundle.ts",
+      "scripts/wiki/review-attestation.ts",
       "scripts/wiki/kit-packaging.test.ts",
       "scripts/wiki/discovery.test.ts",
       "scripts/wiki/context.test.ts",
       "scripts/wiki/generated-views.test.ts",
+      "scripts/wiki/verification.test.ts",
+      "scripts/wiki/impact.test.ts",
+      "scripts/wiki/review-bundle.test.ts",
+      "scripts/wiki/review-attestation.test.ts",
     ]) {
       expect(existsSync(join(repo, target))).toBe(true);
     }
@@ -384,10 +392,18 @@ describe("existing-repository bootstrap evidence", () => {
       "scripts/wiki/discovery.ts",
       "scripts/wiki/context.ts",
       "scripts/wiki/generated-views.ts",
+      "scripts/wiki/verification.ts",
+      "scripts/wiki/impact.ts",
+      "scripts/wiki/review-bundle.ts",
+      "scripts/wiki/review-attestation.ts",
       "scripts/wiki/kit-packaging.test.ts",
       "scripts/wiki/discovery.test.ts",
       "scripts/wiki/context.test.ts",
       "scripts/wiki/generated-views.test.ts",
+      "scripts/wiki/verification.test.ts",
+      "scripts/wiki/impact.test.ts",
+      "scripts/wiki/review-bundle.test.ts",
+      "scripts/wiki/review-attestation.test.ts",
     ]) {
       expect(existsSync(join(repo, target))).toBe(true);
     }

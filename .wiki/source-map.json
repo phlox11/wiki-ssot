@@ -64,6 +64,10 @@
     "scripts/wiki/github-attestation.ts": [
       "operations/enforcement"
     ],
+    "scripts/wiki/impact.ts": [
+      "operations/enforcement",
+      "product/invariants"
+    ],
     "scripts/wiki/kit-packaging.ts": [
       "operations/enforcement",
       "product/invariants"
@@ -80,12 +84,24 @@
       "operations/enforcement",
       "product/invariants"
     ],
+    "scripts/wiki/review-attestation.ts": [
+      "operations/enforcement",
+      "product/invariants"
+    ],
+    "scripts/wiki/review-bundle.ts": [
+      "operations/enforcement",
+      "product/invariants"
+    ],
     "scripts/wiki/serialization.ts": [
       "operations/enforcement",
       "product/invariants"
     ],
     "scripts/wiki/tsconfig.json": [
       "architecture/engine"
+    ],
+    "scripts/wiki/verification.ts": [
+      "operations/enforcement",
+      "product/invariants"
     ],
     "scripts/wiki/work-validation.ts": [
       "operations/enforcement",
