@@ -36,9 +36,21 @@ sources:
   - path: scripts/wiki/review-bundle.test.ts
   - path: scripts/wiki/review-attestation.test.ts
   - path: scripts/wiki/cli.ts
-  - path: scripts/wiki/fresh-context.test.ts
-  - path: scripts/wiki/wiki.test.ts
-  - path: scripts/wiki/work.test.ts
+  - path: scripts/wiki/fresh-context-manifest.test.ts
+  - path: scripts/wiki/fresh-context-report.test.ts
+  - path: scripts/wiki/fresh-context-preflight.test.ts
+  - path: scripts/wiki/fresh-context-github.test.ts
+  - path: scripts/wiki/fresh-context-integration.test.ts
+  - path: scripts/wiki/wiki-pages.test.ts
+  - path: scripts/wiki/wiki-generated-data.test.ts
+  - path: scripts/wiki/wiki-coverage.test.ts
+  - path: scripts/wiki/wiki-impact-conflicts.test.ts
+  - path: scripts/wiki/wiki-repository-hooks.test.ts
+  - path: scripts/wiki/work-selected-context.test.ts
+  - path: scripts/wiki/work-topic-context.test.ts
+  - path: scripts/wiki/test-fixtures/fresh-context.ts
+  - path: scripts/wiki/test-fixtures/wiki.ts
+  - path: scripts/wiki/test-fixtures/work.ts
   - path: scripts/wiki/kit.test.ts
   - path: scripts/wiki/kit-sync.ts
   - path: scripts/wiki/apply.ts
@@ -198,8 +210,16 @@ work_items:
       - scripts/wiki/review-attestation.test.ts
       - scripts/wiki/core.ts
       - scripts/wiki/core-facade.test.ts
-      - scripts/wiki/fresh-context.test.ts
-      - scripts/wiki/wiki.test.ts
+      - scripts/wiki/fresh-context-manifest.test.ts
+      - scripts/wiki/fresh-context-report.test.ts
+      - scripts/wiki/fresh-context-preflight.test.ts
+      - scripts/wiki/fresh-context-github.test.ts
+      - scripts/wiki/fresh-context-integration.test.ts
+      - scripts/wiki/wiki-pages.test.ts
+      - scripts/wiki/wiki-generated-data.test.ts
+      - scripts/wiki/wiki-coverage.test.ts
+      - scripts/wiki/wiki-impact-conflicts.test.ts
+      - scripts/wiki/wiki-repository-hooks.test.ts
       - scripts/wiki/test-runner.test.ts
       - scripts/wiki/te04-focused-review.ts
       - scripts/wiki/te04-focused-review.test.ts
@@ -244,7 +264,7 @@ work_items:
       - wiki/operations/enforcement.md
   - id: KM-06
     title: Split portable regression suites and consolidate shared fixtures
-    state: not-started
+    state: done
     executor: agent
     priority: normal
     depends_on: [KM-05]
@@ -255,7 +275,32 @@ work_items:
       - Shared repository builders, Git helpers, page factories, report factories, and process runners live in test-only fixture modules with explicit ownership and no production import of test utilities.
       - Test names and assertions remain traceable from the pre-split suite, and the test runner proves every new file is discovered exactly once in deterministic order.
       - The refactor does not reduce negative, malformed-input, symlink, stale-evidence, coverage, conflict, adoption, or upgrade cases merely to satisfy a file-size target.
-    evidence: []
+    evidence:
+      - scripts/wiki/fresh-context-manifest.test.ts
+      - scripts/wiki/fresh-context-report.test.ts
+      - scripts/wiki/fresh-context-preflight.test.ts
+      - scripts/wiki/fresh-context-github.test.ts
+      - scripts/wiki/fresh-context-integration.test.ts
+      - scripts/wiki/wiki-pages.test.ts
+      - scripts/wiki/wiki-generated-data.test.ts
+      - scripts/wiki/wiki-coverage.test.ts
+      - scripts/wiki/wiki-impact-conflicts.test.ts
+      - scripts/wiki/wiki-repository-hooks.test.ts
+      - scripts/wiki/work-selected-context.test.ts
+      - scripts/wiki/work-topic-context.test.ts
+      - scripts/wiki/test-fixtures/fresh-context.ts
+      - scripts/wiki/test-fixtures/wiki.ts
+      - scripts/wiki/test-fixtures/work.ts
+      - scripts/wiki/test-runner.ts
+      - scripts/wiki/test-runner.test.ts
+      - scripts/wiki/kit-packaging.ts
+      - scripts/wiki/kit-packaging.test.ts
+      - scripts/wiki/kit.test.ts
+      - scripts/wiki/apply.test.ts
+      - scripts/wiki/new-repository-adoption.test.ts
+      - scripts/wiki/existing-repo-bootstrap.test.ts
+      - kit/files/.wiki/kit-manifest.json
+      - wiki/architecture/engine.md
   - id: KM-07
     title: Validate the modular kit and install a bounded growth guard
     state: not-started

@@ -80,7 +80,7 @@ Map every file matched by `coverage.json` `include` to some page's `sources`, or
 
 ## 4. Optional: code-derived inventories
 
-For always-current generated pages (route tables, schema lists), implement `scripts/wiki/inventories.ts` for your stack. Copy patterns from `kit/scripts/wiki/inventories.example.ts` in this repository — it is reference-only, is never delivered into yours, and so is nothing you have to clean up. Keep `scripts/wiki/wiki.test.ts`, `scripts/wiki/work.test.ts`, and `scripts/wiki/fresh-context.test.ts`: they are the engine's own regression suites (run by the dedicated Wiki tooling test) and depend on no host project.
+For always-current generated pages (route tables, schema lists), implement `scripts/wiki/inventories.ts` for your stack. Copy patterns from `kit/scripts/wiki/inventories.example.ts` in this repository — it is reference-only, is never delivered into yours, and so is nothing you have to clean up. Keep every manifest-owned `scripts/wiki/*.test.ts` regression suite and `scripts/wiki/test-fixtures/*.ts` helper delivered by the kit together: the dedicated Wiki tooling test discovers the suites deterministically, while the helpers are test-only dependencies and none depends on the host project.
 
 ## 5. Verify and go green
 

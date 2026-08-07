@@ -14,7 +14,8 @@ sources:
   - path: .wiki/coverage.json
   - path: scripts/wiki/core.ts
   - path: scripts/wiki/cli.ts
-  - path: scripts/wiki/work.test.ts
+  - path: scripts/wiki/work-selected-context.test.ts
+  - path: scripts/wiki/work-topic-context.test.ts
   - path: scripts/wiki/primary-scenarios.ts
   - path: scripts/wiki/primary-scenarios.test.ts
   - path: scripts/wiki/primary-baseline.ts
@@ -102,7 +103,7 @@ work_items:
       - The agent entrypoint routes generic remaining-work requests to the no-query command.
       - Tests start from prompts containing no proposal ID, work ID, or task-specific search term.
     evidence:
-      - scripts/wiki/work.test.ts
+      - scripts/wiki/work-selected-context.test.ts
       - wiki/work-queue.md
       - AGENTS.md
   - id: PV-04
@@ -147,7 +148,7 @@ work_items:
     evidence:
       - scripts/wiki/core.ts
       - scripts/wiki/cli.ts
-      - scripts/wiki/work.test.ts
+      - scripts/wiki/work-selected-context.test.ts
       - scripts/wiki/primary-baseline.ts
       - scripts/wiki/primary-baseline.test.ts
       - docs/commands.md
@@ -163,7 +164,7 @@ work_items:
     evidence:
       - scripts/wiki/primary-baseline.test.ts
       - scripts/wiki/primary-baseline.ts
-      - scripts/wiki/wiki.test.ts
+      - scripts/wiki/wiki-pages.test.ts
       - scripts/wiki/core.ts
       - scripts/wiki/cli.ts
       - wiki/architecture/engine.md
@@ -208,7 +209,7 @@ work_items:
       - The contract remains provider-neutral.
     evidence:
       - scripts/wiki/core.ts
-      - scripts/wiki/fresh-context.test.ts
+      - scripts/wiki/fresh-context-integration.test.ts
       - scripts/wiki/kit.test.ts
       - wiki/operations/enforcement.md
   - id: PV-11
@@ -306,7 +307,7 @@ work_items:
     evidence:
       - scripts/wiki/core.ts
       - scripts/wiki/cli.ts
-      - scripts/wiki/work.test.ts
+      - scripts/wiki/work-topic-context.test.ts
       - wiki/architecture/engine.md
       - docs/commands.md
   - id: PV-18
@@ -602,7 +603,8 @@ The authoritative read order remains invariant → conflict → current page →
 expanded authority source. Proposed, deprecated, archived, and resolved-conflict
 pages retain complete source information but appear only after that order under
 explicit status-specific non-current labels. Focused synthetic CLI evidence in
-`scripts/wiki/work.test.ts` binds mixed current/proposed results, conflicted and
+`scripts/wiki/work-topic-context.test.ts` binds mixed current/proposed results,
+conflicted and
 other non-current statuses, exact and glob sources, text/JSON parity, and
 byte-stable ordering.
 

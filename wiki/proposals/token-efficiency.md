@@ -11,9 +11,14 @@ sources:
   - path: .wiki/coverage.json
   - path: scripts/wiki/core.ts
   - path: scripts/wiki/cli.ts
-  - path: scripts/wiki/work.test.ts
+  - path: scripts/wiki/work-selected-context.test.ts
+  - path: scripts/wiki/work-topic-context.test.ts
   - path: scripts/wiki/kit.test.ts
-  - path: scripts/wiki/fresh-context.test.ts
+  - path: scripts/wiki/fresh-context-manifest.test.ts
+  - path: scripts/wiki/fresh-context-report.test.ts
+  - path: scripts/wiki/fresh-context-preflight.test.ts
+  - path: scripts/wiki/fresh-context-github.test.ts
+  - path: scripts/wiki/fresh-context-integration.test.ts
   - path: scripts/wiki/primary-scenarios.ts
   - path: scripts/wiki/primary-current.ts
   - path: scripts/wiki/token-efficiency-baseline.ts
@@ -99,7 +104,8 @@ work_items:
     evidence:
       - scripts/wiki/core.ts
       - scripts/wiki/cli.ts
-      - scripts/wiki/work.test.ts
+      - scripts/wiki/work-selected-context.test.ts
+      - scripts/wiki/work-topic-context.test.ts
       - docs/commands.md
       - docs/evidence/te-01-02-context-projection.json
       - docs/evidence/te-01-02-context-projection.md
@@ -124,7 +130,8 @@ work_items:
     evidence:
       - scripts/wiki/core.ts
       - scripts/wiki/cli.ts
-      - scripts/wiki/work.test.ts
+      - scripts/wiki/work-selected-context.test.ts
+      - scripts/wiki/work-topic-context.test.ts
       - docs/commands.md
       - docs/evidence/te-01-02-context-projection.json
       - docs/evidence/te-01-02-context-projection.md
@@ -165,7 +172,7 @@ work_items:
       - The reproduced publisher review candidate reduces non-diff bundle bytes, reviewer source breadth, model-call count, and reviewer active time against TE-00 while retaining exact PASS and portable review-fixture correctness.
     evidence:
       - scripts/wiki/core.ts
-      - scripts/wiki/fresh-context.test.ts
+      - scripts/wiki/fresh-context-manifest.test.ts
       - scripts/wiki/te04-focused-review.ts
       - scripts/wiki/te04-focused-review.test.ts
       - docs/evidence/te-04-focused-review.json
@@ -188,7 +195,7 @@ work_items:
     evidence:
       - scripts/wiki/core.ts
       - scripts/wiki/cli.ts
-      - scripts/wiki/work.test.ts
+      - scripts/wiki/work-selected-context.test.ts
       - scripts/wiki/kit.test.ts
       - AGENTS.md
       - docs/commands.md

@@ -152,7 +152,7 @@ describe("emitted kit", () => {
 
   test("ships the work command and its dedicated regression suite", () => {
     const { files } = realKit();
-    expect(files["kit/files/scripts/wiki/work.test.ts"]).toContain("generic fresh-session prompts");
+    expect(files["kit/files/scripts/wiki/work-topic-context.test.ts"]).toContain("generic fresh-session prompts");
     const fragment = JSON.parse(files["kit/package.kit.json"]);
     expect(fragment.scripts["wiki:work"]).toBe("bun scripts/wiki/cli.ts work");
   });
@@ -209,6 +209,34 @@ describe("emitted kit", () => {
       expect(KIT_ENTRIES.filter((entry) => entry.target === target)).toHaveLength(1);
       expect(files[`kit/files/${target}`]).toBeString();
     }
+  });
+
+  test("ships each KM-06 contract suite and shared fixture exactly once", () => {
+    const { files } = realKit();
+    const targets = [
+      "scripts/wiki/test-fixtures/fresh-context.ts",
+      "scripts/wiki/test-fixtures/wiki.ts",
+      "scripts/wiki/test-fixtures/work.ts",
+      "scripts/wiki/fresh-context-manifest.test.ts",
+      "scripts/wiki/fresh-context-preflight.test.ts",
+      "scripts/wiki/fresh-context-report.test.ts",
+      "scripts/wiki/fresh-context-github.test.ts",
+      "scripts/wiki/fresh-context-integration.test.ts",
+      "scripts/wiki/wiki-pages.test.ts",
+      "scripts/wiki/wiki-generated-data.test.ts",
+      "scripts/wiki/wiki-coverage.test.ts",
+      "scripts/wiki/wiki-impact-conflicts.test.ts",
+      "scripts/wiki/wiki-repository-hooks.test.ts",
+      "scripts/wiki/work-selected-context.test.ts",
+      "scripts/wiki/work-topic-context.test.ts",
+    ];
+    for (const target of targets) {
+      expect(KIT_ENTRIES.filter((entry) => entry.target === target)).toHaveLength(1);
+      expect(files[`kit/files/${target}`]).toBeString();
+    }
+    expect(KIT_ENTRIES.some((entry) => entry.target === "scripts/wiki/wiki.test.ts")).toBe(false);
+    expect(KIT_ENTRIES.some((entry) => entry.target === "scripts/wiki/work.test.ts")).toBe(false);
+    expect(KIT_ENTRIES.some((entry) => entry.target === "scripts/wiki/fresh-context.test.ts")).toBe(false);
   });
 
   test("keeps publisher-only kit commands out of the downstream workflow", () => {

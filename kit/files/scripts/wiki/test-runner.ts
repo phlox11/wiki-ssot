@@ -17,7 +17,11 @@ export function discoverWikiTestFiles(root = resolve(dirname(fileURLToPath(impor
   const priority = new Map([
     ["scripts/wiki/primary-current.test.ts", 0],
     ["scripts/wiki/primary-baseline.test.ts", 1],
-    ["scripts/wiki/fresh-context.test.ts", 2],
+    ["scripts/wiki/fresh-context-manifest.test.ts", 2],
+    ["scripts/wiki/fresh-context-preflight.test.ts", 3],
+    ["scripts/wiki/fresh-context-report.test.ts", 4],
+    ["scripts/wiki/fresh-context-github.test.ts", 5],
+    ["scripts/wiki/fresh-context-integration.test.ts", 6],
   ]);
   return [...files].sort((left, right) => (priority.get(left) ?? 3) - (priority.get(right) ?? 3) || left.localeCompare(right));
 }

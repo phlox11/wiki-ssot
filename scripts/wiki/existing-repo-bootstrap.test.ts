@@ -245,6 +245,21 @@ describe("existing-repository bootstrap evidence", () => {
       "scripts/wiki/impact.test.ts",
       "scripts/wiki/review-bundle.test.ts",
       "scripts/wiki/review-attestation.test.ts",
+      "scripts/wiki/fresh-context-manifest.test.ts",
+      "scripts/wiki/fresh-context-preflight.test.ts",
+      "scripts/wiki/fresh-context-report.test.ts",
+      "scripts/wiki/fresh-context-github.test.ts",
+      "scripts/wiki/fresh-context-integration.test.ts",
+      "scripts/wiki/wiki-pages.test.ts",
+      "scripts/wiki/wiki-generated-data.test.ts",
+      "scripts/wiki/wiki-coverage.test.ts",
+      "scripts/wiki/wiki-impact-conflicts.test.ts",
+      "scripts/wiki/wiki-repository-hooks.test.ts",
+      "scripts/wiki/work-selected-context.test.ts",
+      "scripts/wiki/work-topic-context.test.ts",
+      "scripts/wiki/test-fixtures/fresh-context.ts",
+      "scripts/wiki/test-fixtures/wiki.ts",
+      "scripts/wiki/test-fixtures/work.ts",
     ]) {
       expect(existsSync(join(repo, target))).toBe(true);
     }
@@ -420,6 +435,21 @@ describe("existing-repository bootstrap evidence", () => {
       "scripts/wiki/impact.test.ts",
       "scripts/wiki/review-bundle.test.ts",
       "scripts/wiki/review-attestation.test.ts",
+      "scripts/wiki/fresh-context-manifest.test.ts",
+      "scripts/wiki/fresh-context-preflight.test.ts",
+      "scripts/wiki/fresh-context-report.test.ts",
+      "scripts/wiki/fresh-context-github.test.ts",
+      "scripts/wiki/fresh-context-integration.test.ts",
+      "scripts/wiki/wiki-pages.test.ts",
+      "scripts/wiki/wiki-generated-data.test.ts",
+      "scripts/wiki/wiki-coverage.test.ts",
+      "scripts/wiki/wiki-impact-conflicts.test.ts",
+      "scripts/wiki/wiki-repository-hooks.test.ts",
+      "scripts/wiki/work-selected-context.test.ts",
+      "scripts/wiki/work-topic-context.test.ts",
+      "scripts/wiki/test-fixtures/fresh-context.ts",
+      "scripts/wiki/test-fixtures/wiki.ts",
+      "scripts/wiki/test-fixtures/work.ts",
     ]) {
       expect(existsSync(join(repo, target))).toBe(true);
     }
