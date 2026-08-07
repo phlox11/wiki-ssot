@@ -184,6 +184,16 @@ describe("kit sync", () => {
     applySync(kit, repo, plan);
     expect(readFileSync(join(repo, SYNC_TARGET), "utf8")).toContain("single source of truth");
     expect(readFileSync(join(repo, "scripts/wiki/work.test.ts"), "utf8")).toContain("generic fresh-session prompts");
+    for (const target of [
+      "scripts/wiki/verification.ts",
+      "scripts/wiki/impact.ts",
+      "scripts/wiki/review-bundle.ts",
+      "scripts/wiki/review-attestation.ts",
+      "scripts/wiki/verification.test.ts",
+      "scripts/wiki/impact.test.ts",
+      "scripts/wiki/review-bundle.test.ts",
+      "scripts/wiki/review-attestation.test.ts",
+    ]) expect(readFileSync(join(repo, target), "utf8")).toContain("import");
   });
 
   test("a second run reports nothing to do", () => {

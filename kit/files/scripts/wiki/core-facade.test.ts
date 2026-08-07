@@ -9,6 +9,10 @@ import * as discovery from "./discovery";
 import * as context from "./context";
 import * as generatedViews from "./generated-views";
 import * as kitPackaging from "./kit-packaging";
+import * as verification from "./verification";
+import * as impact from "./impact";
+import * as reviewBundle from "./review-bundle";
+import * as reviewAttestation from "./review-attestation";
 
 describe("core compatibility facade", () => {
   test("re-exports shared value APIs by identity", () => {
@@ -64,5 +68,31 @@ describe("core compatibility facade", () => {
     expect(core.kitFiles).toBe(kitPackaging.kitFiles);
     expect(core.compareKit).toBe(kitPackaging.compareKit);
     expect(core.writeKit).toBe(kitPackaging.writeKit);
+  });
+
+  test("re-exports verification, impact, bundle, and attestation APIs by identity", () => {
+    for (const name of [
+      "mappedConflicts", "sourceHashes", "readState", "verifyState", "validateState",
+      "parseFreshContextPolicy", "readConfig", "validateIntegrationSeams", "isHighRisk",
+      "validateCoverage", "mappedPages", "UsageError",
+    ] as const) {
+      expect(core[name]).toBe(verification[name]);
+    }
+    for (const name of [
+      "changedFiles", "resolveDiffBase", "parsePrMetadata", "validatePrMetadata", "impactReport",
+      "isImplementationSourceChange", "evaluateFreshContextRequirement",
+    ] as const) {
+      expect(core[name]).toBe(impact[name]);
+    }
+    for (const name of [
+      "buildFocusedReviewManifest", "validateFocusedReviewManifest", "buildReviewManifest",
+      "makeReviewBundle", "recursiveFiles",
+    ] as const) {
+      expect(core[name]).toBe(reviewBundle[name]);
+    }
+    expect(core.validateReviewBundleBindings).toBe(reviewBundle.validateFocusedReviewManifest);
+    for (const name of ["validateFreshContextFindings", "validateFreshContextAttestation", "parseFreshContextReport", "reviewCheck"] as const) {
+      expect(core[name]).toBe(reviewAttestation[name]);
+    }
   });
 });

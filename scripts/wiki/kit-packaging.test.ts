@@ -175,6 +175,24 @@ describe("emitted kit", () => {
     }
   });
 
+  test("ships each KM-04 verification/review module and focused suite exactly once", () => {
+    const { files } = realKit();
+    const targets = [
+      "scripts/wiki/verification.ts",
+      "scripts/wiki/impact.ts",
+      "scripts/wiki/review-bundle.ts",
+      "scripts/wiki/review-attestation.ts",
+      "scripts/wiki/verification.test.ts",
+      "scripts/wiki/impact.test.ts",
+      "scripts/wiki/review-bundle.test.ts",
+      "scripts/wiki/review-attestation.test.ts",
+    ];
+    for (const target of targets) {
+      expect(KIT_ENTRIES.filter((entry) => entry.target === target)).toHaveLength(1);
+      expect(files[`kit/files/${target}`]).toBeString();
+    }
+  });
+
   test("keeps publisher-only kit commands out of the downstream workflow", () => {
     const { view, files } = realKit();
     const publisherWorkflow = view.read("wiki/WORKFLOW.md");

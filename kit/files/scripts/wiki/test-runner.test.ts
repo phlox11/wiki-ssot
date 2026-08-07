@@ -38,4 +38,16 @@ describe("portable test discovery", () => {
       expect(files.filter((candidate) => candidate === file)).toHaveLength(1);
     }
   });
+
+  test("discovers KM-04 domain suites exactly once", () => {
+    const files = discoverWikiTestFiles();
+    for (const file of [
+      "scripts/wiki/verification.test.ts",
+      "scripts/wiki/impact.test.ts",
+      "scripts/wiki/review-bundle.test.ts",
+      "scripts/wiki/review-attestation.test.ts",
+    ]) {
+      expect(files.filter((candidate) => candidate === file)).toHaveLength(1);
+    }
+  });
 });

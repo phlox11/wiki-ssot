@@ -5,13 +5,13 @@
 | ID | Kind | Authority | Owner | Sources |
 |---|---|---|---|---:|
 | [architecture/engine](./architecture/engine.md) | architecture | observed | @phlox11 | 2 |
-| [operations/enforcement](./operations/enforcement.md) | operation | normative | @phlox11 | 23 |
-| [product/invariants](./product/invariants.md) | invariant | normative | @phlox11 | 13 |
+| [operations/enforcement](./operations/enforcement.md) | operation | normative | @phlox11 | 27 |
+| [product/invariants](./product/invariants.md) | invariant | normative | @phlox11 | 17 |
 | [product/scope](./product/scope.md) | product | normative | @phlox11 | 2 |
 
-## Outstanding work (16)
+## Outstanding work (15)
 
-Recommended next: `KM-04`. Run `bun run wiki:context -- --work KM-04`.
+Recommended next: `KM-05`. Run `bun run wiki:context -- --work KM-05`.
 
 See the [repository work queue](./work-queue.md) or run `bun run wiki:work`.
 
