@@ -1,519 +1,101 @@
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
-import { dirname, extname, join, normalize, relative, resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
-import ts from "typescript";
+import {
+  createRepoView,
+  expandSource,
+  git,
+  normalizeRepoPath,
+  type RepoView,
+} from "./repository-view";
+import {
+  isConflictGuardFinding,
+  type ConflictOrigin,
+  type ConflictResolution,
+  type ConflictResolutionState,
+  type ConflictSeverity,
+  type ConflictType,
+  type Finding,
+  type WikiAuthority,
+  type WikiFrontmatter,
+  type WikiPage,
+  type WikiSource,
+  type WikiStatus,
+  type WorkExecutor,
+  type WorkItem,
+  type WorkPriority,
+  type WorkState,
+} from "./model";
+import {
+  ownedWorkItems,
+  validateWorkItems,
+} from "./work-validation";
+import {
+  isContentPage,
+  loadWikiPages,
+  parseWikiPage,
+  validateMarkdownLinks as validateMarkdownLinksFoundation,
+  validatePages,
+  WIKI_SYSTEM_FILES,
+  type MarkdownLinkPolicy,
+} from "./page-validation";
+import { hashContent, jsonStable } from "./serialization";
+
+export {
+  createRepoView,
+  expandSource,
+  normalizeRepoPath,
+} from "./repository-view";
+export type { RepoView } from "./repository-view";
+export {
+  isConflictGuardFinding,
+} from "./model";
+export type {
+  ConflictOrigin,
+  ConflictResolution,
+  ConflictResolutionState,
+  ConflictSeverity,
+  ConflictType,
+  Finding,
+  WikiAuthority,
+  WikiFrontmatter,
+  WikiPage,
+  WikiSource,
+  WikiStatus,
+  WorkExecutor,
+  WorkItem,
+  WorkPriority,
+  WorkState,
+} from "./model";
+export {
+  isContentPage,
+  loadWikiPages,
+  parseWikiPage,
+  validatePages,
+  WIKI_SYSTEM_FILES,
+} from "./page-validation";
+export { validateWorkItems } from "./work-validation";
+export { hashContent, jsonStable } from "./serialization";
 
 export const GENERATED_HEADER = "<!-- GENERATED FILE. DO NOT EDIT. Run the matching wiki command. -->";
 
-export type WikiStatus = "current" | "proposed" | "deprecated" | "conflicted" | "archived";
-export type WikiAuthority = "normative" | "observed" | "derived";
-export type WikiSource = { path: string; symbols?: string[] } | { glob: string };
-export type ConflictType = "decision" | "implementation" | "documentation";
-export type ConflictSeverity = "high" | "medium" | "low";
-export type ConflictOrigin = "baseline" | "introduced_by_change";
-export type ConflictResolutionState = "open" | "decision_pending" | "implementing" | "verified";
-export type ConflictResolution = {
-  state: ConflictResolutionState;
-  decision?: string | null;
-  acceptance: string[];
-  evidence?: string[];
-};
-export type WorkState = "not-started" | "active" | "blocked" | "done" | "deferred";
-export type WorkPriority = "critical" | "high" | "normal" | "low";
-export type WorkExecutor = "agent" | "human" | "either";
-export type WorkItem = {
-  id: string;
-  title: string;
-  state: WorkState;
-  priority: WorkPriority;
-  /** Optional in proposal frontmatter; queue projections always normalize it. */
-  executor?: WorkExecutor;
-  depends_on: string[];
-  context_pages: string[];
-  acceptance: string[];
-  evidence: string[];
-  blocker?: string;
-  deferred_reason?: string;
-};
-
-export type WikiFrontmatter = {
-  id: string;
-  summary: string;
-  kind: string;
-  status: WikiStatus;
-  authority: WikiAuthority;
-  owners: string[];
-  sources: WikiSource[];
-  affects?: string[];
-  related?: string[];
-  tags?: string[];
-  conflict_id?: string;
-  conflict_type?: ConflictType;
-  severity?: ConflictSeverity;
-  origin?: ConflictOrigin;
-  opened_at?: string;
-  affected_pages?: string[];
-  affected_invariants?: string[];
-  resolution?: ConflictResolution;
-  work_items?: WorkItem[];
-};
-
-export type WikiPage = {
-  path: string;
-  body: string;
-  raw: string;
-  data: WikiFrontmatter;
-};
-
-export type Finding = {
-  code: string;
-  message: string;
-  path?: string;
-  severity: "error" | "warning";
-};
-
-export function isConflictGuardFinding(finding: Finding): boolean {
-  return finding.severity === "error" && (finding.code.startsWith("conflict-") || finding.code.startsWith("metadata-"));
-}
-
-export interface RepoView {
-  root: string;
-  mode: "working" | "staged";
-  listFiles(): string[];
-  exists(path: string): boolean;
-  read(path: string): string;
-}
-
-function git(root: string, args: string[], allowFailure = false): string {
-  const result = Bun.spawnSync(["git", ...args], { cwd: root, stdout: "pipe", stderr: "pipe" });
-  if (result.exitCode !== 0) {
-    if (allowFailure) return "";
-    throw new Error(result.stderr.toString().trim() || `git ${args.join(" ")} failed`);
-  }
-  return result.stdout.toString();
-}
-
-function gitFileList(root: string, staged: boolean): string[] {
-  const args = staged
-    ? ["ls-files", "--cached", "-z"]
-    : ["ls-files", "--cached", "--others", "--exclude-standard", "-z"];
-  return git(root, args)
-    .split("\0")
-    .filter(Boolean)
-    .sort();
-}
-
-export function createRepoView(root = process.cwd(), staged = false): RepoView {
-  const normalizedRoot = resolve(root);
-  const files = gitFileList(normalizedRoot, staged);
-  const fileSet = new Set(files);
-  return {
-    root: normalizedRoot,
-    mode: staged ? "staged" : "working",
-    listFiles: () => [...files],
-    exists: (path) => fileSet.has(normalizeRepoPath(path)),
-    read: (path) => {
-      const repoPath = normalizeRepoPath(path);
-      if (!fileSet.has(repoPath)) throw new Error(`file not found in ${staged ? "Git index" : "repository"}: ${repoPath}`);
-      return staged ? git(normalizedRoot, ["show", `:${repoPath}`]) : readFileSync(join(normalizedRoot, repoPath), "utf8");
-    },
-  };
-}
-
-export function normalizeRepoPath(path: string): string {
-  return normalize(path).replaceAll("\\", "/").replace(/^\.\//, "");
-}
-
-export function parseWikiPage(path: string, raw: string): WikiPage {
-  const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
-  if (!match) throw new Error("missing YAML frontmatter");
-  const data = parseYaml(match[1]) as WikiFrontmatter;
-  if (data == null || typeof data !== "object" || Array.isArray(data)) throw new Error("frontmatter must be a mapping");
-  return { path, raw, body: raw.slice(match[0].length), data };
-}
-
-export const WIKI_SYSTEM_FILES = new Set([
-  "wiki/README.md",
-  "wiki/SCHEMA.md",
-  "wiki/WORKFLOW.md",
-  "wiki/index.md",
-  "wiki/current-status.md",
-  "wiki/conflicts.md",
-  "wiki/work-queue.md",
-  "wiki/changelog.md",
-]);
-
-export function isContentPage(path: string): boolean {
-  return path.startsWith("wiki/") && path.endsWith(".md") && !path.startsWith("wiki/_generated/") && !WIKI_SYSTEM_FILES.has(path);
-}
-
-export function loadWikiPages(view: RepoView): { pages: WikiPage[]; findings: Finding[] } {
-  const pages: WikiPage[] = [];
-  const findings: Finding[] = [];
-  for (const path of view.listFiles().filter(isContentPage)) {
-    try {
-      pages.push(parseWikiPage(path, view.read(path)));
-    } catch (error) {
-      findings.push({
-        code: "frontmatter-parse",
-        message: error instanceof Error ? error.message : String(error),
-        path,
-        severity: "error",
-      });
-    }
-  }
-  return { pages, findings };
+function pushFinding(findings: Finding[], path: string, code: string, message: string, severity: Finding["severity"] = "error") {
+  findings.push({ code, message, path, severity });
 }
 
 function stringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === "string" && item.trim().length > 0);
 }
 
-function validateSource(source: unknown): source is WikiSource {
-  if (source == null || typeof source !== "object" || Array.isArray(source)) return false;
-  const item = source as Record<string, unknown>;
-  if (typeof item.path === "string" && item.path.length > 0) {
-    return item.symbols == null || stringArray(item.symbols);
-  }
-  return typeof item.glob === "string" && item.glob.length > 0;
-}
-
-function pushFinding(findings: Finding[], path: string, code: string, message: string, severity: Finding["severity"] = "error") {
-  findings.push({ code, message, path, severity });
-}
-
-export function validatePages(view: RepoView, pages: WikiPage[]): Finding[] {
-  const findings: Finding[] = [];
-  const ids = new Map<string, string>();
-  const statuses = new Set<WikiStatus>(["current", "proposed", "deprecated", "conflicted", "archived"]);
-  const authorities = new Set<WikiAuthority>(["normative", "observed", "derived"]);
-  const conflictTypes = new Set<ConflictType>(["decision", "implementation", "documentation"]);
-  const conflictSeverities = new Set<ConflictSeverity>(["high", "medium", "low"]);
-  const conflictOrigins = new Set<ConflictOrigin>(["baseline", "introduced_by_change"]);
-  const conflictStates = new Set<ConflictResolutionState>(["open", "decision_pending", "implementing", "verified"]);
-
-  for (const page of pages) {
-    const data = page.data as unknown as Record<string, unknown>;
-    for (const field of ["id", "summary", "kind", "status", "authority", "owners", "sources"] as const) {
-      if (!(field in data)) pushFinding(findings, page.path, "frontmatter-required", `missing required field: ${field}`);
-    }
-    if (typeof data.id !== "string" || data.id.trim().length === 0) {
-      pushFinding(findings, page.path, "frontmatter-id", "id must be a non-empty string");
-    } else if (ids.has(data.id)) {
-      pushFinding(findings, page.path, "duplicate-id", `id ${data.id} is already used by ${ids.get(data.id)}`);
-    } else {
-      ids.set(data.id, page.path);
-    }
-    if (typeof data.summary !== "string" || data.summary.trim().length === 0) pushFinding(findings, page.path, "frontmatter-summary", "summary must be a non-empty string");
-    if (typeof data.kind !== "string" || data.kind.trim().length === 0) pushFinding(findings, page.path, "frontmatter-kind", "kind must be a non-empty string");
-    if (!statuses.has(data.status as WikiStatus)) pushFinding(findings, page.path, "frontmatter-status", `invalid status: ${String(data.status)}`);
-    if (!authorities.has(data.authority as WikiAuthority)) pushFinding(findings, page.path, "frontmatter-authority", `invalid authority: ${String(data.authority)}`);
-    if (!stringArray(data.owners) || data.owners.length === 0) pushFinding(findings, page.path, "frontmatter-owners", "owners must be a non-empty string array");
-    if (!Array.isArray(data.sources) || !data.sources.every(validateSource)) pushFinding(findings, page.path, "frontmatter-sources", "sources must contain {path, symbols?} or {glob} entries");
-    if (data.status === "current" && Array.isArray(data.sources) && data.sources.length === 0) pushFinding(findings, page.path, "current-without-source", "current pages require at least one primary source");
-    for (const field of ["affects", "related", "tags"] as const) {
-      if (data[field] != null && !stringArray(data[field])) pushFinding(findings, page.path, `frontmatter-${field}`, `${field} must be a string array`);
-    }
-    if (data.kind === "conflict") {
-      const resolution = data.resolution as Record<string, unknown> | undefined;
-      if (typeof data.conflict_id !== "string" || !/^C-\d{3}$/.test(data.conflict_id)) pushFinding(findings, page.path, "conflict-id", "conflict_id must use C-NNN form");
-      else if (data.id !== `conflict/${data.conflict_id}`) pushFinding(findings, page.path, "conflict-page-id", `conflict page id must be conflict/${data.conflict_id}`);
-      if (!conflictTypes.has(data.conflict_type as ConflictType)) pushFinding(findings, page.path, "conflict-type", `invalid conflict_type: ${String(data.conflict_type)}`);
-      if (!conflictSeverities.has(data.severity as ConflictSeverity)) pushFinding(findings, page.path, "conflict-severity", `invalid conflict severity: ${String(data.severity)}`);
-      if (!conflictOrigins.has(data.origin as ConflictOrigin)) pushFinding(findings, page.path, "conflict-origin", `invalid conflict origin: ${String(data.origin)}`);
-      if (!isIsoCalendarDate(data.opened_at)) pushFinding(findings, page.path, "conflict-opened-at", "opened_at must be a real YYYY-MM-DD calendar date");
-      if (!stringArray(data.affected_pages) || data.affected_pages.length === 0) pushFinding(findings, page.path, "conflict-affected-pages", "conflicts require at least one affected current page ID");
-      if (!Array.isArray(data.affected_invariants) || !data.affected_invariants.every((item) => typeof item === "string" && item.length > 0)) pushFinding(findings, page.path, "conflict-affected-invariants", "affected_invariants must be a string array");
-      if (!Array.isArray(data.sources) || data.sources.length === 0) pushFinding(findings, page.path, "conflict-without-source", "conflicts require at least one primary source");
-      if (resolution == null || typeof resolution !== "object" || Array.isArray(resolution)) {
-        pushFinding(findings, page.path, "conflict-resolution", "resolution must be an object");
-      } else {
-        if (!conflictStates.has(resolution.state as ConflictResolutionState)) pushFinding(findings, page.path, "conflict-resolution-state", `invalid resolution state: ${String(resolution.state)}`);
-        if (!stringArray(resolution.acceptance) || resolution.acceptance.length === 0) pushFinding(findings, page.path, "conflict-acceptance", "resolution.acceptance requires at least one non-empty criterion");
-        if (resolution.evidence != null && !stringArray(resolution.evidence)) pushFinding(findings, page.path, "conflict-evidence", "resolution.evidence must be a string array");
-      }
-      const isOpenPath = page.path.startsWith("wiki/conflicts/open/");
-      const isResolvedPath = page.path.startsWith("wiki/conflicts/resolved/");
-      if (!isOpenPath && !isResolvedPath) pushFinding(findings, page.path, "conflict-path", "conflict pages must live under wiki/conflicts/open or wiki/conflicts/resolved");
-      if (isOpenPath && data.status !== "conflicted") pushFinding(findings, page.path, "conflict-open-status", "open conflict pages require status: conflicted");
-      if (isOpenPath && resolution?.state === "verified") pushFinding(findings, page.path, "conflict-open-resolution-state", "verified conflicts must move to wiki/conflicts/resolved and become archived");
-      if (isResolvedPath && (data.status !== "archived" || resolution?.state !== "verified")) pushFinding(findings, page.path, "conflict-resolved-status", "resolved conflicts require status: archived and resolution.state: verified");
-      if (isResolvedPath && (!stringArray(resolution?.evidence) || resolution.evidence.length === 0)) pushFinding(findings, page.path, "conflict-resolution-evidence", "resolved conflicts require resolution.evidence");
-      if (isResolvedPath && (typeof resolution?.decision !== "string" || resolution.decision.trim().length === 0)) pushFinding(findings, page.path, "conflict-resolution-decision", "resolved conflicts require resolution.decision");
-    } else if (page.path.startsWith("wiki/conflicts/")) {
-      pushFinding(findings, page.path, "conflict-kind", "files under wiki/conflicts must use kind: conflict");
-    }
-  }
-
-  const pageById = new Map(pages.map((page) => [page.data.id, page]));
-  for (const page of pages) {
-    for (const field of ["affects", "related"] as const) {
-      for (const id of page.data[field] ?? []) {
-        if (!ids.has(id)) pushFinding(findings, page.path, "dangling-page-id", `${field} references unknown page id: ${id}`);
-      }
-    }
-    const sources = Array.isArray(page.data.sources) ? page.data.sources : [];
-    for (const source of sources) {
-      if ("path" in source) {
-        if (!view.exists(source.path)) pushFinding(findings, page.path, "source-missing", `source path does not exist: ${source.path}`);
-        else if (source.symbols != null) validateSymbols(view, source.path, source.symbols, page.path, findings);
-      } else {
-        let glob: Bun.Glob;
-        try {
-          glob = new Bun.Glob(source.glob);
-        } catch {
-          pushFinding(findings, page.path, "source-glob-invalid", `invalid source glob: ${source.glob}`);
-          continue;
-        }
-        if (!view.listFiles().some((path) => glob.match(path))) pushFinding(findings, page.path, "source-glob-empty", `source glob matches no files: ${source.glob}`);
-      }
-    }
-    if (page.data.status === "current" && sources.length > 0 && sources.every((source) => {
-      const sourcePath = "path" in source ? source.path : source.glob;
-      return sourcePath.startsWith("wiki/proposals/");
-    })) {
-      pushFinding(findings, page.path, "proposal-only-current", "a current page cannot rely only on proposal sources");
-    }
-    if (page.data.kind === "conflict") {
-      for (const id of page.data.affected_pages ?? []) {
-        const affected = pageById.get(id);
-        if (!affected || affected.data.status !== "current") pushFinding(findings, page.path, "conflict-page-unknown", `affected_pages must reference a current page: ${id}`);
-      }
-      for (const id of page.data.affected_invariants ?? []) {
-        const invariant = pageById.get(id);
-        if (!invariant || invariant.data.status !== "current" || invariant.data.kind !== "invariant") pushFinding(findings, page.path, "conflict-invariant-unknown", `affected_invariants must reference a current invariant: ${id}`);
-      }
-    }
-  }
-  findings.push(...validateWorkItems(pages));
-  return findings;
-}
-
-type OwnedWorkItem = { item: WorkItem; page: WikiPage };
-
-const WORK_EXECUTORS = new Set<WorkExecutor>(["agent", "human", "either"]);
-
-function normalizedWorkExecutor(item: Record<string, unknown>): WorkExecutor | undefined {
-  // Omission is the backwards-compatible agent default. An explicit
-  // undefined/null is still malformed input and must not enter the graph.
-  if (!("executor" in item)) return "agent";
-  return WORK_EXECUTORS.has(item.executor as WorkExecutor) ? item.executor as WorkExecutor : undefined;
-}
-
-function ownedWorkItems(pages: WikiPage[]): OwnedWorkItem[] {
-  const states = new Set<WorkState>(["not-started", "active", "blocked", "done", "deferred"]);
-  const priorities = new Set<WorkPriority>(["critical", "high", "normal", "low"]);
-  const items: OwnedWorkItem[] = [];
-  for (const page of pages) {
-    if (!Array.isArray(page.data.work_items)) continue;
-    for (const raw of page.data.work_items as unknown[]) {
-      if (raw == null || typeof raw !== "object" || Array.isArray(raw)) continue;
-      const item = raw as Record<string, unknown>;
-      if (typeof item.id !== "string" || typeof item.title !== "string") continue;
-      if (!states.has(item.state as WorkState) || !priorities.has(item.priority as WorkPriority)) continue;
-      if (!stringArray(item.depends_on) || !stringArray(item.context_pages) || !stringArray(item.acceptance) || !stringArray(item.evidence)) continue;
-      const executor = normalizedWorkExecutor(item);
-      if (!executor) continue;
-      items.push({ page, item: { ...item, executor } as WorkItem });
-    }
-  }
-  return items;
-}
-
-export function validateWorkItems(pages: WikiPage[]): Finding[] {
-  const findings: Finding[] = [];
-  const states = new Set<WorkState>(["not-started", "active", "blocked", "done", "deferred"]);
-  const priorities = new Set<WorkPriority>(["critical", "high", "normal", "low"]);
-  const pageById = new Map(pages.map((page) => [page.data.id, page]));
-  const workById = new Map<string, OwnedWorkItem>();
-  const seenIds = new Map<string, string>();
-  const validItems: OwnedWorkItem[] = [];
-
-  for (const page of pages) {
-    const rawItems = (page.data as unknown as Record<string, unknown>).work_items;
-    if (rawItems == null) continue;
-    if (page.data.kind !== "proposal") {
-      pushFinding(findings, page.path, "work-owner-kind", "work_items are allowed only on kind: proposal pages");
-    }
-    if (!Array.isArray(rawItems)) {
-      pushFinding(findings, page.path, "work-items-shape", "work_items must be an array");
-      continue;
-    }
-    for (const [index, raw] of rawItems.entries()) {
-      const label = `work_items[${index}]`;
-      if (raw == null || typeof raw !== "object" || Array.isArray(raw)) {
-        pushFinding(findings, page.path, "work-item-shape", `${label} must be a mapping`);
-        continue;
-      }
-      const item = raw as Record<string, unknown>;
-      const rawId = typeof item.id === "string" ? item.id : "";
-      const id = rawId.trim();
-      const validId = rawId === id && /^[A-Za-z0-9][A-Za-z0-9._/-]*$/.test(id);
-      if (!validId) {
-        pushFinding(findings, page.path, "work-id", `${label}.id must be a stable non-empty identifier without whitespace`);
-      } else if (seenIds.has(id)) {
-        pushFinding(findings, page.path, "work-duplicate-id", `work item ${id} is already owned by ${seenIds.get(id)}`);
-      } else {
-        seenIds.set(id, page.data.id);
-      }
-      if (typeof item.title !== "string" || item.title.trim().length === 0) pushFinding(findings, page.path, "work-title", `${label}.title must be a non-empty string`);
-      if (!states.has(item.state as WorkState)) pushFinding(findings, page.path, "work-state", `${label}.state is invalid: ${String(item.state)}`);
-      if (!priorities.has(item.priority as WorkPriority)) pushFinding(findings, page.path, "work-priority", `${label}.priority is invalid: ${String(item.priority)}`);
-      if (normalizedWorkExecutor(item) == null) pushFinding(findings, page.path, "work-executor", `${label}.executor must be one of agent, human, or either when provided; omission defaults to agent`);
-      for (const field of ["depends_on", "context_pages", "acceptance", "evidence"] as const) {
-        if (!stringArray(item[field])) pushFinding(findings, page.path, `work-${field.replaceAll("_", "-")}`, `${label}.${field} must be a string array`);
-      }
-      if (stringArray(item.context_pages) && item.context_pages.length === 0) pushFinding(findings, page.path, "work-context-pages", `${label}.context_pages must name at least one current page`);
-      if (stringArray(item.acceptance) && item.acceptance.length === 0) pushFinding(findings, page.path, "work-acceptance", `${label}.acceptance must contain at least one objective criterion`);
-      const state = item.state as WorkState;
-      const blocker = typeof item.blocker === "string" ? item.blocker.trim() : "";
-      const deferredReason = typeof item.deferred_reason === "string" ? item.deferred_reason.trim() : "";
-      if (state === "blocked" && blocker.length === 0) pushFinding(findings, page.path, "work-blocker", `${label} is blocked and requires a non-empty blocker`);
-      if (state !== "blocked" && item.blocker != null) pushFinding(findings, page.path, "work-blocker-state", `${label}.blocker is allowed only when state is blocked`);
-      if (state === "deferred" && deferredReason.length === 0) pushFinding(findings, page.path, "work-deferred-reason", `${label} is deferred and requires a non-empty deferred_reason`);
-      if (state !== "deferred" && item.deferred_reason != null) pushFinding(findings, page.path, "work-deferred-state", `${label}.deferred_reason is allowed only when state is deferred`);
-      if (state === "done" && (!stringArray(item.evidence) || item.evidence.length === 0)) pushFinding(findings, page.path, "work-done-evidence", `${label} is done and requires durable evidence`);
-      if (page.data.status !== "proposed" && !["done", "deferred"].includes(state)) {
-        pushFinding(findings, page.path, "work-owner-status", `${label} is non-terminal but its proposal status is ${page.data.status}`);
-      }
-      if (validId && !workById.has(id) && states.has(state) && priorities.has(item.priority as WorkPriority)
-        && normalizedWorkExecutor(item) != null
-        && stringArray(item.depends_on) && stringArray(item.context_pages) && stringArray(item.acceptance) && stringArray(item.evidence)
-        && typeof item.title === "string" && item.title.trim().length > 0) {
-        workById.set(id, { page, item: { ...item, executor: normalizedWorkExecutor(item) } as WorkItem });
-      }
-      if (validId && states.has(state) && priorities.has(item.priority as WorkPriority)
-        && normalizedWorkExecutor(item) != null
-        && stringArray(item.depends_on) && stringArray(item.context_pages) && stringArray(item.acceptance) && stringArray(item.evidence)
-        && typeof item.title === "string" && item.title.trim().length > 0) {
-        validItems.push({ page, item: { ...item, executor: normalizedWorkExecutor(item) } as WorkItem });
-      }
-    }
-  }
-
-  for (const owned of validItems) {
-    const item = owned.item;
-    const id = item.id;
-    for (const dependency of item.depends_on) {
-      if (dependency === id) pushFinding(findings, owned.page.path, "work-self-dependency", `${id} cannot depend on itself`);
-      else if (!workById.has(dependency)) pushFinding(findings, owned.page.path, "work-dependency-unknown", `${id} depends on unknown work item ${dependency}`);
-    }
-    for (const pageId of item.context_pages) {
-      const context = pageById.get(pageId);
-      if (!context || context.data.status !== "current" || context.data.kind === "conflict") {
-        pushFinding(findings, owned.page.path, "work-context-page-unknown", `${id} context_pages must reference a current non-conflict page: ${pageId}`);
-      }
-    }
-    if (["active", "done"].includes(item.state)) {
-      const unmet = item.depends_on.filter((dependency) => workById.get(dependency)?.item.state !== "done");
-      if (unmet.length > 0) pushFinding(findings, owned.page.path, "work-state-dependencies", `${id} is ${item.state} with unmet dependencies: ${unmet.join(", ")}`);
-    }
-  }
-
-  const visiting = new Set<string>();
-  const visited = new Set<string>();
-  const stack: string[] = [];
-  const reportedCycles = new Set<string>();
-  const visit = (id: string) => {
-    if (visited.has(id)) return;
-    if (visiting.has(id)) {
-      const start = stack.indexOf(id);
-      const cycle = [...stack.slice(start), id];
-      const key = [...new Set(cycle)].sort().join("|");
-      if (!reportedCycles.has(key)) {
-        reportedCycles.add(key);
-        pushFinding(findings, workById.get(id)!.page.path, "work-dependency-cycle", `work dependency cycle: ${cycle.join(" -> ")}`);
-      }
-      return;
-    }
-    visiting.add(id);
-    stack.push(id);
-    for (const dependency of workById.get(id)?.item.depends_on ?? []) if (workById.has(dependency)) visit(dependency);
-    stack.pop();
-    visiting.delete(id);
-    visited.add(id);
-  };
-  for (const id of [...workById.keys()].sort()) visit(id);
-  return findings;
-}
-
-function validateSymbols(view: RepoView, sourcePath: string, symbols: string[], pagePath: string, findings: Finding[]) {
-  if (![".ts", ".tsx", ".js", ".jsx"].includes(extname(sourcePath))) return;
-  const source = ts.createSourceFile(sourcePath, view.read(sourcePath), ts.ScriptTarget.Latest, true);
-  const exported = new Set<string>();
-  for (const node of source.statements) {
-    const modifiers = ts.canHaveModifiers(node) ? ts.getModifiers(node) : undefined;
-    if (!modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword)) continue;
-    if (ts.isVariableStatement(node)) {
-      for (const declaration of node.declarationList.declarations) if (ts.isIdentifier(declaration.name)) exported.add(declaration.name.text);
-    } else if ((ts.isFunctionDeclaration(node) || ts.isClassDeclaration(node) || ts.isInterfaceDeclaration(node) || ts.isTypeAliasDeclaration(node) || ts.isEnumDeclaration(node)) && node.name) {
-      exported.add(node.name.text);
-    }
-  }
-  for (const symbol of symbols) {
-    if (!exported.has(symbol)) pushFinding(findings, pagePath, "source-symbol-missing", `${sourcePath} does not export ${symbol}`, "warning");
-  }
-}
-
-type LegacyAllow = { source: string; target: string; reason: string; expires: string };
-
-function loadLegacyAllowlist(view: RepoView): { entries: LegacyAllow[]; findings: Finding[] } {
-  if (!view.exists(".wiki/legacy-link-allowlist.json")) return { entries: [], findings: [] };
-  try {
-    const entries = JSON.parse(view.read(".wiki/legacy-link-allowlist.json")) as LegacyAllow[];
-    const findings: Finding[] = [];
-    if (!Array.isArray(entries)) throw new Error("allowlist must be an array");
-    for (const entry of entries) {
-      if (!entry.source || !entry.target || !entry.reason || !/^\d{4}-\d{2}-\d{2}$/.test(entry.expires)) {
-        findings.push({ code: "legacy-allowlist-invalid", message: "each entry requires source, target, reason and YYYY-MM-DD expires", path: ".wiki/legacy-link-allowlist.json", severity: "error" });
-      } else if (entry.expires < new Date().toISOString().slice(0, 10)) {
-        findings.push({ code: "legacy-allowlist-expired", message: `expired allowlist entry: ${entry.source} -> ${entry.target}`, path: ".wiki/legacy-link-allowlist.json", severity: "error" });
-      }
-    }
-    return { entries, findings };
-  } catch (error) {
-    return { entries: [], findings: [{ code: "legacy-allowlist-parse", message: error instanceof Error ? error.message : String(error), path: ".wiki/legacy-link-allowlist.json", severity: "error" }] };
-  }
-}
-
-function markdownTargets(raw: string): string[] {
-  const withoutCode = raw.replace(/```[\s\S]*?```/g, "").replace(/`[^`\n]*`/g, "");
-  return [...withoutCode.matchAll(/!?\[[^\]]*\]\(([^)\s]+)(?:\s+["'][^)]*["'])?\)/g)].map((match) => match[1]);
-}
-
+/** Compatibility wrapper retaining the historical one-argument API. */
 export function validateMarkdownLinks(view: RepoView): Finding[] {
-  const { entries, findings } = loadLegacyAllowlist(view);
-  // Generated kit payload is staged for another repository: its relative links
-  // resolve once the payload lands at that repository's root, not against this
-  // tree. Only the publisher gets that exemption, and `kit/README.md` never does
-  // — it is hand-written, it lives here, and its links resolve here.
-  const publishesKit = readConfig(view).publishesKit;
-  const markdown = view.listFiles().filter((path) => path.endsWith(".md") && !path.startsWith("node_modules/") && !path.startsWith(".git/") && !(publishesKit && isKitManagedPath(path)));
-  for (const source of markdown) {
-    for (const rawTarget of markdownTargets(view.read(source))) {
-      if (rawTarget.startsWith("#") || /^(https?:|mailto:|tel:|data:)/.test(rawTarget)) continue;
-      let decoded = rawTarget;
-      try { decoded = decodeURIComponent(rawTarget); } catch { /* invalid encoding is handled as a missing link */ }
-      const targetWithoutAnchor = decoded.split("#", 1)[0].split("?", 1)[0];
-      if (!targetWithoutAnchor) continue;
-      const target = normalizeRepoPath(targetWithoutAnchor.startsWith("/") ? targetWithoutAnchor.slice(1) : join(dirname(source), targetWithoutAnchor));
-      const valid = view.exists(target) || view.exists(join(target, "README.md")) || view.listFiles().some((path) => path.startsWith(`${target.replace(/\/$/, "")}/`));
-      if (!valid && !entries.some((entry) => entry.source === source && entry.target === rawTarget)) {
-        pushFinding(findings, source, "broken-link", `link target does not exist: ${rawTarget}`);
-      }
-    }
-  }
-  return findings;
-}
-
-export function jsonStable(value: unknown): string {
-  const sort = (input: unknown): unknown => {
-    if (Array.isArray(input)) return input.map(sort);
-    if (input != null && typeof input === "object") return Object.fromEntries(Object.entries(input as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b)).map(([key, item]) => [key, sort(item)]));
-    return input;
+  const config = readConfig(view);
+  const policy: MarkdownLinkPolicy = {
+    publishesKit: config.publishesKit,
+    isManagedPath: isKitManagedPath,
   };
-  return `${JSON.stringify(sort(value), null, 2)}\n`;
+  return validateMarkdownLinksFoundation(view, policy);
 }
 
 export function currentPages(pages: WikiPage[]): WikiPage[] {
@@ -1404,18 +986,6 @@ export function compareGenerated(view: RepoView, expected: Record<string, string
   return findings;
 }
 
-export function expandSource(view: RepoView, source: WikiSource): string[] {
-  if ("path" in source) return view.exists(source.path) ? [source.path] : [];
-  const glob = new Bun.Glob(source.glob);
-  return view.listFiles().filter((path) => glob.match(path)).sort();
-}
-
-export function hashContent(content: string | Uint8Array): string {
-  const hasher = new Bun.CryptoHasher("sha256");
-  hasher.update(content);
-  return hasher.digest("hex");
-}
-
 export function sourceHashes(view: RepoView, page: WikiPage): Record<string, string> {
   const result: Record<string, string> = {};
   for (const source of page.data.sources) for (const path of expandSource(view, source)) result[path] = hashContent(view.read(path));
@@ -1665,6 +1235,11 @@ Record only current-contract changes here: product-contract changes, significant
  */
 export const KIT_ENTRIES: KitEntry[] = [
   { target: "scripts/wiki/core.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/core.ts" } },
+  { target: "scripts/wiki/model.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/model.ts" } },
+  { target: "scripts/wiki/serialization.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/serialization.ts" } },
+  { target: "scripts/wiki/repository-view.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/repository-view.ts" } },
+  { target: "scripts/wiki/page-validation.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/page-validation.ts" } },
+  { target: "scripts/wiki/work-validation.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/work-validation.ts" } },
   { target: "scripts/wiki/cli.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/cli.ts" } },
   { target: "scripts/wiki/github-attestation.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/github-attestation.ts" } },
   // Reference, not copied at all: it is documentation of the inventory patterns,
@@ -1675,6 +1250,12 @@ export const KIT_ENTRIES: KitEntry[] = [
   { target: "scripts/wiki/inventories.example.ts", placement: "reference", source: { kind: "copy", from: "scripts/wiki/inventories.example.ts" } },
   { target: "scripts/wiki/wiki.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/wiki.test.ts" } },
   { target: "scripts/wiki/work.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/work.test.ts" } },
+  { target: "scripts/wiki/serialization.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/serialization.test.ts" } },
+  { target: "scripts/wiki/repository-view.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/repository-view.test.ts" } },
+  { target: "scripts/wiki/page-validation.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/page-validation.test.ts" } },
+  { target: "scripts/wiki/work-validation.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/work-validation.test.ts" } },
+  { target: "scripts/wiki/core-facade.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/core-facade.test.ts" } },
+  { target: "scripts/wiki/test-runner.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/test-runner.test.ts" } },
   { target: "scripts/wiki/fresh-context.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/fresh-context.test.ts" } },
   { target: "scripts/wiki/test-runner.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/test-runner.ts" } },
   { target: "scripts/wiki/tsconfig.json", placement: "files", source: { kind: "copy", from: "scripts/wiki/tsconfig.json" } },

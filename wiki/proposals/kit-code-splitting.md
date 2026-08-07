@@ -7,6 +7,11 @@ authority: normative
 owners: ["@phlox11"]
 sources:
   - path: scripts/wiki/core.ts
+  - path: scripts/wiki/model.ts
+  - path: scripts/wiki/serialization.ts
+  - path: scripts/wiki/repository-view.ts
+  - path: scripts/wiki/page-validation.ts
+  - path: scripts/wiki/work-validation.ts
   - path: scripts/wiki/cli.ts
   - path: scripts/wiki/fresh-context.test.ts
   - path: scripts/wiki/wiki.test.ts
@@ -59,7 +64,7 @@ work_items:
       - docs/evidence/km-00-portable-kit-baseline.md
   - id: KM-01
     title: Extract shared model, repository-view, and page-validation primitives
-    state: not-started
+    state: done
     executor: agent
     priority: normal
     depends_on: [KM-00-OWNER]
@@ -70,7 +75,24 @@ work_items:
       - Staged versus working-tree reads, source-symbol validation, path normalization, finding codes, deterministic ordering, and malformed-input behavior remain byte- or structure-equivalent to the KM-00 fixtures.
       - Focused unit tests cover each extracted boundary, and the portable test runner discovers the new test files deterministically.
       - KIT_ENTRIES, generated kit files, manifest hashes, TypeScript configuration, coverage mapping, and adoption or upgrade fixtures include every new kit-owned module.
-    evidence: []
+    evidence:
+      - scripts/wiki/model.ts
+      - scripts/wiki/serialization.ts
+      - scripts/wiki/repository-view.ts
+      - scripts/wiki/page-validation.ts
+      - scripts/wiki/work-validation.ts
+      - scripts/wiki/core.ts
+      - scripts/wiki/core-facade.test.ts
+      - scripts/wiki/serialization.test.ts
+      - scripts/wiki/repository-view.test.ts
+      - scripts/wiki/page-validation.test.ts
+      - scripts/wiki/work-validation.test.ts
+      - scripts/wiki/test-runner.ts
+      - scripts/wiki/test-runner.test.ts
+      - scripts/wiki/kit.test.ts
+      - wiki/architecture/engine.md
+      - wiki/product/invariants.md
+      - wiki/operations/enforcement.md
   - id: KM-02
     title: Extract work discovery, search, context, and generated-view modules
     state: not-started
