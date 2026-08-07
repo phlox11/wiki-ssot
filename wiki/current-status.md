@@ -9,9 +9,9 @@
 | [product/invariants](./product/invariants.md) | invariant | normative | @phlox11 | 4 |
 | [product/scope](./product/scope.md) | product | normative | @phlox11 | 2 |
 
-## Outstanding work (20)
+## Outstanding work (19)
 
-No agent-recommendable work is available; human-only work remains and requires human execution. Do not infer an agent task or assume authority.
+Recommended next: `KM-01`. Run `bun run wiki:context -- --work KM-01`.
 
 See the [repository work queue](./work-queue.md) or run `bun run wiki:work`.
 
