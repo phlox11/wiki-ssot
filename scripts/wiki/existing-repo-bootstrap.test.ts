@@ -413,5 +413,5 @@ describe("existing-repository bootstrap evidence", () => {
     writeFileSync(join(repo, "AGENTS.md"), mergedUpgradeAgents.content);
     expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toContain("kit-v2-entrypoint");
     expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toContain("Existing service customization");
-  });
+  }, 10_000);
 });

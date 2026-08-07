@@ -11,7 +11,7 @@
         "scripts/wiki/core.ts": "af733c8d079eb1bd44c4dcfb1c37aca8f167f5b8412b34eb04cd5a772382d663",
         "scripts/wiki/discovery.test.ts": "3999144e220004e9d8fcdeac9387ca71587fd0bd34d828cb82483eb479a22c62",
         "scripts/wiki/discovery.ts": "f1c5052d182b49aae3306fa53a75b8b1ffa20fc2c3e9a5fa953644e2c52180cc",
-        "scripts/wiki/existing-repo-bootstrap.test.ts": "e8ab69bd7e2e0c7a4708235500522ffe0b141be128dd038c196c9c2801603ba3",
+        "scripts/wiki/existing-repo-bootstrap.test.ts": "d9fe5a917385a9a6923493b1210bb2281611092ccf60c9a9dbac4170a6613c18",
         "scripts/wiki/fresh-context.test.ts": "d5479279778a25499a02b97b49a8b3c66c05a63bd3e84d18318bbb6ea6c255a0",
         "scripts/wiki/generated-views.test.ts": "fad68ac1383d8717962168e7a336e8a243345c144c0eb5562c1fe6aea7c947e9",
         "scripts/wiki/generated-views.ts": "c340de1c499e3655251370233566a37a20084642369d9236252813e283f72dec",
