@@ -64,6 +64,10 @@
     "scripts/wiki/github-attestation.ts": [
       "operations/enforcement"
     ],
+    "scripts/wiki/kit-packaging.ts": [
+      "operations/enforcement",
+      "product/invariants"
+    ],
     "scripts/wiki/model.ts": [
       "operations/enforcement",
       "product/invariants"

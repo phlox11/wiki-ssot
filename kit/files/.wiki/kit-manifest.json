@@ -1,5 +1,5 @@
 {
-  "digest": "d5f40bd8d733c27bfb2b27c945a7573e6ac14cb91499189e037398ac8899bc78",
+  "digest": "76d96da5110902befae2094afb48fff14b3364c04b9fa0d6c1bbbf27beb708c6",
   "files": {
     ".github/workflows/wiki-audit.yml": {
       "ownership": "kit",
@@ -43,11 +43,11 @@
     },
     "scripts/wiki/core-facade.test.ts": {
       "ownership": "kit",
-      "sha256": "fc1f16ebefe36c842d960accdc783606d09e46f0d40b165498f973c333c8813d"
+      "sha256": "1c21d1f99a1101821cdc32cd3fa50260ad741d6849eedb0f25f156b387dbfdb6"
     },
     "scripts/wiki/core.ts": {
       "ownership": "kit",
-      "sha256": "11f872b949ecddc08638905442ab621198ac968c53225f3a01bec6c329428df2"
+      "sha256": "90bf91f315c94268912daf74469b72c21c6b7ed84e71ea5e11e19fa8f98b2a0c"
     },
     "scripts/wiki/discovery.test.ts": {
       "ownership": "kit",
@@ -76,6 +76,14 @@
     "scripts/wiki/inventories.ts": {
       "ownership": "seed",
       "sha256": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca"
+    },
+    "scripts/wiki/kit-packaging.test.ts": {
+      "ownership": "kit",
+      "sha256": "2180ce6f8e5fcd6c9afae453b7b1ddb4d249d9aae3faf8540dbebacd0992820c"
+    },
+    "scripts/wiki/kit-packaging.ts": {
+      "ownership": "kit",
+      "sha256": "e4fdb9643d04fe4799a1e9ffb49ef05ec514b14ada2477096d255bc435857a30"
     },
     "scripts/wiki/model.ts": {
       "ownership": "kit",
@@ -107,7 +115,7 @@
     },
     "scripts/wiki/test-runner.test.ts": {
       "ownership": "kit",
-      "sha256": "89e083fe44883d7cf1667918141dbcd2be3ccf724ec73cfd2013d370b2f3527f"
+      "sha256": "c5328d0d37e18a089a9f7db373138c4fba07e0702bb716fa7ad62cecee83971e"
     },
     "scripts/wiki/test-runner.ts": {
       "ownership": "kit",

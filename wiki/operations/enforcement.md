@@ -25,6 +25,7 @@ sources:
   - path: scripts/wiki/discovery.ts
   - path: scripts/wiki/context.ts
   - path: scripts/wiki/generated-views.ts
+  - path: scripts/wiki/kit-packaging.ts
   - path: scripts/wiki/cli.ts
   - path: scripts/wiki/github-attestation.ts
   - path: scripts/wiki/apply.ts

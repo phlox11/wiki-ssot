@@ -15,9 +15,11 @@ sources:
   - path: scripts/wiki/discovery.ts
   - path: scripts/wiki/context.ts
   - path: scripts/wiki/generated-views.ts
+  - path: scripts/wiki/kit-packaging.ts
   - path: scripts/wiki/discovery.test.ts
   - path: scripts/wiki/context.test.ts
   - path: scripts/wiki/generated-views.test.ts
+  - path: scripts/wiki/kit-packaging.test.ts
   - path: scripts/wiki/cli.ts
   - path: scripts/wiki/fresh-context.test.ts
   - path: scripts/wiki/wiki.test.ts
@@ -131,7 +133,7 @@ work_items:
       - wiki/operations/enforcement.md
   - id: KM-03
     title: Extract portable-kit packaging and generation from the engine core
-    state: not-started
+    state: done
     executor: agent
     priority: normal
     depends_on: [KM-02]
@@ -142,7 +144,21 @@ work_items:
       - Every newly extracted module that adopters require is declared exactly once in KIT_ENTRIES and arrives under kit/files with deterministic content and manifest hashes.
       - New, adopt, upgrade, dry-run, customized-file, orphan, removed-upstream, seed, managed-block, reference, executable-mode, and symlink containment regressions continue to pass without changing ownership semantics.
       - The publishing repository's wiki:kit check remains byte-stable apart from the intentionally added module paths and updated content-addressed manifest.
-    evidence: []
+    evidence:
+      - scripts/wiki/kit-packaging.ts
+      - scripts/wiki/kit-packaging.test.ts
+      - scripts/wiki/core.ts
+      - scripts/wiki/core-facade.test.ts
+      - scripts/wiki/kit.test.ts
+      - scripts/wiki/test-runner.test.ts
+      - scripts/wiki/new-repository-adoption.test.ts
+      - scripts/wiki/existing-repo-bootstrap.test.ts
+      - kit/files/scripts/wiki/kit-packaging.ts
+      - kit/files/scripts/wiki/kit-packaging.test.ts
+      - kit/files/.wiki/kit-manifest.json
+      - wiki/architecture/engine.md
+      - wiki/product/invariants.md
+      - wiki/operations/enforcement.md
   - id: KM-04
     title: Extract verification, impact, and exact-HEAD review modules
     state: not-started
