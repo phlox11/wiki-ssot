@@ -56,71 +56,23 @@ The engine is provider- and framework-agnostic. Three adapters stay outside its 
 
 `kit-packaging.test.ts` covers entries, exclusions, rendering, manifests, drift, and writes; `kit.test.ts` covers integration and sync. The other synthetic or Git-backed suites cover work/context, review/impact/trust, CLI behavior, and new/adopt/upgrade flows including dry-run, idempotence, managed/package ownership, version 1 migration, customization safety, and the final `ready` loop. `test-runner.ts` runs each shipped Wiki test in an isolated bounded-parallel Bun process so adoption and historical fixtures do not share accumulated memory. Older adoption fixtures remain reproducibility evidence. The suites require only `bun`, `typescript`, `yaml`, and `git`.
 
-`scripts/wiki/primary-scenarios.ts` is the repository-specific, versioned Primary-validation contract. Its eight synthetic scenarios declare tasks, required authorities and sources, relevant conflicts, expected changes, and wiki actions. A deterministic evaluator turns collected observations into recall, authority-labelling, irrelevant-context, coverage, context-size, command-sequence, and drift-escape metrics without invoking an LLM; `scripts/wiki/primary-scenarios.test.ts` locks category coverage, incomplete observations, and byte-stable results. `scripts/wiki/primary-baseline.ts` materializes those scenarios in a temporary git fixture, executes the unmodified default search/context path plus lint/impact drift probes, and reproduces the checked-in PV-05 JSON report and interpretation against immutable engine revision `58869b75dc23374b918a79d9731c601764018ead`. When the working engine no longer matches that revision, the runner clones the repository locally, detaches the clone at the pinned revision, reuses the installed dependency tree, and delegates measurement to that historical engine; current engine changes therefore cannot rewrite the evidence. That revision includes PV-08's kit-only adoption defaults; the measured Primary discovery and drift results remain unchanged. The runner removes ambient `GITHUB_EVENT_NAME` and `WIKI_PR_BODY` from fixture commands so GitHub Actions pull-request context cannot contaminate the synthetic measurements; its tests bind the evidence byte-for-byte, repeat the check under injected PR event metadata, and advance `origin/main` in an isolated clone to prove the historical evidence remains current after merge. These files intentionally stay outside `KIT_ENTRIES`: they validate this publishing repository's roadmap and are not part of the downstream toolkit.
+Publishing-only measurement runners stay outside `KIT_ENTRIES`. The versioned
+Primary scenario contract and its pinned baseline/current evaluators measure
+authority, sources, conflicts, coverage, context size, command order, and drift
+without an LLM; exact revisions, reports, and tests bind those results
+byte-for-byte and isolate them from ambient PR metadata.
 
-`scripts/wiki/primary-current.ts` re-evaluates the same eight-scenario contract
-against exact combined post-PV-16/PV-17/PV-18 revision
-`8b93a6f6e8026963b5cdd49cbb7a8b737e71b9ec`. Its synthetic fixture uses the
-recursive `scripts/wiki` coverage, source-mapping, and risk boundary, observes
-generic topic context through the shared JSON model, materializes every
-declared candidate, and probes every implementation/test source independently
-for code-only drift. The checked-in PV-19 JSON report records per-scenario
-authority, status, source, conflict, non-current separation, wiki action,
-coverage disposition, reconciled candidate gates, and drift-gate results;
-`scripts/wiki/primary-current.test.ts` binds it and its interpretation
-byte-for-byte to the evaluated revision. The coverage-edge implementation and
-test paths are each required to map to `architecture/engine` and fail enforced
-impact with stale verification when changed without reconciliation. Like the
-PV-05 measurement files, the PV-19 runner and report validate this publishing
-repository and stay outside `KIT_ENTRIES`.
+The TE-00, TE-04, and TE-06 runners likewise use disposable exact-revision
+fixtures. They distinguish deterministic bundle bytes and source breadth from
+external model calls or provider timing, which remain unavailable unless a
+controlled pilot records them. Compact results are digest-bound to retained
+full evidence, and exit validation reruns the Primary, kit, adoption,
+selected-work, and focused-review correctness floors.
 
-`scripts/wiki/token-efficiency-baseline.ts` is the publishing-only TE-00
-measurement harness. It detaches disposable local clones at exact
-pre-optimization revision
-`6fd3a85414e00892930557cb8335e2d88ec90d66`, reproduces focused and broad
-topic context, selected-work context, recursive TypeScript source expansion,
-and a fixed local review candidate, then removes every disposable checkout.
-The harness makes no model or provider call. Separate sanitized inputs retain
-the external schooled diagnosis and the successful controlled publisher
-rollout; strict accounting checks keep cached input inside raw input, reasoning
-inside output, and unavailable latency or phase observations explicit rather
-than coercing them to zero. Its tests bind the revision, deterministic review
-candidate, source breadth, privacy exclusions, accounting, and byte-stable
-JSON/Markdown evidence. Like the Primary evaluation runners, these files and
-their evidence describe this publishing repository and remain outside
-`KIT_ENTRIES`.
-
-`scripts/wiki/te04-focused-review.ts` replays the fixed TE-00 review candidate
-with the current focused-manifest engine in disposable local checkouts. It
-records bundle and non-diff bytes, role-classified reviewer-source breadth,
-exact attestation validation, and explicit deterministic versus externally
-observed reviewer-call/time fields without invoking a model or provider.
-
-`scripts/wiki/te06-controlled-comparison.ts` is the publishing-only fixed-task
-comparison runner for the token-efficiency roadmap. It binds one exact combined
-revision and the same TE-00 five-surface task, including the byte-identical
-review-candidate recipe. Its default output is a compact projection bound to a
-retained full record by content digest. `scripts/wiki/te06-exit-validation.ts`
-is the separate publishing-only correctness harness: it validates those fixed
-comparison records and requires the sanitized controlled-publisher observation
-to retain the same canonical task identity and digest, then reruns the Primary,
-kit, adoption, selected-work, and focused-review floors.
-Successful suite diagnostics contain bounded counts and result digests instead
-of test bodies. Both harnesses, their tests, and TE-06 evidence remain outside
-`KIT_ENTRIES`; adopters receive the portable engine and regression behavior,
-not this publisher repository's performance pilot or owner decision.
-
-`scripts/wiki/kit-modularity-baseline.ts` is the publishing-only KM-00
-compatibility and module-inventory harness. It detaches a disposable local clone
-at the exact pre-motion revision, loads that revision's kit engine and inventory
-adapter, and uses the TypeScript compiler API to bind kit-owned bytes and lines,
-exports, re-exports, type-only declarations, import and caller edges, public CLI
-commands and representative output fixtures, generated paths, regression-suite
-boundaries, `KIT_ENTRIES`, lifecycle semantics, and the manifest-v2 digest. Its
-test locks the checked JSON and Markdown evidence and stale-output behavior. The
-harness makes no model or provider call, moves no production module, and remains
-outside `KIT_ENTRIES`; it is publishing evidence used to judge the later
-semantic-preserving KM split rather than adopter runtime.
+`kit-modularity-baseline.ts` pins the pre-motion revision and records compiler
+edges, public exports, CLI fixtures, generated paths, suite ownership,
+`KIT_ENTRIES`, lifecycle behavior, and the manifest digest. Its byte-stable
+evidence is the compatibility reference for the KM split, not adopter runtime.
 
 ## Kit distribution
 
