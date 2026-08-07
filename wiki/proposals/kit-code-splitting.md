@@ -15,13 +15,17 @@ sources:
   - path: scripts/wiki/kit-sync.ts
   - path: scripts/wiki/apply.ts
   - path: scripts/wiki/test-runner.ts
+  - path: scripts/wiki/kit-modularity-baseline.ts
+  - path: scripts/wiki/kit-modularity-baseline.test.ts
+  - path: docs/evidence/km-00-portable-kit-baseline.json
+  - path: docs/evidence/km-00-portable-kit-baseline.md
 affects: [architecture/engine, operations/enforcement]
 related: [proposal/token-efficiency, architecture/engine, operations/enforcement, product/invariants]
 tags: [roadmap, kit, modularity, split, refactor, maintainability, tests, cli]
 work_items:
   - id: KM-00
     title: Freeze the portable-kit modularity baseline and compatibility contract
-    state: not-started
+    state: done
     executor: agent
     priority: normal
     depends_on: [TE-06-OWNER]
@@ -32,7 +36,12 @@ work_items:
       - The compatibility contract freezes public command names and flags, exit codes, text and JSON shapes, deterministic ordering, exported API used by shipped and publishing-only callers, generated paths, kit placement, manifest semantics, and adoption or upgrade behavior.
       - The baseline identifies any token-efficiency follow-up that still changes the same modules and records the safe integration order before code motion begins.
       - No implementation module is moved or renamed in this baseline PR.
-    evidence: []
+    evidence:
+      - scripts/wiki/kit-modularity-baseline.ts
+      - scripts/wiki/kit-modularity-baseline.test.ts
+      - docs/evidence/km-00-portable-kit-baseline.json
+      - docs/evidence/km-00-portable-kit-baseline.md
+      - wiki/proposals/kit-code-splitting.md
   - id: KM-00-OWNER
     title: Ratify the portable-kit module budget and split contract
     state: not-started
@@ -213,6 +222,67 @@ Meeting a screen does not force a split. The baseline must show a stable seam,
 compatible dependency direction, and focused regression ownership. Conversely,
 splitting one large file into several arbitrary fragments does not satisfy the
 proposal.
+
+## Frozen KM-00 baseline and compatibility contract
+
+The checked KM-00 evidence is pinned to exact pre-motion revision
+`2f8629fdd37bbd4001ffc07e65964fcead1d16d4`. The publishing-only, model-free
+runner checks out that revision in a disposable local clone, loads the pinned
+kit engine, analyzes TypeScript imports and exports through the compiler API,
+and records byte-stable JSON and Markdown. UTF-8 byte counts include the full
+blob, and line counts count LF bytes, including a final newline. The evidence
+binds the complete `KIT_ENTRIES` table, generated paths, test-suite boundaries,
+exported symbols, import and caller edges, representative CLI fixtures, and
+manifest-v2 digest
+`4963245ac4504cb8c6062dea1816a748af88f63deb669411ab6e242a4cd7b52e`.
+
+At that revision, copied kit-owned `scripts/wiki` tooling totals 9,852 lines
+and 521,482 UTF-8 bytes. The five proposed split targets total 9,598 lines and
+509,272 bytes, or 97.7% of that payload:
+
+| Target | Lines | Bytes | Payload share | Recorded responsibility areas |
+|---|---:|---:|---:|---:|
+| `scripts/wiki/core.ts` | 4,144 | 230,066 | 44.1% | 10 |
+| `scripts/wiki/fresh-context.test.ts` | 2,400 | 126,643 | 24.3% | 5 |
+| `scripts/wiki/cli.ts` | 1,277 | 58,274 | 11.2% | 5 |
+| `scripts/wiki/work.test.ts` | 1,032 | 52,621 | 10.1% | 5 |
+| `scripts/wiki/wiki.test.ts` | 745 | 41,668 | 8.0% | 5 |
+
+This confirms the initial candidate set without turning line count into the
+decision rule. Every target is kit-owned and carries material payload or
+responsibility breadth. Change history since
+`6f6298cf9174338d71fee66e6a20ce8db7ed2c84`, excluding merge commits, is kept
+as additional coupling evidence: it may strengthen a split case but its absence
+does not erase independently measured payload and responsibility evidence.
+`apply.ts` and publishing-only validation runners remain measured context, not
+first-cycle split targets, because they are not copied kit runtime or regression
+files.
+
+The compatibility surface frozen for KM-01 through KM-07 is:
+
+- the 17 public `scripts/wiki/cli.ts` commands, their accepted flags and
+  selector combinations, help and usage behavior, success/finding/usage exit
+  codes, stdout/stderr separation, deterministic ordering, and representative
+  JSON field and text-heading digests;
+- exported and re-exported value and type APIs, including type-only clauses,
+  used by shipped and publishing-only callers, plus normalized import edges;
+- generated Wiki, source-map, conflict-map, inventory, kit, and manifest paths;
+- every kit target, source kind, `files | seed | managed | reference` placement,
+  ownership rule, per-file hash, and content-addressed manifest-v2 semantics;
+- `new`, `adopt`, `upgrade`, and dry-run outcomes, host-file preservation,
+  version-1 workflow migration, conflict and explicit-accept behavior,
+  removed-upstream handling, and symlink containment; and
+- deterministic discovery of each portable regression file exactly once, with
+  existing negative and malformed-input coverage preserved.
+
+Compatibility, coverage, exact-HEAD review, kit ownership, and safe adoption or
+upgrade take priority over any numeric module target. `KM-00-OWNER` must ratify
+the proposed screen, exceptions, target dependency graph, and delivery sequence
+before code motion begins. `TE-03` remains deferred. If it is explicitly
+activated before that ratification, it must finish first and this baseline must
+be regenerated; otherwise it follows KM-07 so it cannot invalidate the module
+and source-boundary measurements mid-cycle. This KM-00 change moves or renames
+no production module.
 
 ## Target module shape
 

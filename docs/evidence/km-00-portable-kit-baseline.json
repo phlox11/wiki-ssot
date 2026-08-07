@@ -1,0 +1,4153 @@
+{
+  "cli": {
+    "commandCount": 17,
+    "commands": [
+      "lint",
+      "inventory",
+      "index",
+      "generated",
+      "kit",
+      "work",
+      "search",
+      "conflicts",
+      "context",
+      "impact",
+      "verify",
+      "review-preflight",
+      "review-bundle",
+      "review-check",
+      "doctor",
+      "check",
+      "audit"
+    ],
+    "contract": {
+      "commandSource": "scripts/wiki/cli.ts usage()",
+      "exitCodes": {
+        "finding": 1,
+        "success": 0,
+        "unexpected": 1,
+        "usage": 2
+      },
+      "ordering": "paths, IDs, fields, and command lists are deterministic",
+      "packageOnlyScripts": [
+        "wiki:hooks:install",
+        "wiki:tooling:test",
+        "wiki:tooling:typecheck"
+      ],
+      "packageScripts": [
+        "wiki:audit",
+        "wiki:check",
+        "wiki:conflicts",
+        "wiki:context",
+        "wiki:doctor",
+        "wiki:generated",
+        "wiki:hooks:install",
+        "wiki:impact",
+        "wiki:index",
+        "wiki:inventory",
+        "wiki:kit",
+        "wiki:lint",
+        "wiki:review-bundle",
+        "wiki:review-check",
+        "wiki:review-preflight",
+        "wiki:search",
+        "wiki:tooling:test",
+        "wiki:tooling:typecheck",
+        "wiki:verify",
+        "wiki:work"
+      ],
+      "stderr": "findings and usage errors are separate from stdout",
+      "stdout": "JSON is jsonStable with sorted object keys; text has stable headings",
+      "usage": "bun scripts/wiki/cli.ts <command> [options]"
+    },
+    "fixtureDigest": "9bdbc1073fb13fc6c7ae2488f34902e5d2268f50187e03ebb8ab295afff9e6cc",
+    "fixtures": [
+      {
+        "command": [
+          "scripts/wiki/cli.ts",
+          "lint",
+          "--json"
+        ],
+        "disposableClone": true,
+        "exitCode": 0,
+        "format": "json",
+        "id": "lint-json",
+        "stderr": {
+          "bytes": 0,
+          "fields": [],
+          "headings": [],
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 56,
+          "fields": [
+            "findings",
+            "findings[]",
+            "mode",
+            "ok"
+          ],
+          "headings": [],
+          "sha256": "e0b6ef69296916a385a4eab1f32533fcc7e9bf235c6827a7c056a1772805f73b"
+        },
+        "writes": false
+      },
+      {
+        "command": [
+          "scripts/wiki/cli.ts",
+          "work",
+          "--json"
+        ],
+        "disposableClone": true,
+        "exitCode": 0,
+        "format": "json",
+        "id": "work-json",
+        "stderr": {
+          "bytes": 0,
+          "fields": [],
+          "headings": [],
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 36603,
+          "fields": [
+            "groups",
+            "groups.active",
+            "groups.active[]",
+            "groups.blocked",
+            "groups.blocked[]",
+            "groups.deferred",
+            "groups.deferred[]",
+            "groups.deferred[].acceptance",
+            "groups.deferred[].acceptance[]",
+            "groups.deferred[].context_command",
+            "groups.deferred[].context_pages",
+            "groups.deferred[].context_pages[]",
+            "groups.deferred[].deferred_reason",
+            "groups.deferred[].depends_on",
+            "groups.deferred[].depends_on[]",
+            "groups.deferred[].evidence",
+            "groups.deferred[].evidence[]",
+            "groups.deferred[].executor",
+            "groups.deferred[].id",
+            "groups.deferred[].owner_page",
+            "groups.deferred[].owner_page.authority",
+            "groups.deferred[].owner_page.id",
+            "groups.deferred[].owner_page.owners",
+            "groups.deferred[].owner_page.owners[]",
+            "groups.deferred[].owner_page.path",
+            "groups.deferred[].owner_page.status",
+            "groups.deferred[].priority",
+            "groups.deferred[].queue_state",
+            "groups.deferred[].state",
+            "groups.deferred[].title",
+            "groups.deferred[].unmet_dependencies",
+            "groups.deferred[].unmet_dependencies[]",
+            "groups.ready",
+            "groups.ready[]",
+            "groups.ready[].acceptance",
+            "groups.ready[].acceptance[]",
+            "groups.ready[].context_command",
+            "groups.ready[].context_pages",
+            "groups.ready[].context_pages[]",
+            "groups.ready[].depends_on",
+            "groups.ready[].depends_on[]",
+            "groups.ready[].evidence",
+            "groups.ready[].evidence[]",
+            "groups.ready[].executor",
+            "groups.ready[].id",
+            "groups.ready[].owner_page",
+            "groups.ready[].owner_page.authority",
+            "groups.ready[].owner_page.id",
+            "groups.ready[].owner_page.owners",
+            "groups.ready[].owner_page.owners[]",
+            "groups.ready[].owner_page.path",
+            "groups.ready[].owner_page.status",
+            "groups.ready[].priority",
+            "groups.ready[].queue_state",
+            "groups.ready[].state",
+            "groups.ready[].title",
+            "groups.ready[].unmet_dependencies",
+            "groups.ready[].unmet_dependencies[]",
+            "groups.waiting",
+            "groups.waiting[]",
+            "groups.waiting[].acceptance",
+            "groups.waiting[].acceptance[]",
+            "groups.waiting[].context_command",
+            "groups.waiting[].context_pages",
+            "groups.waiting[].context_pages[]",
+            "groups.waiting[].depends_on",
+            "groups.waiting[].depends_on[]",
+            "groups.waiting[].evidence",
+            "groups.waiting[].evidence[]",
+            "groups.waiting[].executor",
+            "groups.waiting[].id",
+            "groups.waiting[].owner_page",
+            "groups.waiting[].owner_page.authority",
+            "groups.waiting[].owner_page.id",
+            "groups.waiting[].owner_page.owners",
+            "groups.waiting[].owner_page.owners[]",
+            "groups.waiting[].owner_page.path",
+            "groups.waiting[].owner_page.status",
+            "groups.waiting[].priority",
+            "groups.waiting[].queue_state",
+            "groups.waiting[].state",
+            "groups.waiting[].title",
+            "groups.waiting[].unmet_dependencies",
+            "groups.waiting[].unmet_dependencies[]",
+            "open_conflicts",
+            "open_conflicts[]",
+            "recommended_next",
+            "recommended_next.id",
+            "recommended_next.kind",
+            "version"
+          ],
+          "headings": [],
+          "sha256": "a8aa0efafc482f70126478b4f5993694134371d3afdd9dc9960d05029360d655"
+        },
+        "writes": false
+      },
+      {
+        "command": [
+          "scripts/wiki/cli.ts",
+          "context",
+          "--work",
+          "KM-00",
+          "--json"
+        ],
+        "disposableClone": true,
+        "exitCode": 0,
+        "format": "json",
+        "id": "context-work-json",
+        "stderr": {
+          "bytes": 0,
+          "fields": [],
+          "headings": [],
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 19030,
+          "fields": [
+            "conflicts",
+            "conflicts[]",
+            "mode",
+            "ownerPage",
+            "ownerPage.authority",
+            "ownerPage.bodyDigest",
+            "ownerPage.exactSources",
+            "ownerPage.exactSources[]",
+            "ownerPage.exactSources[].path",
+            "ownerPage.focusedCommand",
+            "ownerPage.id",
+            "ownerPage.kind",
+            "ownerPage.owners",
+            "ownerPage.owners[]",
+            "ownerPage.path",
+            "ownerPage.relevantOpenConflicts",
+            "ownerPage.relevantOpenConflicts[]",
+            "ownerPage.sourceFiles",
+            "ownerPage.sourceFiles[]",
+            "ownerPage.sourceGlobs",
+            "ownerPage.sourceGlobs[]",
+            "ownerPage.sources",
+            "ownerPage.sources[]",
+            "ownerPage.sources[].path",
+            "ownerPage.status",
+            "ownerPage.summary",
+            "pages",
+            "pages[]",
+            "pages[].authority",
+            "pages[].bodyDigest",
+            "pages[].exactSources",
+            "pages[].exactSources[]",
+            "pages[].exactSources[].path",
+            "pages[].focusedCommand",
+            "pages[].id",
+            "pages[].kind",
+            "pages[].owners",
+            "pages[].owners[]",
+            "pages[].path",
+            "pages[].relevantOpenConflicts",
+            "pages[].relevantOpenConflicts[]",
+            "pages[].sourceFiles",
+            "pages[].sourceFiles[]",
+            "pages[].sourceGlobs",
+            "pages[].sourceGlobs[]",
+            "pages[].sources",
+            "pages[].sources[]",
+            "pages[].sources[].path",
+            "pages[].status",
+            "pages[].summary",
+            "query",
+            "readOrder",
+            "readOrder[]",
+            "readOrder[].id",
+            "readOrder[].kind",
+            "readOrder[].path",
+            "requestedConflict",
+            "requestedWork",
+            "version",
+            "work",
+            "work.acceptance",
+            "work.acceptance[]",
+            "work.context_command",
+            "work.context_pages",
+            "work.context_pages[]",
+            "work.depends_on",
+            "work.depends_on[]",
+            "work.evidence",
+            "work.evidence[]",
+            "work.executor",
+            "work.id",
+            "work.owner_page",
+            "work.owner_page.authority",
+            "work.owner_page.id",
+            "work.owner_page.owners",
+            "work.owner_page.owners[]",
+            "work.owner_page.path",
+            "work.owner_page.status",
+            "work.priority",
+            "work.queue_state",
+            "work.state",
+            "work.title",
+            "work.unmet_dependencies",
+            "work.unmet_dependencies[]"
+          ],
+          "headings": [],
+          "sha256": "29d6c7bcab5dfa4797b69549e33836b537008cd91f3aca12323fe65ab63637b3"
+        },
+        "writes": false
+      },
+      {
+        "command": [
+          "scripts/wiki/cli.ts",
+          "generated",
+          "--json"
+        ],
+        "disposableClone": true,
+        "exitCode": 0,
+        "format": "json",
+        "id": "generated-write-json",
+        "stderr": {
+          "bytes": 0,
+          "fields": [],
+          "headings": [],
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 184,
+          "fields": [
+            "written",
+            "written[]"
+          ],
+          "headings": [],
+          "sha256": "e85e08acf08cb51520aa27f95164033ac61c2a2fb59d54faae4caaa4f8ac1a8f"
+        },
+        "writes": true
+      },
+      {
+        "command": [
+          "scripts/wiki/cli.ts",
+          "generated",
+          "--check",
+          "--json"
+        ],
+        "disposableClone": true,
+        "exitCode": 0,
+        "format": "json",
+        "id": "generated-check-json",
+        "stderr": {
+          "bytes": 0,
+          "fields": [],
+          "headings": [],
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 35,
+          "fields": [
+            "findings",
+            "findings[]",
+            "ok"
+          ],
+          "headings": [],
+          "sha256": "83fd7fe0103f3627575335ef373c276e2b23b7ce8d9ba0db77df5b7d6a079f78"
+        },
+        "writes": false
+      },
+      {
+        "command": [
+          "scripts/wiki/cli.ts",
+          "kit",
+          "--json"
+        ],
+        "disposableClone": true,
+        "exitCode": 0,
+        "format": "json",
+        "id": "kit-write-json",
+        "stderr": {
+          "bytes": 0,
+          "fields": [],
+          "headings": [],
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 1200,
+          "fields": [
+            "removed",
+            "removed[]",
+            "written",
+            "written[]"
+          ],
+          "headings": [],
+          "sha256": "4e7134b5b1e3f7e24ddd8ebf7fc5c6d7d2973ce5220df601e597e4e6e6090759"
+        },
+        "writes": true
+      },
+      {
+        "command": [
+          "scripts/wiki/cli.ts",
+          "kit",
+          "--check",
+          "--json"
+        ],
+        "disposableClone": true,
+        "exitCode": 0,
+        "format": "json",
+        "id": "kit-check-json",
+        "stderr": {
+          "bytes": 0,
+          "fields": [],
+          "headings": [],
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 35,
+          "fields": [
+            "findings",
+            "findings[]",
+            "ok"
+          ],
+          "headings": [],
+          "sha256": "83fd7fe0103f3627575335ef373c276e2b23b7ce8d9ba0db77df5b7d6a079f78"
+        },
+        "writes": false
+      },
+      {
+        "command": [
+          "scripts/wiki/cli.ts",
+          "review-check",
+          "--base",
+          "2f8629fdd37bbd4001ffc07e65964fcead1d16d4",
+          "--metadata",
+          "<temporary>/km00-pr-body.md",
+          "--json"
+        ],
+        "disposableClone": true,
+        "exitCode": 0,
+        "format": "json",
+        "id": "review-check-json",
+        "stderr": {
+          "bytes": 0,
+          "fields": [],
+          "headings": [],
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 2451,
+          "fields": [
+            "findings",
+            "findings[]",
+            "impact",
+            "impact.advisoryStalePages",
+            "impact.advisoryStalePages[]",
+            "impact.affectedConflicts",
+            "impact.affectedConflicts[]",
+            "impact.affectedPages",
+            "impact.affectedPages[]",
+            "impact.base",
+            "impact.changedFiles",
+            "impact.changedFiles[]",
+            "impact.findings",
+            "impact.findings[]",
+            "impact.findings[].code",
+            "impact.findings[].message",
+            "impact.findings[].severity",
+            "impact.highRiskStalePages",
+            "impact.highRiskStalePages[]",
+            "impact.mergeBase",
+            "impact.removedCurrentPages",
+            "impact.removedCurrentPages[]",
+            "impact.stalePages",
+            "impact.stalePages[]",
+            "impact.unmappedHighRisk",
+            "impact.unmappedHighRisk[]",
+            "manifest",
+            "manifest.affected_conflict_ids",
+            "manifest.affected_conflict_ids[]",
+            "manifest.affected_invariant_ids",
+            "manifest.affected_invariant_ids[]",
+            "manifest.affected_page_ids",
+            "manifest.affected_page_ids[]",
+            "manifest.base_ref",
+            "manifest.bundle_digest",
+            "manifest.diff_digest",
+            "manifest.file_digests",
+            "manifest.file_digests.diff.patch",
+            "manifest.file_digests.focused-manifest.json",
+            "manifest.file_digests.impact.json",
+            "manifest.file_digests.objects/b481b7d046fdb50e5987b433c7c6d4ba062fb7fc78a9666fa5117bfbc6204e3d.md",
+            "manifest.file_digests.pr-metadata.json",
+            "manifest.file_digests.PROMPT.md",
+            "manifest.file_digests.REPORT.example.json",
+            "manifest.file_digests.REPORT.findings.example.json",
+            "manifest.file_digests.REPORT.md",
+            "manifest.file_digests.sources.json",
+            "manifest.focused_manifest_digest",
+            "manifest.head_sha",
+            "manifest.impact_report_digest",
+            "manifest.merge_base_sha",
+            "manifest.pr_metadata_digest",
+            "manifest.version",
+            "mode",
+            "ok",
+            "required",
+            "requirementReasons",
+            "requirementReasons[]"
+          ],
+          "headings": [],
+          "sha256": "1c67f394201aca3d66b0511bc50907404cc26667949c0e0fd788fc648fd2420d"
+        },
+        "writes": false
+      },
+      {
+        "command": [
+          "scripts/wiki/cli.ts",
+          "work",
+          "--help"
+        ],
+        "disposableClone": true,
+        "exitCode": 0,
+        "format": "text",
+        "id": "work-help",
+        "stderr": {
+          "bytes": 0,
+          "fields": [],
+          "headings": [],
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 457,
+          "fields": [],
+          "headings": [],
+          "sha256": "4cc82a4565bf1fd5cfc123b484c9131b3395708f2c478da3de96aac03bc8a256"
+        },
+        "writes": false
+      },
+      {
+        "command": [
+          "scripts/wiki/cli.ts",
+          "unknown-command"
+        ],
+        "disposableClone": true,
+        "exitCode": 2,
+        "format": "usage",
+        "id": "usage-error",
+        "stderr": {
+          "bytes": 185,
+          "fields": [],
+          "headings": [],
+          "sha256": "4b1c0a13be903c8d0896d2adf96d7e2ae0ce5da57318ea37cbe86b53d3fc2ee4"
+        },
+        "stdout": {
+          "bytes": 0,
+          "fields": [],
+          "headings": [],
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "writes": false
+      }
+    ],
+    "globalFlags": [
+      "--json",
+      "--root <path>",
+      "--staged",
+      "--check",
+      "--enforce",
+      "--enforce-conflicts",
+      "--all",
+      "--full",
+      "--help"
+    ],
+    "selectors": {
+      "conflicts": [
+        "C-NNN",
+        "--all",
+        "--json"
+      ],
+      "context": [
+        "--work <ID>",
+        "--page <ID>",
+        "--conflict C-NNN",
+        "--artifact <path>",
+        "--reuse <path>",
+        "--metadata <path>",
+        "--base <ref>",
+        "--full",
+        "--json"
+      ],
+      "global": [
+        "--json",
+        "--root <path>",
+        "--staged",
+        "--check",
+        "--enforce",
+        "--enforce-conflicts",
+        "--all",
+        "--full",
+        "--help"
+      ],
+      "impact": [
+        "--base <ref>",
+        "--metadata <path>",
+        "--enforce",
+        "--enforce-conflicts",
+        "--json"
+      ],
+      "review": [
+        "--base <ref>",
+        "--metadata <path>",
+        "--output <dir>",
+        "--report <path>",
+        "--policy-file <path>",
+        "--reviewer-actor <actor>",
+        "--pr-author <actor>",
+        "--json"
+      ],
+      "search": [
+        "<terms>",
+        "--query <terms>",
+        "--json"
+      ],
+      "verify": [
+        "--page <id>",
+        "--unchanged <20+ chars>",
+        "--json"
+      ],
+      "work": [
+        "--executor agent|human|all",
+        "--all",
+        "--json",
+        "--help"
+      ]
+    },
+    "writeCommands": [
+      "inventory",
+      "index",
+      "generated",
+      "kit",
+      "verify",
+      "review-preflight",
+      "review-bundle"
+    ]
+  },
+  "contractVersion": 1,
+  "exactRevision": "2f8629fdd37bbd4001ffc07e65964fcead1d16d4",
+  "kind": "km-00-portable-kit-baseline",
+  "kit": {
+    "entries": [
+      {
+        "placement": "files",
+        "source": {
+          "from": "scripts/wiki/core.ts",
+          "kind": "copy"
+        },
+        "target": "scripts/wiki/core.ts"
+      },
+      {
+        "placement": "files",
+        "source": {
+          "from": "scripts/wiki/cli.ts",
+          "kind": "copy"
+        },
+        "target": "scripts/wiki/cli.ts"
+      },
+      {
+        "placement": "files",
+        "source": {
+          "from": "scripts/wiki/github-attestation.ts",
+          "kind": "copy"
+        },
+        "target": "scripts/wiki/github-attestation.ts"
+      },
+      {
+        "placement": "reference",
+        "source": {
+          "from": "scripts/wiki/inventories.example.ts",
+          "kind": "copy"
+        },
+        "target": "scripts/wiki/inventories.example.ts"
+      },
+      {
+        "placement": "files",
+        "source": {
+          "from": "scripts/wiki/wiki.test.ts",
+          "kind": "copy"
+        },
+        "target": "scripts/wiki/wiki.test.ts"
+      },
+      {
+        "placement": "files",
+        "source": {
+          "from": "scripts/wiki/work.test.ts",
+          "kind": "copy"
+        },
+        "target": "scripts/wiki/work.test.ts"
+      },
+      {
+        "placement": "files",
+        "source": {
+          "from": "scripts/wiki/fresh-context.test.ts",
+          "kind": "copy"
+        },
+        "target": "scripts/wiki/fresh-context.test.ts"
+      },
+      {
+        "placement": "files",
+        "source": {
+          "from": "scripts/wiki/test-runner.ts",
+          "kind": "copy"
+        },
+        "target": "scripts/wiki/test-runner.ts"
+      },
+      {
+        "placement": "files",
+        "source": {
+          "from": "scripts/wiki/tsconfig.json",
+          "kind": "copy"
+        },
+        "target": "scripts/wiki/tsconfig.json"
+      },
+      {
+        "placement": "files",
+        "source": {
+          "from": ".github/workflows/wiki-ssot.yml",
+          "kind": "copy"
+        },
+        "target": ".github/workflows/wiki-ssot.yml"
+      },
+      {
+        "placement": "files",
+        "source": {
+          "from": ".github/workflows/wiki-audit.yml",
+          "kind": "copy"
+        },
+        "target": ".github/workflows/wiki-audit.yml"
+      },
+      {
+        "placement": "reference",
+        "source": {
+          "host": ".github/workflows/checks.yml",
+          "kind": "legacy-v1-workflow",
+          "wiki": ".github/workflows/wiki-ssot.yml"
+        },
+        "target": "migrations/v1/checks.yml"
+      },
+      {
+        "placement": "reference",
+        "source": {
+          "from": ".github/workflows/checks.yml",
+          "kind": "copy"
+        },
+        "target": "migrations/v1/host-checks.yml"
+      },
+      {
+        "placement": "managed",
+        "source": {
+          "end": "<!-- wiki-ssot:managed:end -->",
+          "from": ".github/pull_request_template.md",
+          "kind": "managed-block",
+          "legacyMarkers": [
+            "fresh_context:"
+          ],
+          "start": "<!-- wiki-ssot:managed:start -->"
+        },
+        "target": ".github/pull_request_template.md"
+      },
+      {
+        "placement": "managed",
+        "source": {
+          "end": "# wiki-ssot:managed:end",
+          "from": ".husky/pre-commit",
+          "kind": "managed-block",
+          "legacyMarkers": [
+            "bun run wiki:lint --staged"
+          ],
+          "start": "# wiki-ssot:managed:start"
+        },
+        "target": ".husky/pre-commit"
+      },
+      {
+        "placement": "managed",
+        "source": {
+          "end": "# wiki-ssot:managed:end",
+          "from": ".husky/pre-push",
+          "kind": "managed-block",
+          "legacyMarkers": [
+            "refs/heads/main"
+          ],
+          "start": "# wiki-ssot:managed:start"
+        },
+        "target": ".husky/pre-push"
+      },
+      {
+        "placement": "managed",
+        "source": {
+          "end": "<!-- wiki-ssot:managed:end -->",
+          "from": "AGENTS.md",
+          "kind": "managed-block",
+          "legacyMarkers": [
+            "<!-- wiki-ssot:fresh-context-guardrail -->"
+          ],
+          "start": "<!-- wiki-ssot:managed:start -->"
+        },
+        "target": "AGENTS.md"
+      },
+      {
+        "placement": "files",
+        "source": {
+          "from": "wiki/README.md",
+          "kind": "strip"
+        },
+        "target": "wiki/README.md"
+      },
+      {
+        "placement": "files",
+        "source": {
+          "from": "wiki/SCHEMA.md",
+          "kind": "strip"
+        },
+        "target": "wiki/SCHEMA.md"
+      },
+      {
+        "placement": "files",
+        "source": {
+          "from": "wiki/WORKFLOW.md",
+          "kind": "strip"
+        },
+        "target": "wiki/WORKFLOW.md"
+      },
+      {
+        "placement": "seed",
+        "source": {
+          "from": "CLAUDE.md",
+          "kind": "strip"
+        },
+        "target": "CLAUDE.md"
+      },
+      {
+        "placement": "seed",
+        "source": {
+          "from": ".gitignore",
+          "kind": "copy"
+        },
+        "target": ".gitignore"
+      },
+      {
+        "placement": "seed",
+        "source": {
+          "from": "tsconfig.json",
+          "kind": "copy"
+        },
+        "target": "tsconfig.json"
+      },
+      {
+        "placement": "seed",
+        "source": {
+          "from": "scripts/wiki/inventories.ts",
+          "kind": "copy"
+        },
+        "target": "scripts/wiki/inventories.ts"
+      },
+      {
+        "placement": "seed",
+        "source": {
+          "content": "{\n  \"freshContext\": {\n    \"evidenceRequired\": true,\n    \"mode\": \"required\",\n    \"requiredVerdict\": \"PASS\",\n    \"requiredWhen\": {\n      \"affectedConflicts\": true,\n      \"affectedInvariants\": true,\n      \"changedFileGlobs\": [\n        \".github/workflows/**\",\n        \".wiki/config.json\",\n        \"AGENTS.md\",\n        \"scripts/wiki/**\",\n        \"wiki/SCHEMA.md\",\n        \"wiki/WORKFLOW.md\"\n      ],\n      \"kind\": \"risk-based\",\n      \"removedCurrentPages\": true\n    },\n    \"trust\": {\n      \"allowedReviewers\": [\n        \"*\"\n      ],\n      \"requireAuthenticatedActor\": true,\n      \"requireDifferentActor\": false\n    }\n  },\n  \"highRisk\": [\n    \"src/contracts/**\",\n    \"src/db/**\",\n    \"migrations/**\"\n  ],\n  \"name\": \"your-repo\",\n  \"version\": 1\n}\n",
+          "kind": "literal"
+        },
+        "target": ".wiki/config.json"
+      },
+      {
+        "placement": "seed",
+        "source": {
+          "content": "{\n  \"exclusions\": [],\n  \"include\": [],\n  \"version\": 1\n}\n",
+          "kind": "literal"
+        },
+        "target": ".wiki/coverage.json"
+      },
+      {
+        "placement": "seed",
+        "source": {
+          "content": "{\n  \"pages\": {},\n  \"version\": 1\n}\n",
+          "kind": "literal"
+        },
+        "target": ".wiki/state.json"
+      },
+      {
+        "placement": "seed",
+        "source": {
+          "content": "# Changelog\n\nRecord only current-contract changes here: product-contract changes, significant architecture decisions, invariant changes, large reconciles, and schema or process changes. Git remains the source of truth for ordinary change history.\n\n- Wiki established from the wiki-ssot kit.\n",
+          "kind": "literal"
+        },
+        "target": "wiki/changelog.md"
+      },
+      {
+        "placement": "reference",
+        "source": {
+          "from": "package.json",
+          "kind": "package-fragment"
+        },
+        "target": "package.kit.json"
+      }
+    ],
+    "entriesDigest": "5250acbdc9f064a1bf363d370692726d8ce8e82ae64a52b065a57180af2852ad",
+    "fileHashes": {
+      ".github/pull_request_template.md": "916082ac1ca9bc573eec64cd7ed8857aec468b396ca68f91bd110e7fe4bd3d7e",
+      ".github/workflows/wiki-audit.yml": "33a3bf1dcf6482a293f137a4cfc332eb8804639bd3b8d950a9244fa6fdda97f4",
+      ".github/workflows/wiki-ssot.yml": "8735217c246e7b4dc9232144af3e8d9fc96d99288561d8d499a1c14f69802df5",
+      ".gitignore": "2f9aebd7a15d0a9e62d69bff1c888bb93ec5eab506a9db272de622defda4735c",
+      ".husky/pre-commit": "6391e4a8b23e6eddb62b6863dbfd1a9aca995d0dde92646c7601f78eeb807eb1",
+      ".husky/pre-push": "4b8ec74d4d4bc80d52e3f4bbf0c9c66d1cbf25432ff19460a7cc03daf61f0df2",
+      "AGENTS.md": "ce754be14c6dae7cb7bd70252e263842d960b8c8312170102cfae34bd8419746",
+      "CLAUDE.md": "3ca00cefe7f0f391fe2ad6bb078ee3064aa82f8a5ae1ec02099dfa8f4862dad9",
+      "migrations/v1/host-checks.yml": "0aaea6d0903f1e951dfec6a1e3a4adcab38fd4c5d2389ca3d4ac87c0c4915cfa",
+      "package.kit.json": "e73eac7e5e309f816f1e35df44a8f11362282fee931c4db24e0a3a409da23934",
+      "scripts/wiki/cli.ts": "6d0d9b9344ea64f602b9fbff7a313e7619c53210801f42da0b66d9727f2d8617",
+      "scripts/wiki/core.ts": "a73e4c626034934cb396d6de3caf5e97a157cb768e5fd353729708be97085860",
+      "scripts/wiki/fresh-context.test.ts": "d5479279778a25499a02b97b49a8b3c66c05a63bd3e84d18318bbb6ea6c255a0",
+      "scripts/wiki/github-attestation.ts": "cad5290748265f5b5cd1a5503f075cfb837283ca0e8b4e7c004567deb33139cb",
+      "scripts/wiki/inventories.example.ts": "c77492bf25a8e89d6c5f2de5d1238bb426e41b81cd255d7c153e05d295e91c4e",
+      "scripts/wiki/inventories.ts": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca",
+      "scripts/wiki/test-runner.ts": "286f69b3e224851dc2c43e38c47a47654afd2516463b4b6c89d03a82f933a990",
+      "scripts/wiki/tsconfig.json": "e663640cb557e1d3fee0c2ffca227ad0832d3cd30a341813c4fd09f73bb0e65a",
+      "scripts/wiki/wiki.test.ts": "00c5762f2fa69bf6830c10f70ca63ad12baa822c0fc1506603f89ff6fe77f7a4",
+      "scripts/wiki/work.test.ts": "f55bf17000199c2655290f41dc213c2eec592e481a6b6beba911e15b15f729ba",
+      "tsconfig.json": "8c3d96cbfc0a838c87344481ed0e0da012fe83612883206702eef8dd9d71e07e",
+      "wiki/README.md": "3630e413d44b68e1a141cf3b971098d540ae3e5fc8de0fac83153f392c2c6a54",
+      "wiki/SCHEMA.md": "c6678032a19b49cdea9686edc539191394d23cf6678a29771dfefb30996d2503",
+      "wiki/WORKFLOW.md": "031108d8ab66724097f4acdb9ac82c385aef5bc7c0e169987677d4c726bf1ae8"
+    },
+    "generatedPaths": [
+      ".wiki/conflict-map.json",
+      ".wiki/source-map.json",
+      "kit/files/.github/workflows/wiki-audit.yml",
+      "kit/files/.github/workflows/wiki-ssot.yml",
+      "kit/files/.wiki/kit-manifest.json",
+      "kit/files/scripts/wiki/cli.ts",
+      "kit/files/scripts/wiki/core.ts",
+      "kit/files/scripts/wiki/fresh-context.test.ts",
+      "kit/files/scripts/wiki/github-attestation.ts",
+      "kit/files/scripts/wiki/test-runner.ts",
+      "kit/files/scripts/wiki/tsconfig.json",
+      "kit/files/scripts/wiki/wiki.test.ts",
+      "kit/files/scripts/wiki/work.test.ts",
+      "kit/files/wiki/README.md",
+      "kit/files/wiki/SCHEMA.md",
+      "kit/files/wiki/WORKFLOW.md",
+      "kit/managed/.github/pull_request_template.md",
+      "kit/managed/.husky/pre-commit",
+      "kit/managed/.husky/pre-push",
+      "kit/managed/AGENTS.md",
+      "kit/migrations/v1/checks.yml",
+      "kit/migrations/v1/host-checks.yml",
+      "kit/package.kit.json",
+      "kit/scripts/wiki/inventories.example.ts",
+      "kit/seed/.gitignore",
+      "kit/seed/.wiki/config.json",
+      "kit/seed/.wiki/coverage.json",
+      "kit/seed/.wiki/state.json",
+      "kit/seed/CLAUDE.md",
+      "kit/seed/scripts/wiki/inventories.ts",
+      "kit/seed/tsconfig.json",
+      "kit/seed/wiki/changelog.md",
+      "wiki/conflicts.md",
+      "wiki/current-status.md",
+      "wiki/index.md",
+      "wiki/work-queue.md"
+    ],
+    "manifest": {
+      "digest": "4963245ac4504cb8c6062dea1816a748af88f63deb669411ab6e242a4cd7b52e",
+      "files": {
+        ".github/workflows/wiki-audit.yml": {
+          "ownership": "kit",
+          "sha256": "33a3bf1dcf6482a293f137a4cfc332eb8804639bd3b8d950a9244fa6fdda97f4"
+        },
+        ".github/workflows/wiki-ssot.yml": {
+          "ownership": "kit",
+          "sha256": "8735217c246e7b4dc9232144af3e8d9fc96d99288561d8d499a1c14f69802df5"
+        },
+        ".gitignore": {
+          "ownership": "seed",
+          "sha256": "2f9aebd7a15d0a9e62d69bff1c888bb93ec5eab506a9db272de622defda4735c"
+        },
+        ".wiki/config.json": {
+          "ownership": "seed",
+          "sha256": "2e0e10b2f7fe2b84aa691432693768cf3d879cc0156e1d23b6b96c52caa869c1"
+        },
+        ".wiki/coverage.json": {
+          "ownership": "seed",
+          "sha256": "fa0de10e9cd5c3024bfaff43f7b272bf812558c048891a2cfdc337299b74cdf7"
+        },
+        ".wiki/state.json": {
+          "ownership": "seed",
+          "sha256": "3f9f07b25b1a2dfb59bbaa631f522b58a07301f499680939b02d50500c6cc721"
+        },
+        "CLAUDE.md": {
+          "ownership": "seed",
+          "sha256": "3ca00cefe7f0f391fe2ad6bb078ee3064aa82f8a5ae1ec02099dfa8f4862dad9"
+        },
+        "scripts/wiki/cli.ts": {
+          "ownership": "kit",
+          "sha256": "6d0d9b9344ea64f602b9fbff7a313e7619c53210801f42da0b66d9727f2d8617"
+        },
+        "scripts/wiki/core.ts": {
+          "ownership": "kit",
+          "sha256": "a73e4c626034934cb396d6de3caf5e97a157cb768e5fd353729708be97085860"
+        },
+        "scripts/wiki/fresh-context.test.ts": {
+          "ownership": "kit",
+          "sha256": "d5479279778a25499a02b97b49a8b3c66c05a63bd3e84d18318bbb6ea6c255a0"
+        },
+        "scripts/wiki/github-attestation.ts": {
+          "ownership": "kit",
+          "sha256": "cad5290748265f5b5cd1a5503f075cfb837283ca0e8b4e7c004567deb33139cb"
+        },
+        "scripts/wiki/inventories.ts": {
+          "ownership": "seed",
+          "sha256": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca"
+        },
+        "scripts/wiki/test-runner.ts": {
+          "ownership": "kit",
+          "sha256": "286f69b3e224851dc2c43e38c47a47654afd2516463b4b6c89d03a82f933a990"
+        },
+        "scripts/wiki/tsconfig.json": {
+          "ownership": "kit",
+          "sha256": "e663640cb557e1d3fee0c2ffca227ad0832d3cd30a341813c4fd09f73bb0e65a"
+        },
+        "scripts/wiki/wiki.test.ts": {
+          "ownership": "kit",
+          "sha256": "00c5762f2fa69bf6830c10f70ca63ad12baa822c0fc1506603f89ff6fe77f7a4"
+        },
+        "scripts/wiki/work.test.ts": {
+          "ownership": "kit",
+          "sha256": "f55bf17000199c2655290f41dc213c2eec592e481a6b6beba911e15b15f729ba"
+        },
+        "tsconfig.json": {
+          "ownership": "seed",
+          "sha256": "8c3d96cbfc0a838c87344481ed0e0da012fe83612883206702eef8dd9d71e07e"
+        },
+        "wiki/changelog.md": {
+          "ownership": "seed",
+          "sha256": "00f49977b9e42e717d9654d711f45bcc82d049e2e55a49a7a420991e6edcf7cc"
+        },
+        "wiki/README.md": {
+          "ownership": "kit",
+          "sha256": "3630e413d44b68e1a141cf3b971098d540ae3e5fc8de0fac83153f392c2c6a54"
+        },
+        "wiki/SCHEMA.md": {
+          "ownership": "kit",
+          "sha256": "c6678032a19b49cdea9686edc539191394d23cf6678a29771dfefb30996d2503"
+        },
+        "wiki/WORKFLOW.md": {
+          "ownership": "kit",
+          "sha256": "128968524b941bb2d3c5d9d4b9966d2fbd1e35fe39afcd2a4f3811c3ca6c2cb9"
+        }
+      },
+      "kit": "wiki-ssot",
+      "managed": {
+        ".github/pull_request_template.md": {
+          "end": "<!-- wiki-ssot:managed:end -->",
+          "legacyMarkers": [
+            "fresh_context:"
+          ],
+          "sha256": "871b26e291b757c1b3946054de1af55f28607c1cc60e18769313fba02045058b",
+          "start": "<!-- wiki-ssot:managed:start -->"
+        },
+        ".husky/pre-commit": {
+          "end": "# wiki-ssot:managed:end",
+          "legacyMarkers": [
+            "bun run wiki:lint --staged"
+          ],
+          "sha256": "c9ad727cb00161e87677b904f7e52edf05ca280887d5ea39ffee269e11fb2e08",
+          "start": "# wiki-ssot:managed:start"
+        },
+        ".husky/pre-push": {
+          "end": "# wiki-ssot:managed:end",
+          "legacyMarkers": [
+            "refs/heads/main"
+          ],
+          "sha256": "7be73ead829e28feb1f58fb03bc41b6e9d8e4fd35e10c0064f657836cba2488d",
+          "start": "# wiki-ssot:managed:start"
+        },
+        "AGENTS.md": {
+          "end": "<!-- wiki-ssot:managed:end -->",
+          "legacyMarkers": [
+            "<!-- wiki-ssot:fresh-context-guardrail -->"
+          ],
+          "sha256": "13612c088e5802ff9b062600a77e58f1267c118323d8ae79e2b741f099c50e05",
+          "start": "<!-- wiki-ssot:managed:start -->"
+        }
+      },
+      "reference": {
+        "migrations/v1/checks.yml": "53d46f240a5f4ee78327cae0d1e221ded01bd7b36b714c16121dd1256b1d92d5",
+        "migrations/v1/host-checks.yml": "0aaea6d0903f1e951dfec6a1e3a4adcab38fd4c5d2389ca3d4ac87c0c4915cfa",
+        "package.kit.json": "c90e49d9266943f7dba2283504ecdd35046030b5a937e8303973a9a46a7856e7",
+        "scripts/wiki/inventories.example.ts": "c77492bf25a8e89d6c5f2de5d1238bb426e41b81cd255d7c153e05d295e91c4e"
+      },
+      "version": 2
+    },
+    "manifestDigest": "4963245ac4504cb8c6062dea1816a748af88f63deb669411ab6e242a4cd7b52e",
+    "ownedEntries": [
+      "scripts/wiki/core.ts",
+      "scripts/wiki/cli.ts",
+      "scripts/wiki/github-attestation.ts",
+      "scripts/wiki/wiki.test.ts",
+      "scripts/wiki/work.test.ts",
+      "scripts/wiki/fresh-context.test.ts",
+      "scripts/wiki/test-runner.ts",
+      "scripts/wiki/tsconfig.json",
+      ".github/workflows/wiki-ssot.yml",
+      ".github/workflows/wiki-audit.yml",
+      "wiki/README.md",
+      "wiki/SCHEMA.md",
+      "wiki/WORKFLOW.md"
+    ]
+  },
+  "lifecycle": {
+    "behavior": [
+      "new",
+      "adopt",
+      "upgrade",
+      "dry-run"
+    ],
+    "implementation": [
+      "scripts/wiki/apply.ts",
+      "scripts/wiki/kit-sync.ts"
+    ],
+    "semantics": [
+      "kit files replace on upgrade",
+      "seed files write only when absent",
+      "managed blocks replace one declared block and preserve host bytes",
+      "reference files are never copied",
+      "manifest v2 is content-addressed and records host integrations"
+    ],
+    "sourceHashes": {
+      "scripts/wiki/apply.test.ts": "ab318b04cd21cc4e191066261e2c6cf8a09776d37635415032c30a66b2dc5dc2",
+      "scripts/wiki/apply.ts": "5a273691372ff6fcfdd63214da513fa8b71b9fe8730ff2e49cdfec0793ad2c15",
+      "scripts/wiki/existing-repo-bootstrap.test.ts": "90d75082e33ccdb3fe195b1bbbcbbc6be7646a55a948e1359be2d001e79e5eb2",
+      "scripts/wiki/kit-sync.ts": "05d5d1d5187a4c470c47f52efe4483f5d05c27fc43f234f0ebfb071c8a57f9d9",
+      "scripts/wiki/new-repository-adoption.test.ts": "86d8bb2bccaa23f8f71602b26aa3ae60a908611fc663180ad4dec0a0cb08d190"
+    },
+    "statuses": [
+      "ready",
+      "preview",
+      "needs-reconcile",
+      "needs-merge"
+    ]
+  },
+  "method": {
+    "changeCouplingMethod": "git log --no-merges and git diff --numstat over the pinned coupling-to-baseline range",
+    "importExportMethod": "TypeScript compiler API createProgram/checker AST; import/export declarations, including type-only clauses",
+    "lineDefinition": "LF byte count; a final newline contributes one line",
+    "modelCalls": 0,
+    "providerCalls": 0,
+    "revisionCheckout": "detached git checkout of exact revision in a disposable clone",
+    "sourceEncoding": "UTF-8",
+    "writeGuard": "write-producing CLI fixtures run only in disposable clones with CI/GitHub/PR variables removed"
+  },
+  "modules": {
+    "callerBindings": [
+      {
+        "callerKind": "shipped",
+        "from": "scripts/wiki/cli.ts",
+        "kind": "import",
+        "names": [
+          "allLintFindings",
+          "auditReport",
+          "buildCompactTopicCandidateContext",
+          "buildPageContext",
+          "buildReusableWorkContextArtifact",
+          "buildSelectedWorkContext",
+          "buildTopicContext",
+          "buildWorkQueue",
+          "CompactContextConflict",
+          "CompactContextPage",
+          "CompactSelectedWorkContext",
+          "CompactTopicContext",
+          "compareGenerated",
+          "compareKit",
+          "conflictSummary",
+          "createRepoView",
+          "Finding",
+          "generatedCoreFiles",
+          "impactReport",
+          "isConflictGuardFinding",
+          "jsonStable",
+          "kitFiles",
+          "loadWikiPages",
+          "makeReviewBundle",
+          "openConflicts",
+          "parseFreshContextPolicy",
+          "parseFreshContextReport",
+          "PrMetadata",
+          "projectSelectedWorkContext",
+          "projectTopicContext",
+          "projectWorkQueue",
+          "readConfig",
+          "reviewCheck",
+          "searchWikiPages",
+          "SelectedWorkContextConflict",
+          "SelectedWorkContextPage",
+          "UsageError",
+          "validateIntegrationSeams",
+          "validatePages",
+          "validatePrMetadata",
+          "validateReusableWorkContextArtifact",
+          "verifyState",
+          "WikiSource",
+          "WorkExecutorFilter",
+          "WorkQueueItem",
+          "writeGenerated",
+          "writeKit"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      },
+      {
+        "callerKind": "shipped",
+        "from": "scripts/wiki/cli.ts",
+        "kind": "import",
+        "names": [
+          "validateGitHubIntegrationSeams"
+        ],
+        "resolved": "scripts/wiki/github-attestation.ts",
+        "specifier": "./github-attestation",
+        "typeOnly": false
+      },
+      {
+        "callerKind": "publishing-only",
+        "from": "scripts/wiki/existing-repo-bootstrap.test.ts",
+        "kind": "import",
+        "names": [
+          "allLintFindings",
+          "buildSourceMap",
+          "createRepoView",
+          "FreshContextReportV2",
+          "generatedCoreFiles",
+          "jsonStable",
+          "kitFiles",
+          "loadWikiPages",
+          "mappedPages",
+          "PrMetadata",
+          "reviewCheck",
+          "validateCoverage",
+          "validateState",
+          "verifyState",
+          "writeGenerated"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      },
+      {
+        "callerKind": "shipped",
+        "from": "scripts/wiki/fresh-context.test.ts",
+        "kind": "import",
+        "names": [
+          "buildFocusedReviewManifest",
+          "buildReviewManifest",
+          "ConflictSummary",
+          "createRepoView",
+          "evaluateFreshContextRequirement",
+          "FocusedReviewManifest",
+          "FreshContextFinding",
+          "FreshContextPolicy",
+          "FreshContextReportV1",
+          "FreshContextReportV2",
+          "hashContent",
+          "impactReport",
+          "jsonStable",
+          "loadWikiPages",
+          "makeReviewBundle",
+          "parseFreshContextPolicy",
+          "PrMetadata",
+          "reviewCheck",
+          "ReviewManifest",
+          "validateFocusedReviewManifest",
+          "validateFreshContextAttestation",
+          "validateFreshContextFindings",
+          "validateIntegrationSeams",
+          "validatePrMetadata",
+          "verifyState"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      },
+      {
+        "callerKind": "shipped",
+        "from": "scripts/wiki/fresh-context.test.ts",
+        "kind": "import",
+        "names": [
+          "GITHUB_ATTESTATION_MARKER",
+          "selectGitHubAttestation",
+          "validateGitHubIntegrationSeams"
+        ],
+        "resolved": "scripts/wiki/github-attestation.ts",
+        "specifier": "./github-attestation",
+        "typeOnly": false
+      },
+      {
+        "callerKind": "shipped",
+        "from": "scripts/wiki/github-attestation.ts",
+        "kind": "import",
+        "names": [
+          "Finding",
+          "RepoView"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": true
+      },
+      {
+        "callerKind": "publishing-only",
+        "from": "scripts/wiki/inventories.example.ts",
+        "kind": "import",
+        "names": [
+          "GENERATED_HEADER",
+          "RepoView"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      },
+      {
+        "callerKind": "publishing-only",
+        "from": "scripts/wiki/inventories.ts",
+        "kind": "import",
+        "names": [
+          "RepoView"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": true
+      },
+      {
+        "callerKind": "publishing-only",
+        "from": "scripts/wiki/kit.test.ts",
+        "kind": "import",
+        "names": [
+          "compareKit",
+          "createRepoView",
+          "evaluateFreshContextRequirement",
+          "ImpactReport",
+          "isImplementationSourceChange",
+          "isKitManagedPath",
+          "jsonStable",
+          "KIT_ENTRIES",
+          "KIT_EXCLUDE_END",
+          "KIT_EXCLUDE_START",
+          "KIT_MANIFEST_TARGET",
+          "kitFiles",
+          "kitPath",
+          "parseFreshContextPolicy",
+          "readConfig",
+          "ReviewManifest",
+          "stripKitExclusions",
+          "validateIntegrationSeams",
+          "writeKit"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      },
+      {
+        "callerKind": "publishing-only",
+        "from": "scripts/wiki/primary-baseline.test.ts",
+        "kind": "import",
+        "names": [
+          "jsonStable",
+          "searchWikiPages",
+          "WikiPage"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      },
+      {
+        "callerKind": "publishing-only",
+        "from": "scripts/wiki/primary-baseline.ts",
+        "kind": "import",
+        "names": [
+          "buildSourceMap",
+          "createRepoView",
+          "jsonStable",
+          "loadWikiPages",
+          "mappedPages",
+          "parseWikiPage",
+          "WikiAuthority",
+          "WikiPage",
+          "WikiSource",
+          "WikiStatus"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      },
+      {
+        "callerKind": "publishing-only",
+        "from": "scripts/wiki/primary-current.test.ts",
+        "kind": "import",
+        "names": [
+          "jsonStable"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      },
+      {
+        "callerKind": "publishing-only",
+        "from": "scripts/wiki/primary-current.ts",
+        "kind": "import",
+        "names": [
+          "buildSourceMap",
+          "createRepoView",
+          "jsonStable",
+          "loadWikiPages",
+          "mappedPages",
+          "TopicContext",
+          "WikiStatus"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      },
+      {
+        "callerKind": "publishing-only",
+        "from": "scripts/wiki/primary-scenarios.ts",
+        "kind": "import",
+        "names": [
+          "jsonStable",
+          "WikiAuthority",
+          "WikiStatus"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      },
+      {
+        "callerKind": "publishing-only",
+        "from": "scripts/wiki/publisher-boundary.test.ts",
+        "kind": "import",
+        "names": [
+          "buildSourceMap",
+          "createRepoView",
+          "evaluateFreshContextRequirement",
+          "generatedCoreFiles",
+          "ImpactReport",
+          "isHighRisk",
+          "jsonStable",
+          "loadWikiPages",
+          "mappedPages",
+          "readConfig",
+          "ReviewManifest",
+          "verifyState"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      },
+      {
+        "callerKind": "publishing-only",
+        "from": "scripts/wiki/te04-focused-review.ts",
+        "kind": "import",
+        "names": [
+          "jsonStable"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      },
+      {
+        "callerKind": "publishing-only",
+        "from": "scripts/wiki/te06-controlled-comparison.ts",
+        "kind": "import",
+        "names": [
+          "jsonStable"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      },
+      {
+        "callerKind": "publishing-only",
+        "from": "scripts/wiki/te06-exit-validation.test.ts",
+        "kind": "import",
+        "names": [
+          "jsonStable"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      },
+      {
+        "callerKind": "publishing-only",
+        "from": "scripts/wiki/te06-exit-validation.ts",
+        "kind": "import",
+        "names": [
+          "jsonStable"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      },
+      {
+        "callerKind": "publishing-only",
+        "from": "scripts/wiki/token-efficiency-baseline.ts",
+        "kind": "import",
+        "names": [
+          "jsonStable"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      },
+      {
+        "callerKind": "shipped",
+        "from": "scripts/wiki/wiki.test.ts",
+        "kind": "import",
+        "names": [
+          "buildConflictMap",
+          "buildSourceMap",
+          "changedFiles",
+          "compareGenerated",
+          "createRepoView",
+          "generateConflictsIndex",
+          "generateCurrentStatus",
+          "generatedCoreFiles",
+          "generateIndex",
+          "hashContent",
+          "impactReport",
+          "isConflictGuardFinding",
+          "isHighRisk",
+          "isImplementationSourceChange",
+          "jsonStable",
+          "loadWikiPages",
+          "makeReviewBundle",
+          "mappedConflicts",
+          "mappedPages",
+          "parsePrMetadata",
+          "parseWikiPage",
+          "RepoView",
+          "searchWikiPages",
+          "validateCoverage",
+          "validateMarkdownLinks",
+          "validatePages",
+          "validatePrMetadata",
+          "validateState",
+          "verifyState",
+          "WikiPage"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      },
+      {
+        "callerKind": "shipped",
+        "from": "scripts/wiki/work.test.ts",
+        "kind": "import",
+        "names": [
+          "buildCompactTopicCandidateContext",
+          "buildTopicContext",
+          "buildWorkQueue",
+          "compareGenerated",
+          "createRepoView",
+          "generateCurrentStatus",
+          "generateWorkQueue",
+          "jsonStable",
+          "loadWikiPages",
+          "parseWikiPage",
+          "projectWorkQueue",
+          "RepoView",
+          "validateWorkItems",
+          "WikiPage",
+          "WorkItem"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      }
+    ],
+    "files": {
+      "scripts/wiki/cli.ts": {
+        "exports": [],
+        "imports": [
+          {
+            "from": "scripts/wiki/cli.ts",
+            "kind": "import",
+            "names": [
+              "allLintFindings",
+              "auditReport",
+              "buildCompactTopicCandidateContext",
+              "buildPageContext",
+              "buildReusableWorkContextArtifact",
+              "buildSelectedWorkContext",
+              "buildTopicContext",
+              "buildWorkQueue",
+              "CompactContextConflict",
+              "CompactContextPage",
+              "CompactSelectedWorkContext",
+              "CompactTopicContext",
+              "compareGenerated",
+              "compareKit",
+              "conflictSummary",
+              "createRepoView",
+              "Finding",
+              "generatedCoreFiles",
+              "impactReport",
+              "isConflictGuardFinding",
+              "jsonStable",
+              "kitFiles",
+              "loadWikiPages",
+              "makeReviewBundle",
+              "openConflicts",
+              "parseFreshContextPolicy",
+              "parseFreshContextReport",
+              "PrMetadata",
+              "projectSelectedWorkContext",
+              "projectTopicContext",
+              "projectWorkQueue",
+              "readConfig",
+              "reviewCheck",
+              "searchWikiPages",
+              "SelectedWorkContextConflict",
+              "SelectedWorkContextPage",
+              "UsageError",
+              "validateIntegrationSeams",
+              "validatePages",
+              "validatePrMetadata",
+              "validateReusableWorkContextArtifact",
+              "verifyState",
+              "WikiSource",
+              "WorkExecutorFilter",
+              "WorkQueueItem",
+              "writeGenerated",
+              "writeKit"
+            ],
+            "resolved": "scripts/wiki/core.ts",
+            "specifier": "./core",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/cli.ts",
+            "kind": "import",
+            "names": [
+              "validateGitHubIntegrationSeams"
+            ],
+            "resolved": "scripts/wiki/github-attestation.ts",
+            "specifier": "./github-attestation",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/cli.ts",
+            "kind": "import",
+            "names": [
+              "generateInventories"
+            ],
+            "resolved": "scripts/wiki/inventories.ts",
+            "specifier": "./inventories",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/cli.ts",
+            "kind": "import",
+            "names": [
+              "existsSync",
+              "readFileSync",
+              "writeFileSync"
+            ],
+            "resolved": null,
+            "specifier": "node:fs",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/cli.ts",
+            "kind": "import",
+            "names": [
+              "isAbsolute",
+              "relative",
+              "resolve"
+            ],
+            "resolved": null,
+            "specifier": "node:path",
+            "typeOnly": false
+          }
+        ],
+        "metric": {
+          "bytes": 58274,
+          "lines": 1277
+        },
+        "path": "scripts/wiki/cli.ts"
+      },
+      "scripts/wiki/core.ts": {
+        "exports": [
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "allLintFindings",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "auditReport",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "AuditReport",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "buildCompactTopicCandidateContext",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "buildConflictMap",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "buildFocusedReviewManifest",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "buildPageContext",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "buildReusableWorkContextArtifact",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "buildReviewManifest",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "buildSelectedWorkContext",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "buildSourceMap",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "buildTopicContext",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "buildWorkQueue",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "changedFiles",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "CompactContextConflict",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "CompactContextPage",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "CompactSelectedWorkContext",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "CompactTopicContext",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "compareGenerated",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "compareKit",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "ConflictMap",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "ConflictOrigin",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "ConflictResolution",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "ConflictResolutionState",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "ConflictSeverity",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "conflictSummary",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "ConflictSummary",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "ConflictType",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "ContextSourceGlob",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "createRepoView",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "currentPages",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "evaluateFreshContextRequirement",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "expandSource",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "Finding",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "FocusedBodyBinding",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "FocusedBodyObject",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "FocusedBodyRole",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "FocusedReviewManifest",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "FocusedSourceBinding",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "FocusedSourceDeclaration",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "FocusedSourceRole",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "FreshContextAuthorityKind",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "FreshContextCheckResult",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "FreshContextClassification",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "FreshContextDisposition",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "FreshContextFinding",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "FreshContextMode",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "FreshContextPolicy",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "FreshContextReport",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "FreshContextReportV1",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "FreshContextReportV2",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "FreshContextRequiredWhen",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "FreshContextRequirement",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "FreshContextTrustPolicy",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "FreshContextVerdict",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "generateConflictsIndex",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "generateCurrentStatus",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "VariableDeclaration"
+            ],
+            "kind": "value",
+            "name": "GENERATED_HEADER",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "generatedCoreFiles",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "generateIndex",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "generateWorkQueue",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "hashContent",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "impactReport",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "ImpactReport",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "isConflictGuardFinding",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "isContentPage",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "isHighRisk",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "isImplementationSourceChange",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "isKitManagedPath",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "jsonStable",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "VariableDeclaration"
+            ],
+            "kind": "value",
+            "name": "KIT_ENTRIES",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "VariableDeclaration"
+            ],
+            "kind": "value",
+            "name": "KIT_EXCLUDE_END",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "VariableDeclaration"
+            ],
+            "kind": "value",
+            "name": "KIT_EXCLUDE_START",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "VariableDeclaration"
+            ],
+            "kind": "value",
+            "name": "KIT_MANIFEST_TARGET",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "VariableDeclaration"
+            ],
+            "kind": "value",
+            "name": "KIT_ROOT",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "KitEntry",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "kitFiles",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "KitOwnership",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "kitPath",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "KitPlacement",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "loadWikiPages",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "makeReviewBundle",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "mappedConflicts",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "mappedPages",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "normalizeRepoPath",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "openConflicts",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "parseFreshContextPolicy",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "parseFreshContextReport",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "parsePrMetadata",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "parseWikiPage",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "PrMetadata",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "projectSelectedWorkContext",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "projectTopicContext",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "projectWorkQueue",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "readConfig",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "readState",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "recursiveFiles",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "InterfaceDeclaration"
+            ],
+            "kind": "type",
+            "name": "RepoView",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "resolveDiffBase",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "ReusableWorkContextArtifact",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "reviewCheck",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "ReviewCheckResult",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "ReviewManifest",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "searchWikiPages",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "SelectedWorkContext",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "SelectedWorkContextConflict",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "SelectedWorkContextPage",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "SelectedWorkContextReadEntry",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "SelectedWorkContextSourceSummary",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "sourceHashes",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "SourceMap",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "StateAudit",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "stripKitExclusions",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "TopicContext",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "TopicContextCandidate",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "ClassDeclaration"
+            ],
+            "kind": "both",
+            "name": "UsageError",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "validateCoverage",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "validateFocusedReviewManifest",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "validateFreshContextAttestation",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "validateFreshContextFindings",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "validateIntegrationSeams",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "validateMarkdownLinks",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "validatePages",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "validatePrMetadata",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "validateReusableWorkContextArtifact",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "VariableDeclaration"
+            ],
+            "kind": "value",
+            "name": "validateReviewBundleBindings",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "validateState",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "validateWorkItems",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "verifyState",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "VariableDeclaration"
+            ],
+            "kind": "value",
+            "name": "WIKI_SYSTEM_FILES",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "WikiAuthority",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "WikiConfig",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "WikiFrontmatter",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "WikiPage",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "WikiSearchMatch",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "WikiSource",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "WikiState",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "WikiStatus",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "WorkExecutor",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "WorkExecutorFilter",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "WorkItem",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "WorkPriority",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "WorkQueue",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "WorkQueueGroups",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "WorkQueueItem",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "WorkQueueState",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "WorkState",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "writeGenerated",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "writeKit",
+            "typeOnly": false
+          }
+        ],
+        "imports": [
+          {
+            "from": "scripts/wiki/core.ts",
+            "kind": "import",
+            "names": [
+              "existsSync",
+              "mkdtempSync",
+              "readdirSync",
+              "readFileSync",
+              "rmSync",
+              "statSync",
+              "symlinkSync",
+              "writeFileSync"
+            ],
+            "resolved": null,
+            "specifier": "node:fs",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/core.ts",
+            "kind": "import",
+            "names": [
+              "tmpdir"
+            ],
+            "resolved": null,
+            "specifier": "node:os",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/core.ts",
+            "kind": "import",
+            "names": [
+              "dirname",
+              "extname",
+              "join",
+              "normalize",
+              "relative",
+              "resolve"
+            ],
+            "resolved": null,
+            "specifier": "node:path",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/core.ts",
+            "kind": "import",
+            "names": [
+              "default"
+            ],
+            "resolved": null,
+            "specifier": "typescript",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/core.ts",
+            "kind": "import",
+            "names": [
+              "parse",
+              "stringify"
+            ],
+            "resolved": null,
+            "specifier": "yaml",
+            "typeOnly": false
+          }
+        ],
+        "metric": {
+          "bytes": 230066,
+          "lines": 4144
+        },
+        "path": "scripts/wiki/core.ts"
+      },
+      "scripts/wiki/fresh-context.test.ts": {
+        "exports": [],
+        "imports": [
+          {
+            "from": "scripts/wiki/fresh-context.test.ts",
+            "kind": "import",
+            "names": [
+              "buildFocusedReviewManifest",
+              "buildReviewManifest",
+              "ConflictSummary",
+              "createRepoView",
+              "evaluateFreshContextRequirement",
+              "FocusedReviewManifest",
+              "FreshContextFinding",
+              "FreshContextPolicy",
+              "FreshContextReportV1",
+              "FreshContextReportV2",
+              "hashContent",
+              "impactReport",
+              "jsonStable",
+              "loadWikiPages",
+              "makeReviewBundle",
+              "parseFreshContextPolicy",
+              "PrMetadata",
+              "reviewCheck",
+              "ReviewManifest",
+              "validateFocusedReviewManifest",
+              "validateFreshContextAttestation",
+              "validateFreshContextFindings",
+              "validateIntegrationSeams",
+              "validatePrMetadata",
+              "verifyState"
+            ],
+            "resolved": "scripts/wiki/core.ts",
+            "specifier": "./core",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/fresh-context.test.ts",
+            "kind": "import",
+            "names": [
+              "GITHUB_ATTESTATION_MARKER",
+              "selectGitHubAttestation",
+              "validateGitHubIntegrationSeams"
+            ],
+            "resolved": "scripts/wiki/github-attestation.ts",
+            "specifier": "./github-attestation",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/fresh-context.test.ts",
+            "kind": "import",
+            "names": [
+              "afterEach",
+              "describe",
+              "expect",
+              "test"
+            ],
+            "resolved": null,
+            "specifier": "bun:test",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/fresh-context.test.ts",
+            "kind": "import",
+            "names": [
+              "existsSync",
+              "lstatSync",
+              "mkdirSync",
+              "mkdtempSync",
+              "readFileSync",
+              "readlinkSync",
+              "rmSync",
+              "writeFileSync"
+            ],
+            "resolved": null,
+            "specifier": "node:fs",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/fresh-context.test.ts",
+            "kind": "import",
+            "names": [
+              "tmpdir"
+            ],
+            "resolved": null,
+            "specifier": "node:os",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/fresh-context.test.ts",
+            "kind": "import",
+            "names": [
+              "dirname",
+              "join"
+            ],
+            "resolved": null,
+            "specifier": "node:path",
+            "typeOnly": false
+          }
+        ],
+        "metric": {
+          "bytes": 126643,
+          "lines": 2400
+        },
+        "path": "scripts/wiki/fresh-context.test.ts"
+      },
+      "scripts/wiki/github-attestation.ts": {
+        "exports": [
+          {
+            "declarationKinds": [
+              "VariableDeclaration"
+            ],
+            "kind": "value",
+            "name": "GITHUB_ATTESTATION_MARKER",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "TypeAliasDeclaration"
+            ],
+            "kind": "type",
+            "name": "GitHubAttestationEnvelope",
+            "typeOnly": true
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "selectGitHubAttestation",
+            "typeOnly": false
+          },
+          {
+            "declarationKinds": [
+              "FunctionDeclaration"
+            ],
+            "kind": "value",
+            "name": "validateGitHubIntegrationSeams",
+            "typeOnly": false
+          }
+        ],
+        "imports": [
+          {
+            "from": "scripts/wiki/github-attestation.ts",
+            "kind": "import",
+            "names": [
+              "Finding",
+              "RepoView"
+            ],
+            "resolved": "scripts/wiki/core.ts",
+            "specifier": "./core",
+            "typeOnly": true
+          },
+          {
+            "from": "scripts/wiki/github-attestation.ts",
+            "kind": "import",
+            "names": [
+              "readFileSync",
+              "writeFileSync"
+            ],
+            "resolved": null,
+            "specifier": "node:fs",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/github-attestation.ts",
+            "kind": "import",
+            "names": [
+              "parse"
+            ],
+            "resolved": null,
+            "specifier": "yaml",
+            "typeOnly": false
+          }
+        ],
+        "metric": {
+          "bytes": 10013,
+          "lines": 189
+        },
+        "path": "scripts/wiki/github-attestation.ts"
+      },
+      "scripts/wiki/test-runner.ts": {
+        "exports": [],
+        "imports": [
+          {
+            "from": "scripts/wiki/test-runner.ts",
+            "kind": "import",
+            "names": [
+              "readdirSync"
+            ],
+            "resolved": null,
+            "specifier": "node:fs",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/test-runner.ts",
+            "kind": "import",
+            "names": [
+              "dirname",
+              "join",
+              "relative",
+              "resolve"
+            ],
+            "resolved": null,
+            "specifier": "node:path",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/test-runner.ts",
+            "kind": "import",
+            "names": [
+              "fileURLToPath"
+            ],
+            "resolved": null,
+            "specifier": "node:url",
+            "typeOnly": false
+          }
+        ],
+        "metric": {
+          "bytes": 1767,
+          "lines": 47
+        },
+        "path": "scripts/wiki/test-runner.ts"
+      },
+      "scripts/wiki/wiki.test.ts": {
+        "exports": [],
+        "imports": [
+          {
+            "from": "scripts/wiki/wiki.test.ts",
+            "kind": "import",
+            "names": [
+              "buildConflictMap",
+              "buildSourceMap",
+              "changedFiles",
+              "compareGenerated",
+              "createRepoView",
+              "generateConflictsIndex",
+              "generateCurrentStatus",
+              "generatedCoreFiles",
+              "generateIndex",
+              "hashContent",
+              "impactReport",
+              "isConflictGuardFinding",
+              "isHighRisk",
+              "isImplementationSourceChange",
+              "jsonStable",
+              "loadWikiPages",
+              "makeReviewBundle",
+              "mappedConflicts",
+              "mappedPages",
+              "parsePrMetadata",
+              "parseWikiPage",
+              "RepoView",
+              "searchWikiPages",
+              "validateCoverage",
+              "validateMarkdownLinks",
+              "validatePages",
+              "validatePrMetadata",
+              "validateState",
+              "verifyState",
+              "WikiPage"
+            ],
+            "resolved": "scripts/wiki/core.ts",
+            "specifier": "./core",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/wiki.test.ts",
+            "kind": "import",
+            "names": [
+              "afterEach",
+              "describe",
+              "expect",
+              "test"
+            ],
+            "resolved": null,
+            "specifier": "bun:test",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/wiki.test.ts",
+            "kind": "import",
+            "names": [
+              "chmodSync",
+              "copyFileSync",
+              "existsSync",
+              "mkdirSync",
+              "mkdtempSync",
+              "readFileSync",
+              "rmSync",
+              "writeFileSync"
+            ],
+            "resolved": null,
+            "specifier": "node:fs",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/wiki.test.ts",
+            "kind": "import",
+            "names": [
+              "tmpdir"
+            ],
+            "resolved": null,
+            "specifier": "node:os",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/wiki.test.ts",
+            "kind": "import",
+            "names": [
+              "dirname",
+              "join"
+            ],
+            "resolved": null,
+            "specifier": "node:path",
+            "typeOnly": false
+          }
+        ],
+        "metric": {
+          "bytes": 41668,
+          "lines": 745
+        },
+        "path": "scripts/wiki/wiki.test.ts"
+      },
+      "scripts/wiki/work.test.ts": {
+        "exports": [],
+        "imports": [
+          {
+            "from": "scripts/wiki/work.test.ts",
+            "kind": "import",
+            "names": [
+              "buildCompactTopicCandidateContext",
+              "buildTopicContext",
+              "buildWorkQueue",
+              "compareGenerated",
+              "createRepoView",
+              "generateCurrentStatus",
+              "generateWorkQueue",
+              "jsonStable",
+              "loadWikiPages",
+              "parseWikiPage",
+              "projectWorkQueue",
+              "RepoView",
+              "validateWorkItems",
+              "WikiPage",
+              "WorkItem"
+            ],
+            "resolved": "scripts/wiki/core.ts",
+            "specifier": "./core",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/work.test.ts",
+            "kind": "import",
+            "names": [
+              "afterEach",
+              "describe",
+              "expect",
+              "test"
+            ],
+            "resolved": null,
+            "specifier": "bun:test",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/work.test.ts",
+            "kind": "import",
+            "names": [
+              "mkdirSync",
+              "mkdtempSync",
+              "readFileSync",
+              "rmSync",
+              "writeFileSync"
+            ],
+            "resolved": null,
+            "specifier": "node:fs",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/work.test.ts",
+            "kind": "import",
+            "names": [
+              "tmpdir"
+            ],
+            "resolved": null,
+            "specifier": "node:os",
+            "typeOnly": false
+          },
+          {
+            "from": "scripts/wiki/work.test.ts",
+            "kind": "import",
+            "names": [
+              "dirname",
+              "join"
+            ],
+            "resolved": null,
+            "specifier": "node:path",
+            "typeOnly": false
+          }
+        ],
+        "metric": {
+          "bytes": 52621,
+          "lines": 1032
+        },
+        "path": "scripts/wiki/work.test.ts"
+      }
+    },
+    "importEdges": [
+      {
+        "from": "scripts/wiki/cli.ts",
+        "kind": "import",
+        "names": [
+          "allLintFindings",
+          "auditReport",
+          "buildCompactTopicCandidateContext",
+          "buildPageContext",
+          "buildReusableWorkContextArtifact",
+          "buildSelectedWorkContext",
+          "buildTopicContext",
+          "buildWorkQueue",
+          "CompactContextConflict",
+          "CompactContextPage",
+          "CompactSelectedWorkContext",
+          "CompactTopicContext",
+          "compareGenerated",
+          "compareKit",
+          "conflictSummary",
+          "createRepoView",
+          "Finding",
+          "generatedCoreFiles",
+          "impactReport",
+          "isConflictGuardFinding",
+          "jsonStable",
+          "kitFiles",
+          "loadWikiPages",
+          "makeReviewBundle",
+          "openConflicts",
+          "parseFreshContextPolicy",
+          "parseFreshContextReport",
+          "PrMetadata",
+          "projectSelectedWorkContext",
+          "projectTopicContext",
+          "projectWorkQueue",
+          "readConfig",
+          "reviewCheck",
+          "searchWikiPages",
+          "SelectedWorkContextConflict",
+          "SelectedWorkContextPage",
+          "UsageError",
+          "validateIntegrationSeams",
+          "validatePages",
+          "validatePrMetadata",
+          "validateReusableWorkContextArtifact",
+          "verifyState",
+          "WikiSource",
+          "WorkExecutorFilter",
+          "WorkQueueItem",
+          "writeGenerated",
+          "writeKit"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/cli.ts",
+        "kind": "import",
+        "names": [
+          "validateGitHubIntegrationSeams"
+        ],
+        "resolved": "scripts/wiki/github-attestation.ts",
+        "specifier": "./github-attestation",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/cli.ts",
+        "kind": "import",
+        "names": [
+          "generateInventories"
+        ],
+        "resolved": "scripts/wiki/inventories.ts",
+        "specifier": "./inventories",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/cli.ts",
+        "kind": "import",
+        "names": [
+          "existsSync",
+          "readFileSync",
+          "writeFileSync"
+        ],
+        "resolved": null,
+        "specifier": "node:fs",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/cli.ts",
+        "kind": "import",
+        "names": [
+          "isAbsolute",
+          "relative",
+          "resolve"
+        ],
+        "resolved": null,
+        "specifier": "node:path",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/core.ts",
+        "kind": "import",
+        "names": [
+          "existsSync",
+          "mkdtempSync",
+          "readdirSync",
+          "readFileSync",
+          "rmSync",
+          "statSync",
+          "symlinkSync",
+          "writeFileSync"
+        ],
+        "resolved": null,
+        "specifier": "node:fs",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/core.ts",
+        "kind": "import",
+        "names": [
+          "tmpdir"
+        ],
+        "resolved": null,
+        "specifier": "node:os",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/core.ts",
+        "kind": "import",
+        "names": [
+          "dirname",
+          "extname",
+          "join",
+          "normalize",
+          "relative",
+          "resolve"
+        ],
+        "resolved": null,
+        "specifier": "node:path",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/core.ts",
+        "kind": "import",
+        "names": [
+          "default"
+        ],
+        "resolved": null,
+        "specifier": "typescript",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/core.ts",
+        "kind": "import",
+        "names": [
+          "parse",
+          "stringify"
+        ],
+        "resolved": null,
+        "specifier": "yaml",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/fresh-context.test.ts",
+        "kind": "import",
+        "names": [
+          "buildFocusedReviewManifest",
+          "buildReviewManifest",
+          "ConflictSummary",
+          "createRepoView",
+          "evaluateFreshContextRequirement",
+          "FocusedReviewManifest",
+          "FreshContextFinding",
+          "FreshContextPolicy",
+          "FreshContextReportV1",
+          "FreshContextReportV2",
+          "hashContent",
+          "impactReport",
+          "jsonStable",
+          "loadWikiPages",
+          "makeReviewBundle",
+          "parseFreshContextPolicy",
+          "PrMetadata",
+          "reviewCheck",
+          "ReviewManifest",
+          "validateFocusedReviewManifest",
+          "validateFreshContextAttestation",
+          "validateFreshContextFindings",
+          "validateIntegrationSeams",
+          "validatePrMetadata",
+          "verifyState"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/fresh-context.test.ts",
+        "kind": "import",
+        "names": [
+          "GITHUB_ATTESTATION_MARKER",
+          "selectGitHubAttestation",
+          "validateGitHubIntegrationSeams"
+        ],
+        "resolved": "scripts/wiki/github-attestation.ts",
+        "specifier": "./github-attestation",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/fresh-context.test.ts",
+        "kind": "import",
+        "names": [
+          "afterEach",
+          "describe",
+          "expect",
+          "test"
+        ],
+        "resolved": null,
+        "specifier": "bun:test",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/fresh-context.test.ts",
+        "kind": "import",
+        "names": [
+          "existsSync",
+          "lstatSync",
+          "mkdirSync",
+          "mkdtempSync",
+          "readFileSync",
+          "readlinkSync",
+          "rmSync",
+          "writeFileSync"
+        ],
+        "resolved": null,
+        "specifier": "node:fs",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/fresh-context.test.ts",
+        "kind": "import",
+        "names": [
+          "tmpdir"
+        ],
+        "resolved": null,
+        "specifier": "node:os",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/fresh-context.test.ts",
+        "kind": "import",
+        "names": [
+          "dirname",
+          "join"
+        ],
+        "resolved": null,
+        "specifier": "node:path",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/github-attestation.ts",
+        "kind": "import",
+        "names": [
+          "Finding",
+          "RepoView"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": true
+      },
+      {
+        "from": "scripts/wiki/github-attestation.ts",
+        "kind": "import",
+        "names": [
+          "readFileSync",
+          "writeFileSync"
+        ],
+        "resolved": null,
+        "specifier": "node:fs",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/github-attestation.ts",
+        "kind": "import",
+        "names": [
+          "parse"
+        ],
+        "resolved": null,
+        "specifier": "yaml",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/test-runner.ts",
+        "kind": "import",
+        "names": [
+          "readdirSync"
+        ],
+        "resolved": null,
+        "specifier": "node:fs",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/test-runner.ts",
+        "kind": "import",
+        "names": [
+          "dirname",
+          "join",
+          "relative",
+          "resolve"
+        ],
+        "resolved": null,
+        "specifier": "node:path",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/test-runner.ts",
+        "kind": "import",
+        "names": [
+          "fileURLToPath"
+        ],
+        "resolved": null,
+        "specifier": "node:url",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/wiki.test.ts",
+        "kind": "import",
+        "names": [
+          "buildConflictMap",
+          "buildSourceMap",
+          "changedFiles",
+          "compareGenerated",
+          "createRepoView",
+          "generateConflictsIndex",
+          "generateCurrentStatus",
+          "generatedCoreFiles",
+          "generateIndex",
+          "hashContent",
+          "impactReport",
+          "isConflictGuardFinding",
+          "isHighRisk",
+          "isImplementationSourceChange",
+          "jsonStable",
+          "loadWikiPages",
+          "makeReviewBundle",
+          "mappedConflicts",
+          "mappedPages",
+          "parsePrMetadata",
+          "parseWikiPage",
+          "RepoView",
+          "searchWikiPages",
+          "validateCoverage",
+          "validateMarkdownLinks",
+          "validatePages",
+          "validatePrMetadata",
+          "validateState",
+          "verifyState",
+          "WikiPage"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/wiki.test.ts",
+        "kind": "import",
+        "names": [
+          "afterEach",
+          "describe",
+          "expect",
+          "test"
+        ],
+        "resolved": null,
+        "specifier": "bun:test",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/wiki.test.ts",
+        "kind": "import",
+        "names": [
+          "chmodSync",
+          "copyFileSync",
+          "existsSync",
+          "mkdirSync",
+          "mkdtempSync",
+          "readFileSync",
+          "rmSync",
+          "writeFileSync"
+        ],
+        "resolved": null,
+        "specifier": "node:fs",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/wiki.test.ts",
+        "kind": "import",
+        "names": [
+          "tmpdir"
+        ],
+        "resolved": null,
+        "specifier": "node:os",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/wiki.test.ts",
+        "kind": "import",
+        "names": [
+          "dirname",
+          "join"
+        ],
+        "resolved": null,
+        "specifier": "node:path",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/work.test.ts",
+        "kind": "import",
+        "names": [
+          "buildCompactTopicCandidateContext",
+          "buildTopicContext",
+          "buildWorkQueue",
+          "compareGenerated",
+          "createRepoView",
+          "generateCurrentStatus",
+          "generateWorkQueue",
+          "jsonStable",
+          "loadWikiPages",
+          "parseWikiPage",
+          "projectWorkQueue",
+          "RepoView",
+          "validateWorkItems",
+          "WikiPage",
+          "WorkItem"
+        ],
+        "resolved": "scripts/wiki/core.ts",
+        "specifier": "./core",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/work.test.ts",
+        "kind": "import",
+        "names": [
+          "afterEach",
+          "describe",
+          "expect",
+          "test"
+        ],
+        "resolved": null,
+        "specifier": "bun:test",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/work.test.ts",
+        "kind": "import",
+        "names": [
+          "mkdirSync",
+          "mkdtempSync",
+          "readFileSync",
+          "rmSync",
+          "writeFileSync"
+        ],
+        "resolved": null,
+        "specifier": "node:fs",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/work.test.ts",
+        "kind": "import",
+        "names": [
+          "tmpdir"
+        ],
+        "resolved": null,
+        "specifier": "node:os",
+        "typeOnly": false
+      },
+      {
+        "from": "scripts/wiki/work.test.ts",
+        "kind": "import",
+        "names": [
+          "dirname",
+          "join"
+        ],
+        "resolved": null,
+        "specifier": "node:path",
+        "typeOnly": false
+      }
+    ],
+    "paths": [
+      "scripts/wiki/cli.ts",
+      "scripts/wiki/core.ts",
+      "scripts/wiki/fresh-context.test.ts",
+      "scripts/wiki/github-attestation.ts",
+      "scripts/wiki/test-runner.ts",
+      "scripts/wiki/wiki.test.ts",
+      "scripts/wiki/work.test.ts"
+    ],
+    "totals": {
+      "bytes": 521482,
+      "lines": 9852
+    },
+    "typeScriptTotals": {
+      "bytes": 521052,
+      "lines": 9834
+    }
+  },
+  "reportVersion": 1,
+  "screen": {
+    "deferred": [
+      "scripts/wiki/apply.ts",
+      "scripts/wiki/primary-baseline.ts"
+    ],
+    "rule": {
+      "byteThreshold": 65536,
+      "candidateRule": "lines > 1000 OR bytes > 65536 OR ((bytes > 30720 OR payload share > 0.1) AND responsibility count > 1) OR dispatcher lines > 250 OR repeated non-merge coupling",
+      "decision": "line count is supporting evidence; ownership, payload share/bytes, responsibility count, and change coupling decide",
+      "dispatcherLineThreshold": 250,
+      "lineThreshold": 1000,
+      "materialByteThreshold": 30720,
+      "materialShareThreshold": 0.1
+    },
+    "targets": {
+      "scripts/wiki/cli.ts": {
+        "candidate": true,
+        "changeCoupling": {
+          "commitCount": 3,
+          "commits": [
+            "50c4b697731bce6bb820d4ac3278339b194be576",
+            "adb42c718515b4843ea67a92c74ff3d5055ffcd3",
+            "f43e4b4edf63e3e314cfff255b726ffdb06627c2"
+          ],
+          "linesAdded": 406,
+          "linesDeleted": 9,
+          "sinceRevision": "6f6298cf9174338d71fee66e6a20ce8db7ed2c84"
+        },
+        "metric": {
+          "bytes": 58274,
+          "lines": 1277
+        },
+        "payloadShare": 0.11174690593347421,
+        "responsibilityCount": 5
+      },
+      "scripts/wiki/core.ts": {
+        "candidate": true,
+        "changeCoupling": {
+          "commitCount": 12,
+          "commits": [
+            "113fc75e338fd7db42303a2eb178a91cd26e8e3f",
+            "1c9b37d3730c627a9be23955c638f69abeb893f1",
+            "4b50c638b7b8b38c07f8741f9bc137ae17adb145",
+            "4f1ff4ddab59fe56723237ff4c7e875666b12aeb",
+            "6453ff6cc323725bb9e3b7b8a0b8011aee627f1b",
+            "a097a7a69c152b2867c89b945a42c8ca59e53757",
+            "a801f1b017f9cb8a47f5c6ea1775038fe548435d",
+            "adb42c718515b4843ea67a92c74ff3d5055ffcd3",
+            "b5dd0c68e69534e0d4501dc52a3023fbae2764f8",
+            "b86ad76f13c475942d09f0b977c3dda133dcd6f7",
+            "f43e4b4edf63e3e314cfff255b726ffdb06627c2",
+            "fa332b19f19a5f9333fe64e3bd2d80c0e766885f"
+          ],
+          "linesAdded": 1191,
+          "linesDeleted": 19,
+          "sinceRevision": "6f6298cf9174338d71fee66e6a20ce8db7ed2c84"
+        },
+        "metric": {
+          "bytes": 230066,
+          "lines": 4144
+        },
+        "payloadShare": 0.44117726019306513,
+        "responsibilityCount": 10
+      },
+      "scripts/wiki/fresh-context.test.ts": {
+        "candidate": true,
+        "changeCoupling": {
+          "commitCount": 10,
+          "commits": [
+            "113fc75e338fd7db42303a2eb178a91cd26e8e3f",
+            "1c9b37d3730c627a9be23955c638f69abeb893f1",
+            "4b50c638b7b8b38c07f8741f9bc137ae17adb145",
+            "4f1ff4ddab59fe56723237ff4c7e875666b12aeb",
+            "6453ff6cc323725bb9e3b7b8a0b8011aee627f1b",
+            "a097a7a69c152b2867c89b945a42c8ca59e53757",
+            "a801f1b017f9cb8a47f5c6ea1775038fe548435d",
+            "b5dd0c68e69534e0d4501dc52a3023fbae2764f8",
+            "b86ad76f13c475942d09f0b977c3dda133dcd6f7",
+            "fa332b19f19a5f9333fe64e3bd2d80c0e766885f"
+          ],
+          "linesAdded": 836,
+          "linesDeleted": 2,
+          "sinceRevision": "6f6298cf9174338d71fee66e6a20ce8db7ed2c84"
+        },
+        "metric": {
+          "bytes": 126643,
+          "lines": 2400
+        },
+        "payloadShare": 0.2428521022777392,
+        "responsibilityCount": 5
+      },
+      "scripts/wiki/wiki.test.ts": {
+        "candidate": true,
+        "changeCoupling": {
+          "commitCount": 0,
+          "commits": [],
+          "linesAdded": 0,
+          "linesDeleted": 0,
+          "sinceRevision": "6f6298cf9174338d71fee66e6a20ce8db7ed2c84"
+        },
+        "metric": {
+          "bytes": 41668,
+          "lines": 745
+        },
+        "payloadShare": 0.07990304555094903,
+        "responsibilityCount": 5
+      },
+      "scripts/wiki/work.test.ts": {
+        "candidate": true,
+        "changeCoupling": {
+          "commitCount": 3,
+          "commits": [
+            "50c4b697731bce6bb820d4ac3278339b194be576",
+            "adb42c718515b4843ea67a92c74ff3d5055ffcd3",
+            "f43e4b4edf63e3e314cfff255b726ffdb06627c2"
+          ],
+          "linesAdded": 378,
+          "linesDeleted": 6,
+          "sinceRevision": "6f6298cf9174338d71fee66e6a20ce8db7ed2c84"
+        },
+        "metric": {
+          "bytes": 52621,
+          "lines": 1032
+        },
+        "payloadShare": 0.10090664682577731,
+        "responsibilityCount": 5
+      }
+    }
+  },
+  "sequencing": {
+    "noProductionModuleMoved": true,
+    "order": [
+      "KM-00 baseline",
+      "KM-00-OWNER ratification",
+      "KM-01",
+      "KM-02",
+      "KM-03",
+      "KM-04",
+      "KM-05",
+      "KM-06",
+      "KM-07",
+      "TE-03 after KM-07 when not activated earlier"
+    ],
+    "prerequisite": "TE-06-OWNER",
+    "te03": "TE-03 is currently deferred; if activated before KM ratification, finish TE-03 and regenerate KM-00"
+  },
+  "summary": {
+    "copiedToolingBytes": 521482,
+    "copiedToolingLines": 9852,
+    "manifestDigest": "4963245ac4504cb8c6062dea1816a748af88f63deb669411ab6e242a4cd7b52e",
+    "splitTargetBytes": 509272,
+    "splitTargetLines": 9598,
+    "splitTargetShare": 0.9765859607810049,
+    "typeScriptBytes": 521052,
+    "typeScriptLines": 9834
+  },
+  "tests": {
+    "boundaries": {
+      "fresh-context.test.ts": [
+        "review manifest and report",
+        "exact HEAD and stale evidence",
+        "GitHub and integration seams"
+      ],
+      "wiki.test.ts": [
+        "page schema and links",
+        "generated and coverage",
+        "impact and conflicts"
+      ],
+      "work.test.ts": [
+        "work graph",
+        "queue projection",
+        "selected/topic context"
+      ]
+    },
+    "discovered": [
+      "scripts/wiki/apply.test.ts",
+      "scripts/wiki/existing-repo-bootstrap.test.ts",
+      "scripts/wiki/fresh-context.test.ts",
+      "scripts/wiki/kit.test.ts",
+      "scripts/wiki/new-repository-adoption.test.ts",
+      "scripts/wiki/primary-baseline.test.ts",
+      "scripts/wiki/primary-current.test.ts",
+      "scripts/wiki/primary-scenarios.test.ts",
+      "scripts/wiki/publisher-boundary.test.ts",
+      "scripts/wiki/te04-focused-review.test.ts",
+      "scripts/wiki/te06-controlled-comparison.test.ts",
+      "scripts/wiki/te06-exit-validation.test.ts",
+      "scripts/wiki/token-efficiency-baseline.test.ts",
+      "scripts/wiki/wiki.test.ts",
+      "scripts/wiki/work.test.ts"
+    ],
+    "discoveredExactlyOnce": true,
+    "suites": {
+      "scripts/wiki/apply.test.ts": {
+        "describeCount": 1,
+        "shipped": false,
+        "testCount": 15
+      },
+      "scripts/wiki/existing-repo-bootstrap.test.ts": {
+        "describeCount": 1,
+        "shipped": false,
+        "testCount": 1
+      },
+      "scripts/wiki/fresh-context.test.ts": {
+        "describeCount": 5,
+        "shipped": true,
+        "testCount": 81
+      },
+      "scripts/wiki/kit.test.ts": {
+        "describeCount": 6,
+        "shipped": false,
+        "testCount": 51
+      },
+      "scripts/wiki/new-repository-adoption.test.ts": {
+        "describeCount": 1,
+        "shipped": false,
+        "testCount": 1
+      },
+      "scripts/wiki/primary-baseline.test.ts": {
+        "describeCount": 1,
+        "shipped": false,
+        "testCount": 6
+      },
+      "scripts/wiki/primary-current.test.ts": {
+        "describeCount": 1,
+        "shipped": false,
+        "testCount": 6
+      },
+      "scripts/wiki/primary-scenarios.test.ts": {
+        "describeCount": 1,
+        "shipped": false,
+        "testCount": 6
+      },
+      "scripts/wiki/publisher-boundary.test.ts": {
+        "describeCount": 1,
+        "shipped": false,
+        "testCount": 2
+      },
+      "scripts/wiki/te04-focused-review.test.ts": {
+        "describeCount": 1,
+        "shipped": false,
+        "testCount": 2
+      },
+      "scripts/wiki/te06-controlled-comparison.test.ts": {
+        "describeCount": 1,
+        "shipped": false,
+        "testCount": 7
+      },
+      "scripts/wiki/te06-exit-validation.test.ts": {
+        "describeCount": 1,
+        "shipped": false,
+        "testCount": 10
+      },
+      "scripts/wiki/token-efficiency-baseline.test.ts": {
+        "describeCount": 1,
+        "shipped": false,
+        "testCount": 6
+      },
+      "scripts/wiki/wiki.test.ts": {
+        "describeCount": 8,
+        "shipped": true,
+        "testCount": 37
+      },
+      "scripts/wiki/work.test.ts": {
+        "describeCount": 2,
+        "shipped": true,
+        "testCount": 30
+      }
+    }
+  }
+}
