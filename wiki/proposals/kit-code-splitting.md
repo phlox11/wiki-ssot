@@ -20,6 +20,13 @@ sources:
   - path: scripts/wiki/impact.ts
   - path: scripts/wiki/review-bundle.ts
   - path: scripts/wiki/review-attestation.ts
+  - path: scripts/wiki/cli-runtime.ts
+  - path: scripts/wiki/cli-render.ts
+  - path: scripts/wiki/cli-discovery-handlers.ts
+  - path: scripts/wiki/cli-generation-handlers.ts
+  - path: scripts/wiki/cli-validation-handlers.ts
+  - path: scripts/wiki/cli-review-handlers.ts
+  - path: scripts/wiki/cli-handlers.test.ts
   - path: scripts/wiki/discovery.test.ts
   - path: scripts/wiki/context.test.ts
   - path: scripts/wiki/generated-views.test.ts
@@ -204,7 +211,7 @@ work_items:
       - wiki/operations/enforcement.md
   - id: KM-05
     title: Replace the monolithic CLI dispatcher with bounded command handlers
-    state: not-started
+    state: done
     executor: agent
     priority: normal
     depends_on: [KM-04]
@@ -215,7 +222,26 @@ work_items:
       - Handler dependencies point toward domain modules and do not recreate a second all-purpose core or introduce circular imports.
       - Direct command-handler tests cover success, usage errors, malformed repositories, and write guards without requiring every unit case to spawn the complete CLI process.
       - The shipped executable path and package.json wiki scripts remain unchanged for adopters.
-    evidence: []
+    evidence:
+      - scripts/wiki/cli.ts
+      - scripts/wiki/cli-runtime.ts
+      - scripts/wiki/cli-render.ts
+      - scripts/wiki/cli-discovery-handlers.ts
+      - scripts/wiki/cli-generation-handlers.ts
+      - scripts/wiki/cli-validation-handlers.ts
+      - scripts/wiki/cli-review-handlers.ts
+      - scripts/wiki/cli-handlers.test.ts
+      - scripts/wiki/kit-packaging.ts
+      - scripts/wiki/kit-packaging.test.ts
+      - scripts/wiki/test-runner.test.ts
+      - scripts/wiki/new-repository-adoption.test.ts
+      - scripts/wiki/existing-repo-bootstrap.test.ts
+      - scripts/wiki/te04-focused-review.ts
+      - scripts/wiki/te04-focused-review.test.ts
+      - kit/files/.wiki/kit-manifest.json
+      - wiki/architecture/engine.md
+      - wiki/product/invariants.md
+      - wiki/operations/enforcement.md
   - id: KM-06
     title: Split portable regression suites and consolidate shared fixtures
     state: not-started

@@ -50,4 +50,9 @@ describe("portable test discovery", () => {
       expect(files.filter((candidate) => candidate === file)).toHaveLength(1);
     }
   });
+
+  test("discovers KM-05 direct handler suite exactly once", () => {
+    const files = discoverWikiTestFiles();
+    expect(files.filter((candidate) => candidate === "scripts/wiki/cli-handlers.test.ts")).toHaveLength(1);
+  });
 });

@@ -193,6 +193,24 @@ describe("emitted kit", () => {
     }
   });
 
+  test("ships each KM-05 CLI seam and direct-handler suite exactly once", () => {
+    const { files } = realKit();
+    const targets = [
+      "scripts/wiki/cli.ts",
+      "scripts/wiki/cli-runtime.ts",
+      "scripts/wiki/cli-render.ts",
+      "scripts/wiki/cli-discovery-handlers.ts",
+      "scripts/wiki/cli-generation-handlers.ts",
+      "scripts/wiki/cli-validation-handlers.ts",
+      "scripts/wiki/cli-review-handlers.ts",
+      "scripts/wiki/cli-handlers.test.ts",
+    ];
+    for (const target of targets) {
+      expect(KIT_ENTRIES.filter((entry) => entry.target === target)).toHaveLength(1);
+      expect(files[`kit/files/${target}`]).toBeString();
+    }
+  });
+
   test("keeps publisher-only kit commands out of the downstream workflow", () => {
     const { view, files } = realKit();
     const publisherWorkflow = view.read("wiki/WORKFLOW.md");

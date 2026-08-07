@@ -30,6 +30,12 @@ sources:
   - path: scripts/wiki/impact.ts
   - path: scripts/wiki/review-bundle.ts
   - path: scripts/wiki/review-attestation.ts
+  - path: scripts/wiki/cli-runtime.ts
+  - path: scripts/wiki/cli-render.ts
+  - path: scripts/wiki/cli-discovery-handlers.ts
+  - path: scripts/wiki/cli-generation-handlers.ts
+  - path: scripts/wiki/cli-validation-handlers.ts
+  - path: scripts/wiki/cli-review-handlers.ts
   - path: scripts/wiki/cli.ts
   - path: scripts/wiki/github-attestation.ts
   - path: scripts/wiki/apply.ts

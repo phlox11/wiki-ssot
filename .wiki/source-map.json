@@ -41,6 +41,30 @@
       "operations/enforcement",
       "product/invariants"
     ],
+    "scripts/wiki/cli-discovery-handlers.ts": [
+      "operations/enforcement",
+      "product/invariants"
+    ],
+    "scripts/wiki/cli-generation-handlers.ts": [
+      "operations/enforcement",
+      "product/invariants"
+    ],
+    "scripts/wiki/cli-render.ts": [
+      "operations/enforcement",
+      "product/invariants"
+    ],
+    "scripts/wiki/cli-review-handlers.ts": [
+      "operations/enforcement",
+      "product/invariants"
+    ],
+    "scripts/wiki/cli-runtime.ts": [
+      "operations/enforcement",
+      "product/invariants"
+    ],
+    "scripts/wiki/cli-validation-handlers.ts": [
+      "operations/enforcement",
+      "product/invariants"
+    ],
     "scripts/wiki/cli.ts": [
       "operations/enforcement",
       "product/invariants"
