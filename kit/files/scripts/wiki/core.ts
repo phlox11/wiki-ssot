@@ -27,10 +27,7 @@ import {
   type WorkPriority,
   type WorkState,
 } from "./model";
-import {
-  ownedWorkItems,
-  validateWorkItems,
-} from "./work-validation";
+import { validateWorkItems } from "./work-validation";
 import {
   isContentPage,
   loadWikiPages,
@@ -78,7 +75,107 @@ export {
 export { validateWorkItems } from "./work-validation";
 export { hashContent, jsonStable } from "./serialization";
 
-export const GENERATED_HEADER = "<!-- GENERATED FILE. DO NOT EDIT. Run the matching wiki command. -->";
+import {
+  buildWorkQueue,
+  conflictSummary,
+  currentPages,
+  openConflicts,
+  projectWorkQueue,
+  searchWikiPages,
+} from "./discovery";
+import type {
+  ConflictSummary,
+  WikiSearchMatch,
+  WorkExecutorFilter,
+  WorkQueue,
+  WorkQueueGroups,
+  WorkQueueItem,
+  WorkQueueState,
+} from "./discovery";
+import {
+  buildCompactTopicCandidateContext,
+  buildPageContext,
+  buildSelectedWorkContext,
+  buildTopicContext,
+  projectSelectedWorkContext,
+  projectTopicContext,
+} from "./context";
+import type {
+  CompactContextConflict,
+  CompactContextPage,
+  CompactSelectedWorkContext,
+  CompactTopicContext,
+  ContextSourceGlob,
+  SelectedWorkContext,
+  SelectedWorkContextConflict,
+  SelectedWorkContextPage,
+  SelectedWorkContextReadEntry,
+  SelectedWorkContextSourceSummary,
+  TopicContext,
+  TopicContextCandidate,
+} from "./context";
+import {
+  GENERATED_HEADER,
+  buildConflictMap,
+  buildSourceMap,
+  generateConflictsIndex,
+  generateCurrentStatus,
+  generateIndex,
+  generateWorkQueue,
+  generatedCoreFiles,
+} from "./generated-views";
+import type { ConflictMap, SourceMap } from "./generated-views";
+
+export {
+  buildWorkQueue,
+  conflictSummary,
+  currentPages,
+  openConflicts,
+  projectWorkQueue,
+  searchWikiPages,
+};
+export type {
+  ConflictSummary,
+  WikiSearchMatch,
+  WorkExecutorFilter,
+  WorkQueue,
+  WorkQueueGroups,
+  WorkQueueItem,
+  WorkQueueState,
+};
+export {
+  buildCompactTopicCandidateContext,
+  buildPageContext,
+  buildSelectedWorkContext,
+  buildTopicContext,
+  projectSelectedWorkContext,
+  projectTopicContext,
+};
+export type {
+  CompactContextConflict,
+  CompactContextPage,
+  CompactSelectedWorkContext,
+  CompactTopicContext,
+  ContextSourceGlob,
+  SelectedWorkContext,
+  SelectedWorkContextConflict,
+  SelectedWorkContextPage,
+  SelectedWorkContextReadEntry,
+  SelectedWorkContextSourceSummary,
+  TopicContext,
+  TopicContextCandidate,
+};
+export {
+  GENERATED_HEADER,
+  buildConflictMap,
+  buildSourceMap,
+  generateConflictsIndex,
+  generateCurrentStatus,
+  generateIndex,
+  generateWorkQueue,
+  generatedCoreFiles,
+};
+export type { ConflictMap, SourceMap };
 
 function pushFinding(findings: Finding[], path: string, code: string, message: string, severity: Finding["severity"] = "error") {
   findings.push({ code, message, path, severity });
@@ -98,873 +195,10 @@ export function validateMarkdownLinks(view: RepoView): Finding[] {
   return validateMarkdownLinksFoundation(view, policy);
 }
 
-export function currentPages(pages: WikiPage[]): WikiPage[] {
-  return pages.filter((page) => page.data.status === "current").sort((a, b) => a.data.id.localeCompare(b.data.id));
-}
-
-export type WikiSearchMatch = {
-  page: WikiPage;
-  score: number;
-};
-
-export function searchWikiPages(pages: WikiPage[], query: string): WikiSearchMatch[] {
-  const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
-  if (terms.length === 0) return [];
-  const matches = pages.flatMap((page) => {
-    const haystack = `${page.data.id} ${page.data.summary} ${(page.data.tags ?? []).join(" ")} ${page.body}`.toLowerCase();
-    const score = terms.reduce((total, term) => total + (haystack.includes(term) ? 1 : 0), 0);
-    return score > 0 ? [{ page, score }] : [];
-  });
-  const complete = matches.filter((item) => item.score === terms.length);
-  return (complete.length > 0 ? complete : matches)
-    .sort((a, b) => b.score - a.score || a.page.data.id.localeCompare(b.page.data.id));
-}
-
-export type ConflictSummary = {
-  id: string;
-  pageId: string;
-  path: string;
-  summary: string;
-  type: ConflictType;
-  severity: ConflictSeverity;
-  origin: ConflictOrigin;
-  openedAt: string;
-  state: ConflictResolutionState;
-  owner: string[];
-  affectedPages: string[];
-  affectedInvariants: string[];
-  acceptance: string[];
-  sources: WikiSource[];
-};
-
-export function conflictSummary(page: WikiPage): ConflictSummary {
-  return {
-    id: page.data.conflict_id!,
-    pageId: page.data.id,
-    path: page.path,
-    summary: page.data.summary,
-    type: page.data.conflict_type!,
-    severity: page.data.severity!,
-    origin: page.data.origin!,
-    openedAt: page.data.opened_at!,
-    state: page.data.resolution!.state,
-    owner: page.data.owners,
-    affectedPages: page.data.affected_pages ?? [],
-    affectedInvariants: page.data.affected_invariants ?? [],
-    acceptance: page.data.resolution!.acceptance,
-    sources: page.data.sources,
-  };
-}
-
-export function openConflicts(pages: WikiPage[]): WikiPage[] {
-  const order: Record<ConflictSeverity, number> = { high: 0, medium: 1, low: 2 };
-  return pages.filter((page) => page.data.kind === "conflict" && page.data.status === "conflicted")
-    .sort((a, b) => order[a.data.severity!] - order[b.data.severity!] || a.data.conflict_id!.localeCompare(b.data.conflict_id!));
-}
-
-export type WorkQueueState = "ready" | "waiting" | "active" | "blocked" | "done" | "deferred";
-export type WorkQueueItem = Omit<WorkItem, "executor"> & {
-  executor: WorkExecutor;
-  queue_state: WorkQueueState;
-  unmet_dependencies: string[];
-  owner_page: {
-    id: string;
-    path: string;
-    owners: string[];
-    status: WikiStatus;
-    authority: WikiAuthority;
-  };
-  context_command: string;
-};
-export type WorkQueueGroups = {
-  active: WorkQueueItem[];
-  ready: WorkQueueItem[];
-  waiting: WorkQueueItem[];
-  blocked: WorkQueueItem[];
-  deferred: WorkQueueItem[];
-  done: WorkQueueItem[];
-};
-export type WorkQueue = {
-  version: 1;
-  recommended_next: { kind: "work"; id: string } | null;
-  groups: WorkQueueGroups;
-  open_conflicts: ConflictSummary[];
-};
-
-/** Public queue views can select agent, human, or all; `either` is included in both named views. */
-export type WorkExecutorFilter = "agent" | "human" | "all";
-
-export type ContextSourceGlob = {
-  glob: string;
-  matchedFiles: string[];
-};
-
-export type SelectedWorkContextPage = {
-  id: string;
-  kind: string;
-  path: string;
-  summary: string;
-  status: WikiStatus;
-  authority: WikiAuthority;
-  owners: string[];
-  sources: WikiSource[];
-  exactSources: Extract<WikiSource, { path: string }>[];
-  sourceGlobs: ContextSourceGlob[];
-  sourceFiles: string[];
-  relevantOpenConflicts: string[];
-  body: string;
-};
-
-export type SelectedWorkContextConflict = ConflictSummary & {
-  kind: "conflict";
-  status: "conflicted";
-  authority: WikiAuthority;
-  exactSources: Extract<WikiSource, { path: string }>[];
-  sourceGlobs: ContextSourceGlob[];
-  sourceFiles: string[];
-  relevantOpenConflicts: string[];
-  body: string;
-};
-
-export type SelectedWorkContextReadEntry =
-  | { kind: "invariant" | "conflict" | "page"; id: string; path: string }
-  | { kind: "source"; path: string; declaredBy: string[] };
-
-export type SelectedWorkContextSourceSummary = {
-  pageId: string;
-  path: string;
-  status: WikiStatus;
-  authority: WikiAuthority;
-  declared: WikiSource[];
-  exactSources: Extract<WikiSource, { path: string }>[];
-  sourceGlobs: ContextSourceGlob[];
-  sourceFiles: string[];
-  relevantOpenConflicts: string[];
-};
-
-export type SelectedWorkContext = {
-  version: 1;
-  query: null;
-  requestedConflict: null;
-  requestedWork: string;
-  work: WorkQueueItem;
-  readOrder: SelectedWorkContextReadEntry[];
-  pages: SelectedWorkContextPage[];
-  conflicts: SelectedWorkContextConflict[];
-  ownerPage: SelectedWorkContextPage;
-  sources: SelectedWorkContextSourceSummary[];
-};
-
-/**
- * The compact context projection deliberately keeps routing and authority
- * metadata while dropping page bodies.  `buildSelectedWorkContext` and
- * `buildTopicContext` remain the exhaustive semantic models used by exact
- * context artifacts and by the explicit `--full` CLI mode; this projection is
- * only a presentation boundary for ordinary discovery.
- */
-export type CompactContextPage = Omit<SelectedWorkContextPage, "body"> & {
-  bodyDigest: string;
-  focusedCommand: string;
-};
-
-export type CompactContextConflict = Omit<SelectedWorkContextConflict, "body"> & {
-  bodyDigest: string;
-  focusedCommand: string;
-};
-
-export type TopicContextCandidate = {
-  /** Stable one-based order in the deterministic search result. */
-  order: number;
-  score: number;
-  id: string;
-  kind: string;
-  path: string;
-  summary: string;
-  status: WikiStatus;
-  authority: WikiAuthority;
-  owners: string[];
-  bodyDigest: string;
-  relevantOpenConflicts: string[];
-  focusedCommand: string;
-};
-
-export type CompactSelectedWorkContext = Omit<
-  SelectedWorkContext,
-  "pages" | "conflicts" | "ownerPage" | "sources"
-> & {
-  mode: "compact";
-  pages: CompactContextPage[];
-  conflicts: CompactContextConflict[];
-  ownerPage: CompactContextPage;
-};
-
-export type CompactTopicContext = Omit<
-  TopicContext,
-  "pages" | "conflicts" | "nonCurrentPages" | "sources"
-> & {
-  mode: "compact";
-  /** `partial` exposes candidates before any focused body expansion. */
-  matchMode: "complete" | "partial" | "none";
-  pages: CompactContextPage[];
-  conflicts: CompactContextConflict[];
-  nonCurrentPages: CompactContextPage[];
-  candidates: TopicContextCandidate[];
-};
-
-export type TopicContext = {
-  version: 1;
-  query: string;
-  requestedConflict: null;
-  requestedWork: null;
-  readOrder: SelectedWorkContextReadEntry[];
-  pages: SelectedWorkContextPage[];
-  conflicts: SelectedWorkContextConflict[];
-  nonCurrentPages: SelectedWorkContextPage[];
-  sources: SelectedWorkContextSourceSummary[];
-};
-
-const WORK_PRIORITY_ORDER: Record<WorkPriority, number> = { critical: 0, high: 1, normal: 2, low: 3 };
-
-export function buildWorkQueue(pages: WikiPage[]): WorkQueue {
-  const owned = ownedWorkItems(pages);
-  const stateById = new Map(owned.map(({ item }) => [item.id, item.state]));
-  const normalized = owned.map(({ item, page }): WorkQueueItem => {
-    const unmet = item.depends_on.filter((dependency) => stateById.get(dependency) !== "done").sort((a, b) => a.localeCompare(b));
-    const queueState: WorkQueueState = item.state === "not-started" ? (unmet.length === 0 ? "ready" : "waiting") : item.state;
-    return {
-      ...item,
-      executor: item.executor ?? "agent",
-      depends_on: [...item.depends_on].sort((a, b) => a.localeCompare(b)),
-      context_pages: [...item.context_pages],
-      acceptance: [...item.acceptance],
-      evidence: [...item.evidence],
-      queue_state: queueState,
-      unmet_dependencies: unmet,
-      owner_page: {
-        id: page.data.id,
-        path: page.path,
-        owners: [...page.data.owners],
-        status: page.data.status,
-        authority: page.data.authority,
-      },
-      context_command: `bun run wiki:context -- --work ${item.id}`,
-    };
-  }).sort((a, b) => WORK_PRIORITY_ORDER[a.priority] - WORK_PRIORITY_ORDER[b.priority] || a.id.localeCompare(b.id));
-  const groups: WorkQueueGroups = { active: [], ready: [], waiting: [], blocked: [], deferred: [], done: [] };
-  for (const item of normalized) groups[item.queue_state].push(item);
-  const queue: WorkQueue = {
-    version: 1,
-    recommended_next: null,
-    groups,
-    open_conflicts: openConflicts(pages).map(conflictSummary),
-  };
-  return projectWorkQueue(queue, "all");
-}
-
-function executorVisible(item: WorkQueueItem, filter: WorkExecutorFilter): boolean {
-  return filter === "all" || item.executor === "either" || item.executor === filter;
-}
-
-function recommendedWork(groups: WorkQueueGroups): { kind: "work"; id: string } | null {
-  // Recommendations are agent auto-selection. Human-exclusive work remains
-  // visible in every projection, but is never selected automatically.
-  const recommended = [...groups.active, ...groups.ready].find((item) => item.executor !== "human");
-  return recommended ? { kind: "work", id: recommended.id } : null;
-}
-
-/**
- * Project a fully-derived repository queue for display. Dependency state and
- * unmet dependencies are intentionally computed before this visibility filter;
- * filtering a hidden prerequisite must never turn a waiting item into ready.
- */
-export function projectWorkQueue(queue: WorkQueue, filter: WorkExecutorFilter = "all"): WorkQueue {
-  const groups = (Object.keys(queue.groups) as (keyof WorkQueueGroups)[]).reduce((result, group) => {
-    result[group] = queue.groups[group].filter((item) => executorVisible(item, filter));
-    return result;
-  }, {} as WorkQueueGroups);
-  return {
-    version: queue.version,
-    recommended_next: recommendedWork(groups),
-    groups,
-    open_conflicts: queue.open_conflicts,
-  };
-}
-
-function contextSourceFields(view: RepoView, sources: WikiSource[]) {
-  const exactSources = sources
-    .filter((source): source is Extract<WikiSource, { path: string }> => "path" in source)
-    .map((source) => ({ ...source, ...(source.symbols ? { symbols: [...source.symbols] } : {}) }))
-    .sort((a, b) => a.path.localeCompare(b.path));
-  const sourceGlobs = sources
-    .filter((source): source is Extract<WikiSource, { glob: string }> => "glob" in source)
-    .map((source) => ({ glob: source.glob, matchedFiles: expandSource(view, source) }))
-    .sort((a, b) => a.glob.localeCompare(b.glob));
-  const sourceFiles = [...new Set(sources.flatMap((source) => expandSource(view, source)))].sort((a, b) => a.localeCompare(b));
-  return { exactSources, sourceGlobs, sourceFiles };
-}
-
-function selectedWorkContextPage(view: RepoView, page: WikiPage, conflicts: WikiPage[]): SelectedWorkContextPage {
-  const relevantOpenConflicts = conflicts
-    .filter((conflict) => (conflict.data.affected_pages ?? []).includes(page.data.id)
-      || (conflict.data.affected_invariants ?? []).includes(page.data.id))
-    .map((conflict) => conflict.data.conflict_id!);
-  return {
-    id: page.data.id,
-    kind: page.data.kind,
-    path: page.path,
-    summary: page.data.summary,
-    status: page.data.status,
-    authority: page.data.authority,
-    owners: [...page.data.owners],
-    sources: page.data.sources,
-    ...contextSourceFields(view, page.data.sources),
-    relevantOpenConflicts,
-    body: page.body,
-  };
-}
-
-function selectedWorkContextConflict(view: RepoView, page: WikiPage): SelectedWorkContextConflict {
-  return {
-    ...conflictSummary(page),
-    kind: "conflict",
-    status: "conflicted",
-    authority: page.data.authority,
-    ...contextSourceFields(view, page.data.sources),
-    relevantOpenConflicts: [page.data.conflict_id!],
-    body: page.body,
-  };
-}
-
-function contextReadOrder(
-  pages: SelectedWorkContextPage[],
-  conflicts: SelectedWorkContextConflict[],
-): SelectedWorkContextReadEntry[] {
-  const declarations = new Map<string, Set<string>>();
-  const addSourceDeclarations = (id: string, sourceFiles: string[]) => {
-    for (const path of sourceFiles) {
-      const declaredBy = declarations.get(path) ?? new Set<string>();
-      declaredBy.add(id);
-      declarations.set(path, declaredBy);
-    }
-  };
-  for (const page of pages) addSourceDeclarations(page.id, page.sourceFiles);
-  for (const conflict of conflicts) addSourceDeclarations(conflict.id, conflict.sourceFiles);
-
-  return [
-    ...pages.filter((page) => page.kind === "invariant").map((page) => ({ kind: "invariant" as const, id: page.id, path: page.path })),
-    ...conflicts.map((conflict) => ({ kind: "conflict" as const, id: conflict.id, path: conflict.path })),
-    ...pages.filter((page) => page.kind !== "invariant").map((page) => ({ kind: "page" as const, id: page.id, path: page.path })),
-    ...[...declarations.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([path, declaredBy]) => ({ kind: "source" as const, path, declaredBy: [...declaredBy].sort((a, b) => a.localeCompare(b)) })),
-  ];
-}
-
-function contextSourceSummary(page: SelectedWorkContextPage | SelectedWorkContextConflict): SelectedWorkContextSourceSummary {
-  return {
-    pageId: "pageId" in page ? page.pageId : page.id,
-    path: page.path,
-    status: page.status,
-    authority: page.authority,
-    declared: page.sources,
-    exactSources: page.exactSources,
-    sourceGlobs: page.sourceGlobs,
-    sourceFiles: page.sourceFiles,
-    relevantOpenConflicts: page.relevantOpenConflicts,
-  };
-}
-
-export function buildSelectedWorkContext(view: RepoView, pages: WikiPage[], work: WorkQueueItem): SelectedWorkContext {
-  const ownerPage = pages.find((page) => page.data.id === work.owner_page.id);
-  if (!ownerPage) throw new Error(`work owner page is missing: ${work.owner_page.id}`);
-
-  const requestedPageIds = new Set(work.context_pages);
-  for (const page of currentPages(pages)) if (page.data.kind === "invariant") requestedPageIds.add(page.data.id);
-  const selectedPages = currentPages(pages).filter((page) => requestedPageIds.has(page.data.id));
-  const invariantPages = selectedPages.filter((page) => page.data.kind === "invariant");
-  const otherPages = selectedPages.filter((page) => page.data.kind !== "invariant");
-  const relevantConflictPages = openConflicts(pages)
-    .filter((page) => (page.data.affected_pages ?? []).some((id) => requestedPageIds.has(id))
-      || (page.data.affected_invariants ?? []).some((id) => requestedPageIds.has(id)));
-
-  const contextPages = [...invariantPages, ...otherPages]
-    .map((page) => selectedWorkContextPage(view, page, relevantConflictPages));
-  const conflicts = relevantConflictPages.map((page) => selectedWorkContextConflict(view, page));
-  const owner = selectedWorkContextPage(view, ownerPage, relevantConflictPages);
-
-  return {
-    version: 1,
-    query: null,
-    requestedConflict: null,
-    requestedWork: work.id,
-    work,
-    readOrder: contextReadOrder(contextPages, conflicts),
-    pages: contextPages,
-    conflicts,
-    ownerPage: owner,
-    sources: [...contextPages.map(contextSourceSummary), ...conflicts.map(contextSourceSummary), contextSourceSummary(owner)],
-  };
-}
-
-export function buildTopicContext(view: RepoView, pages: WikiPage[], query: string): TopicContext {
-  const matches = searchWikiPages(pages, query).map(({ page }) => page);
-  const matchedCurrentIds = new Set(matches
-    .filter((page) => page.data.status === "current" && page.data.kind !== "conflict")
-    .map((page) => page.data.id));
-  const selectedConflictIds = new Set(matches
-    .filter((page) => page.data.kind === "conflict" && page.data.status === "conflicted")
-    .map((page) => page.data.conflict_id!));
-  const conflictPages = openConflicts(pages);
-
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (const page of conflictPages) {
-      const conflictId = page.data.conflict_id!;
-      const relevant = selectedConflictIds.has(conflictId)
-        || (page.data.affected_pages ?? []).some((id) => matchedCurrentIds.has(id))
-        || (page.data.affected_invariants ?? []).some((id) => matchedCurrentIds.has(id));
-      if (!relevant) continue;
-      if (!selectedConflictIds.has(conflictId)) {
-        selectedConflictIds.add(conflictId);
-        changed = true;
-      }
-      for (const id of [...(page.data.affected_pages ?? []), ...(page.data.affected_invariants ?? [])]) {
-        const affected = pages.find((candidate) => candidate.data.id === id);
-        if (affected?.data.status === "current" && affected.data.kind !== "conflict" && !matchedCurrentIds.has(id)) {
-          matchedCurrentIds.add(id);
-          changed = true;
-        }
-      }
-    }
-  }
-
-  const selectedConflictPages = conflictPages.filter((page) => selectedConflictIds.has(page.data.conflict_id!));
-  const selectedCurrentPages = currentPages(pages).filter((page) => matchedCurrentIds.has(page.data.id));
-  const contextPages = [
-    ...selectedCurrentPages.filter((page) => page.data.kind === "invariant"),
-    ...selectedCurrentPages.filter((page) => page.data.kind !== "invariant"),
-  ].map((page) => selectedWorkContextPage(view, page, selectedConflictPages));
-  const conflicts = selectedConflictPages.map((page) => selectedWorkContextConflict(view, page));
-  const nonCurrentPages = matches
-    .filter((page) => page.data.status !== "current"
-      && !(page.data.kind === "conflict" && page.data.status === "conflicted"))
-    .sort((a, b) => a.data.id.localeCompare(b.data.id))
-    .map((page) => selectedWorkContextPage(view, page, selectedConflictPages));
-
-  const context: TopicContext = {
-    version: 1,
-    query,
-    requestedConflict: null,
-    requestedWork: null,
-    readOrder: contextReadOrder(contextPages, conflicts),
-    pages: contextPages,
-    conflicts,
-    nonCurrentPages,
-    sources: [...contextPages, ...conflicts, ...nonCurrentPages].map(contextSourceSummary),
-  };
-  return context;
-}
-
-function focusedContextCommand(page: SelectedWorkContextPage | SelectedWorkContextConflict): string {
-  if (page.kind === "conflict") {
-    const conflictId = "id" in page && page.id.startsWith("C-") ? page.id : page.id.replace(/^conflict\//, "");
-    const all = page.status === "conflicted" ? "" : " --all";
-    return `bun run wiki:context --${all} --conflict ${conflictId} --full`;
-  }
-  return `bun run wiki:context -- --page ${page.id} --full`;
-}
-
-function compactContextPage(page: SelectedWorkContextPage): CompactContextPage {
-  const { body, ...metadata } = page;
-  return {
-    ...metadata,
-    bodyDigest: hashContent(body),
-    focusedCommand: focusedContextCommand(page),
-  };
-}
-
-function compactContextConflict(page: SelectedWorkContextConflict): CompactContextConflict {
-  const { body, ...metadata } = page;
-  return {
-    ...metadata,
-    bodyDigest: hashContent(body),
-    focusedCommand: focusedContextCommand(page),
-  };
-}
-
-function topicCandidate(
-  match: WikiSearchMatch,
-  order: number,
-  selectedConflicts: Array<WikiPage | SelectedWorkContextConflict>,
-): TopicContextCandidate {
-  const { page, score } = match;
-  const relevantOpenConflicts = selectedConflicts
-    .filter((conflict) => {
-      const affectedPages = "data" in conflict ? conflict.data.affected_pages ?? [] : conflict.affectedPages;
-      const affectedInvariants = "data" in conflict ? conflict.data.affected_invariants ?? [] : conflict.affectedInvariants;
-      return affectedPages.includes(page.data.id) || affectedInvariants.includes(page.data.id);
-    })
-    .map((conflict) => "data" in conflict ? conflict.data.conflict_id! : conflict.id)
-    .sort((a, b) => a.localeCompare(b));
-  if (page.data.kind === "conflict" && page.data.status === "conflicted" && page.data.conflict_id != null) {
-    relevantOpenConflicts.push(page.data.conflict_id);
-  }
-  relevantOpenConflicts.sort((a, b) => a.localeCompare(b));
-  const conflictCandidate = page.data.kind === "conflict";
-  const focusedCommand = conflictCandidate
-    ? `bun run wiki:context --${page.data.status === "conflicted" ? "" : " --all"} --conflict ${page.data.conflict_id ?? page.data.id.replace(/^conflict\//, "")} --full`
-    : `bun run wiki:context -- --page ${page.data.id} --full`;
-  return {
-    order,
-    score,
-    id: page.data.id,
-    kind: page.data.kind,
-    path: page.path,
-    summary: page.data.summary,
-    status: page.data.status,
-    authority: page.data.authority,
-    owners: [...page.data.owners],
-    bodyDigest: hashContent(page.body),
-    relevantOpenConflicts,
-    focusedCommand,
-  };
-}
-
-/**
- * Build the bounded partial-match route directly from search results and Wiki
- * frontmatter. This function intentionally accepts no RepoView: it cannot
- * expand source globs, construct a source read order, or assemble page bodies.
- * Candidates carry only routing metadata plus a stable body digest; callers
- * follow the focused command before requesting exhaustive context.
- */
-export function buildCompactTopicCandidateContext(
-  pages: WikiPage[],
-  query: string,
-  matches: WikiSearchMatch[] = searchWikiPages(pages, query),
-): CompactTopicContext {
-  const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
-  const complete = matches.length > 0 && matches.some((match) => match.score === terms.length);
-  const matchMode: CompactTopicContext["matchMode"] = matches.length === 0 ? "none" : complete ? "complete" : "partial";
-  const candidates = matchMode === "partial"
-    ? matches.map((match, index) => topicCandidate(match, index + 1, openConflicts(pages)))
-    : [];
-  return {
-    version: 1,
-    mode: "compact",
-    query,
-    requestedConflict: null,
-    requestedWork: null,
-    matchMode,
-    readOrder: [],
-    pages: [],
-    conflicts: [],
-    nonCurrentPages: [],
-    candidates,
-  };
-}
-
-/**
- * Project an exhaustive selected-work model for ordinary discovery.  Passing
- * `full` returns the original object unchanged so reusable context digests and
- * the historical exhaustive representation remain stable.
- */
-export function projectSelectedWorkContext(
-  context: SelectedWorkContext,
-  mode: "compact" | "full" = "compact",
-): SelectedWorkContext | CompactSelectedWorkContext {
-  if (mode === "full") return context;
-  return {
-    version: context.version,
-    mode: "compact",
-    query: context.query,
-    requestedConflict: context.requestedConflict,
-    requestedWork: context.requestedWork,
-    work: context.work,
-    readOrder: context.readOrder,
-    pages: context.pages.map(compactContextPage),
-    conflicts: context.conflicts.map(compactContextConflict),
-    ownerPage: compactContextPage(context.ownerPage),
-  };
-}
-
-/**
- * Project an exhaustive topic model for complete-match discovery. The optional
- * explicit search results preserve deterministic match-mode/candidate metadata
- * for callers that already built the exhaustive model (the default partial
- * route uses buildCompactTopicCandidateContext before that model is built).
- */
-export function projectTopicContext(
-  context: TopicContext,
-  mode: "compact" | "full" = "compact",
-  matches: WikiSearchMatch[] = [],
-): TopicContext | CompactTopicContext {
-  if (mode === "full") return context;
-  const terms = context.query.toLowerCase().split(/\s+/).filter(Boolean);
-  const complete = matches.length > 0 && matches.some((match) => match.score === terms.length);
-  const matchMode: CompactTopicContext["matchMode"] = matches.length === 0 ? "none" : complete ? "complete" : "partial";
-  const conflicts = context.conflicts.map(compactContextConflict);
-  const candidates = matchMode === "partial"
-    ? matches.map((match, index) => topicCandidate(match, index + 1, context.conflicts))
-    : [];
-  // Partial-only discovery is deliberately a routing surface: candidates carry
-  // the metadata needed to choose a page or conflict, while the caller must
-  // follow a focused command before any page/source expansion occurs.
-  if (matchMode === "partial") {
-    return {
-      version: context.version,
-      mode: "compact",
-      query: context.query,
-      requestedConflict: context.requestedConflict,
-      requestedWork: context.requestedWork,
-      matchMode,
-      readOrder: [],
-      pages: [],
-      conflicts: [],
-      nonCurrentPages: [],
-      candidates,
-    };
-  }
-  return {
-    version: context.version,
-    mode: "compact",
-    query: context.query,
-    requestedConflict: context.requestedConflict,
-    requestedWork: context.requestedWork,
-    matchMode,
-    readOrder: context.readOrder,
-    pages: context.pages.map(compactContextPage),
-    conflicts,
-    nonCurrentPages: context.nonCurrentPages.map(compactContextPage),
-    candidates,
-  };
-}
-
-/**
- * Build a focused page context used by compact candidate follow-up commands.
- * It intentionally uses the same current-authority/conflict/source ordering as
- * topic and selected-work context, but selects one exact page ID rather than a
- * substring query.
- */
-export function buildPageContext(view: RepoView, pages: WikiPage[], pageId: string): TopicContext {
-  const target = pages.find((page) => page.data.id === pageId);
-  if (!target) throw new Error(`unknown page: ${pageId}`);
-  if (target.data.kind === "conflict") throw new Error(`conflict pages require --conflict ${target.data.conflict_id ?? pageId}`);
-
-  const requestedIds = new Set<string>();
-  if (target.data.status === "current") requestedIds.add(target.data.id);
-  for (const page of currentPages(pages)) if (page.data.kind === "invariant") requestedIds.add(page.data.id);
-
-  const relevantConflictPages = openConflicts(pages).filter((page) => (page.data.affected_pages ?? []).includes(target.data.id)
-    || (page.data.affected_invariants ?? []).includes(target.data.id));
-  for (const conflict of relevantConflictPages) {
-    for (const id of [...(conflict.data.affected_pages ?? []), ...(conflict.data.affected_invariants ?? [])]) {
-      const affected = pages.find((page) => page.data.id === id);
-      if (affected?.data.status === "current" && affected.data.kind !== "conflict") requestedIds.add(id);
-    }
-  }
-  const selectedCurrentPages = currentPages(pages).filter((page) => requestedIds.has(page.data.id));
-  const contextPages = [
-    ...selectedCurrentPages.filter((page) => page.data.kind === "invariant"),
-    ...selectedCurrentPages.filter((page) => page.data.kind !== "invariant"),
-  ].map((page) => selectedWorkContextPage(view, page, relevantConflictPages));
-  const conflicts = relevantConflictPages.map((page) => selectedWorkContextConflict(view, page));
-  const nonCurrentPages = target.data.status === "current" ? [] : [selectedWorkContextPage(view, target, relevantConflictPages)];
-  return {
-    version: 1,
-    query: pageId,
-    requestedConflict: null,
-    requestedWork: null,
-    readOrder: contextReadOrder(contextPages, conflicts),
-    pages: contextPages,
-    conflicts,
-    nonCurrentPages,
-    sources: [...contextPages, ...conflicts, ...nonCurrentPages].map(contextSourceSummary),
-  };
-}
-
-function renderWorkTable(items: WorkQueueItem[]): string[] {
-  const lines = [
-    "| ID | Priority | Executor | Owner page | Dependencies | Summary | Context |",
-    "|---|---|---|---|---|---|---|",
-  ];
-  for (const item of items) {
-    const owner = `[${item.owner_page.id}](./${item.owner_page.path.slice("wiki/".length)})`;
-    const dependencies = item.depends_on.length > 0 ? item.depends_on.join(", ") : "—";
-    const reason = item.queue_state === "blocked"
-      ? ` — Blocker: ${item.blocker}`
-      : item.queue_state === "deferred"
-        ? ` — Deferred: ${item.deferred_reason}`
-        : item.queue_state === "waiting"
-          ? ` — Waiting on: ${item.unmet_dependencies.join(", ")}`
-          : "";
-    lines.push(`| ${item.id} | ${item.priority} | ${item.executor} | ${owner} | ${dependencies} | ${item.title}${reason} | \`${item.context_command}\` |`);
-  }
-  if (items.length === 0) lines.push("| — | — | — | — | — | None | — |");
-  return lines;
-}
-
-export function generateWorkQueue(pages: WikiPage[]): string {
-  const queue = buildWorkQueue(pages);
-  const outstanding = ["active", "ready", "waiting", "blocked", "deferred"]
-    .reduce((total, group) => total + queue.groups[group as keyof WorkQueueGroups].length, 0);
-  const humanOutstanding = ["active", "ready"]
-    .flatMap((group) => queue.groups[group as keyof WorkQueueGroups])
-    .some((item) => item.executor === "human");
-  const lines = [
-    "---",
-    "id: generated/work-queue",
-    "summary: Deterministic repository-wide projection of outstanding proposal work.",
-    "kind: generated",
-    "status: archived",
-    "authority: derived",
-    'owners: ["@repository-maintainers"]',
-    "sources: []",
-    "tags: [generated, work, queue]",
-    "---",
-    "",
-    GENERATED_HEADER,
-    "",
-    "# Repository work queue",
-    "",
-    "This is a deterministic view of structured `work_items` on proposal pages. It is not current product authority; open the owning proposal and then the returned current context.",
-    "",
-    queue.recommended_next
-      ? `**Recommended next:** \`${queue.recommended_next.id}\` — run \`bun run wiki:context -- --work ${queue.recommended_next.id}\`.`
-      : humanOutstanding
-        ? "**Recommended next:** none; no agent-recommendable work is available. Human-only work remains visible below and requires human execution; do not invent work or assume authority."
-        : "**Recommended next:** none. Do not invent work; inspect blockers and open decisions below.",
-    "",
-    `Outstanding work: ${outstanding}. Completed work hidden: ${queue.groups.done.length}; run \`bun run wiki:work -- --all\` to inspect it.`,
-    "",
-  ];
-  for (const [heading, group] of [
-    ["Active", "active"],
-    ["Ready", "ready"],
-    ["Waiting", "waiting"],
-    ["Blocked", "blocked"],
-  ] as const) {
-    lines.push(`## ${heading}`, "", ...renderWorkTable(queue.groups[group]), "");
-  }
-  lines.push("## Open decision conflicts", "");
-  if (queue.open_conflicts.length === 0) {
-    lines.push("No open conflicts.", "");
-  } else {
-    lines.push("| ID | Severity | Type | State | Summary |", "|---|---|---|---|---|");
-    for (const conflict of queue.open_conflicts) lines.push(`| [${conflict.id}](./${conflict.path.slice("wiki/".length)}) | ${conflict.severity} | ${conflict.type} | ${conflict.state} | ${conflict.summary} |`);
-    lines.push("");
-  }
-  lines.push("## Deferred", "", ...renderWorkTable(queue.groups.deferred), "");
-  if (outstanding === 0 && queue.open_conflicts.length === 0) lines.push("No remaining work.", "");
-  return `${lines.join("\n").trimEnd()}\n`;
-}
-
-export function generateConflictsIndex(pages: WikiPage[]): string {
-  const conflicts = openConflicts(pages);
-  const lines = [
-    GENERATED_HEADER,
-    "",
-    "# Open conflicts",
-    "",
-    "Conflicts are not the current SSOT. Related work must resolve them with an explicit decision or implementation that satisfies every acceptance criterion.",
-    "",
-    "Humans run `bun run wiki:conflicts`; agents run `bun run wiki:context -- --conflict C-NNN` for full context.",
-    "",
-    "| ID | Severity | Type | State | Owner | Affected pages | Summary |",
-    "|---|---|---|---|---|---|---|",
-  ];
-  for (const page of conflicts) {
-    const item = conflictSummary(page);
-    lines.push(`| [${item.id}](./${page.path.slice("wiki/".length)}) | ${item.severity} | ${item.type} | ${item.state} | ${item.owner.join(", ")} | ${item.affectedPages.join(", ")} | ${item.summary} |`);
-  }
-  if (conflicts.length === 0) lines.push("| — | — | — | — | — | — | No open conflicts |");
-  lines.push("");
-  return lines.join("\n");
-}
-
-export function generateIndex(pages: WikiPage[], name = "Project"): string {
-  const groups = new Map<string, WikiPage[]>();
-  for (const page of currentPages(pages)) {
-    const group = page.path.split("/")[1] ?? "other";
-    groups.set(group, [...(groups.get(group) ?? []), page]);
-  }
-  const lines = [GENERATED_HEADER, "", `# ${name} wiki`, "", "Pages with `status: current` are the single source of truth for current development intent and contracts.", ""];
-  for (const [group, items] of [...groups].sort(([a], [b]) => a.localeCompare(b))) {
-    lines.push(`## ${group}`, "");
-    for (const page of items) lines.push(`- [${page.data.id}](./${page.path.slice("wiki/".length)}) — ${page.data.summary}`);
-    lines.push("");
-  }
-  if (groups.size === 0) lines.push("No current pages yet.", "");
-  lines.push("- [Outstanding work](./work-queue.md)", "- [Open conflicts](./conflicts.md)", "- [Changelog](./changelog.md)", "");
-  return `${lines.join("\n").trimEnd()}\n`;
-}
-
-export function generateCurrentStatus(pages: WikiPage[]): string {
-  const lines = [GENERATED_HEADER, "", "# Current status", "", "| ID | Kind | Authority | Owner | Sources |", "|---|---|---|---|---:|"];
-  for (const page of currentPages(pages)) lines.push(`| [${page.data.id}](./${page.path.slice("wiki/".length)}) | ${page.data.kind} | ${page.data.authority} | ${page.data.owners.join(", ")} | ${page.data.sources.length} |`);
-  if (currentPages(pages).length === 0) lines.push("| — | — | — | — | 0 |");
-  const queue = buildWorkQueue(pages);
-  const outstanding = queue.groups.active.length + queue.groups.ready.length + queue.groups.waiting.length + queue.groups.blocked.length + queue.groups.deferred.length;
-  const humanOutstanding = ["active", "ready"]
-    .flatMap((group) => queue.groups[group as keyof WorkQueueGroups])
-    .some((item) => item.executor === "human");
-  lines.push("", `## Outstanding work (${outstanding})`, "");
-  lines.push(queue.recommended_next
-    ? `Recommended next: \`${queue.recommended_next.id}\`. Run \`bun run wiki:context -- --work ${queue.recommended_next.id}\`.`
-    : outstanding > 0 && humanOutstanding
-      ? "No agent-recommendable work is available; human-only work remains and requires human execution. Do not infer an agent task or assume authority."
-      : "No active or ready work is available; do not infer a task from blocked or deferred records.");
-  lines.push("", "See the [repository work queue](./work-queue.md) or run `bun run wiki:work`.", "");
-  const conflicts = openConflicts(pages);
-  lines.push("", `## Open conflicts (${conflicts.length})`, "", "| Severity | Count |", "|---|---:|");
-  for (const severity of ["high", "medium", "low"] as const) lines.push(`| ${severity} | ${conflicts.filter((page) => page.data.severity === severity).length} |`);
-  lines.push("", "See [open conflicts](./conflicts.md) or run `bun run wiki:conflicts`.", "");
-  return lines.join("\n");
-}
-
-export type SourceMap = { version: 1; exact: Record<string, string[]>; globs: { glob: string; pages: string[] }[] };
-export type ConflictMap = { version: 1; exact: Record<string, string[]>; globs: { glob: string; conflicts: string[] }[] };
-
-export function buildSourceMap(pages: WikiPage[]): SourceMap {
-  const exact: Record<string, string[]> = {};
-  const globPages = new Map<string, string[]>();
-  for (const page of currentPages(pages)) {
-    for (const source of page.data.sources) {
-      if ("path" in source) exact[source.path] = [...new Set([...(exact[source.path] ?? []), page.data.id])].sort();
-      else globPages.set(source.glob, [...new Set([...(globPages.get(source.glob) ?? []), page.data.id])].sort());
-    }
-  }
-  return { version: 1, exact, globs: [...globPages].sort(([a], [b]) => a.localeCompare(b)).map(([glob, ids]) => ({ glob, pages: ids })) };
-}
-
-export function buildConflictMap(pages: WikiPage[]): ConflictMap {
-  const exact: Record<string, string[]> = {};
-  const globs = new Map<string, string[]>();
-  for (const page of openConflicts(pages)) {
-    const id = page.data.conflict_id!;
-    for (const source of page.data.sources) {
-      if ("path" in source) exact[source.path] = [...new Set([...(exact[source.path] ?? []), id])].sort();
-      else globs.set(source.glob, [...new Set([...(globs.get(source.glob) ?? []), id])].sort());
-    }
-  }
-  return { version: 1, exact, globs: [...globs].sort(([a], [b]) => a.localeCompare(b)).map(([glob, conflicts]) => ({ glob, conflicts })) };
-}
-
 export function mappedConflicts(conflictMap: ConflictMap, path: string): string[] {
   const ids = new Set(conflictMap.exact[path] ?? []);
   for (const item of conflictMap.globs) if (new Bun.Glob(item.glob).match(path)) for (const id of item.conflicts) ids.add(id);
   return [...ids].sort();
-}
-
-export function generatedCoreFiles(pages: WikiPage[], name = "Project"): Record<string, string> {
-  return {
-    "wiki/index.md": generateIndex(pages, name),
-    "wiki/current-status.md": generateCurrentStatus(pages),
-    "wiki/conflicts.md": generateConflictsIndex(pages),
-    "wiki/work-queue.md": generateWorkQueue(pages),
-    ".wiki/source-map.json": jsonStable(buildSourceMap(pages)),
-    ".wiki/conflict-map.json": jsonStable(buildConflictMap(pages)),
-  };
 }
 
 export function writeGenerated(root: string, files: Record<string, string>) {
@@ -1235,6 +469,9 @@ Record only current-contract changes here: product-contract changes, significant
  */
 export const KIT_ENTRIES: KitEntry[] = [
   { target: "scripts/wiki/core.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/core.ts" } },
+  { target: "scripts/wiki/discovery.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/discovery.ts" } },
+  { target: "scripts/wiki/context.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/context.ts" } },
+  { target: "scripts/wiki/generated-views.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/generated-views.ts" } },
   { target: "scripts/wiki/model.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/model.ts" } },
   { target: "scripts/wiki/serialization.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/serialization.ts" } },
   { target: "scripts/wiki/repository-view.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/repository-view.ts" } },
@@ -1250,6 +487,9 @@ export const KIT_ENTRIES: KitEntry[] = [
   { target: "scripts/wiki/inventories.example.ts", placement: "reference", source: { kind: "copy", from: "scripts/wiki/inventories.example.ts" } },
   { target: "scripts/wiki/wiki.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/wiki.test.ts" } },
   { target: "scripts/wiki/work.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/work.test.ts" } },
+  { target: "scripts/wiki/discovery.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/discovery.test.ts" } },
+  { target: "scripts/wiki/context.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/context.test.ts" } },
+  { target: "scripts/wiki/generated-views.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/generated-views.test.ts" } },
   { target: "scripts/wiki/serialization.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/serialization.test.ts" } },
   { target: "scripts/wiki/repository-view.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/repository-view.test.ts" } },
   { target: "scripts/wiki/page-validation.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/page-validation.test.ts" } },

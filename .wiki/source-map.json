@@ -45,7 +45,19 @@
       "operations/enforcement",
       "product/invariants"
     ],
+    "scripts/wiki/context.ts": [
+      "operations/enforcement",
+      "product/invariants"
+    ],
     "scripts/wiki/core.ts": [
+      "operations/enforcement",
+      "product/invariants"
+    ],
+    "scripts/wiki/discovery.ts": [
+      "operations/enforcement",
+      "product/invariants"
+    ],
+    "scripts/wiki/generated-views.ts": [
       "operations/enforcement",
       "product/invariants"
     ],

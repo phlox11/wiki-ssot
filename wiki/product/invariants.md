@@ -12,6 +12,9 @@ sources:
   - path: scripts/wiki/repository-view.ts
   - path: scripts/wiki/page-validation.ts
   - path: scripts/wiki/work-validation.ts
+  - path: scripts/wiki/discovery.ts
+  - path: scripts/wiki/context.ts
+  - path: scripts/wiki/generated-views.ts
   - path: scripts/wiki/cli.ts
   - path: scripts/wiki/apply.ts
   - path: AGENTS.md

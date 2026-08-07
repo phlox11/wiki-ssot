@@ -8,9 +8,12 @@ beforeAll(() => {
 }, 60_000);
 
 describe("TE-04 focused review measurement", () => {
-  test("copies the complete KM-01 engine dependency closure", () => {
+  test("copies the complete KM-02 engine dependency closure", () => {
     expect(TE04_ENGINE_PATHS).toEqual(expect.arrayContaining([
       "scripts/wiki/core.ts",
+      "scripts/wiki/discovery.ts",
+      "scripts/wiki/context.ts",
+      "scripts/wiki/generated-views.ts",
       "scripts/wiki/model.ts",
       "scripts/wiki/serialization.ts",
       "scripts/wiki/repository-view.ts",

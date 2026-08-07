@@ -59,4 +59,69 @@ describe("work validation foundation", () => {
     expect(findings.map((finding) => finding.code)).toEqual(expect.arrayContaining(["work-id", "work-executor"]));
     expect(ownedWorkItems([ownerPage([{ ...item(), id: "bad id", executor: "robot" }])])).toEqual([]);
   });
+
+  test("reports lifecycle, duplicate, and graph invariants in one validation pass", () => {
+    const invalid = [
+      item({ id: "DONE", state: "done", evidence: [] }),
+      item({ id: "BLOCKED", state: "blocked" }),
+      item({ id: "DEFERRED", state: "deferred" }),
+      item({ id: "STALE-BLOCKER", blocker: "stale" }),
+      item({ id: "STALE-DEFERRED", deferred_reason: "stale" }),
+      item({ id: "UNKNOWN", depends_on: ["MISSING"] }),
+      item({ id: "SELF", depends_on: ["SELF"] }),
+      item({ id: "CYCLE-A", depends_on: ["CYCLE-B"] }),
+      item({ id: "CYCLE-B", depends_on: ["CYCLE-A"] }),
+      item({ id: "ACTIVE", state: "active", depends_on: ["PENDING"] }),
+      item({ id: "PENDING" }),
+      item({ id: "BAD-CONTEXT", context_pages: ["proposal/work"] }),
+    ];
+    const pages = [
+      ownerPage(invalid),
+      {
+        ...ownerPage([]),
+        path: "wiki/product/context.md",
+        data: { ...ownerPage([]).data, id: "product/context", kind: "product", status: "current", work_items: undefined },
+      } as WikiPage,
+      {
+        ...ownerPage([]),
+        path: "wiki/proposals/duplicate.md",
+        data: { ...ownerPage([item({ id: "UNKNOWN" })]).data, id: "proposal/duplicate", work_items: [item({ id: "UNKNOWN" })] },
+      } as WikiPage,
+    ];
+    const codes = validateWorkItems(pages).map((finding) => finding.code);
+    expect(codes).toEqual(expect.arrayContaining([
+      "work-done-evidence",
+      "work-blocker",
+      "work-deferred-reason",
+      "work-blocker-state",
+      "work-deferred-state",
+      "work-duplicate-id",
+      "work-dependency-unknown",
+      "work-self-dependency",
+      "work-dependency-cycle",
+      "work-state-dependencies",
+      "work-context-page-unknown",
+    ]));
+  });
+
+  test("rejects invalid enums, missing fields, whitespace IDs, and live work on archived proposals", () => {
+    const missingAcceptance = item({ id: "MISSING-FIELD" }) as unknown as Record<string, unknown>;
+    delete missingAcceptance.acceptance;
+    const malformed = [
+      { ...item({ id: "BAD-STATE" }), state: "ready" },
+      { ...item({ id: "BAD-PRIORITY" }), priority: "urgent" },
+      { ...item({ id: "BLANK-ACCEPTANCE" }), acceptance: ["   "] },
+      { ...item({ id: " SPACED-ID" }) },
+      missingAcceptance,
+    ] as unknown as WorkItem[];
+    const archived = ownerPage([item({ id: "ARCHIVED-LIVE" })], "archived");
+    const codes = validateWorkItems([ownerPage(malformed), archived]).map((finding) => finding.code);
+    expect(codes).toEqual(expect.arrayContaining([
+      "work-state",
+      "work-priority",
+      "work-acceptance",
+      "work-id",
+      "work-owner-status",
+    ]));
+  });
 });
