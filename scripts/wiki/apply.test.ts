@@ -23,7 +23,7 @@ function fastKit(): string {
   cpSync(join(process.cwd(), "kit"), root, { recursive: true });
   const packagePath = join(root, "package.kit.json");
   const pkg = JSON.parse(readFileSync(packagePath, "utf8")) as { scripts: Record<string, string> };
-  pkg.scripts["wiki:tooling:test"] = "bun test scripts/wiki/wiki.test.ts -t 'frontmatter schema' --max-concurrency=1";
+  pkg.scripts["wiki:tooling:test"] = "bun test scripts/wiki/wiki-pages.test.ts -t 'frontmatter schema' --max-concurrency=1";
   writeFileSync(packagePath, `${JSON.stringify(pkg, null, 2)}\n`);
   return root;
 }

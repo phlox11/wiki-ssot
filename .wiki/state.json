@@ -2,7 +2,7 @@
   "pages": {
     "architecture/engine": {
       "sources": {
-        "scripts/wiki/apply.test.ts": "ab318b04cd21cc4e191066261e2c6cf8a09776d37635415032c30a66b2dc5dc2",
+        "scripts/wiki/apply.test.ts": "86fce5594648f7dc382f238f7ab2cb0f928aaf6d70dbf80252a89ee77a8c6566",
         "scripts/wiki/apply.ts": "5a273691372ff6fcfdd63214da513fa8b71b9fe8730ff2e49cdfec0793ad2c15",
         "scripts/wiki/cli-discovery-handlers.ts": "38ea0501a0a1f11a7077aeb0da0d92a7c80e731163439e35356eb9b9097da73f",
         "scripts/wiki/cli-generation-handlers.ts": "300151d9afe0438fc6de0b3cc00b7d9b89bad6d9942e68c60fb1df4e8e51fa8f",
@@ -18,8 +18,12 @@
         "scripts/wiki/core.ts": "af733c8d079eb1bd44c4dcfb1c37aca8f167f5b8412b34eb04cd5a772382d663",
         "scripts/wiki/discovery.test.ts": "3999144e220004e9d8fcdeac9387ca71587fd0bd34d828cb82483eb479a22c62",
         "scripts/wiki/discovery.ts": "f1c5052d182b49aae3306fa53a75b8b1ffa20fc2c3e9a5fa953644e2c52180cc",
-        "scripts/wiki/existing-repo-bootstrap.test.ts": "f0467c1c67c0b97901ec438741f5d6107e8f56ab658492626f1924231103f1ea",
-        "scripts/wiki/fresh-context.test.ts": "d5479279778a25499a02b97b49a8b3c66c05a63bd3e84d18318bbb6ea6c255a0",
+        "scripts/wiki/existing-repo-bootstrap.test.ts": "1c79f004e11a11e46fd7d8b74d4bbd65f7c72db909a2cc61b799a5e1d52a2d2f",
+        "scripts/wiki/fresh-context-github.test.ts": "dafaac843f3e0d472ff0980e3930a30eed7dbaec39036e75be67ca73cd4b91e3",
+        "scripts/wiki/fresh-context-integration.test.ts": "86117df2ec2f5ba06b93ca927cd42efc3607ad3a9976b5d39203ac370a169c62",
+        "scripts/wiki/fresh-context-manifest.test.ts": "23d51b7a009b30767e053bcb2d1a132f16c8cc7755bb52b74b1217143ca056a7",
+        "scripts/wiki/fresh-context-preflight.test.ts": "fc832375bab7e1c8dd23083a19efc12099123ae3eef200fbbb21dad08f44ef0b",
+        "scripts/wiki/fresh-context-report.test.ts": "dd92f036bdd62a75190e2dd8935a4c2982111a1f9d1255f566e1965ddfdbe0c2",
         "scripts/wiki/generated-views.test.ts": "fad68ac1383d8717962168e7a336e8a243345c144c0eb5562c1fe6aea7c947e9",
         "scripts/wiki/generated-views.ts": "c340de1c499e3655251370233566a37a20084642369d9236252813e283f72dec",
         "scripts/wiki/github-attestation.ts": "cad5290748265f5b5cd1a5503f075cfb837283ca0e8b4e7c004567deb33139cb",
@@ -29,12 +33,12 @@
         "scripts/wiki/inventories.ts": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca",
         "scripts/wiki/kit-modularity-baseline.test.ts": "ca357a96905b2a456545779650b4f49d8d0815c413eef589ac09ef57c0f6070b",
         "scripts/wiki/kit-modularity-baseline.ts": "a53b8c677ab07477bc13d2c30e8deb43b01755aded44f3cbfe9c41f6c664a266",
-        "scripts/wiki/kit-packaging.test.ts": "bcc7e68078d19a1776be1b6d5412259a5061d01b35afea07454de8733e949b7e",
-        "scripts/wiki/kit-packaging.ts": "7d57582eceac306572a30be73892cad4678ad34c8d1116d2d6048c8e72f50248",
+        "scripts/wiki/kit-packaging.test.ts": "f08fe9df18e0a18061f42b2f2654c3b94bb8a9161a519210207e582ecf2192d1",
+        "scripts/wiki/kit-packaging.ts": "bb439781a49f18aae3bfdf6a10b26024dfd178059da4965ebf29987349068345",
         "scripts/wiki/kit-sync.ts": "05d5d1d5187a4c470c47f52efe4483f5d05c27fc43f234f0ebfb071c8a57f9d9",
-        "scripts/wiki/kit.test.ts": "226766c25dcbaae21e117e1473cb617ece3a19debcb67e5bbdf1f3a0610e9f75",
+        "scripts/wiki/kit.test.ts": "2143c4395eccfd5148986cf0e717d2d2f612ab5ecd13d38247700deef648f3e0",
         "scripts/wiki/model.ts": "c8d8a131feeab09ab4b8d454d8559c4c9e4f5a7c1b4fdb74a191c636dedcca54",
-        "scripts/wiki/new-repository-adoption.test.ts": "394c8df18e6ff9e3602b4fb77012ee5881b7ef14738a3388b779ef668c68f5ab",
+        "scripts/wiki/new-repository-adoption.test.ts": "03fb4d3a22b3bab72c9ccc295c665888501e4195f6c86a0eec7d54c58db72fc6",
         "scripts/wiki/page-validation.test.ts": "51a42e954fc181d2049c4ef7d4c208e701efbf85716464a7a704689aa6b54d6f",
         "scripts/wiki/page-validation.ts": "39574e823bd2e13c47c83dd31f84965914707ea4bf908f6d6c221b06e0152ab5",
         "scripts/wiki/primary-baseline.test.ts": "4a0df89a35bd811ffbca75865a3153abe869caae11d1f585c599c902ee4e16b7",
@@ -58,17 +62,25 @@
         "scripts/wiki/te06-controlled-comparison.ts": "32067f0d522575ef0628cf6e8f6ab0fe9b69c8255022a5f9262041c7853d87aa",
         "scripts/wiki/te06-exit-validation.test.ts": "f3764d07eeb6a0d481ffb6d929a8afbafc71140a7ace86cb7e30429e0c01949a",
         "scripts/wiki/te06-exit-validation.ts": "fc494f91948d114193d7f451579c350057bb39868cf67ef52a3ad093460e4ae9",
-        "scripts/wiki/test-runner.test.ts": "6c2c0b1ad50f5e8ffff5bbf3075cb279bc47945cf27fb5c8629b8f0be985b4df",
-        "scripts/wiki/test-runner.ts": "1fc3c0cd973d604cb15012f96a286767e9e18a0dc98d3676a9c598a69bfb6c9d",
+        "scripts/wiki/test-fixtures/fresh-context.ts": "48d8e32f9bae5bcdf3b285b7e0f424b4eaed25c992edfd6b3ecc25089b3c1dd8",
+        "scripts/wiki/test-fixtures/wiki.ts": "96da8f91f65b5a5c9375c95c7649129e60853e9da82911576e6666291eb9c335",
+        "scripts/wiki/test-fixtures/work.ts": "fb784da95f0623c3a2d0beffb6cd02edf202eb1b303db687f0f794af18fd36f4",
+        "scripts/wiki/test-runner.test.ts": "cba07669776ece54ddd1671d5b2174bcd4511cd3f7425907559de1842288c964",
+        "scripts/wiki/test-runner.ts": "b30fd97f9b890092f8e0847c34fb9b140c64a11b8a5dc39d0c047e1329446ebe",
         "scripts/wiki/token-efficiency-baseline.test.ts": "a56e0bd123d84392d1bfa00abdde203843de184661d21f67a6e8fbab36353dfa",
         "scripts/wiki/token-efficiency-baseline.ts": "a57259f1c9222b9e7dc231866b123eb447015e339f1378bd6bfc73a7a29f4d60",
         "scripts/wiki/tsconfig.json": "e663640cb557e1d3fee0c2ffca227ad0832d3cd30a341813c4fd09f73bb0e65a",
         "scripts/wiki/verification.test.ts": "04855bf2e8fa939b5c9074381f8dd5974cba8762283f2c343126687618085662",
         "scripts/wiki/verification.ts": "995cd01aa94fbf1162fc8d262edf4d65b45d20ddadeb0511294a550a93bf3643",
-        "scripts/wiki/wiki.test.ts": "00c5762f2fa69bf6830c10f70ca63ad12baa822c0fc1506603f89ff6fe77f7a4",
+        "scripts/wiki/wiki-coverage.test.ts": "1ec070ba87d9021dd6534e95b82ed8841aad5fa7a67de7a4bce6aff7d3f22137",
+        "scripts/wiki/wiki-generated-data.test.ts": "188ae55ba647de3c3f00a8f6d0fe5eddb88e835ef15cd9d61db15133231e99a5",
+        "scripts/wiki/wiki-impact-conflicts.test.ts": "268988c8b0d6437723b5deff62944813d1c3c6be6d69572f112636ce2c7bb521",
+        "scripts/wiki/wiki-pages.test.ts": "8fdcb064a163e50ce8a9ebb7ce0488646a72423007cfcec533d3759e0837255f",
+        "scripts/wiki/wiki-repository-hooks.test.ts": "33ada4fa2cd6197cc0477a8ef474cbbde0f9a9f893377a84fff1ebf3a2f381cc",
+        "scripts/wiki/work-selected-context.test.ts": "fd0c9c98c9abcc8093d7bd8f502b9a94e9336cc00d41f57903cf01507d96cf5f",
+        "scripts/wiki/work-topic-context.test.ts": "cc31828996d288bba46832bc275a3a43394f09171c5653a551a881db374f8397",
         "scripts/wiki/work-validation.test.ts": "f19654b5da5c73d775deb5bf6997757cbca3375bc4cdae17494a53ae5cb43e82",
-        "scripts/wiki/work-validation.ts": "006704cac96d7dc83e4487c18db4bc35f772368b63bb5434c12a577c44f2af9a",
-        "scripts/wiki/work.test.ts": "a7c0142518dd0f222985b89a5038ff22d48cd4c3683f5c111c3f382bd2cff869"
+        "scripts/wiki/work-validation.ts": "006704cac96d7dc83e4487c18db4bc35f772368b63bb5434c12a577c44f2af9a"
       },
       "verification": {
         "kind": "updated"
@@ -100,7 +112,7 @@
         "scripts/wiki/generated-views.ts": "c340de1c499e3655251370233566a37a20084642369d9236252813e283f72dec",
         "scripts/wiki/github-attestation.ts": "cad5290748265f5b5cd1a5503f075cfb837283ca0e8b4e7c004567deb33139cb",
         "scripts/wiki/impact.ts": "cd3b9f0301c7420939861ea9b169a27e45d5e09d926eb43602d87e9340cee903",
-        "scripts/wiki/kit-packaging.ts": "7d57582eceac306572a30be73892cad4678ad34c8d1116d2d6048c8e72f50248",
+        "scripts/wiki/kit-packaging.ts": "bb439781a49f18aae3bfdf6a10b26024dfd178059da4965ebf29987349068345",
         "scripts/wiki/model.ts": "c8d8a131feeab09ab4b8d454d8559c4c9e4f5a7c1b4fdb74a191c636dedcca54",
         "scripts/wiki/page-validation.ts": "39574e823bd2e13c47c83dd31f84965914707ea4bf908f6d6c221b06e0152ab5",
         "scripts/wiki/repository-view.ts": "62f732eada1cf31e520c8886d31f54611e1cb99992f7f308f60babe0fb2ac505",
@@ -111,7 +123,8 @@
         "scripts/wiki/work-validation.ts": "006704cac96d7dc83e4487c18db4bc35f772368b63bb5434c12a577c44f2af9a"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "KM-06 changes only portable test ownership and Kit file membership; the installation, review, and invariant behavior remains unchanged."
       }
     },
     "product/invariants": {
@@ -130,7 +143,7 @@
         "scripts/wiki/discovery.ts": "f1c5052d182b49aae3306fa53a75b8b1ffa20fc2c3e9a5fa953644e2c52180cc",
         "scripts/wiki/generated-views.ts": "c340de1c499e3655251370233566a37a20084642369d9236252813e283f72dec",
         "scripts/wiki/impact.ts": "cd3b9f0301c7420939861ea9b169a27e45d5e09d926eb43602d87e9340cee903",
-        "scripts/wiki/kit-packaging.ts": "7d57582eceac306572a30be73892cad4678ad34c8d1116d2d6048c8e72f50248",
+        "scripts/wiki/kit-packaging.ts": "bb439781a49f18aae3bfdf6a10b26024dfd178059da4965ebf29987349068345",
         "scripts/wiki/model.ts": "c8d8a131feeab09ab4b8d454d8559c4c9e4f5a7c1b4fdb74a191c636dedcca54",
         "scripts/wiki/page-validation.ts": "39574e823bd2e13c47c83dd31f84965914707ea4bf908f6d6c221b06e0152ab5",
         "scripts/wiki/repository-view.ts": "62f732eada1cf31e520c8886d31f54611e1cb99992f7f308f60babe0fb2ac505",
@@ -141,7 +154,8 @@
         "scripts/wiki/work-validation.ts": "006704cac96d7dc83e4487c18db4bc35f772368b63bb5434c12a577c44f2af9a"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "KM-06 changes only portable test ownership and Kit file membership; the installation, review, and invariant behavior remains unchanged."
       }
     },
     "product/scope": {

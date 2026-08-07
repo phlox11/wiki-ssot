@@ -9,9 +9,9 @@
 | [product/invariants](./product/invariants.md) | invariant | normative | @phlox11 | 23 |
 | [product/scope](./product/scope.md) | product | normative | @phlox11 | 2 |
 
-## Outstanding work (14)
+## Outstanding work (13)
 
-Recommended next: `KM-06`. Run `bun run wiki:context -- --work KM-06`.
+Recommended next: `KM-07`. Run `bun run wiki:context -- --work KM-07`.
 
 See the [repository work queue](./work-queue.md) or run `bun run wiki:work`.
 

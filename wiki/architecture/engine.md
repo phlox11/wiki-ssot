@@ -30,6 +30,19 @@ so adding another engine file type cannot silently evade those risk rails.
 Changing a mapped nested source without updating or explicitly verifying this
 page therefore fails enforced impact even when structural lint remains green.
 
+Portable regression ownership follows the same domain seams instead of three
+all-purpose suites. Fresh-context tests are separated into focused manifest and
+requirement selection, report and disposition adjudication, exact-HEAD
+preflight/check, GitHub attestation, and integration-seam suites. Wiki engine
+tests separately own page schema and links, generated data, verification and
+coverage, impact and conflicts, and repository hooks; selected-work and generic
+topic-context CLI regressions are also separate. Shared repository builders,
+Git/process runners, page factories, and review/report factories live only
+under `scripts/wiki/test-fixtures/`; production modules never import that
+directory. The recursive test runner discovers every shipped `*.test.ts`
+exactly once in deterministic order, while fixture modules are shipped through
+the same Kit manifest without being test entrypoints themselves.
+
 Work records remain next to proposal rationale. `validateWorkItems` validates their repository-wide graph, including the optional `agent | human | either` executor whose omission normalizes to `agent`, and `buildWorkQueue` derives the execution view from validated records. Executor is independent from state. Stored `not-started` becomes `ready` only when every dependency is done and `waiting` otherwise; filtering never removes nodes before that calculation. Recommendation considers only `agent` or `either`, then prefers active over ready, `critical → high → normal → low`, and ID. The default/all projection keeps human work visible, while agent and human executor filters respectively show agent/either and human/either without making human-exclusive work recommendable. The generated `wiki/work-queue.md` and JSON/text CLI views are deterministic projections; proposal frontmatter remains the SSOT. Selected human context carries explicit reporting and handoff guidance without assumed credentials or authority. The generated queue carries inert archived/derived compatibility frontmatter so a trusted merge-base engine that does not yet recognize its generated path can parse the introducing PR without treating the queue as current authority.
 
 `buildSelectedWorkContext` and `buildTopicContext` produce exhaustive provider-neutral semantic models, while deterministic projection helpers derive the default compact text/JSON representation from the same data. Each selected current page, relevant open conflict, and non-current rationale page retains kind, status, authority, Wiki path, owners, summary, exact source declarations, glob declarations with path-sorted matches, the complete expanded source-file set, page-local open-conflict IDs, a stable body digest, and a focused full-context command. Compact output omits complete bodies and the repeated aggregate source list; `--full` preserves the prior exhaustive body-complete representation. Their authoritative read order remains stable: all returned current invariants by ID, relevant conflicts by severity and ID, other returned current pages by ID, then the deduplicated expanded authority-source files by path.

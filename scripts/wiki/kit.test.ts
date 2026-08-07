@@ -183,7 +183,7 @@ describe("kit sync", () => {
     expect(actionFor(plan, ".wiki/config.json")).toBe("seed-created");
     applySync(kit, repo, plan);
     expect(readFileSync(join(repo, SYNC_TARGET), "utf8")).toContain("single source of truth");
-    expect(readFileSync(join(repo, "scripts/wiki/work.test.ts"), "utf8")).toContain("generic fresh-session prompts");
+    expect(readFileSync(join(repo, "scripts/wiki/work-topic-context.test.ts"), "utf8")).toContain("generic fresh-session prompts");
     for (const target of [
       "scripts/wiki/verification.ts",
       "scripts/wiki/impact.ts",

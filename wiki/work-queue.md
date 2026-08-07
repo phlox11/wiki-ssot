@@ -15,9 +15,9 @@ tags: [generated, work, queue]
 
 This is a deterministic view of structured `work_items` on proposal pages. It is not current product authority; open the owning proposal and then the returned current context.
 
-**Recommended next:** `KM-06` — run `bun run wiki:context -- --work KM-06`.
+**Recommended next:** `KM-07` — run `bun run wiki:context -- --work KM-07`.
 
-Outstanding work: 14. Completed work hidden: 32; run `bun run wiki:work -- --all` to inspect it.
+Outstanding work: 13. Completed work hidden: 33; run `bun run wiki:work -- --all` to inspect it.
 
 ## Active
 
@@ -29,13 +29,13 @@ Outstanding work: 14. Completed work hidden: 32; run `bun run wiki:work -- --all
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| KM-06 | normal | agent | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | KM-05 | Split portable regression suites and consolidate shared fixtures | `bun run wiki:context -- --work KM-06` |
+| KM-07 | normal | agent | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | KM-06 | Validate the modular kit and install a bounded growth guard | `bun run wiki:context -- --work KM-07` |
 
 ## Waiting
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| KM-07 | normal | agent | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | KM-06 | Validate the modular kit and install a bounded growth guard — Waiting on: KM-06 | `bun run wiki:context -- --work KM-07` |
+| — | — | — | — | — | None | — |
 
 ## Blocked
 
