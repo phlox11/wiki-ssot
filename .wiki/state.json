@@ -17,22 +17,25 @@
         "scripts/wiki/primary-baseline.test.ts": "4a0df89a35bd811ffbca75865a3153abe869caae11d1f585c599c902ee4e16b7",
         "scripts/wiki/primary-baseline.ts": "033bcbee20adfd6c306cb4e345d5a2d1b4051e211e9a8411877ade78f1dbf1b3",
         "scripts/wiki/primary-current.test.ts": "8de5039be9d9ed14a771b5df5e6fc230eae588f860aaff5a3cda641f4e980b03",
-        "scripts/wiki/primary-current.ts": "3e096b9fd89e1c250c94f211dba06e35739a3d8053e986b262a0fac71c114f1f",
+        "scripts/wiki/primary-current.ts": "c1c2b5839c540622d9a1fb404ae0de654d46f0b7cea6080d328d8307197f0cc2",
         "scripts/wiki/primary-scenarios.test.ts": "b73743ef76a079a014bcc1eba26ea7740a31cc1d776e31db40ed3c03e996de5b",
         "scripts/wiki/primary-scenarios.ts": "8e8ba1de2abf551d0003f90637f58370f470c7ecdfb62a50a8d9993e1f273dec",
         "scripts/wiki/publisher-boundary.test.ts": "bfdcebbeb54c42933cc97aba9a59ee02de8c0080826c3f52a3df2578bd335d77",
         "scripts/wiki/te04-focused-review.test.ts": "2b4944eb82839f88c43593f50af1bcdc8df3fec27cc30270c4b3a37fb1d2f35a",
         "scripts/wiki/te04-focused-review.ts": "c68ca1479e0be87b3de6bdc0c4cc32b31e5c0537f964d86645d0c565ffce95fc",
+        "scripts/wiki/te06-controlled-comparison.test.ts": "ac33110ae306ee21391d270b99c61b519653e59404eb706eaaf193bbc6bdc455",
+        "scripts/wiki/te06-controlled-comparison.ts": "32067f0d522575ef0628cf6e8f6ab0fe9b69c8255022a5f9262041c7853d87aa",
+        "scripts/wiki/te06-exit-validation.test.ts": "f3764d07eeb6a0d481ffb6d929a8afbafc71140a7ace86cb7e30429e0c01949a",
+        "scripts/wiki/te06-exit-validation.ts": "fc494f91948d114193d7f451579c350057bb39868cf67ef52a3ad093460e4ae9",
         "scripts/wiki/test-runner.ts": "286f69b3e224851dc2c43e38c47a47654afd2516463b4b6c89d03a82f933a990",
         "scripts/wiki/token-efficiency-baseline.test.ts": "a56e0bd123d84392d1bfa00abdde203843de184661d21f67a6e8fbab36353dfa",
-        "scripts/wiki/token-efficiency-baseline.ts": "9ddd771da463dbdf0a806aa82375c148b58e74521736ae3832e72f049581e3ca",
+        "scripts/wiki/token-efficiency-baseline.ts": "a57259f1c9222b9e7dc231866b123eb447015e339f1378bd6bfc73a7a29f4d60",
         "scripts/wiki/tsconfig.json": "e663640cb557e1d3fee0c2ffca227ad0832d3cd30a341813c4fd09f73bb0e65a",
         "scripts/wiki/wiki.test.ts": "00c5762f2fa69bf6830c10f70ca63ad12baa822c0fc1506603f89ff6fe77f7a4",
         "scripts/wiki/work.test.ts": "f55bf17000199c2655290f41dc213c2eec592e481a6b6beba911e15b15f729ba"
       },
       "verification": {
-        "kind": "unchanged",
-        "reason": "Repository-wide identity and source digest checks enforce the existing exact review contract without changing product intent."
+        "kind": "updated"
       }
     },
     "operations/enforcement": {
@@ -54,7 +57,7 @@
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "Exact identity and source blob validation strengthens the documented preflight behavior without changing operational intent."
+        "reason": "TE-06 adds publisher-only evidence harnesses without changing enforcement or adoption behavior."
       }
     },
     "product/invariants": {
@@ -66,7 +69,7 @@
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "Repository-wide stable identity checks implement the existing deterministic reconciliation invariant."
+        "reason": "TE-06 preserves every current invariant and changes only publisher-side measurement evidence."
       }
     },
     "product/scope": {
@@ -76,7 +79,7 @@
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "The exact repository binding correction changes no declared product scope or supported boundary."
+        "reason": "TE-06 publisher-only measurement changes do not alter the current product scope contract."
       }
     }
   },

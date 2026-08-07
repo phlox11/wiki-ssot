@@ -20,6 +20,10 @@ sources:
   - path: scripts/wiki/token-efficiency-baseline.test.ts
   - path: scripts/wiki/te04-focused-review.ts
   - path: scripts/wiki/te04-focused-review.test.ts
+  - path: scripts/wiki/te06-controlled-comparison.ts
+  - path: scripts/wiki/te06-controlled-comparison.test.ts
+  - path: scripts/wiki/te06-exit-validation.ts
+  - path: scripts/wiki/te06-exit-validation.test.ts
   - path: docs/commands.md
   - path: docs/evidence/pv-19-primary-current.json
   - path: docs/evidence/pv-19-primary-current.md
@@ -31,6 +35,11 @@ sources:
   - path: docs/evidence/te-01-02-context-projection.md
   - path: docs/evidence/te-04-focused-review.json
   - path: docs/evidence/te-04-focused-review.md
+  - path: docs/evidence/te-06-controlled-comparison-compact.json
+  - path: docs/evidence/te-06-controlled-comparison.json
+  - path: docs/evidence/te-06-controlled-publisher.json
+  - path: docs/evidence/te-06-token-performance.json
+  - path: docs/evidence/te-06-token-performance.md
 affects: [product/scope, product/invariants, architecture/engine, operations/enforcement]
 related: [proposal/primary-findability-validation, product/scope, product/invariants, architecture/engine, operations/enforcement]
 tags: [roadmap, token, performance, latency, context, efficiency, search, sources, review, orchestration]
@@ -188,7 +197,7 @@ work_items:
       - wiki/operations/enforcement.md
   - id: TE-06
     title: Validate publisher-repository token and performance gains
-    state: not-started
+    state: done
     executor: agent
     priority: high
     depends_on: [TE-01, TE-02, TE-04, TE-05]
@@ -200,7 +209,17 @@ work_items:
       - Evidence separately evaluates engine-owned gains, repository guidance and optional orchestration gains, cache-accounting effects, Guardian and approval behavior, and provider limitations.
       - Remaining misses are classified as a concrete defect, owner decision, orchestrator limitation, or explicitly accepted limitation.
       - The evidence presents token efficiency validated, another bounded cycle, and not adopted as explicit owner-decision options without selecting one on the owner's behalf.
-    evidence: []
+    evidence:
+      - scripts/wiki/te06-controlled-comparison.ts
+      - scripts/wiki/te06-controlled-comparison.test.ts
+      - scripts/wiki/te06-exit-validation.ts
+      - scripts/wiki/te06-exit-validation.test.ts
+      - docs/evidence/te-06-controlled-comparison-compact.json
+      - docs/evidence/te-06-controlled-comparison.json
+      - docs/evidence/te-06-controlled-publisher.json
+      - docs/evidence/te-06-token-performance.json
+      - docs/evidence/te-06-token-performance.md
+      - wiki/architecture/engine.md
   - id: TE-06-OWNER
     title: Record the publisher-repository efficiency owner exit decision
     state: not-started
@@ -429,6 +448,39 @@ to the normal one-work-item-per-PR split.
   deferred `PV-13` through `PV-27` work.
 
 ## Exit gate
+
+TE-06 completed against exact combined publisher revision
+`76e5d97a410d8e67659835e059e7b721541113c5`. All eight Primary scenarios,
+portable kit and adoption suites, selected-work/context checks, and focused
+exact-review checks passed. The three controlled default text outputs fell from
+55,043, 114,294, and 66,479 bytes at TE-00 to 13,617, 3,893, and 16,253 bytes,
+respectively, while explicit full output remained available and compact/full
+semantic digests matched.
+
+The same one-agent `gpt-5.6-sol / high` control ran the same fixed five-surface
+TE-00 task: task digest
+`4812fe4f0e227750fc1051dc14327c8739c327ae2358e90c97f4c10a90f9f00d`
+binds all selectors and the byte-identical review-candidate recipe. Model calls
+fell from eight to two, tool-protocol calls from seven to one, raw input from
+218,077 to 50,469 tokens, uncached input from 10,205 to 5,925 tokens, output
+from 3,607 to 480 tokens, sanitized result bytes from 5,190 to 1,082, and
+active wall time from 106,071 ms to 18,386 ms. Coordination wait fell from
+21,471 ms to zero. The broader correctness suite remained separate from this
+controlled rollout. Request-start, first-token, and completion latency remain
+unavailable, and no Guardian, external merge, or separate cleanup phase was
+observed.
+
+Recursive TypeScript source bytes grew from 588,463 to 842,820 and the
+same-recipe raw review comparison grew from 60,946 to 75,912. Those repository
+growth diagnostics are not presented as efficiency gains. Exact focused review
+still passes with portable correctness, source breadth 7, and 49,937 non-diff
+bytes, so the growth alone does not activate deferred TE-03.
+
+The machine report digest is
+`b5b71a6da1cdab1815dfe1d02bdfecab0fa5dd36e2e8c6e7292bdaa8c9a6c27c`.
+It records no remaining correctness miss and leaves all three owner outcomes
+unselected. TE-03 remains deferred because this evidence does not show its
+recursive-source partition activation condition.
 
 `TE-06` may pass only when the exact combined publisher revision satisfies the
 current Primary correctness contract, portable kit and adoption regressions,

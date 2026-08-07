@@ -1,0 +1,513 @@
+{
+  "comparisonTask": {
+    "broadDiscovery": "token context runtime cost efficiency",
+    "focusedTopic": "recursive source mapping",
+    "reviewBundle": "deterministic current review bundle measurement",
+    "reviewCandidateRecipeDigest": "d101e02a10eb28586a9e36cdf57413506c5de2224c8fc0bb8f4820db351d7b50",
+    "selectedWork": "TE-00",
+    "sourceExpansion": "scripts/wiki/**/*.ts"
+  },
+  "comparisonTaskDigest": "4812fe4f0e227750fc1051dc14327c8739c327ae2358e90c97f4c10a90f9f00d",
+  "deterministic": {
+    "broad": {
+      "json": {
+        "bytes": 5971,
+        "lines": 210,
+        "words": 320
+      },
+      "label": "broad",
+      "query": "token context runtime cost efficiency",
+      "semantic": {
+        "conflictCount": 0,
+        "conflictIds": [],
+        "currentPageCount": 0,
+        "nonCurrentPageCount": 1,
+        "nonCurrentPageIds": [
+          "proposal/token-efficiency"
+        ],
+        "pageCount": 0,
+        "pageIds": [],
+        "readOrderCount": 0,
+        "sourceDeclarationCount": 0,
+        "sourceFileCount": 25,
+        "sourceIds": []
+      },
+      "text": {
+        "bytes": 3893,
+        "lines": 113,
+        "words": 295
+      },
+      "workId": null
+    },
+    "focused": {
+      "json": {
+        "bytes": 21246,
+        "lines": 761,
+        "words": 1114
+      },
+      "label": "focused",
+      "query": "recursive source mapping",
+      "semantic": {
+        "conflictCount": 0,
+        "conflictIds": [],
+        "currentPageCount": 1,
+        "nonCurrentPageCount": 2,
+        "nonCurrentPageIds": [
+          "proposal/primary-findability-validation",
+          "proposal/token-efficiency"
+        ],
+        "pageCount": 1,
+        "pageIds": [
+          "architecture/engine"
+        ],
+        "readOrderCount": 28,
+        "sourceDeclarationCount": 0,
+        "sourceFileCount": 59,
+        "sourceIds": []
+      },
+      "text": {
+        "bytes": 13617,
+        "lines": 355,
+        "words": 987
+      },
+      "workId": null
+    },
+    "modelCalls": 0,
+    "providerCalls": 0,
+    "recursiveTypeScript": {
+      "fileCount": 26,
+      "files": {
+        "scripts/wiki/apply.test.ts": {
+          "bytes": 25701,
+          "lines": 559,
+          "words": 2062
+        },
+        "scripts/wiki/apply.ts": {
+          "bytes": 29454,
+          "lines": 655,
+          "words": 3260
+        },
+        "scripts/wiki/cli.ts": {
+          "bytes": 58274,
+          "lines": 1277,
+          "words": 5501
+        },
+        "scripts/wiki/core.ts": {
+          "bytes": 230066,
+          "lines": 4144,
+          "words": 22910
+        },
+        "scripts/wiki/existing-repo-bootstrap.test.ts": {
+          "bytes": 16315,
+          "lines": 377,
+          "words": 1448
+        },
+        "scripts/wiki/fresh-context.test.ts": {
+          "bytes": 126643,
+          "lines": 2400,
+          "words": 10603
+        },
+        "scripts/wiki/github-attestation.ts": {
+          "bytes": 10013,
+          "lines": 189,
+          "words": 965
+        },
+        "scripts/wiki/inventories.example.ts": {
+          "bytes": 5827,
+          "lines": 96,
+          "words": 605
+        },
+        "scripts/wiki/inventories.ts": {
+          "bytes": 1304,
+          "lines": 26,
+          "words": 193
+        },
+        "scripts/wiki/kit-sync.ts": {
+          "bytes": 14096,
+          "lines": 307,
+          "words": 1747
+        },
+        "scripts/wiki/kit.test.ts": {
+          "bytes": 28883,
+          "lines": 652,
+          "words": 2652
+        },
+        "scripts/wiki/new-repository-adoption.test.ts": {
+          "bytes": 11609,
+          "lines": 320,
+          "words": 1026
+        },
+        "scripts/wiki/primary-baseline.test.ts": {
+          "bytes": 7043,
+          "lines": 169,
+          "words": 481
+        },
+        "scripts/wiki/primary-baseline.ts": {
+          "bytes": 30496,
+          "lines": 798,
+          "words": 2774
+        },
+        "scripts/wiki/primary-current.test.ts": {
+          "bytes": 5375,
+          "lines": 139,
+          "words": 397
+        },
+        "scripts/wiki/primary-current.ts": {
+          "bytes": 27114,
+          "lines": 664,
+          "words": 2288
+        },
+        "scripts/wiki/primary-scenarios.test.ts": {
+          "bytes": 6102,
+          "lines": 133,
+          "words": 376
+        },
+        "scripts/wiki/primary-scenarios.ts": {
+          "bytes": 16528,
+          "lines": 414,
+          "words": 1355
+        },
+        "scripts/wiki/publisher-boundary.test.ts": {
+          "bytes": 10083,
+          "lines": 297,
+          "words": 818
+        },
+        "scripts/wiki/te04-focused-review.test.ts": {
+          "bytes": 1604,
+          "lines": 32,
+          "words": 78
+        },
+        "scripts/wiki/te04-focused-review.ts": {
+          "bytes": 12620,
+          "lines": 244,
+          "words": 1213
+        },
+        "scripts/wiki/test-runner.ts": {
+          "bytes": 1767,
+          "lines": 47,
+          "words": 202
+        },
+        "scripts/wiki/token-efficiency-baseline.test.ts": {
+          "bytes": 11450,
+          "lines": 236,
+          "words": 793
+        },
+        "scripts/wiki/token-efficiency-baseline.ts": {
+          "bytes": 60164,
+          "lines": 1106,
+          "words": 5507
+        },
+        "scripts/wiki/wiki.test.ts": {
+          "bytes": 41668,
+          "lines": 745,
+          "words": 3605
+        },
+        "scripts/wiki/work.test.ts": {
+          "bytes": 52621,
+          "lines": 1032,
+          "words": 4310
+        }
+      },
+      "glob": "scripts/wiki/**/*.ts",
+      "paths": [
+        "scripts/wiki/apply.test.ts",
+        "scripts/wiki/apply.ts",
+        "scripts/wiki/cli.ts",
+        "scripts/wiki/core.ts",
+        "scripts/wiki/existing-repo-bootstrap.test.ts",
+        "scripts/wiki/fresh-context.test.ts",
+        "scripts/wiki/github-attestation.ts",
+        "scripts/wiki/inventories.example.ts",
+        "scripts/wiki/inventories.ts",
+        "scripts/wiki/kit-sync.ts",
+        "scripts/wiki/kit.test.ts",
+        "scripts/wiki/new-repository-adoption.test.ts",
+        "scripts/wiki/primary-baseline.test.ts",
+        "scripts/wiki/primary-baseline.ts",
+        "scripts/wiki/primary-current.test.ts",
+        "scripts/wiki/primary-current.ts",
+        "scripts/wiki/primary-scenarios.test.ts",
+        "scripts/wiki/primary-scenarios.ts",
+        "scripts/wiki/publisher-boundary.test.ts",
+        "scripts/wiki/te04-focused-review.test.ts",
+        "scripts/wiki/te04-focused-review.ts",
+        "scripts/wiki/test-runner.ts",
+        "scripts/wiki/token-efficiency-baseline.test.ts",
+        "scripts/wiki/token-efficiency-baseline.ts",
+        "scripts/wiki/wiki.test.ts",
+        "scripts/wiki/work.test.ts"
+      ],
+      "text": {
+        "bytes": 842820,
+        "lines": 17058,
+        "words": 77169
+      }
+    },
+    "reviewBundle": {
+      "baseRef": "76e5d97a410d8e67659835e059e7b721541113c5",
+      "baseSha": "76e5d97a410d8e67659835e059e7b721541113c5",
+      "candidateBaseRef": "76e5d97a410d8e67659835e059e7b721541113c5",
+      "candidateCommit": {
+        "author": "TE-00 fixture <te00-fixture@example.invalid>",
+        "authoredAt": "2000-01-01T00:00:00Z",
+        "message": "TE-00 deterministic disposable publisher candidate"
+      },
+      "candidateRef": "0a877f8ce0b0c5a13ee0ae477085a7a8c6e4921a",
+      "candidateSha": "0a877f8ce0b0c5a13ee0ae477085a7a8c6e4921a",
+      "comparisonDiffBytes": 3646,
+      "comparisonNonDiffBytes": 72266,
+      "comparisonTotalBytes": 75912,
+      "componentBytes": {
+        "diff": 3646,
+        "focused-manifest": 13607,
+        "impact.json": 1316,
+        "manifest.json": 2153,
+        "objects": 45238,
+        "pr-metadata.json": 194,
+        "review-contract": 8413,
+        "sources": 1432
+      },
+      "diffBytes": 3646,
+      "digest": "8bfc2b93de42538d8bdc7d5786587212092d98f78de12d88106d16ef3dc4000e",
+      "digestBindingBytes": 87,
+      "fileBytes": {
+        "diff.patch": 3646,
+        "focused-manifest.json": 13607,
+        "impact.json": 1316,
+        "manifest.json": 2153,
+        "objects/3d80a054ff3ff42517f66d41553ca97a44ea8f27eb39761c4943a2ea83c5a8b5.md": 11939,
+        "objects/b481b7d046fdb50e5987b433c7c6d4ba062fb7fc78a9666fa5117bfbc6204e3d.md": 8043,
+        "objects/d309601f6f23ef554702b8f8dbb058de9a4cc25449441a152a359206fb2861db.md": 25256,
+        "pr-metadata.json": 194,
+        "PROMPT.md": 2641,
+        "REPORT.example.json": 417,
+        "REPORT.findings.example.json": 1761,
+        "REPORT.md": 3594,
+        "sources.json": 1432
+      },
+      "files": [
+        {
+          "bytes": 3646,
+          "component": "diff",
+          "path": "diff.patch"
+        },
+        {
+          "bytes": 13607,
+          "component": "focused-manifest",
+          "path": "focused-manifest.json"
+        },
+        {
+          "bytes": 1316,
+          "component": "impact.json",
+          "path": "impact.json"
+        },
+        {
+          "bytes": 2153,
+          "component": "manifest.json",
+          "path": "manifest.json"
+        },
+        {
+          "bytes": 11939,
+          "component": "objects",
+          "path": "objects/3d80a054ff3ff42517f66d41553ca97a44ea8f27eb39761c4943a2ea83c5a8b5.md"
+        },
+        {
+          "bytes": 8043,
+          "component": "objects",
+          "path": "objects/b481b7d046fdb50e5987b433c7c6d4ba062fb7fc78a9666fa5117bfbc6204e3d.md"
+        },
+        {
+          "bytes": 25256,
+          "component": "objects",
+          "path": "objects/d309601f6f23ef554702b8f8dbb058de9a4cc25449441a152a359206fb2861db.md"
+        },
+        {
+          "bytes": 194,
+          "component": "pr-metadata.json",
+          "path": "pr-metadata.json"
+        },
+        {
+          "bytes": 2641,
+          "component": "review-contract",
+          "path": "PROMPT.md"
+        },
+        {
+          "bytes": 417,
+          "component": "review-contract",
+          "path": "REPORT.example.json"
+        },
+        {
+          "bytes": 1761,
+          "component": "review-contract",
+          "path": "REPORT.findings.example.json"
+        },
+        {
+          "bytes": 3594,
+          "component": "review-contract",
+          "path": "REPORT.md"
+        },
+        {
+          "bytes": 1432,
+          "component": "sources",
+          "path": "sources.json"
+        }
+      ],
+      "metadata": {
+        "affectedInvariants": [],
+        "affectedPages": [
+          "architecture/engine"
+        ],
+        "changeType": "feature",
+        "semanticChange": true,
+        "touchedConflicts": [],
+        "wikiAction": "update"
+      },
+      "nonDiffBytes": 72353,
+      "rawDiffBytes": 3646,
+      "rawNonDiffBytes": 72353,
+      "rawTotalBytes": 75999,
+      "sourceBreadth": {
+        "affectedPageCount": 1,
+        "conflictCount": 0,
+        "globMatches": {
+          "scripts/wiki/**/*.ts": [
+            "scripts/wiki/apply.test.ts",
+            "scripts/wiki/apply.ts",
+            "scripts/wiki/cli.ts",
+            "scripts/wiki/core.ts",
+            "scripts/wiki/existing-repo-bootstrap.test.ts",
+            "scripts/wiki/fresh-context.test.ts",
+            "scripts/wiki/github-attestation.ts",
+            "scripts/wiki/inventories.example.ts",
+            "scripts/wiki/inventories.ts",
+            "scripts/wiki/kit-sync.ts",
+            "scripts/wiki/kit.test.ts",
+            "scripts/wiki/new-repository-adoption.test.ts",
+            "scripts/wiki/primary-baseline.test.ts",
+            "scripts/wiki/primary-baseline.ts",
+            "scripts/wiki/primary-current.test.ts",
+            "scripts/wiki/primary-current.ts",
+            "scripts/wiki/primary-scenarios.test.ts",
+            "scripts/wiki/primary-scenarios.ts",
+            "scripts/wiki/publisher-boundary.test.ts",
+            "scripts/wiki/te04-focused-review.test.ts",
+            "scripts/wiki/te04-focused-review.ts",
+            "scripts/wiki/test-runner.ts",
+            "scripts/wiki/token-efficiency-baseline.test.ts",
+            "scripts/wiki/token-efficiency-baseline.ts",
+            "scripts/wiki/wiki.test.ts",
+            "scripts/wiki/work.test.ts"
+          ]
+        },
+        "invariantCount": 0,
+        "sourceFileCount": 37,
+        "sourceFiles": [
+          ".github/pull_request_template.md",
+          ".github/workflows/checks.yml",
+          ".github/workflows/kit.yml",
+          ".github/workflows/wiki-audit.yml",
+          ".github/workflows/wiki-ssot.yml",
+          ".husky/pre-commit",
+          ".husky/pre-push",
+          ".wiki/config.json",
+          "AGENTS.md",
+          "package.json",
+          "scripts/wiki/apply.test.ts",
+          "scripts/wiki/apply.ts",
+          "scripts/wiki/cli.ts",
+          "scripts/wiki/core.ts",
+          "scripts/wiki/existing-repo-bootstrap.test.ts",
+          "scripts/wiki/fresh-context.test.ts",
+          "scripts/wiki/github-attestation.ts",
+          "scripts/wiki/inventories.example.ts",
+          "scripts/wiki/inventories.ts",
+          "scripts/wiki/kit-sync.ts",
+          "scripts/wiki/kit.test.ts",
+          "scripts/wiki/new-repository-adoption.test.ts",
+          "scripts/wiki/primary-baseline.test.ts",
+          "scripts/wiki/primary-baseline.ts",
+          "scripts/wiki/primary-current.test.ts",
+          "scripts/wiki/primary-current.ts",
+          "scripts/wiki/primary-scenarios.test.ts",
+          "scripts/wiki/primary-scenarios.ts",
+          "scripts/wiki/publisher-boundary.test.ts",
+          "scripts/wiki/te04-focused-review.test.ts",
+          "scripts/wiki/te04-focused-review.ts",
+          "scripts/wiki/test-runner.ts",
+          "scripts/wiki/token-efficiency-baseline.test.ts",
+          "scripts/wiki/token-efficiency-baseline.ts",
+          "scripts/wiki/tsconfig.json",
+          "scripts/wiki/wiki.test.ts",
+          "scripts/wiki/work.test.ts"
+        ],
+        "sourcePathCount": 15,
+        "sourcePaths": [
+          ".github/pull_request_template.md",
+          ".github/workflows/checks.yml",
+          ".github/workflows/kit.yml",
+          ".github/workflows/wiki-audit.yml",
+          ".github/workflows/wiki-ssot.yml",
+          ".husky/pre-commit",
+          ".husky/pre-push",
+          ".wiki/config.json",
+          "AGENTS.md",
+          "package.json",
+          "scripts/wiki/apply.ts",
+          "scripts/wiki/cli.ts",
+          "scripts/wiki/core.ts",
+          "scripts/wiki/github-attestation.ts",
+          "scripts/wiki/tsconfig.json"
+        ]
+      },
+      "totalBytes": 75999
+    },
+    "selectedWork": {
+      "json": {
+        "bytes": 23838,
+        "lines": 843,
+        "words": 1566
+      },
+      "label": "selected-work",
+      "query": null,
+      "semantic": {
+        "conflictCount": 0,
+        "conflictIds": [],
+        "currentPageCount": 4,
+        "nonCurrentPageCount": 0,
+        "nonCurrentPageIds": [],
+        "pageCount": 4,
+        "pageIds": [
+          "architecture/engine",
+          "operations/enforcement",
+          "product/invariants",
+          "product/scope"
+        ],
+        "readOrderCount": 43,
+        "sourceDeclarationCount": 0,
+        "sourceFileCount": 39,
+        "sourceIds": []
+      },
+      "text": {
+        "bytes": 16253,
+        "lines": 398,
+        "words": 1445
+      },
+      "workId": "TE-00"
+    }
+  },
+  "exactRevision": "76e5d97a410d8e67659835e059e7b721541113c5",
+  "kind": "te06-controlled-comparison",
+  "orchestration": "one default measurement agent on gpt-5.6-sol high; no child agents or guardians; deterministic harness uses disposable local clones and makes no model or provider call",
+  "reportDigest": "0bca638d3a7e1fcc8ebb7ac619431bd8775c4abc67962b6ee050314dde525f72",
+  "summary": {
+    "broadContextBytes": 3893,
+    "focusedContextBytes": 13617,
+    "recursiveTypeScriptBytes": 842820,
+    "recursiveTypeScriptLines": 17058,
+    "reviewBundleBytes": 75912,
+    "reviewDiffBytes": 3646,
+    "reviewNonDiffBytes": 72266,
+    "selectedWorkContextBytes": 16253
+  },
+  "version": 1
+}

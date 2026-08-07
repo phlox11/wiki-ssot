@@ -1,0 +1,360 @@
+{
+  "attribution": {
+    "cacheEffects": [
+      "Cached input remains included in raw input; uncached input is raw minus cached and cache continuity is provider-controlled."
+    ],
+    "engineOwned": [
+      "Compact/full context projection, exact semantic parity, content digests, and focused review inputs are deterministic repository-engine behavior.",
+      "Primary, impact, drift, review, portable, kit, and adoption correctness are repository test evidence."
+    ],
+    "guardianAndApprovalBehavior": [
+      "Guardian routing, approval prompts, and approval wait are external orchestration observations and are never inferred from deterministic bytes."
+    ],
+    "providerLimitations": [
+      "Model request, first-token, and completion latency are available only when the sanitized controlled publisher exposes them.",
+      "Raw token usage is not billed API cost or subscription-credit consumption, and repository tests do not prove model comprehension."
+    ],
+    "repositoryGuidanceAndOptionalOrchestration": [
+      "Phase handoffs, bounded reads, and optional role orchestration are repository guidance; the engine does not force provider fan-out."
+    ]
+  },
+  "controlledComparison": {
+    "availability": "available",
+    "comparison": {
+      "comparisonTask": {
+        "broadDiscovery": "token context runtime cost efficiency",
+        "focusedTopic": "recursive source mapping",
+        "reviewBundle": "deterministic current review bundle measurement",
+        "reviewCandidateRecipeDigest": "d101e02a10eb28586a9e36cdf57413506c5de2224c8fc0bb8f4820db351d7b50",
+        "selectedWork": "TE-00",
+        "sourceExpansion": "scripts/wiki/**/*.ts"
+      },
+      "comparisonTaskDigest": "4812fe4f0e227750fc1051dc14327c8739c327ae2358e90c97f4c10a90f9f00d",
+      "exactRevision": "76e5d97a410d8e67659835e059e7b721541113c5",
+      "kind": "te06-controlled-comparison-compact",
+      "orchestration": "one default measurement agent on gpt-5.6-sol high; no child agents or guardians; deterministic harness uses disposable local clones and makes no model or provider call",
+      "reportDigest": "0bca638d3a7e1fcc8ebb7ac619431bd8775c4abc67962b6ee050314dde525f72",
+      "summary": {
+        "broadContextBytes": 3893,
+        "focusedContextBytes": 13617,
+        "recursiveTypeScriptBytes": 842820,
+        "reviewBundleBytes": 75912,
+        "selectedWorkContextBytes": 16253
+      },
+      "version": 1
+    },
+    "source": "separately supplied deterministic controlled comparison"
+  },
+  "controlledPublisherAfter": {
+    "availability": "available",
+    "publisher": {
+      "agents": [
+        {
+          "activeMs": 18386,
+          "cachedInputTokens": 44544,
+          "calls": 2,
+          "compactions": 0,
+          "effort": "high",
+          "model": "gpt-5.6-sol",
+          "outputBytes": 1082,
+          "outputTokens": 480,
+          "pathLabel": "te06-publisher-after-control",
+          "rawInputTokens": 50469,
+          "reasoningOutputTokens": 54,
+          "role": "default",
+          "toolCalls": 1,
+          "totalTokens": 50949,
+          "uncachedInputTokens": 5925,
+          "wallMs": 18386
+        }
+      ],
+      "artifactCategories": {
+        "sanitizedCompactComparisonPayload": 1082
+      },
+      "comparisonTask": {
+        "broadDiscovery": "token context runtime cost efficiency",
+        "focusedTopic": "recursive source mapping",
+        "reviewBundle": "deterministic current review bundle measurement",
+        "reviewCandidateRecipeDigest": "d101e02a10eb28586a9e36cdf57413506c5de2224c8fc0bb8f4820db351d7b50",
+        "selectedWork": "TE-00",
+        "sourceExpansion": "scripts/wiki/**/*.ts"
+      },
+      "comparisonTaskDigest": "4812fe4f0e227750fc1051dc14327c8739c327ae2358e90c97f4c10a90f9f00d",
+      "exactRevision": "76e5d97a410d8e67659835e059e7b721541113c5",
+      "inputDistribution": {
+        "outputMax": 368,
+        "outputMedian": 240,
+        "outputMin": 112,
+        "outputP95": 368,
+        "rawInputMax": 25478,
+        "rawInputMedian": 25234.5,
+        "rawInputMin": 24991,
+        "rawInputP95": 25478,
+        "uncachedInputMax": 4767,
+        "uncachedInputMedian": 2962.5,
+        "uncachedInputMin": 1158,
+        "uncachedInputP95": 4767
+      },
+      "kind": "sanitized-controlled-publisher",
+      "limitations": [
+        "The successful read-only publisher measurement ran exactly one repository command for the fixed TE-00 comparison task and made one tool-protocol call.",
+        "The controlled case publishes its result only to the parent task; external pull-request publication, merge, and cleanup phases were intentionally not performed.",
+        "Artifact bytes retain only the compact deterministic comparison payload; the separately retained full record is bound by report digest and contains no prompt, source body, command output, or private path.",
+        "Raw local rollout usage is not billed API cost or exact subscription-credit consumption.",
+        "Guardian routing and approval policy were not invoked in this controlled case and are not repository-engine gains."
+      ],
+      "orchestration": "one default measurement agent on gpt-5.6-sol high; no child agents or guardians; deterministic harness uses disposable local clones and makes no model or provider call",
+      "performance": {
+        "activeWallExcludingUserIdle": {
+          "availability": "available",
+          "limitation": "This span includes initial task preparation, deterministic execution, and final result delivery.",
+          "method": "task_started to task_complete event span with no end-user message or coordination pause inside the child task",
+          "valueMs": 18386
+        },
+        "approvalWait": {
+          "availability": "available",
+          "limitation": "This zero is specific to the read-only controlled case and is not a repository guarantee.",
+          "method": "absence of approval or guardian events in the controlled child rollout",
+          "valueMs": 0
+        },
+        "completion": {
+          "availability": "unavailable",
+          "limitation": "Token-count events are response aggregates and cannot separate model queue, prefill, and completion latency.",
+          "method": "local rollout event audit",
+          "valueMs": null
+        },
+        "coordinationWait": {
+          "availability": "available",
+          "limitation": "Final result delivery to the parent is publication, not an observed coordination wait.",
+          "method": "absence of child-to-parent clarification and parent-reply spans before task completion",
+          "valueMs": 0
+        },
+        "firstToken": {
+          "availability": "unavailable",
+          "limitation": "The rollout does not expose first streamed-token timestamps.",
+          "method": "local rollout event audit",
+          "valueMs": null
+        },
+        "modelRequest": {
+          "availability": "unavailable",
+          "limitation": "The rollout does not expose model request-start timestamps.",
+          "method": "local rollout event audit",
+          "valueMs": null
+        },
+        "phases": {
+          "cleanup": {
+            "availability": "unavailable",
+            "limitation": "Disposable clones were removed inside the measured command; no separate agent cleanup phase was observable.",
+            "method": "internal deterministic-harness cleanup only",
+            "valueMs": null
+          },
+          "implementation": {
+            "availability": "available",
+            "limitation": "The task-start to invocation preparation span remains included only in active wall time.",
+            "method": "fixed-comparison command invocation through compact digest-addressed output",
+            "modelCalls": 1,
+            "toolCalls": 1,
+            "valueMs": 3489
+          },
+          "merge": {
+            "availability": "unavailable",
+            "limitation": "No branch or pull request was merged in this measurement-only case.",
+            "method": "read-only controlled case",
+            "valueMs": null
+          },
+          "publication": {
+            "availability": "available",
+            "limitation": "This is result publication to the parent task, not external pull-request publication.",
+            "method": "compact comparison output through verbatim result delivery to the parent task",
+            "modelCalls": 1,
+            "toolCalls": 0,
+            "valueMs": 8986
+          }
+        },
+        "toolDuration": {
+          "availability": "available",
+          "limitation": "This measures local call-to-output emission, not model latency.",
+          "method": "one paired fixed-comparison tool call-to-output event span",
+          "valueMs": 3489
+        }
+      },
+      "success": true,
+      "taskLabel": "te06-publisher-after-control",
+      "totals": {
+        "activeMs": 18386,
+        "agentCount": 1,
+        "cachedInputTokens": 44544,
+        "calls": 2,
+        "compactions": 0,
+        "outputBytes": 1082,
+        "outputTokens": 480,
+        "rawInputTokens": 50469,
+        "reasoningOutputTokens": 54,
+        "toolCalls": 1,
+        "totalTokens": 50949,
+        "uncachedInputTokens": 5925,
+        "wallMs": 18386
+      },
+      "version": 1
+    },
+    "source": "separately supplied sanitized controlled publisher"
+  },
+  "deterministic": {
+    "contextMeasurements": [
+      {
+        "compact": {
+          "jsonBytes": 21246,
+          "semanticDigest": "2f390f0585daf4509d4955502366177f3c858f499a46786ce500a027163ae144",
+          "textBytes": 13617,
+          "textDigest": "f475efdd72e6ec81be434019b0a6819398fafc06a37f9683fe3e01cbbf63b9c1"
+        },
+        "full": {
+          "available": true,
+          "jsonBytes": 98584,
+          "semanticDigest": "2f390f0585daf4509d4955502366177f3c858f499a46786ce500a027163ae144",
+          "textBytes": 76416,
+          "textDigest": "551fb671cf1e8a14a336f0d5a912585ed4e986aca0d21e17367c2a65bffb0fab"
+        },
+        "id": "focused",
+        "removed": {
+          "jsonBytes": 77338,
+          "textBytes": 62799
+        },
+        "selector": "recursive source mapping",
+        "semanticParity": true
+      },
+      {
+        "compact": {
+          "jsonBytes": 5971,
+          "semanticDigest": "0d3715b0f9015f2fbd3f4902f6addbe9a37d5f05c6bcd15d3faa275dc2a3801a",
+          "textBytes": 3893,
+          "textDigest": "e078eb2c4b6edb7299ac16b04d2ff0809190c7c3a6d669140f711e2f075dce9e"
+        },
+        "full": {
+          "available": true,
+          "jsonBytes": 24095,
+          "semanticDigest": "0d3715b0f9015f2fbd3f4902f6addbe9a37d5f05c6bcd15d3faa275dc2a3801a",
+          "textBytes": 16524,
+          "textDigest": "647950ba0b6fdb70b309dac91f84f7c599cbc1d270b9f8ab51e9bad462411568"
+        },
+        "id": "broad",
+        "removed": {
+          "jsonBytes": 18124,
+          "textBytes": 12631
+        },
+        "selector": "token context runtime cost efficiency",
+        "semanticParity": true
+      },
+      {
+        "compact": {
+          "jsonBytes": 23838,
+          "semanticDigest": "b960f09b21b152439e143b7755caa9ef2d21ac2e5b235b28b01260aced082cb0",
+          "textBytes": 16253,
+          "textDigest": "926750f05901766338c49f8c507953bb81e3ee1bc5d7039cdcac8aa10d7bfd9f"
+        },
+        "full": {
+          "available": true,
+          "jsonBytes": 97185,
+          "semanticDigest": "b960f09b21b152439e143b7755caa9ef2d21ac2e5b235b28b01260aced082cb0",
+          "textBytes": 79217,
+          "textDigest": "bf5291db5c8bf8c21baf988c34dc2110fc0e5fb4a994345ee0217e314e7ce66a"
+        },
+        "id": "selected-work",
+        "removed": {
+          "jsonBytes": 73347,
+          "textBytes": 62964
+        },
+        "selector": "TE-00",
+        "semanticParity": true
+      }
+    ],
+    "focusedReview": {
+      "bundleDigest": "3b3e0968aa9e1ae4d41043bc0acb77c7c4d2e5a5334f18d7e09dab098c5f515b",
+      "exactPass": true,
+      "implementationRevision": "76e5d97a410d8e67659835e059e7b721541113c5",
+      "nonDiffBundleBytes": 49937,
+      "portableFixtureCorrect": true,
+      "reviewerSourceBreadth": 7
+    },
+    "kitManifest": {
+      "digest": "4963245ac4504cb8c6062dea1816a748af88f63deb669411ab6e242a4cd7b52e",
+      "fileCount": 21
+    },
+    "modelCalls": 0,
+    "primary": {
+      "correctness": {
+        "authority": true,
+        "conflicts": true,
+        "coverage": true,
+        "drift": true,
+        "expectedActions": true,
+        "impact": true,
+        "invariants": true,
+        "sources": true,
+        "statusAndNonCurrentSeparation": true
+      },
+      "exactRevision": "76e5d97a410d8e67659835e059e7b721541113c5",
+      "scenarioCount": 8,
+      "scenariosPassing": 8,
+      "summaryDigest": "a53af5bcc2aaeda408135e5941d517d7f9a7da8aa4fa00296eeaad3818d4d275"
+    },
+    "providerCalls": 0,
+    "suites": [
+      {
+        "command": "buildPrimaryCurrentReportAtRevision(<exact-revision>)",
+        "id": "primary",
+        "passedChecks": 8,
+        "resultDigest": "5453b4385e6ea5563b23ccac02accc343f10cc318a6a08bed8bf330b321aa617",
+        "success": true
+      },
+      {
+        "command": "bun test scripts/wiki/kit.test.ts --max-concurrency=1",
+        "id": "kit",
+        "passedChecks": 51,
+        "resultDigest": "f910bf2bdc70d467601aaf388cfa26e5eabd17344c7ee802c62e91343a67befa",
+        "success": true
+      },
+      {
+        "command": "bun test scripts/wiki/new-repository-adoption.test.ts --max-concurrency=1",
+        "id": "new-adoption",
+        "passedChecks": 1,
+        "resultDigest": "36cf27d835ea0afc315538734bfb627b0c916a1db024446a9daa2f298f2610ec",
+        "success": true
+      },
+      {
+        "command": "bun test scripts/wiki/existing-repo-bootstrap.test.ts --max-concurrency=1",
+        "id": "existing-bootstrap",
+        "passedChecks": 1,
+        "resultDigest": "942e9c47da661d91467909b0f03b65a43ca4a4182a3e80a362049d8adaaf6066",
+        "success": true
+      },
+      {
+        "command": "bun test scripts/wiki/work.test.ts --max-concurrency=1",
+        "id": "work-context",
+        "passedChecks": 60,
+        "resultDigest": "3159b747356eeabceb267fb2f300e88ba0562be8ce40bccc950d14efac4c8706",
+        "success": true
+      },
+      {
+        "command": "measureTe04FocusedReview(<exact-revision>)",
+        "id": "review-portable",
+        "passedChecks": 2,
+        "resultDigest": "6dd6e13dd54aa50bb490c6940809d39a1f82f6185ed2eabbebe45a1d42c64418",
+        "success": true
+      }
+    ]
+  },
+  "exactRevision": "76e5d97a410d8e67659835e059e7b721541113c5",
+  "ownerDecision": {
+    "options": [
+      "publisher token and performance efficiency validated with portable correctness preserved",
+      "another bounded efficiency cycle",
+      "optimization not adopted"
+    ],
+    "selectedOption": null
+  },
+  "remainingMisses": [],
+  "reportDigest": "b5b71a6da1cdab1815dfe1d02bdfecab0fa5dd36e2e8c6e7292bdaa8c9a6c27c",
+  "version": 1,
+  "workItem": "TE-06"
+}

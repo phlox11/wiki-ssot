@@ -122,9 +122,9 @@ export type PrimaryCurrentReport = {
   contractVersion: 1;
   fixtureVersion: 2;
   engine: {
-    baseRef: typeof PRIMARY_CURRENT_ENGINE_REF;
+    baseRef: string;
     baseSha: string;
-    requiredCommits: typeof PRIMARY_CURRENT_REQUIRED_COMMITS;
+    requiredCommits: Record<string, string>;
     evaluatedPaths: string[];
   };
   method: {
@@ -163,6 +163,18 @@ export type PrimaryCurrentReport = {
     explicitlyAcceptedLimitations: string[];
   };
   scenarios: PrimaryCurrentScenarioRecord[];
+};
+
+type PrimaryEvaluationTarget = {
+  engineRef: string;
+  requiredCommits: Record<string, string>;
+  description: string;
+};
+
+const HISTORICAL_PRIMARY_TARGET: PrimaryEvaluationTarget = {
+  engineRef: PRIMARY_CURRENT_ENGINE_REF,
+  requiredCommits: PRIMARY_CURRENT_REQUIRED_COMMITS,
+  description: "exact combined post-PV-16/PV-17/PV-18 revision",
 };
 
 function putAbsolute(path: string, content: string) {
@@ -343,41 +355,41 @@ function scenarioMisses(record: PrimaryCurrentScenarioRecord): string[] {
   return misses;
 }
 
-function currentEngineSha(): string {
-  const resolved = required(["git", "rev-parse", `${PRIMARY_CURRENT_ENGINE_REF}^{commit}`], PROJECT_ROOT).stdout.trim();
-  if (resolved !== PRIMARY_CURRENT_ENGINE_REF) {
-    throw new Error(`PV-19 current engine ref did not resolve exactly: ${PRIMARY_CURRENT_ENGINE_REF}`);
+function currentEngineSha(target: PrimaryEvaluationTarget): string {
+  const resolved = required(["git", "rev-parse", `${target.engineRef}^{commit}`], PROJECT_ROOT).stdout.trim();
+  if (resolved !== target.engineRef) {
+    throw new Error(`Primary current engine ref did not resolve exactly: ${target.engineRef}`);
   }
-  for (const [workId, commit] of Object.entries(PRIMARY_CURRENT_REQUIRED_COMMITS)) {
-    const ancestry = run(["git", "merge-base", "--is-ancestor", commit, PRIMARY_CURRENT_ENGINE_REF], PROJECT_ROOT);
-    if (ancestry.exitCode !== 0) throw new Error(`${workId} commit ${commit} is not an ancestor of the PV-19 engine`);
+  for (const [workId, commit] of Object.entries(target.requiredCommits)) {
+    const ancestry = run(["git", "merge-base", "--is-ancestor", commit, target.engineRef], PROJECT_ROOT);
+    if (ancestry.exitCode !== 0) throw new Error(`${workId} commit ${commit} is not an ancestor of the evaluated engine`);
   }
   return resolved;
 }
 
-function engineMatchesCurrent(): boolean {
+function engineMatchesCurrent(target: PrimaryEvaluationTarget): boolean {
   const diff = run(
-    ["git", "diff", "--quiet", PRIMARY_CURRENT_ENGINE_REF, "--", ...PRIMARY_CURRENT_ENGINE_PATHS],
+    ["git", "diff", "--quiet", target.engineRef, "--", ...PRIMARY_CURRENT_ENGINE_PATHS],
     PROJECT_ROOT,
   );
-  if (process.env.WIKI_PRIMARY_CURRENT_PINNED_ROOT === PRIMARY_CURRENT_ENGINE_REF) {
+  if (process.env.WIKI_PRIMARY_CURRENT_PINNED_ROOT === target.engineRef) {
     const head = required(["git", "rev-parse", "HEAD"], PROJECT_ROOT).stdout.trim();
-    if (head !== PRIMARY_CURRENT_ENGINE_REF || diff.exitCode !== 0) {
-      throw new Error("PV-19 pinned runner did not receive a clean checkout of the evaluated engine");
+    if (head !== target.engineRef || diff.exitCode !== 0) {
+      throw new Error("Primary pinned runner did not receive a clean checkout of the evaluated engine");
     }
     return true;
   }
   return diff.exitCode === 0;
 }
 
-function buildHistoricalPrimaryCurrentReport(): PrimaryCurrentReport {
+function buildDetachedPrimaryCurrentReport(target: PrimaryEvaluationTarget): PrimaryCurrentReport {
   const temporaryRoot = mkdtempSync(join(tmpdir(), "wiki-ssot-primary-current-engine-"));
   const checkoutRoot = join(temporaryRoot, "repo");
   const reportPath = join(temporaryRoot, "report.json");
   const interpretationPath = join(temporaryRoot, "interpretation.md");
   try {
     required(["git", "clone", "--quiet", "--shared", "--no-checkout", PROJECT_ROOT, checkoutRoot], PROJECT_ROOT);
-    required(["git", "checkout", "--quiet", "--detach", PRIMARY_CURRENT_ENGINE_REF], checkoutRoot);
+    required(["git", "checkout", "--quiet", "--detach", target.engineRef], checkoutRoot);
     for (const path of ["scripts/wiki/primary-current.ts", "scripts/wiki/primary-baseline.ts"]) {
       copyFileSync(join(PROJECT_ROOT, path), join(checkoutRoot, path));
     }
@@ -391,9 +403,14 @@ function buildHistoricalPrimaryCurrentReport(): PrimaryCurrentReport {
       reportPath,
       "--interpretation",
       interpretationPath,
-    ], checkoutRoot, { WIKI_PRIMARY_CURRENT_PINNED_ROOT: PRIMARY_CURRENT_ENGINE_REF });
+    ], checkoutRoot, {
+      WIKI_PRIMARY_CURRENT_PINNED_ROOT: target.engineRef,
+      WIKI_PRIMARY_EVALUATION_REF: target.engineRef,
+      WIKI_PRIMARY_EVALUATION_COMMITS: JSON.stringify(target.requiredCommits),
+      WIKI_PRIMARY_EVALUATION_DESCRIPTION: target.description,
+    });
     const report = JSON.parse(readFileSync(reportPath, "utf8")) as PrimaryCurrentReport;
-    if (report.engine.baseSha !== PRIMARY_CURRENT_ENGINE_REF) {
+    if (report.engine.baseSha !== target.engineRef) {
       throw new Error(`historical PV-19 runner returned the wrong engine: ${report.engine.baseSha}`);
     }
     return report;
@@ -402,12 +419,27 @@ function buildHistoricalPrimaryCurrentReport(): PrimaryCurrentReport {
   }
 }
 
-export function buildPrimaryCurrentReport(): PrimaryCurrentReport {
-  const baseSha = currentEngineSha();
-  if (!engineMatchesCurrent()) return buildHistoricalPrimaryCurrentReport();
+function buildPrimaryCurrentReportForTarget(target: PrimaryEvaluationTarget): PrimaryCurrentReport {
+  const baseSha = currentEngineSha(target);
+  if (!engineMatchesCurrent(target)) return buildDetachedPrimaryCurrentReport(target);
   const root = mkdtempSync(join(tmpdir(), "wiki-ssot-primary-current-"));
   try {
-    createPrimaryScenarioFixture(root, "pv-19-current");
+    try {
+      createPrimaryScenarioFixture(root, "pv-19-current");
+    } catch (error) {
+      if (target.engineRef === PRIMARY_CURRENT_ENGINE_REF
+        || !(error instanceof Error)
+        || !error.message.includes("human-work executor guardrail")) throw error;
+      const agentEntrypoint = join(root, "AGENTS.md");
+      writeFileSync(
+        agentEntrypoint,
+        `${readFileSync(agentEntrypoint, "utf8").trimEnd()}\n\n- Do not automatically select \`executor: human\` work. Keep it visible, report the required work and procedure, and hand it off to a human without assuming their credentials or authority.\n`,
+      );
+      requiredCli(root, ["verify"]);
+      git(root, ["add", "-A"]);
+      git(root, ["commit", "--amend", "--no-edit", "-q"]);
+      requiredCli(root, ["lint", "--json"]);
+    }
     const baseView = createRepoView(root);
     const loaded = loadWikiPages(baseView);
     if (loaded.findings.length > 0) throw new Error(`fixture page load failed: ${jsonStable(loaded.findings)}`);
@@ -430,7 +462,11 @@ export function buildPrimaryCurrentReport(): PrimaryCurrentReport {
         status: page.status,
         authority: page.authority,
       }));
-      const surfacedSourceFiles = unique(context.sources.flatMap((source) => source.sourceFiles));
+      const surfacedSourceFiles = unique(
+        Array.isArray(context.sources)
+          ? context.sources.flatMap((source) => source.sourceFiles)
+          : [...context.pages, ...context.nonCurrentPages].flatMap((page) => page.sourceFiles),
+      );
       const coverage = coverageRecords(coverageConfig, sourceMap, item);
       const requiredNonCurrentPageIds = item.requiredAuthorities
         .filter((authority) => authority.role === "non-current")
@@ -528,9 +564,9 @@ export function buildPrimaryCurrentReport(): PrimaryCurrentReport {
       contractVersion: PRIMARY_SCENARIO_SUITE.version,
       fixtureVersion: 2,
       engine: {
-        baseRef: PRIMARY_CURRENT_ENGINE_REF,
+        baseRef: target.engineRef,
         baseSha,
-        requiredCommits: PRIMARY_CURRENT_REQUIRED_COMMITS,
+        requiredCommits: target.requiredCommits,
         evaluatedPaths: [...PRIMARY_CURRENT_ENGINE_PATHS].sort(),
       },
       method: {
@@ -549,7 +585,7 @@ export function buildPrimaryCurrentReport(): PrimaryCurrentReport {
           "bun run wiki:impact -- --base main --enforce --json",
         ],
         notes: [
-          `Engine identity is pinned to exact combined post-PV-16/PV-17/PV-18 revision ${baseSha}.`,
+          `Engine identity is pinned to ${target.description} ${baseSha}.`,
           "The synthetic fixture uses the PV-16 recursive scripts/wiki coverage, source-mapping, and risk boundary.",
           "Generic topic context JSON is the authority/status/source/conflict observation; no LLM participates.",
           "Candidate diffs come from committed fixture branches, and code-only probes start independently from the same fixture main.",
@@ -606,6 +642,31 @@ export function buildPrimaryCurrentReport(): PrimaryCurrentReport {
   }
 }
 
+/** Preserve the immutable PV-19 evaluation and its byte-stable checked evidence. */
+export function buildPrimaryCurrentReport(): PrimaryCurrentReport {
+  return buildPrimaryCurrentReportForTarget(HISTORICAL_PRIMARY_TARGET);
+}
+
+/**
+ * Re-run the Primary contract against an arbitrary exact committed revision.
+ *
+ * The evaluation always delegates to a detached local checkout, so ambient
+ * authoring changes cannot leak into the exact-revision result. This entrypoint
+ * is publishing-only and makes no model/provider call.
+ */
+export function buildPrimaryCurrentReportAtRevision(
+  revision: string,
+  options: { requiredCommits?: Record<string, string>; description?: string } = {},
+): PrimaryCurrentReport {
+  const resolved = required(["git", "rev-parse", `${revision}^{commit}`], PROJECT_ROOT).stdout.trim();
+  if (!/^[0-9a-f]{40}$/.test(resolved)) throw new Error(`Primary evaluation revision is not an exact commit: ${revision}`);
+  return buildDetachedPrimaryCurrentReport({
+    engineRef: resolved,
+    requiredCommits: options.requiredCommits ?? {},
+    description: options.description ?? "exact requested revision",
+  });
+}
+
 export function renderPrimaryCurrentInterpretation(report: PrimaryCurrentReport): string {
   const section = (title: string, items: string[]) => [
     `## ${title}`,
@@ -637,7 +698,14 @@ function parseOutput(flag: string, fallback: string): string {
 if (import.meta.main) {
   const reportPath = parseOutput("--output", DEFAULT_REPORT_PATH);
   const interpretationPath = parseOutput("--interpretation", DEFAULT_INTERPRETATION_PATH);
-  const report = buildPrimaryCurrentReport();
+  const evaluationRef = process.env.WIKI_PRIMARY_EVALUATION_REF;
+  const report = evaluationRef
+    ? buildPrimaryCurrentReportForTarget({
+      engineRef: evaluationRef,
+      requiredCommits: JSON.parse(process.env.WIKI_PRIMARY_EVALUATION_COMMITS ?? "{}") as Record<string, string>,
+      description: process.env.WIKI_PRIMARY_EVALUATION_DESCRIPTION ?? "exact requested revision",
+    })
+    : buildPrimaryCurrentReport();
   const reportText = jsonStable(report);
   const interpretationText = renderPrimaryCurrentInterpretation(report);
   if (process.argv.includes("--check")) {

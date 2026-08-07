@@ -92,6 +92,20 @@ records bundle and non-diff bytes, role-classified reviewer-source breadth,
 exact attestation validation, and explicit deterministic versus externally
 observed reviewer-call/time fields without invoking a model or provider.
 
+`scripts/wiki/te06-controlled-comparison.ts` is the publishing-only fixed-task
+comparison runner for the token-efficiency roadmap. It binds one exact combined
+revision and the same TE-00 five-surface task, including the byte-identical
+review-candidate recipe. Its default output is a compact projection bound to a
+retained full record by content digest. `scripts/wiki/te06-exit-validation.ts`
+is the separate publishing-only correctness harness: it validates those fixed
+comparison records and requires the sanitized controlled-publisher observation
+to retain the same canonical task identity and digest, then reruns the Primary,
+kit, adoption, selected-work, and focused-review floors.
+Successful suite diagnostics contain bounded counts and result digests instead
+of test bodies. Both harnesses, their tests, and TE-06 evidence remain outside
+`KIT_ENTRIES`; adopters receive the portable engine and regression behavior,
+not this publisher repository's performance pilot or owner decision.
+
 ## Kit distribution
 
 The engine also emits its own copy-paste distribution. `KIT_ENTRIES` in `scripts/wiki/core.ts` names every file the kit ships, how it is produced (verbatim copy, `kit:exclude` strip, declared managed-block extraction, literal template, or `package.json` fragment), and its placement; `wiki:kit` writes `kit/**` and `wiki:kit --check` fails on drift, deletes nothing silently, and reports a file under `kit/` the table no longer produces as an orphan. `kit/README.md` is hand-written and stays outside generator ownership.

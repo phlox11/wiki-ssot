@@ -1,0 +1,150 @@
+{
+  "agents": [
+    {
+      "activeMs": 18386,
+      "cachedInputTokens": 44544,
+      "calls": 2,
+      "compactions": 0,
+      "effort": "high",
+      "model": "gpt-5.6-sol",
+      "outputBytes": 1082,
+      "outputTokens": 480,
+      "pathLabel": "te06-publisher-after-control",
+      "rawInputTokens": 50469,
+      "reasoningOutputTokens": 54,
+      "role": "default",
+      "toolCalls": 1,
+      "totalTokens": 50949,
+      "uncachedInputTokens": 5925,
+      "wallMs": 18386
+    }
+  ],
+  "artifactCategories": {
+    "sanitizedCompactComparisonPayload": 1082
+  },
+  "comparisonTask": {
+    "broadDiscovery": "token context runtime cost efficiency",
+    "focusedTopic": "recursive source mapping",
+    "reviewBundle": "deterministic current review bundle measurement",
+    "reviewCandidateRecipeDigest": "d101e02a10eb28586a9e36cdf57413506c5de2224c8fc0bb8f4820db351d7b50",
+    "selectedWork": "TE-00",
+    "sourceExpansion": "scripts/wiki/**/*.ts"
+  },
+  "comparisonTaskDigest": "4812fe4f0e227750fc1051dc14327c8739c327ae2358e90c97f4c10a90f9f00d",
+  "exactRevision": "76e5d97a410d8e67659835e059e7b721541113c5",
+  "inputDistribution": {
+    "outputMax": 368,
+    "outputMedian": 240,
+    "outputMin": 112,
+    "outputP95": 368,
+    "rawInputMax": 25478,
+    "rawInputMedian": 25234.5,
+    "rawInputMin": 24991,
+    "rawInputP95": 25478,
+    "uncachedInputMax": 4767,
+    "uncachedInputMedian": 2962.5,
+    "uncachedInputMin": 1158,
+    "uncachedInputP95": 4767
+  },
+  "kind": "sanitized-controlled-publisher",
+  "limitations": [
+    "The successful read-only publisher measurement ran exactly one repository command for the fixed TE-00 comparison task and made one tool-protocol call.",
+    "The controlled case publishes its result only to the parent task; external pull-request publication, merge, and cleanup phases were intentionally not performed.",
+    "Artifact bytes retain only the compact deterministic comparison payload; the separately retained full record is bound by report digest and contains no prompt, source body, command output, or private path.",
+    "Raw local rollout usage is not billed API cost or exact subscription-credit consumption.",
+    "Guardian routing and approval policy were not invoked in this controlled case and are not repository-engine gains."
+  ],
+  "orchestration": "one default measurement agent on gpt-5.6-sol high; no child agents or guardians; deterministic harness uses disposable local clones and makes no model or provider call",
+  "performance": {
+    "activeWallExcludingUserIdle": {
+      "availability": "available",
+      "limitation": "This span includes initial task preparation, deterministic execution, and final result delivery.",
+      "method": "task_started to task_complete event span with no end-user message or coordination pause inside the child task",
+      "valueMs": 18386
+    },
+    "approvalWait": {
+      "availability": "available",
+      "limitation": "This zero is specific to the read-only controlled case and is not a repository guarantee.",
+      "method": "absence of approval or guardian events in the controlled child rollout",
+      "valueMs": 0
+    },
+    "completion": {
+      "availability": "unavailable",
+      "limitation": "Token-count events are response aggregates and cannot separate model queue, prefill, and completion latency.",
+      "method": "local rollout event audit",
+      "valueMs": null
+    },
+    "coordinationWait": {
+      "availability": "available",
+      "limitation": "Final result delivery to the parent is publication, not an observed coordination wait.",
+      "method": "absence of child-to-parent clarification and parent-reply spans before task completion",
+      "valueMs": 0
+    },
+    "firstToken": {
+      "availability": "unavailable",
+      "limitation": "The rollout does not expose first streamed-token timestamps.",
+      "method": "local rollout event audit",
+      "valueMs": null
+    },
+    "modelRequest": {
+      "availability": "unavailable",
+      "limitation": "The rollout does not expose model request-start timestamps.",
+      "method": "local rollout event audit",
+      "valueMs": null
+    },
+    "phases": {
+      "cleanup": {
+        "availability": "unavailable",
+        "limitation": "Disposable clones were removed inside the measured command; no separate agent cleanup phase was observable.",
+        "method": "internal deterministic-harness cleanup only",
+        "valueMs": null
+      },
+      "implementation": {
+        "availability": "available",
+        "limitation": "The task-start to invocation preparation span remains included only in active wall time.",
+        "method": "fixed-comparison command invocation through compact digest-addressed output",
+        "modelCalls": 1,
+        "toolCalls": 1,
+        "valueMs": 3489
+      },
+      "merge": {
+        "availability": "unavailable",
+        "limitation": "No branch or pull request was merged in this measurement-only case.",
+        "method": "read-only controlled case",
+        "valueMs": null
+      },
+      "publication": {
+        "availability": "available",
+        "limitation": "This is result publication to the parent task, not external pull-request publication.",
+        "method": "compact comparison output through verbatim result delivery to the parent task",
+        "modelCalls": 1,
+        "toolCalls": 0,
+        "valueMs": 8986
+      }
+    },
+    "toolDuration": {
+      "availability": "available",
+      "limitation": "This measures local call-to-output emission, not model latency.",
+      "method": "one paired fixed-comparison tool call-to-output event span",
+      "valueMs": 3489
+    }
+  },
+  "success": true,
+  "taskLabel": "te06-publisher-after-control",
+  "totals": {
+    "activeMs": 18386,
+    "agentCount": 1,
+    "cachedInputTokens": 44544,
+    "calls": 2,
+    "compactions": 0,
+    "outputBytes": 1082,
+    "outputTokens": 480,
+    "rawInputTokens": 50469,
+    "reasoningOutputTokens": 54,
+    "toolCalls": 1,
+    "totalTokens": 50949,
+    "uncachedInputTokens": 5925,
+    "wallMs": 18386
+  },
+  "version": 1
+}
