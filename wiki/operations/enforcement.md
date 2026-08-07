@@ -1,6 +1,6 @@
 ---
 id: operations/enforcement
-summary: Three rails enforce the wiki within a trusted-maintainer boundary — zero-knowledge agent entry, local hooks, and deterministic CI including the wiki-review-attestation check.
+summary: Three rails enforce the wiki within a trusted-maintainer boundary — zero-knowledge agent entry, local hooks, and deterministic CI including portable growth and wiki-review-attestation checks.
 kind: operation
 status: current
 authority: normative
@@ -26,6 +26,7 @@ sources:
   - path: scripts/wiki/context.ts
   - path: scripts/wiki/generated-views.ts
   - path: scripts/wiki/kit-packaging.ts
+  - path: scripts/wiki/kit-growth-guard.ts
   - path: scripts/wiki/verification.ts
   - path: scripts/wiki/impact.ts
   - path: scripts/wiki/review-bundle.ts
@@ -51,6 +52,7 @@ Enforcement is attached to events that always happen. Semantic review is externa
 - **Local commit.** `.husky/pre-commit` runs `wiki:lint --staged`; `.husky/pre-push` blocks direct pushes to `main`. Hooks are bypassable feedback, not a security boundary.
 - **Pre-PR semantic reconciliation.** After deterministic checks and prospective PR metadata are complete, `wiki:review-preflight` evaluates trusted risk policy before any PR exists. Low-risk candidates are ready immediately. For selected changes it emits an exact bundle for a context-isolated reviewer. The bundle stores authority/conflict bodies once by content digest and carries a focused manifest whose overlapping roles distinguish changed sources, directly affected authority sources, relevant tests, and supporting sources with declaration and glob provenance. Preflight validates every required role, object, source, and digest binding before the reviewer receives it; this removes duplicate bodies and broad-source rereading without dropping current invariants, conflicts, changed primary sources, or relevant tests. The authoring agent dispositions every returned finding — fixing what this candidate broke or declared, tracking a pre-existing mismatch or undecided intent in an open conflict, recording a named follow-up for an out-of-scope defect — and reruns preflight on the new HEAD until the candidate passes or requires an explicit owner decision. Preflight rejects a disposition the finding's classification does not admit, and a conflict pointer that does not resolve to a matching open conflict, so a deferral that only looks like tracking fails before the PR exists.
 - **Pull request (CI).** `.github/workflows/wiki-ssot.yml` runs only the structural Wiki jobs on pull requests and runs `wiki-review-attestation` only for non-Draft PRs; host build/test jobs stay in host workflows such as this publisher's `checks.yml`. Upgrading the exact version 1 combined workflow preserves its `code-check` in that host file and moves only Wiki jobs; unknown or customized legacy workflows fail closed until their host-only form is accepted. Required reports are attached to a Draft after local PASS, mirrored into the PR body, and then validated when the PR becomes Ready. The check name deliberately describes validation of an existing attestation; it does not perform semantic Fresh-context review in CI.
+- **Portable growth guard.** The structural Wiki job runs `wiki:tooling:guard` over installed Kit-owned TypeScript boundaries: 1,000 lines/64 KiB generally, 250 lines for `cli.ts`, and a reported 1,000-line/68-KiB `review-bundle.ts` exception. Unclassified or oversized paths fail with split, bounded-exception, or owner-revision guidance; aggregate repository size is ignored.
 - **Fresh-context trust path.** The GitHub reference job is triggered for opened, synchronize, reopened, edited, ready-for-review, and converted-to-draft activity, but skips Drafts instead of emitting an expected failure while an attestation is being attached. For a Ready PR it runs on `pull_request` so the check attaches to the PR test-merge commit, but explicitly executes the trusted base engine/policy while treating the detached PR HEAD as data. Bun stays in the trusted working directory and receives the head only through `--root`, preventing an untrusted `bunfig.toml` preload; the job never installs or executes head code. The trusted engine classifies the actual diff using configured changed-file globs plus merge-base/HEAD affected invariants, conflicts, and current-page removals. A low-risk change records `required: false` and passes without a report. A required change reads the newest marked report from authenticated PR review/comment envelopes and rejects missing, malformed, non-PASS, stale, empty-evidence, or untrusted attestations.
 - **Recursive publishing boundary.** In this publishing repository,
   `.wiki/coverage.json` and the current engine page cover

@@ -75,4 +75,9 @@ describe("portable test discovery", () => {
       expect(files.filter((candidate) => candidate === file)).toHaveLength(1);
     }
   });
+
+  test("discovers the KM-07 shipped growth guard suite exactly once", () => {
+    const files = discoverWikiTestFiles();
+    expect(files.filter((candidate) => candidate === "scripts/wiki/kit-growth-guard.test.ts")).toHaveLength(1);
+  });
 });

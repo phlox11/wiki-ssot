@@ -22,6 +22,7 @@ jobs:
         with:
           bun-version: latest
       - run: HUSKY=0 bun install --frozen-lockfile
+      - run: bun run wiki:tooling:guard
       - run: bun run wiki:lint
       - run: bun run wiki:doctor
 

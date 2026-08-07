@@ -15,9 +15,9 @@ tags: [generated, work, queue]
 
 This is a deterministic view of structured `work_items` on proposal pages. It is not current product authority; open the owning proposal and then the returned current context.
 
-**Recommended next:** `KM-07` — run `bun run wiki:context -- --work KM-07`.
+**Recommended next:** none. Do not invent work; inspect blockers and open decisions below.
 
-Outstanding work: 13. Completed work hidden: 33; run `bun run wiki:work -- --all` to inspect it.
+Outstanding work: 12. Completed work hidden: 34; run `bun run wiki:work -- --all` to inspect it.
 
 ## Active
 
@@ -29,7 +29,7 @@ Outstanding work: 13. Completed work hidden: 33; run `bun run wiki:work -- --all
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| KM-07 | normal | agent | [proposal/kit-code-splitting](./proposals/kit-code-splitting.md) | KM-06 | Validate the modular kit and install a bounded growth guard | `bun run wiki:context -- --work KM-07` |
+| — | — | — | — | — | None | — |
 
 ## Waiting
 

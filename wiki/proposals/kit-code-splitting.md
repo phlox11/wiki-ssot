@@ -16,6 +16,10 @@ sources:
   - path: scripts/wiki/context.ts
   - path: scripts/wiki/generated-views.ts
   - path: scripts/wiki/kit-packaging.ts
+  - path: scripts/wiki/kit-growth-guard.ts
+  - path: scripts/wiki/kit-growth-guard.test.ts
+  - path: scripts/wiki/kit-modularity-exit.ts
+  - path: scripts/wiki/kit-modularity-exit.test.ts
   - path: scripts/wiki/verification.ts
   - path: scripts/wiki/impact.ts
   - path: scripts/wiki/review-bundle.ts
@@ -59,7 +63,11 @@ sources:
   - path: scripts/wiki/kit-modularity-baseline.test.ts
   - path: docs/evidence/km-00-portable-kit-baseline.json
   - path: docs/evidence/km-00-portable-kit-baseline.md
-affects: [architecture/engine, operations/enforcement]
+  - path: docs/evidence/km-07-portable-kit-final.json
+  - path: docs/evidence/km-07-portable-kit-final.md
+  - path: package.json
+  - path: .github/workflows/wiki-ssot.yml
+affects: [architecture/engine, operations/enforcement, product/invariants]
 related: [proposal/token-efficiency, architecture/engine, operations/enforcement, product/invariants]
 tags: [roadmap, kit, modularity, split, refactor, maintainability, tests, cli]
 work_items:
@@ -303,7 +311,7 @@ work_items:
       - wiki/architecture/engine.md
   - id: KM-07
     title: Validate the modular kit and install a bounded growth guard
-    state: not-started
+    state: done
     executor: agent
     priority: normal
     depends_on: [KM-06]
@@ -314,7 +322,25 @@ work_items:
       - The final evidence compares per-module lines, bytes, exports, dependencies, test ownership, kit payload size, and changed-file breadth with KM-00 and explains any regression.
       - A deterministic growth check fails only on ratified kit-owned module boundaries and gives an actionable instruction to split, justify, or revise the bound; it does not treat total repository line count as a quality oracle.
       - The initial exit target leaves no all-purpose production module above the ratified bound, keeps the CLI entrypoint thin, and leaves each portable regression file aligned with one named contract area without reducing behavioral coverage.
-    evidence: []
+    evidence:
+      - scripts/wiki/kit-growth-guard.ts
+      - scripts/wiki/kit-growth-guard.test.ts
+      - scripts/wiki/kit-modularity-exit.ts
+      - scripts/wiki/kit-modularity-exit.test.ts
+      - scripts/wiki/kit-packaging.ts
+      - scripts/wiki/kit-packaging.test.ts
+      - scripts/wiki/test-runner.test.ts
+      - scripts/wiki/kit.test.ts
+      - scripts/wiki/new-repository-adoption.test.ts
+      - scripts/wiki/existing-repo-bootstrap.test.ts
+      - docs/evidence/km-07-portable-kit-final.json
+      - docs/evidence/km-07-portable-kit-final.md
+      - package.json
+      - .github/workflows/wiki-ssot.yml
+      - kit/files/.wiki/kit-manifest.json
+      - wiki/architecture/engine.md
+      - wiki/product/invariants.md
+      - wiki/operations/enforcement.md
 ---
 
 # Portable kit code splitting
@@ -538,6 +564,28 @@ exception with final dependency and test-ownership evidence, or revise the
 bound through an explicit owner decision. Compatibility, omitted-input failure,
 and exact-HEAD digest behavior remain higher priority than reducing this file by
 an arbitrary number of bytes.
+
+## KM-07 exit disposition
+
+The final combined measurement retains the `review-bundle.ts` exception rather
+than introducing a new digest-producing seam. It remains below 1,000 lines,
+imports inward without an attestation or CLI dependency, and is owned by the
+focused review-bundle regression contract that exercises construction,
+required-input provenance, canonical manifest bindings, and omitted-input
+failure. The portable growth guard caps this one exception at 68 KiB, reports
+its use, and fails if it grows past that ceiling. Every other kit-owned
+TypeScript boundary uses the ratified 1,000-line and 64-KiB screen, while the
+CLI entrypoint also remains below 250 lines. A new boundary must declare one
+named contract area before it can pass.
+
+The final JSON and Markdown evidence are content-bound measurements rather than
+a repository-line target. They compare the KM-00 payload with every current
+kit-owned TypeScript module, export and dependency surface, regression owner,
+manifest payload, and changed-path breadth. The portable payload may grow when
+preserved tests and explicit seams replace five hidden all-purpose files; that
+is recorded as a compatibility cost, not presented as a performance or token
+claim. Provider latency, model tokens, and cache behavior remain outside this
+deterministic exit evidence.
 
 ## Explicitly deferred large files
 

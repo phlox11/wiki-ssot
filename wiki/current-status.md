@@ -5,13 +5,13 @@
 | ID | Kind | Authority | Owner | Sources |
 |---|---|---|---|---:|
 | [architecture/engine](./architecture/engine.md) | architecture | observed | @phlox11 | 2 |
-| [operations/enforcement](./operations/enforcement.md) | operation | normative | @phlox11 | 33 |
-| [product/invariants](./product/invariants.md) | invariant | normative | @phlox11 | 23 |
+| [operations/enforcement](./operations/enforcement.md) | operation | normative | @phlox11 | 34 |
+| [product/invariants](./product/invariants.md) | invariant | normative | @phlox11 | 24 |
 | [product/scope](./product/scope.md) | product | normative | @phlox11 | 2 |
 
-## Outstanding work (13)
+## Outstanding work (12)
 
-Recommended next: `KM-07`. Run `bun run wiki:context -- --work KM-07`.
+No active or ready work is available; do not infer a task from blocked or deferred records.
 
 See the [repository work queue](./work-queue.md) or run `bun run wiki:work`.
 

@@ -164,6 +164,7 @@ describe("new-repository adoption", () => {
     ]));
     for (const target of [
       "scripts/wiki/kit-packaging.ts",
+      "scripts/wiki/kit-growth-guard.ts",
       "scripts/wiki/discovery.ts",
       "scripts/wiki/context.ts",
       "scripts/wiki/generated-views.ts",
@@ -179,6 +180,7 @@ describe("new-repository adoption", () => {
       "scripts/wiki/review-bundle.ts",
       "scripts/wiki/review-attestation.ts",
       "scripts/wiki/kit-packaging.test.ts",
+      "scripts/wiki/kit-growth-guard.test.ts",
       "scripts/wiki/discovery.test.ts",
       "scripts/wiki/context.test.ts",
       "scripts/wiki/generated-views.test.ts",

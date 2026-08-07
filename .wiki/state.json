@@ -18,7 +18,7 @@
         "scripts/wiki/core.ts": "af733c8d079eb1bd44c4dcfb1c37aca8f167f5b8412b34eb04cd5a772382d663",
         "scripts/wiki/discovery.test.ts": "3999144e220004e9d8fcdeac9387ca71587fd0bd34d828cb82483eb479a22c62",
         "scripts/wiki/discovery.ts": "f1c5052d182b49aae3306fa53a75b8b1ffa20fc2c3e9a5fa953644e2c52180cc",
-        "scripts/wiki/existing-repo-bootstrap.test.ts": "1c79f004e11a11e46fd7d8b74d4bbd65f7c72db909a2cc61b799a5e1d52a2d2f",
+        "scripts/wiki/existing-repo-bootstrap.test.ts": "6f57ae1bffc9a5fc2f554eeed68b6b306a3b45d0248063dc226572dfe0725241",
         "scripts/wiki/fresh-context-github.test.ts": "dafaac843f3e0d472ff0980e3930a30eed7dbaec39036e75be67ca73cd4b91e3",
         "scripts/wiki/fresh-context-integration.test.ts": "86117df2ec2f5ba06b93ca927cd42efc3607ad3a9976b5d39203ac370a169c62",
         "scripts/wiki/fresh-context-manifest.test.ts": "23d51b7a009b30767e053bcb2d1a132f16c8cc7755bb52b74b1217143ca056a7",
@@ -31,14 +31,18 @@
         "scripts/wiki/impact.ts": "cd3b9f0301c7420939861ea9b169a27e45d5e09d926eb43602d87e9340cee903",
         "scripts/wiki/inventories.example.ts": "c77492bf25a8e89d6c5f2de5d1238bb426e41b81cd255d7c153e05d295e91c4e",
         "scripts/wiki/inventories.ts": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca",
+        "scripts/wiki/kit-growth-guard.test.ts": "ba5d217ff983b4cf0610b4f529802c0605112df2611ce3b8691302ee27cec83e",
+        "scripts/wiki/kit-growth-guard.ts": "2a0e2832de909d6af0245361edab0029bc7efd62ddfa7b7f9cd3ed4fb747fc0a",
         "scripts/wiki/kit-modularity-baseline.test.ts": "ca357a96905b2a456545779650b4f49d8d0815c413eef589ac09ef57c0f6070b",
         "scripts/wiki/kit-modularity-baseline.ts": "a53b8c677ab07477bc13d2c30e8deb43b01755aded44f3cbfe9c41f6c664a266",
-        "scripts/wiki/kit-packaging.test.ts": "f08fe9df18e0a18061f42b2f2654c3b94bb8a9161a519210207e582ecf2192d1",
-        "scripts/wiki/kit-packaging.ts": "bb439781a49f18aae3bfdf6a10b26024dfd178059da4965ebf29987349068345",
+        "scripts/wiki/kit-modularity-exit.test.ts": "5656d10b2ae05819ce1a35d2621b9ddbd74f6fb3d2026037d18cb0f103ab3cf6",
+        "scripts/wiki/kit-modularity-exit.ts": "cef57b3c828c9c283d52db032bf7871b99ce0de5b8cb51e61bf5b09f26738d9f",
+        "scripts/wiki/kit-packaging.test.ts": "fc1ca1dfc576466ca5e9baa1db814a35919bcbb1dd4b4abb9d663793f7e8bf4a",
+        "scripts/wiki/kit-packaging.ts": "c64fdb5b9ad4ed120587ad3e6b71bdb33b2ce1accd7c5d2b1924354b4b74fad0",
         "scripts/wiki/kit-sync.ts": "05d5d1d5187a4c470c47f52efe4483f5d05c27fc43f234f0ebfb071c8a57f9d9",
-        "scripts/wiki/kit.test.ts": "2143c4395eccfd5148986cf0e717d2d2f612ab5ecd13d38247700deef648f3e0",
+        "scripts/wiki/kit.test.ts": "06f4e5cd442248310ed1c34673efec7260a81e3a8eff2b54e7f9cec6eeccca4a",
         "scripts/wiki/model.ts": "c8d8a131feeab09ab4b8d454d8559c4c9e4f5a7c1b4fdb74a191c636dedcca54",
-        "scripts/wiki/new-repository-adoption.test.ts": "03fb4d3a22b3bab72c9ccc295c665888501e4195f6c86a0eec7d54c58db72fc6",
+        "scripts/wiki/new-repository-adoption.test.ts": "9edcb9945f15e786c519de69bb3bb9fc58d74221830fa01ffdb953b311e5546d",
         "scripts/wiki/page-validation.test.ts": "51a42e954fc181d2049c4ef7d4c208e701efbf85716464a7a704689aa6b54d6f",
         "scripts/wiki/page-validation.ts": "39574e823bd2e13c47c83dd31f84965914707ea4bf908f6d6c221b06e0152ab5",
         "scripts/wiki/primary-baseline.test.ts": "4a0df89a35bd811ffbca75865a3153abe869caae11d1f585c599c902ee4e16b7",
@@ -65,7 +69,7 @@
         "scripts/wiki/test-fixtures/fresh-context.ts": "48d8e32f9bae5bcdf3b285b7e0f424b4eaed25c992edfd6b3ecc25089b3c1dd8",
         "scripts/wiki/test-fixtures/wiki.ts": "96da8f91f65b5a5c9375c95c7649129e60853e9da82911576e6666291eb9c335",
         "scripts/wiki/test-fixtures/work.ts": "fb784da95f0623c3a2d0beffb6cd02edf202eb1b303db687f0f794af18fd36f4",
-        "scripts/wiki/test-runner.test.ts": "cba07669776ece54ddd1671d5b2174bcd4511cd3f7425907559de1842288c964",
+        "scripts/wiki/test-runner.test.ts": "be479c7c1d9f817db09114b89ffbb7660f751464c1275d4b47b6b3064028c760",
         "scripts/wiki/test-runner.ts": "b30fd97f9b890092f8e0847c34fb9b140c64a11b8a5dc39d0c047e1329446ebe",
         "scripts/wiki/token-efficiency-baseline.test.ts": "a56e0bd123d84392d1bfa00abdde203843de184661d21f67a6e8fbab36353dfa",
         "scripts/wiki/token-efficiency-baseline.ts": "a57259f1c9222b9e7dc231866b123eb447015e339f1378bd6bfc73a7a29f4d60",
@@ -92,12 +96,12 @@
         ".github/workflows/checks.yml": "0aaea6d0903f1e951dfec6a1e3a4adcab38fd4c5d2389ca3d4ac87c0c4915cfa",
         ".github/workflows/kit.yml": "28be4700d664817765ad66c8a9d02c9ce92decdafa42a131f72198ddf109fb97",
         ".github/workflows/wiki-audit.yml": "33a3bf1dcf6482a293f137a4cfc332eb8804639bd3b8d950a9244fa6fdda97f4",
-        ".github/workflows/wiki-ssot.yml": "8735217c246e7b4dc9232144af3e8d9fc96d99288561d8d499a1c14f69802df5",
+        ".github/workflows/wiki-ssot.yml": "18d64a3cc0ce0ff542890777eff3876bd1128c92d92980f9910a7aebd9c7eb64",
         ".husky/pre-commit": "6391e4a8b23e6eddb62b6863dbfd1a9aca995d0dde92646c7601f78eeb807eb1",
         ".husky/pre-push": "4b8ec74d4d4bc80d52e3f4bbf0c9c66d1cbf25432ff19460a7cc03daf61f0df2",
         ".wiki/config.json": "0c546d40f0fd8b49b189c559156650e6804a36889cf341d564c4869bdf1827d1",
         "AGENTS.md": "ce754be14c6dae7cb7bd70252e263842d960b8c8312170102cfae34bd8419746",
-        "package.json": "e73eac7e5e309f816f1e35df44a8f11362282fee931c4db24e0a3a409da23934",
+        "package.json": "ae8c860cb45a3abfe8f13fe6141fdca434e03e2fbe2d254d848000c090b1c5f9",
         "scripts/wiki/apply.ts": "5a273691372ff6fcfdd63214da513fa8b71b9fe8730ff2e49cdfec0793ad2c15",
         "scripts/wiki/cli-discovery-handlers.ts": "38ea0501a0a1f11a7077aeb0da0d92a7c80e731163439e35356eb9b9097da73f",
         "scripts/wiki/cli-generation-handlers.ts": "300151d9afe0438fc6de0b3cc00b7d9b89bad6d9942e68c60fb1df4e8e51fa8f",
@@ -112,7 +116,8 @@
         "scripts/wiki/generated-views.ts": "c340de1c499e3655251370233566a37a20084642369d9236252813e283f72dec",
         "scripts/wiki/github-attestation.ts": "cad5290748265f5b5cd1a5503f075cfb837283ca0e8b4e7c004567deb33139cb",
         "scripts/wiki/impact.ts": "cd3b9f0301c7420939861ea9b169a27e45d5e09d926eb43602d87e9340cee903",
-        "scripts/wiki/kit-packaging.ts": "bb439781a49f18aae3bfdf6a10b26024dfd178059da4965ebf29987349068345",
+        "scripts/wiki/kit-growth-guard.ts": "2a0e2832de909d6af0245361edab0029bc7efd62ddfa7b7f9cd3ed4fb747fc0a",
+        "scripts/wiki/kit-packaging.ts": "c64fdb5b9ad4ed120587ad3e6b71bdb33b2ce1accd7c5d2b1924354b4b74fad0",
         "scripts/wiki/model.ts": "c8d8a131feeab09ab4b8d454d8559c4c9e4f5a7c1b4fdb74a191c636dedcca54",
         "scripts/wiki/page-validation.ts": "39574e823bd2e13c47c83dd31f84965914707ea4bf908f6d6c221b06e0152ab5",
         "scripts/wiki/repository-view.ts": "62f732eada1cf31e520c8886d31f54611e1cb99992f7f308f60babe0fb2ac505",
@@ -123,8 +128,7 @@
         "scripts/wiki/work-validation.ts": "006704cac96d7dc83e4487c18db4bc35f772368b63bb5434c12a577c44f2af9a"
       },
       "verification": {
-        "kind": "unchanged",
-        "reason": "KM-06 changes only portable test ownership and Kit file membership; the installation, review, and invariant behavior remains unchanged."
+        "kind": "updated"
       }
     },
     "product/invariants": {
@@ -143,7 +147,8 @@
         "scripts/wiki/discovery.ts": "f1c5052d182b49aae3306fa53a75b8b1ffa20fc2c3e9a5fa953644e2c52180cc",
         "scripts/wiki/generated-views.ts": "c340de1c499e3655251370233566a37a20084642369d9236252813e283f72dec",
         "scripts/wiki/impact.ts": "cd3b9f0301c7420939861ea9b169a27e45d5e09d926eb43602d87e9340cee903",
-        "scripts/wiki/kit-packaging.ts": "bb439781a49f18aae3bfdf6a10b26024dfd178059da4965ebf29987349068345",
+        "scripts/wiki/kit-growth-guard.ts": "2a0e2832de909d6af0245361edab0029bc7efd62ddfa7b7f9cd3ed4fb747fc0a",
+        "scripts/wiki/kit-packaging.ts": "c64fdb5b9ad4ed120587ad3e6b71bdb33b2ce1accd7c5d2b1924354b4b74fad0",
         "scripts/wiki/model.ts": "c8d8a131feeab09ab4b8d454d8559c4c9e4f5a7c1b4fdb74a191c636dedcca54",
         "scripts/wiki/page-validation.ts": "39574e823bd2e13c47c83dd31f84965914707ea4bf908f6d6c221b06e0152ab5",
         "scripts/wiki/repository-view.ts": "62f732eada1cf31e520c8886d31f54611e1cb99992f7f308f60babe0fb2ac505",
@@ -154,8 +159,7 @@
         "scripts/wiki/work-validation.ts": "006704cac96d7dc83e4487c18db4bc35f772368b63bb5434c12a577c44f2af9a"
       },
       "verification": {
-        "kind": "unchanged",
-        "reason": "KM-06 changes only portable test ownership and Kit file membership; the installation, review, and invariant behavior remains unchanged."
+        "kind": "updated"
       }
     },
     "product/scope": {

@@ -239,6 +239,17 @@ describe("emitted kit", () => {
     expect(KIT_ENTRIES.some((entry) => entry.target === "scripts/wiki/fresh-context.test.ts")).toBe(false);
   });
 
+  test("ships the portable module growth guard and suite exactly once", () => {
+    const { files } = realKit();
+    for (const target of ["scripts/wiki/kit-growth-guard.ts", "scripts/wiki/kit-growth-guard.test.ts"]) {
+      expect(KIT_ENTRIES.filter((entry) => entry.target === target)).toHaveLength(1);
+      expect(files[`kit/files/${target}`]).toBeString();
+    }
+    const fragment = JSON.parse(files["kit/package.kit.json"]) as { scripts: Record<string, string> };
+    expect(fragment.scripts["wiki:tooling:guard"]).toBe("bun scripts/wiki/kit-growth-guard.ts");
+    expect(fragment.scripts["wiki:tooling:exit"]).toBeUndefined();
+  });
+
   test("keeps publisher-only kit commands out of the downstream workflow", () => {
     const { view, files } = realKit();
     const publisherWorkflow = view.read("wiki/WORKFLOW.md");
@@ -328,7 +339,7 @@ describe("kit manifest", () => {
     const host = files["kit/migrations/v1/host-checks.yml"];
     const hasher = new Bun.CryptoHasher("sha256");
     hasher.update(legacy);
-    expect(hasher.digest("hex")).toBe("53d46f240a5f4ee78327cae0d1e221ded01bd7b36b714c16121dd1256b1d92d5");
+    expect(hasher.digest("hex")).toBe("7b80d39485cd5d7b65c088cea39cdf085866371f3c13ab012e760b7d66f0efac");
     expect(legacy).toContain("code-check:");
     expect(legacy).toContain("wiki-structure:");
     expect(host).toContain("code-check:");

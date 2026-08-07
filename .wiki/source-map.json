@@ -92,6 +92,10 @@
       "operations/enforcement",
       "product/invariants"
     ],
+    "scripts/wiki/kit-growth-guard.ts": [
+      "operations/enforcement",
+      "product/invariants"
+    ],
     "scripts/wiki/kit-packaging.ts": [
       "operations/enforcement",
       "product/invariants"

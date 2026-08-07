@@ -222,6 +222,7 @@ describe("existing-repository bootstrap evidence", () => {
     applySync(kit, repo, initial);
     for (const target of [
       "scripts/wiki/kit-packaging.ts",
+      "scripts/wiki/kit-growth-guard.ts",
       "scripts/wiki/discovery.ts",
       "scripts/wiki/context.ts",
       "scripts/wiki/generated-views.ts",
@@ -237,6 +238,7 @@ describe("existing-repository bootstrap evidence", () => {
       "scripts/wiki/review-bundle.ts",
       "scripts/wiki/review-attestation.ts",
       "scripts/wiki/kit-packaging.test.ts",
+      "scripts/wiki/kit-growth-guard.test.ts",
       "scripts/wiki/discovery.test.ts",
       "scripts/wiki/context.test.ts",
       "scripts/wiki/generated-views.test.ts",
@@ -412,6 +414,7 @@ describe("existing-repository bootstrap evidence", () => {
     for (const path of adopterOwned) expect(readFileSync(join(repo, path), "utf8")).toBe(beforeUpgrade[path]);
     for (const target of [
       "scripts/wiki/kit-packaging.ts",
+      "scripts/wiki/kit-growth-guard.ts",
       "scripts/wiki/discovery.ts",
       "scripts/wiki/context.ts",
       "scripts/wiki/generated-views.ts",
@@ -427,6 +430,7 @@ describe("existing-repository bootstrap evidence", () => {
       "scripts/wiki/review-bundle.ts",
       "scripts/wiki/review-attestation.ts",
       "scripts/wiki/kit-packaging.test.ts",
+      "scripts/wiki/kit-growth-guard.test.ts",
       "scripts/wiki/discovery.test.ts",
       "scripts/wiki/context.test.ts",
       "scripts/wiki/generated-views.test.ts",
