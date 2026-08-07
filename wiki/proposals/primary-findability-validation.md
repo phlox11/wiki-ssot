@@ -603,7 +603,8 @@ The authoritative read order remains invariant → conflict → current page →
 expanded authority source. Proposed, deprecated, archived, and resolved-conflict
 pages retain complete source information but appear only after that order under
 explicit status-specific non-current labels. Focused synthetic CLI evidence in
-`scripts/wiki/work.test.ts` binds mixed current/proposed results, conflicted and
+`scripts/wiki/work-topic-context.test.ts` binds mixed current/proposed results,
+conflicted and
 other non-current statuses, exact and glob sources, text/JSON parity, and
 byte-stable ordering.
 
