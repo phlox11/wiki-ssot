@@ -1,5 +1,5 @@
 {
-  "digest": "dff1e635a8f6abd054c063c4211d58113f0e77442f111ff3526b501bfed48c08",
+  "digest": "3b11c3c4db16fb264063f3c35b00ff6c618fcb0df97950acf19c71f7ecc41bd4",
   "files": {
     ".github/workflows/wiki-audit.yml": {
       "ownership": "kit",
@@ -139,7 +139,7 @@
     },
     "scripts/wiki/kit-packaging.test.ts": {
       "ownership": "kit",
-      "sha256": "fc1ca1dfc576466ca5e9baa1db814a35919bcbb1dd4b4abb9d663793f7e8bf4a"
+      "sha256": "ff50825020ca87047044758b90592a8f888c19f319dd3c1c6122efbf77c8d54b"
     },
     "scripts/wiki/kit-packaging.ts": {
       "ownership": "kit",
