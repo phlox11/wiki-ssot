@@ -39,7 +39,7 @@ describe("work queue and selected context", () => {
     expect(text).toContain(`Recommended next: ${result.recommended_next.id}`);
     expect(text).toContain("READY (1)");
     expect(text).toContain(`${result.groups.ready[0].id} [${result.groups.ready[0].queue_state}, ${result.groups.ready[0].priority}]`);
-    expect(text).toContain(`OPEN DECISION CONFLICTS (${result.open_conflicts.length})`);
+    expect(text).toContain(`OPEN CONFLICTS (${result.open_conflicts.length})`);
     const all = JSON.parse(run(root, [process.execPath, cli, "work", "--all", "--json"]));
     expect(all.groups.done[0].id).toBe("WK-00");
   });
@@ -313,4 +313,3 @@ describe("work queue and selected context", () => {
 
 
 });
-

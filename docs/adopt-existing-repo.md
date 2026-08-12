@@ -85,7 +85,7 @@ For always-current generated pages (route tables, schema lists), implement `scri
 ## 5. Verify and go green
 
 ```sh
-bun run wiki:generated                 # write index, work queue, maps, inventories
+bun run wiki:generated                 # write bounded index, catalog/status, graph, queues, maps, inventories
 bun run wiki:verify                    # record source hashes for all current pages
 bun run wiki:lint                      # must pass
 bun run wiki:doctor                    # integration seams must be present
@@ -120,5 +120,9 @@ Commit the wiki, `.wiki/`, and generated files together.
 ## 8. Maintain
 
 Every change follows `wiki/WORKFLOW.md`. A generic remaining-work request starts with no-query `wiki:work`; human-exclusive work is reported and handed off, while a selected recommended agent/either item proceeds through its printed `wiki:context -- --work <ID>` command. Topic-specific work still starts with search/context. From there: read sources → change code + page + tests together → regenerate → `wiki:impact --enforce` → prospective PR metadata → preflight bundle and independent reconciliation when required → PR publication. `NEEDS_RECONCILE` or a new commit stays local and requires a new bundle/report before the PR is opened or updated.
+
+For the bounded-navigation upgrade, run the normal `apply.ts --dry-run`, then `apply.ts`. A pristine installation receives the upgraded generator, system-file handling, tests, package scripts, and Wiki workflow mechanically. The next generation writes `wiki/catalog.md` and `.wiki/relationship-graph.json` and refreshes the bounded index/current-status. Apply does not rewrite project-owned current/proposal/conflict records, `.wiki/config.json`, `.wiki/coverage.json`, `.wiki/state.json`, `scripts/wiki/inventories.ts`, or a project changelog, and it never invents `related`, `affects`, or work dependencies. A locally customized kit-owned file is preserved with a `.kit-new` merge result; reconcile it, use the printed `--accept` path, and rerun until `ready`.
+
+After upgrade, verify that `wiki:generated -- --check`, `wiki:lint`, `wiki:audit`, and `wiki:doctor` pass and commit the new generated catalog/graph with the upgraded toolkit. No record-conversion command is required: the catalog and graph are projections over the existing Wiki records, while Git remains the ordinary history of record.
 
 See the [command reference](commands.md) and the [design](design.md).

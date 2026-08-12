@@ -228,6 +228,7 @@ describe("emitted kit", () => {
     const fragment = JSON.parse(files["kit/package.kit.json"]) as { scripts: Record<string, string> };
     expect(fragment.scripts["wiki:tooling:guard"]).toBe("bun scripts/wiki/kit-growth-guard.ts");
     expect(fragment.scripts["wiki:tooling:exit"]).toBeUndefined();
+    expect(fragment.scripts["wiki:scale"]).toBeUndefined();
   });
 
   test("keeps the base-engine bundle rule, which applies downstream too", () => {

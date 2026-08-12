@@ -1,0 +1,1843 @@
+{
+  "edges": [
+    {
+      "from": "architecture/engine",
+      "to": "operations/enforcement",
+      "type": "related"
+    },
+    {
+      "from": "architecture/engine",
+      "to": "product/invariants",
+      "type": "related"
+    },
+    {
+      "from": "KM-00-OWNER",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-00-OWNER",
+      "to": "KM-00",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "KM-00-OWNER",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-00-OWNER",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-00",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-00",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-00",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-00",
+      "to": "TE-06-OWNER",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "KM-01",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-01",
+      "to": "KM-00-OWNER",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "KM-01",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-01",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-02",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-02",
+      "to": "KM-01",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "KM-02",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-02",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-03",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-03",
+      "to": "KM-02",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "KM-03",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-03",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-04",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-04",
+      "to": "KM-03",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "KM-04",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-04",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-05",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-05",
+      "to": "KM-04",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "KM-05",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-05",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-06",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-06",
+      "to": "KM-05",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "KM-06",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-06",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-07",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-07",
+      "to": "KM-06",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "KM-07",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "KM-07",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "operations/enforcement",
+      "to": "architecture/engine",
+      "type": "related"
+    },
+    {
+      "from": "operations/enforcement",
+      "to": "product/invariants",
+      "type": "related"
+    },
+    {
+      "from": "product/invariants",
+      "to": "architecture/engine",
+      "type": "related"
+    },
+    {
+      "from": "product/invariants",
+      "to": "operations/enforcement",
+      "type": "related"
+    },
+    {
+      "from": "product/scope",
+      "to": "architecture/engine",
+      "type": "related"
+    },
+    {
+      "from": "product/scope",
+      "to": "operations/enforcement",
+      "type": "related"
+    },
+    {
+      "from": "product/scope",
+      "to": "product/invariants",
+      "type": "related"
+    },
+    {
+      "from": "proposal/kit-code-splitting",
+      "to": "architecture/engine",
+      "type": "affects"
+    },
+    {
+      "from": "proposal/kit-code-splitting",
+      "to": "architecture/engine",
+      "type": "related"
+    },
+    {
+      "from": "proposal/kit-code-splitting",
+      "to": "operations/enforcement",
+      "type": "affects"
+    },
+    {
+      "from": "proposal/kit-code-splitting",
+      "to": "operations/enforcement",
+      "type": "related"
+    },
+    {
+      "from": "proposal/kit-code-splitting",
+      "to": "product/invariants",
+      "type": "affects"
+    },
+    {
+      "from": "proposal/kit-code-splitting",
+      "to": "product/invariants",
+      "type": "related"
+    },
+    {
+      "from": "proposal/kit-code-splitting",
+      "to": "proposal/token-efficiency",
+      "type": "related"
+    },
+    {
+      "from": "proposal/portable-scale-navigation",
+      "to": "architecture/engine",
+      "type": "affects"
+    },
+    {
+      "from": "proposal/portable-scale-navigation",
+      "to": "architecture/engine",
+      "type": "related"
+    },
+    {
+      "from": "proposal/portable-scale-navigation",
+      "to": "operations/enforcement",
+      "type": "affects"
+    },
+    {
+      "from": "proposal/portable-scale-navigation",
+      "to": "operations/enforcement",
+      "type": "related"
+    },
+    {
+      "from": "proposal/portable-scale-navigation",
+      "to": "product/invariants",
+      "type": "affects"
+    },
+    {
+      "from": "proposal/portable-scale-navigation",
+      "to": "product/scope",
+      "type": "affects"
+    },
+    {
+      "from": "proposal/portable-scale-navigation",
+      "to": "proposal/primary-findability-validation",
+      "type": "related"
+    },
+    {
+      "from": "proposal/portable-scale-navigation",
+      "to": "proposal/token-efficiency",
+      "type": "related"
+    },
+    {
+      "from": "proposal/primary-findability-validation",
+      "to": "architecture/engine",
+      "type": "related"
+    },
+    {
+      "from": "proposal/primary-findability-validation",
+      "to": "operations/enforcement",
+      "type": "related"
+    },
+    {
+      "from": "proposal/primary-findability-validation",
+      "to": "product/invariants",
+      "type": "related"
+    },
+    {
+      "from": "proposal/primary-findability-validation",
+      "to": "product/scope",
+      "type": "related"
+    },
+    {
+      "from": "proposal/primary-findability-validation",
+      "to": "proposal/protected-main",
+      "type": "related"
+    },
+    {
+      "from": "proposal/primary-interpretation-decision-gate",
+      "to": "architecture/engine",
+      "type": "affects"
+    },
+    {
+      "from": "proposal/primary-interpretation-decision-gate",
+      "to": "architecture/engine",
+      "type": "related"
+    },
+    {
+      "from": "proposal/primary-interpretation-decision-gate",
+      "to": "operations/enforcement",
+      "type": "affects"
+    },
+    {
+      "from": "proposal/primary-interpretation-decision-gate",
+      "to": "operations/enforcement",
+      "type": "related"
+    },
+    {
+      "from": "proposal/primary-interpretation-decision-gate",
+      "to": "product/invariants",
+      "type": "affects"
+    },
+    {
+      "from": "proposal/primary-interpretation-decision-gate",
+      "to": "product/invariants",
+      "type": "related"
+    },
+    {
+      "from": "proposal/primary-interpretation-decision-gate",
+      "to": "product/scope",
+      "type": "affects"
+    },
+    {
+      "from": "proposal/primary-interpretation-decision-gate",
+      "to": "product/scope",
+      "type": "related"
+    },
+    {
+      "from": "proposal/primary-interpretation-decision-gate",
+      "to": "proposal/primary-findability-validation",
+      "type": "related"
+    },
+    {
+      "from": "proposal/protected-main",
+      "to": "operations/enforcement",
+      "type": "related"
+    },
+    {
+      "from": "proposal/token-efficiency",
+      "to": "architecture/engine",
+      "type": "affects"
+    },
+    {
+      "from": "proposal/token-efficiency",
+      "to": "architecture/engine",
+      "type": "related"
+    },
+    {
+      "from": "proposal/token-efficiency",
+      "to": "operations/enforcement",
+      "type": "affects"
+    },
+    {
+      "from": "proposal/token-efficiency",
+      "to": "operations/enforcement",
+      "type": "related"
+    },
+    {
+      "from": "proposal/token-efficiency",
+      "to": "product/invariants",
+      "type": "affects"
+    },
+    {
+      "from": "proposal/token-efficiency",
+      "to": "product/invariants",
+      "type": "related"
+    },
+    {
+      "from": "proposal/token-efficiency",
+      "to": "product/scope",
+      "type": "affects"
+    },
+    {
+      "from": "proposal/token-efficiency",
+      "to": "product/scope",
+      "type": "related"
+    },
+    {
+      "from": "proposal/token-efficiency",
+      "to": "proposal/primary-findability-validation",
+      "type": "related"
+    },
+    {
+      "from": "PV-00",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-00",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-00",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-00",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-01",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-01",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-01",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-01",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-02",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-02",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-02",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-02",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-03",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-03",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-03",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-03",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-03",
+      "to": "PV-00",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-04",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-04",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-04",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-04",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-04",
+      "to": "PV-03",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-05",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-05",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-05",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-05",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-05",
+      "to": "PV-04",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-06",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-06",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-06",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-06",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-06",
+      "to": "PV-05",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-07",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-07",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-07",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-07",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-07",
+      "to": "PV-05",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-08",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-08",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-08",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-08",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-08",
+      "to": "PV-04",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-09",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-09",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-09",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-09",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-09",
+      "to": "PV-04",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-10",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-10",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-10",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-10",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-10",
+      "to": "PV-03",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-10",
+      "to": "PV-05",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-11",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-11",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-11",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-11",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-11",
+      "to": "PV-06",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-11",
+      "to": "PV-08",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-11",
+      "to": "PV-09",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-11",
+      "to": "PV-10",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-12",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-12",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-12",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-12",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-12",
+      "to": "PV-18",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-12",
+      "to": "PV-19",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-13",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-13",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-13",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-13",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-14",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-14",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-14",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-14",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-15",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-15",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-15",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-15",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-15",
+      "to": "PV-05",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-16",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-16",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-16",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-16",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-16",
+      "to": "PV-11",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-17",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-17",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-17",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-17",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-17",
+      "to": "PV-11",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-18",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-18",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-18",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-18",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-18",
+      "to": "PV-11",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-19",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-19",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-19",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-19",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-19",
+      "to": "PV-16",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-19",
+      "to": "PV-17",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-20",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-20",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-20",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-20",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-20",
+      "to": "PV-12",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-21",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-21",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-21",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-21",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-21",
+      "to": "PV-20",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-22",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-22",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-22",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-22",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-22",
+      "to": "PV-21",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-23",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-23",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-23",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-23",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-23",
+      "to": "PV-22",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-24",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-24",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-24",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-24",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-24",
+      "to": "PV-23",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-25",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-25",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-25",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-25",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-25",
+      "to": "PV-24",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-26",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-26",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-26",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-26",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-26",
+      "to": "PV-25",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "PV-27",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-27",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-27",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-27",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "PV-27",
+      "to": "PV-26",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "TE-00-OWNER",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-00-OWNER",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-00-OWNER",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-00-OWNER",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-00-OWNER",
+      "to": "TE-00",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "TE-00",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-00",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-00",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-00",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-01",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-01",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-01",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-01",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-01",
+      "to": "TE-00-OWNER",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "TE-01",
+      "to": "TE-05",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "TE-02",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-02",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-02",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-02",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-02",
+      "to": "TE-00-OWNER",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "TE-02",
+      "to": "TE-05",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "TE-03",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-03",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-03",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-03",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-03",
+      "to": "TE-00-OWNER",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "TE-03",
+      "to": "TE-04",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "TE-04",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-04",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-04",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-04",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-04",
+      "to": "TE-00-OWNER",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "TE-04",
+      "to": "TE-01",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "TE-04",
+      "to": "TE-02",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "TE-05",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-05",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-05",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-05",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-05",
+      "to": "TE-00-OWNER",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "TE-06-OWNER",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-06-OWNER",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-06-OWNER",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-06-OWNER",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-06-OWNER",
+      "to": "TE-06",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "TE-06",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-06",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-06",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-06",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "TE-06",
+      "to": "TE-01",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "TE-06",
+      "to": "TE-02",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "TE-06",
+      "to": "TE-04",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "TE-06",
+      "to": "TE-05",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "WSN-00",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "WSN-00",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "WSN-00",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "WSN-00",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "WSN-01",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "WSN-01",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "WSN-01",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "WSN-01",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "WSN-01",
+      "to": "WSN-00",
+      "type": "work-depends-on"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "architecture/engine",
+      "kind": "architecture",
+      "path": "wiki/architecture/engine.md",
+      "status": "current",
+      "type": "page"
+    },
+    {
+      "id": "KM-00",
+      "kind": "work",
+      "path": "wiki/proposals/kit-code-splitting.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "KM-00-OWNER",
+      "kind": "work",
+      "path": "wiki/proposals/kit-code-splitting.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "KM-01",
+      "kind": "work",
+      "path": "wiki/proposals/kit-code-splitting.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "KM-02",
+      "kind": "work",
+      "path": "wiki/proposals/kit-code-splitting.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "KM-03",
+      "kind": "work",
+      "path": "wiki/proposals/kit-code-splitting.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "KM-04",
+      "kind": "work",
+      "path": "wiki/proposals/kit-code-splitting.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "KM-05",
+      "kind": "work",
+      "path": "wiki/proposals/kit-code-splitting.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "KM-06",
+      "kind": "work",
+      "path": "wiki/proposals/kit-code-splitting.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "KM-07",
+      "kind": "work",
+      "path": "wiki/proposals/kit-code-splitting.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "operations/enforcement",
+      "kind": "operation",
+      "path": "wiki/operations/enforcement.md",
+      "status": "current",
+      "type": "page"
+    },
+    {
+      "id": "product/invariants",
+      "kind": "invariant",
+      "path": "wiki/product/invariants.md",
+      "status": "current",
+      "type": "page"
+    },
+    {
+      "id": "product/scope",
+      "kind": "product",
+      "path": "wiki/product/scope.md",
+      "status": "current",
+      "type": "page"
+    },
+    {
+      "id": "proposal/kit-code-splitting",
+      "kind": "proposal",
+      "path": "wiki/proposals/kit-code-splitting.md",
+      "status": "proposed",
+      "type": "page"
+    },
+    {
+      "id": "proposal/portable-scale-navigation",
+      "kind": "proposal",
+      "path": "wiki/proposals/portable-scale-navigation.md",
+      "status": "proposed",
+      "type": "page"
+    },
+    {
+      "id": "proposal/primary-findability-validation",
+      "kind": "proposal",
+      "path": "wiki/proposals/primary-findability-validation.md",
+      "status": "proposed",
+      "type": "page"
+    },
+    {
+      "id": "proposal/primary-interpretation-decision-gate",
+      "kind": "proposal",
+      "path": "wiki/proposals/primary-interpretation-decision-gate.md",
+      "status": "proposed",
+      "type": "page"
+    },
+    {
+      "id": "proposal/protected-main",
+      "kind": "proposal",
+      "path": "wiki/proposals/protected-main.md",
+      "status": "archived",
+      "type": "page"
+    },
+    {
+      "id": "proposal/token-efficiency",
+      "kind": "proposal",
+      "path": "wiki/proposals/token-efficiency.md",
+      "status": "proposed",
+      "type": "page"
+    },
+    {
+      "id": "PV-00",
+      "kind": "work",
+      "path": "wiki/proposals/primary-findability-validation.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "PV-01",
+      "kind": "work",
+      "path": "wiki/proposals/primary-findability-validation.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "PV-02",
+      "kind": "work",
+      "path": "wiki/proposals/primary-findability-validation.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "PV-03",
+      "kind": "work",
+      "path": "wiki/proposals/primary-findability-validation.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "PV-04",
+      "kind": "work",
+      "path": "wiki/proposals/primary-findability-validation.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "PV-05",
+      "kind": "work",
+      "path": "wiki/proposals/primary-findability-validation.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "PV-06",
+      "kind": "work",
+      "path": "wiki/proposals/primary-findability-validation.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "PV-07",
+      "kind": "work",
+      "path": "wiki/proposals/primary-findability-validation.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "PV-08",
+      "kind": "work",
+      "path": "wiki/proposals/primary-findability-validation.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "PV-09",
+      "kind": "work",
+      "path": "wiki/proposals/primary-findability-validation.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "PV-10",
+      "kind": "work",
+      "path": "wiki/proposals/primary-findability-validation.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "PV-11",
+      "kind": "work",
+      "path": "wiki/proposals/primary-findability-validation.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "PV-12",
+      "kind": "work",
+      "path": "wiki/proposals/primary-findability-validation.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "PV-13",
+      "kind": "work",
+      "path": "wiki/proposals/primary-findability-validation.md",
+      "state": "deferred",
+      "type": "work"
+    },
+    {
+      "id": "PV-14",
+      "kind": "work",
+      "path": "wiki/proposals/primary-findability-validation.md",
+      "state": "deferred",
+      "type": "work"
+    },
+    {
+      "id": "PV-15",
+      "kind": "work",
+      "path": "wiki/proposals/primary-findability-validation.md",
+      "state": "deferred",
+      "type": "work"
+    },
+    {
+      "id": "PV-16",
+      "kind": "work",
+      "path": "wiki/proposals/primary-findability-validation.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "PV-17",
+      "kind": "work",
+      "path": "wiki/proposals/primary-findability-validation.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "PV-18",
+      "kind": "work",
+      "path": "wiki/proposals/primary-findability-validation.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "PV-19",
+      "kind": "work",
+      "path": "wiki/proposals/primary-findability-validation.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "PV-20",
+      "kind": "work",
+      "path": "wiki/proposals/primary-interpretation-decision-gate.md",
+      "state": "deferred",
+      "type": "work"
+    },
+    {
+      "id": "PV-21",
+      "kind": "work",
+      "path": "wiki/proposals/primary-interpretation-decision-gate.md",
+      "state": "deferred",
+      "type": "work"
+    },
+    {
+      "id": "PV-22",
+      "kind": "work",
+      "path": "wiki/proposals/primary-interpretation-decision-gate.md",
+      "state": "deferred",
+      "type": "work"
+    },
+    {
+      "id": "PV-23",
+      "kind": "work",
+      "path": "wiki/proposals/primary-interpretation-decision-gate.md",
+      "state": "deferred",
+      "type": "work"
+    },
+    {
+      "id": "PV-24",
+      "kind": "work",
+      "path": "wiki/proposals/primary-interpretation-decision-gate.md",
+      "state": "deferred",
+      "type": "work"
+    },
+    {
+      "id": "PV-25",
+      "kind": "work",
+      "path": "wiki/proposals/primary-interpretation-decision-gate.md",
+      "state": "deferred",
+      "type": "work"
+    },
+    {
+      "id": "PV-26",
+      "kind": "work",
+      "path": "wiki/proposals/primary-interpretation-decision-gate.md",
+      "state": "deferred",
+      "type": "work"
+    },
+    {
+      "id": "PV-27",
+      "kind": "work",
+      "path": "wiki/proposals/primary-interpretation-decision-gate.md",
+      "state": "deferred",
+      "type": "work"
+    },
+    {
+      "id": "TE-00",
+      "kind": "work",
+      "path": "wiki/proposals/token-efficiency.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "TE-00-OWNER",
+      "kind": "work",
+      "path": "wiki/proposals/token-efficiency.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "TE-01",
+      "kind": "work",
+      "path": "wiki/proposals/token-efficiency.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "TE-02",
+      "kind": "work",
+      "path": "wiki/proposals/token-efficiency.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "TE-03",
+      "kind": "work",
+      "path": "wiki/proposals/token-efficiency.md",
+      "state": "deferred",
+      "type": "work"
+    },
+    {
+      "id": "TE-04",
+      "kind": "work",
+      "path": "wiki/proposals/token-efficiency.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "TE-05",
+      "kind": "work",
+      "path": "wiki/proposals/token-efficiency.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "TE-06",
+      "kind": "work",
+      "path": "wiki/proposals/token-efficiency.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "TE-06-OWNER",
+      "kind": "work",
+      "path": "wiki/proposals/token-efficiency.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "WSN-00",
+      "kind": "work",
+      "path": "wiki/proposals/portable-scale-navigation.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "WSN-01",
+      "kind": "work",
+      "path": "wiki/proposals/portable-scale-navigation.md",
+      "state": "done",
+      "type": "work"
+    }
+  ],
+  "version": 1
+}

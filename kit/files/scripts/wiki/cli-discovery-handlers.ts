@@ -97,7 +97,7 @@ export function handleWork(context: CliContext): void {
   ] as const) {
     lines.push(`${heading} (${items.length})`, ...(items.length > 0 ? items.map(workText) : ["none"]), "");
   }
-  lines.push(`OPEN DECISION CONFLICTS (${queue.open_conflicts.length})`);
+  lines.push(`OPEN CONFLICTS (${queue.open_conflicts.length})`);
   lines.push(...(queue.open_conflicts.length > 0
     ? queue.open_conflicts.map((item) => `${item.id} [${item.severity}, ${item.type}, ${item.state}]\t${item.summary}\n  Context: bun run wiki:context -- --conflict ${item.id}`)
     : ["none"]), "");

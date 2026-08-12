@@ -30,7 +30,7 @@ Required fields:
 - `owners`: GitHub handle array.
 - `sources`: array of `{path, symbols?}` or `{glob}`. A current page needs at least one source that exists. Optional `symbols` on a `.ts/.tsx/.js/.jsx` path are checked against the file's exports.
 
-Optional `affects` and `related` values are page IDs and must resolve. `tags` are search terms.
+Optional `affects` and `related` values are page IDs and must resolve. They are directed navigation declarations: they appear in the generated catalog and relationship graph but do not by themselves propagate current authority, staleness, impact, or review scope. `tags` are search terms.
 
 `status: current` alone defines the current SSOT; there is no `wiki/current/` directory. A current page cannot use only a proposal as primary evidence. Future behavior stays `proposed` until an implementation PR promotes it.
 
@@ -106,4 +106,5 @@ Open files require `status: conflicted`; resolved files require `status: archive
 - `.wiki/coverage.json` — `{ "version": 1, "include": ["glob", ...], "exclusions": [{ "glob": "...", "reason": "20+ chars" }] }`. Every included file must map to a current page's `sources`, or carry a reasoned exclusion.
 - `.wiki/state.json` — generated verification ledger of per-page source hashes. Update with `bun run wiki:verify`.
 - `.wiki/source-map.json`, `.wiki/conflict-map.json` — generated reverse indexes; never hand-edit.
+- `.wiki/relationship-graph.json` — generated page/work graph. It contains stable page and work nodes plus declared `related`, `affects`, conflict affected-page/invariant, work context-page, and work dependency edges. It is a disposable navigation projection, not authority.
 - `.wiki/legacy-link-allowlist.json` — optional, time-boxed exceptions for known-broken links during migration.

@@ -2,7 +2,7 @@
 
 ## Before editing
 
-1. Read `wiki/index.md` and `wiki/current-status.md`.
+1. Read the bounded `wiki/index.md` and `wiki/current-status.md`; follow `wiki/catalog.md` when their group or lifecycle summary points to the complete catalog.
 2. For a generic "what remains?", "what is unfinished?", or "what should happen next?" request, run `bun run wiki:work` without asking for an ID or search term. Select only recommended `agent` or `either` work in `active` or `ready`, then run the item's printed `bun run wiki:context -- --work <ID>` command. Never auto-select `executor: human`, waiting, blocked, deferred, or conflict work. Human work remains visible; use `bun run wiki:work -- --executor human` to report its procedure and hand it off without assuming human credentials or authority.
 3. For a topic-specific task, run `bun run wiki:search -- "<terms>"`.
 4. Run `bun run wiki:context -- "<terms>"`; use its compact authority/source routing and inspect every returned open conflict and acceptance list. If a partial-match candidate list is returned, follow the candidate's focused command instead of expanding every body.
@@ -48,6 +48,8 @@ A change to `scripts/wiki/**` that alters bundle content generates its own bundl
 After a local required PASS, open a Draft PR, publish that exact report through the trusted review/comment channel, mirror its verdict/HEAD/bundle/reviewer/evidence into the PR body, and then mark it Ready. The Ready-only `wiki-review-attestation` job skips Drafts and runs when the PR becomes Ready; this avoids an expected failing check while the attestation is being attached. Its name reflects its narrow role: it validates the precomputed proof and does not perform Fresh-context review in CI. Any new commit or semantic metadata change invalidates the report and sends the candidate back through preflight.
 
 `requireDifferentActor: false` permits a solo maintainer's authenticated GitHub account to publish a separate review context's report; it does not permit the authoring context to invent its own PASS. `true` additionally requires the publisher to differ from the PR author and must only be enabled after a second account or bot is available. If the code-agent environment cannot create an isolated reviewer and no external reviewer is available, stop before opening the PR and ask for that capability.
+
+Generated catalog, cumulative status, relationship graph, and reverse maps are projections of the same repository records. Never hand-edit them or treat them as a replacement for current pages and primary sources. Toolkit upgrades rebuild those projections through the ordinary `apply.ts` loop without rewriting project-owned current pages, proposals, conflicts, configuration, coverage, verification state, or changelog.
 
 ## Enforcement layers
 

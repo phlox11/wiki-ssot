@@ -38,7 +38,7 @@ export const KIT_EXCLUDE_END = "<!-- kit:exclude:end -->";
 // fragment. The exit evidence runner measures this checkout against KM-00 and
 // intentionally is not shipped; `wiki:kit` is the generator for this checkout
 // itself. The guard is portable and remains in the fragment.
-const KIT_OMITTED_SCRIPTS = new Set(["wiki:kit", "wiki:tooling:exit"]);
+const KIT_OMITTED_SCRIPTS = new Set(["wiki:kit", "wiki:tooling:exit", "wiki:scale"]);
 
 export type KitOwnership = "kit" | "seed";
 
@@ -280,6 +280,28 @@ function pushFinding(findings: Finding[], path: string, code: string, message: s
   findings.push({ code, message, path, severity });
 }
 
+/**
+ * The v1 combined workflow is a historical migration reference. Keep its
+ * original full-history checkout semantics even though the current dedicated
+ * Wiki workflow intentionally uses shallow checkouts for structure and
+ * generated freshness jobs. This is a byte-preserving compatibility transform,
+ * not a change to the current workflow payload.
+ */
+function restoreV1CheckoutDepth(workflow: string): string {
+  const lines = workflow.split("\n");
+  const historicalJobs = new Set(["wiki-structure", "wiki-generated"]);
+  let job: string | undefined;
+  for (let index = 0; index < lines.length; index += 1) {
+    const heading = lines[index].match(/^  ([A-Za-z0-9_-]+):$/);
+    if (heading) job = heading[1];
+    if (job == null || !historicalJobs.has(job) || lines[index] !== "      - uses: actions/checkout@v4") continue;
+    if (lines[index + 1] === "        with:" && lines[index + 2] === "          fetch-depth: 0") continue;
+    lines.splice(index + 1, 0, "        with:", "          fetch-depth: 0");
+    index += 2;
+  }
+  return lines.join("\n");
+}
+
 function renderKitEntry(view: RepoView, entry: KitEntry, findings: Finding[]): string | null {
   const source = entry.source;
   if (source.kind === "literal") return source.content;
@@ -300,7 +322,7 @@ function renderKitEntry(view: RepoView, entry: KitEntry, findings: Finding[]): s
     }
     const combinedHeader = wiki.slice(0, wikiJobsAt).replace(/^name: wiki-ssot$/m, "name: checks");
     const hostJobs = host.slice(hostJobsAt + delimiter.length).trimEnd();
-    const wikiJobs = wiki.slice(wikiJobsAt + delimiter.length);
+    const wikiJobs = restoreV1CheckoutDepth(wiki.slice(wikiJobsAt + delimiter.length));
     return `${combinedHeader}${delimiter}${hostJobs}\n\n${wikiJobs}`;
   }
   if (!view.exists(source.from)) {

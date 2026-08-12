@@ -269,12 +269,12 @@
       }
     ],
     "focusedReview": {
-      "bundleDigest": "3b3e0968aa9e1ae4d41043bc0acb77c7c4d2e5a5334f18d7e09dab098c5f515b",
+      "bundleDigest": "7c66d1726eec39aa38c64e97ec65b2bb3cf6f5b4fd02a827a547babf1dcc922e",
       "exactPass": true,
       "implementationRevision": "76e5d97a410d8e67659835e059e7b721541113c5",
-      "nonDiffBundleBytes": 49937,
+      "nonDiffBundleBytes": 49495,
       "portableFixtureCorrect": true,
-      "reviewerSourceBreadth": 7
+      "reviewerSourceBreadth": 6
     },
     "kitManifest": {
       "digest": "4963245ac4504cb8c6062dea1816a748af88f63deb669411ab6e242a4cd7b52e",
@@ -339,7 +339,7 @@
         "command": "measureTe04FocusedReview(<exact-revision>)",
         "id": "review-portable",
         "passedChecks": 2,
-        "resultDigest": "6dd6e13dd54aa50bb490c6940809d39a1f82f6185ed2eabbebe45a1d42c64418",
+        "resultDigest": "97bc46be15c93eee63b4b7368d9ebffbbe772a476546018925cd7942b0a05a64",
         "success": true
       }
     ]
@@ -354,7 +354,7 @@
     "selectedOption": null
   },
   "remainingMisses": [],
-  "reportDigest": "b5b71a6da1cdab1815dfe1d02bdfecab0fa5dd36e2e8c6e7292bdaa8c9a6c27c",
+  "reportDigest": "6242a994895a986912cd9d810f08f37d77338317ef6be1031de434089bf0da13",
   "version": 1,
   "workItem": "TE-06"
 }

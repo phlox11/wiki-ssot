@@ -4,19 +4,21 @@
 
 Pages with `status: current` are the single source of truth for current development intent and contracts.
 
+The root index is bounded by first path-segment group count. Open the complete [Wiki catalog](./catalog.md) to drill down to every content page.
+
 ## architecture
 
-- [architecture/engine](./architecture/engine.md) — Provider-neutral Bun/TypeScript engine for deterministic Wiki, work discovery, portable growth, and exact-HEAD attestation.
+- 1 current page — [Browse architecture in the catalog](./catalog.md)
 
 ## operations
 
-- [operations/enforcement](./operations/enforcement.md) — Three rails enforce the wiki within a trusted-maintainer boundary — zero-knowledge agent entry, local hooks, and deterministic CI including portable growth and wiki-review-attestation checks.
+- 1 current page — [Browse operations in the catalog](./catalog.md)
 
 ## product
 
-- [product/invariants](./product/invariants.md) — Non-negotiable rules for discoverable work, source traceability, portable bounds, conflicts, deterministic attestation, and separated review.
-- [product/scope](./product/scope.md) — wiki-ssot's Primary findability and adoption path is validated within configured coverage and trusted-maintainer bounds; it remains a portable toolkit, not a hosted reviewer or decision-maker.
+- 2 current pages — [Browse product in the catalog](./catalog.md)
 
+- [Current status](./current-status.md)
 - [Outstanding work](./work-queue.md)
 - [Open conflicts](./conflicts.md)
 - [Changelog](./changelog.md)

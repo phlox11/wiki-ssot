@@ -31,10 +31,19 @@
     "docs/design.md": [
       "product/scope"
     ],
+    "docs/evidence/wsn-01-large-scale.json": [
+      "product/scope"
+    ],
+    "docs/evidence/wsn-01-schooled-scale.json": [
+      "product/scope"
+    ],
     "package.json": [
       "operations/enforcement"
     ],
     "README.md": [
+      "product/scope"
+    ],
+    "scripts/wiki-scale-benchmark.ts": [
       "product/scope"
     ],
     "scripts/wiki/apply.ts": [

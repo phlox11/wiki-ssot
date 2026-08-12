@@ -93,7 +93,7 @@ work_items:
     acceptance:
       - A no-query command lists repository-wide outstanding work.
       - The queue is derived from machine-readable repository records rather than Markdown table parsing or chat memory.
-      - Open conflicts are included as first-class decision work.
+      - Open decision, implementation, and documentation conflicts are included as first-class resolution work.
       - Default output separates ready, active, waiting, blocked, and deferred work, while completed work is opt-in.
       - Blocked, deferred, and done states require their corresponding reason or durable evidence.
       - The schema rejects duplicate IDs, invalid states, invalid context pages, illegal lifecycle fields, unknown or self dependencies, and dependency cycles.

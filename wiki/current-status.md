@@ -2,21 +2,34 @@
 
 # Current status
 
-| ID | Kind | Authority | Owner | Sources |
-|---|---|---|---|---:|
-| [architecture/engine](./architecture/engine.md) | architecture | observed | @phlox11 | 2 |
-| [operations/enforcement](./operations/enforcement.md) | operation | normative | @phlox11 | 34 |
-| [product/invariants](./product/invariants.md) | invariant | normative | @phlox11 | 24 |
-| [product/scope](./product/scope.md) | product | normative | @phlox11 | 2 |
+The current contract is a mutable snapshot. Done work and resolved conflicts remain durable records; Git is the history of record for ordinary changes.
 
-## Outstanding work (12)
+## Cumulative records
 
-No active or ready work is available; do not infer a task from blocked or deferred records.
+| Record | Count |
+|---|---:|
+| Current pages | 4 |
+| Proposal pages | 5 |
+| Total work | 48 |
+| Outstanding work | 12 |
+| Done work | 36 |
+| Total conflicts | 0 |
+| Open conflicts | 0 |
+| Resolved conflicts | 0 |
+| Archived pages | 1 |
+| Deprecated pages | 0 |
 
-See the [repository work queue](./work-queue.md) or run `bun run wiki:work`.
+## Current invariants
 
+- [product/invariants](./product/invariants.md) — Non-negotiable rules for discoverable work, source traceability, portable bounds, conflicts, deterministic attestation, and separated review.
 
-## Open conflicts (0)
+## Work and conflicts
+
+No agent-recommendable work is available; inspect the complete queue and open conflicts for details.
+
+See the [complete Wiki catalog](./catalog.md), [repository work queue](./work-queue.md), or run `bun run wiki:work`.
+
+### Open conflicts (0)
 
 | Severity | Count |
 |---|---:|

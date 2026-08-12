@@ -57,7 +57,7 @@ The apply loop does not call a copied toolkit with no project knowledge complete
 1. Create production code and its test.
 2. Create `wiki/<group>/<name>.md` in the **same candidate**, with `sources` pointing at both files.
 3. Add the code area to `.wiki/coverage.json` `include`; extend `tsconfig.json` and the repository's `test` script so the new code and test are actually checked, and mark high-risk paths in `.wiki/config.json` where appropriate.
-4. Run `wiki:generated`, then `wiki:verify`. The candidate is not green before verification records the new current page's source hash.
+4. Run `wiki:generated`, then `wiki:verify`. Generation maintains the bounded index, complete catalog, cumulative status, queues, reverse maps, and relationship graph; do not edit those projections by hand. The candidate is not green before verification records the new current page's source hash.
 5. Rerun `apply.ts` until it reports `ready`, then run `wiki:impact -- --base <base> --enforce` and `wiki:review-preflight` with prospective PR metadata. `not-required` is a passing preflight result when the configured risk selector does not select the feature; otherwise reconcile the emitted bundle to PASS in a separate context.
 6. Commit code, test, current page, coverage, generated maps/indexes, and the verification ledger together. Record real product invariants as `kind: invariant` pages early — they are what conflicts and reviews check against.
 
