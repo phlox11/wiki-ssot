@@ -18,6 +18,7 @@ It is derived from Andrej Karpathy's [LLM wiki](https://gist.github.com/karpathy
 - A **configured coverage** gate ensures every file matched by `.wiki/coverage.json` maps to a current page or a reasoned exclusion, so the repository can make its declared code boundary findable without pretending to cover files outside that boundary.
 - When intent is unclear or code and wiki disagree, you open a **conflict** — a first-class, machine-tracked record with acceptance criteria — instead of guessing.
 - Proposal frontmatter carries a validated, repository-wide **work queue**. An optional `executor: agent | human | either` classifies who can perform a task independently from its lifecycle state; omission remains backward-compatible `agent`. A fresh session can run `wiki:work` with no topic, node, or task ID, see human work without auto-selecting it, then load a selected item's current invariants, context pages, conflicts, sources, and non-current proposal owner through a compact default projection. Stable digests and focused commands route to detail, while `wiki:context -- --full` retains exhaustive body inspection.
+- A bounded **`wiki/index.md` entrypoint** routes by first path group into a complete generated catalog. Current-status exposes current/proposal, outstanding/done work, open/resolved conflict, and archived/deprecated totals; a generated relationship graph exposes declared page/work links without changing authority or validation semantics.
 - `wiki:review-preflight` decides whether independent reconciliation is required before a PR exists, prepares an exact content-addressed bundle with focused authority/source/test roles, and validates the separate review context's report. Draft PRs do not emit an expected Fresh-context failure; applicable Ready PRs reject missing, non-PASS, stale, malformed, empty-evidence, or untrusted reports.
 
 Full rationale: [docs/design.md](docs/design.md).
@@ -37,6 +38,15 @@ reached green and correctly returned `not-required`, while the
 [PV-18 current-kit review](docs/evidence/pv-18-existing-repository-current-kit-review-pass.json)
 binds the existing-repository path after it exposed a real downstream workflow
 defect, fixed it, and reached exact context-isolated `PASS`.
+
+The checked-in [Schooled-equivalent](docs/evidence/wsn-01-schooled-scale.md)
+and [large](docs/evidence/wsn-01-large-scale.md) scale-navigation evidence
+validates two deterministic profiles. The larger profile contains 1,000 current pages, 100 proposals,
+10,000 work items, 1,000 conflicts, and 10,000 source files while retaining
+full-repository validation. Its enforced publisher envelope is 30 seconds per
+measured engine phase, at most 1 GiB peak RSS, at most 64 KiB for the bounded
+entry index, exact generated/queue/graph counts, and zero findings. Runtime and
+RSS remain host-sensitive evidence rather than a universal latency guarantee.
 
 A user should expect a fresh coding-agent session to begin with an ordinary
 question such as “what work remains?”, receive the repository-wide queue,
@@ -92,7 +102,7 @@ bun run wiki:context -- "enforcement" --full  # exhaustive page bodies when need
 scripts/wiki/            # engine, CLI, provider/project adapters, kit tooling,
                          # and grouped regression/adoption/validation fixtures
 wiki/                    # the SSOT pages + SCHEMA.md + WORKFLOW.md
-.wiki/                   # machine config + generated indexes + verification ledger
+.wiki/                   # machine config + generated maps/relationship graph + verification ledger
 .husky/                  # pre-commit (lint) + pre-push (block main)
 .github/workflows/       # host checks + wiki-ssot.yml gates + kit.yml + weekly audit
 AGENTS.md / CLAUDE.md    # the agent entrypoint

@@ -58,6 +58,7 @@ describe("page validation foundation", () => {
   test("ignores system and generated wiki pages as content", () => {
     const loaded = loadWikiPages(memoryView({
       "wiki/index.md": "generated",
+      "wiki/catalog.md": "---\nid: generated/catalog\nsummary: Generated catalog.\nkind: generated\nstatus: archived\nauthority: derived\nowners: [\"@owner\"]\nsources: []\n---\n",
       "wiki/_generated/inventory.md": "generated",
       "wiki/product/test.md": page(),
       "source.ts": "export const value = 1;\n",

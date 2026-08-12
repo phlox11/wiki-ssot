@@ -109,6 +109,10 @@ The seeded files are intentionally not upgraded. Review upstream changelog/contr
 - `scripts/wiki/inventories.ts` — optional project-specific generated inventories.
 - `wiki/**` current/conflict/proposal content — the project's intent, never generic kit prose.
 
+The bounded-navigation upgrade follows the same ownership split. A pristine installation receives the upgraded generator, system-file rules, regression tests, package commands, and dedicated Wiki workflow. The next generation creates the complete `wiki/catalog.md`, rewrites the bounded `wiki/index.md` and cumulative `wiki/current-status.md`, and emits `.wiki/relationship-graph.json`. Those are disposable projections over existing records; no semantic record migration is required.
+
+Apply never rewrites project-owned current/proposal/conflict records, configuration, coverage, verification state, inventory adapters, or a project changelog, and it never infers `related`, `affects`, or dependency edges. A customized kit-owned file still follows the normal `.kit-new` merge/`--accept` loop. After upgrade, commit the refreshed generated artifacts only after `wiki:generated -- --check`, `wiki:lint`, `wiki:audit`, and `wiki:doctor` pass.
+
 The dedicated `.github/workflows/wiki-ssot.yml` runs only Wiki SSOT jobs. The host keeps its own build/test workflow and script names, avoiding duplicate assumptions about the project's stack.
 
 ## Requirements and trust boundary

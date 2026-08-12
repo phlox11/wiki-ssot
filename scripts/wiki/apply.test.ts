@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import * as apply from "./apply";
@@ -56,7 +56,9 @@ function commitFixture(root: string): void {
 function snapshot(root: string): string {
   const paths = Bun.spawnSync(["git", "ls-files", "--cached", "--others", "--exclude-standard"], { cwd: root, stdout: "pipe" })
     .stdout.toString().trim().split("\n").filter(Boolean).sort();
-  return paths.map((path) => `${path}:${apply.sha256(readFileSync(join(root, path), "utf8"))}`).join("\n");
+  return paths
+    .filter((path) => lstatSync(join(root, path), { throwIfNoEntry: false })?.isFile())
+    .map((path) => `${path}:${apply.sha256(readFileSync(join(root, path), "utf8"))}`).join("\n");
 }
 
 function jsonOutput(result: ReturnType<typeof runApply>): Record<string, unknown> {
@@ -553,6 +555,54 @@ The maintained source exports the current fixture value.
     const preview = runApply(repo, "--kit", kit, "--dry-run", "--json");
     expect(preview.exitCode).toBe(0);
     expect(jsonOutput(preview)).toMatchObject({ mode: "upgrade", status: "preview", dryRun: true, changes: [] });
+    expect(existsSync(join(repo, "wiki/catalog.md"))).toBe(true);
+    expect(existsSync(join(repo, ".wiki/relationship-graph.json"))).toBe(true);
+    const wikiWorkflow = readFileSync(join(repo, ".github/workflows/wiki-ssot.yml"), "utf8");
+    const structureWorkflow = wikiWorkflow.match(/  wiki-structure:[\s\S]*?  wiki-generated:/)?.[0] ?? "";
+    const generatedWorkflow = wikiWorkflow.match(/  wiki-generated:[\s\S]*?  wiki-impact:/)?.[0] ?? "";
+    expect(structureWorkflow).not.toContain("fetch-depth: 0");
+    expect(generatedWorkflow).not.toContain("fetch-depth: 0");
+
+    // A double edit of a kit-owned workflow is preserved as .kit-new. Accepting
+    // the reconciled local file advances its per-file baseline and makes a
+    // subsequent run both ready and byte-idempotent.
+    const workflowPath = join(repo, ".github/workflows/wiki-ssot.yml");
+    const localWorkflow = `${wikiWorkflow}\n# local workflow customization\n`;
+    put(repo, ".github/workflows/wiki-ssot.yml", localWorkflow);
+    const incomingWorkflowPath = join(kit, "files/.github/workflows/wiki-ssot.yml");
+    const incomingWorkflow = `${readFileSync(incomingWorkflowPath, "utf8")}\n# upstream workflow update\n`;
+    writeFileSync(incomingWorkflowPath, incomingWorkflow);
+    const kitManifestPath = join(kit, "files/.wiki/kit-manifest.json");
+    const kitManifest = JSON.parse(readFileSync(kitManifestPath, "utf8")) as {
+      files: Record<string, { sha256: string; ownership: string }>;
+    };
+    kitManifest.files[".github/workflows/wiki-ssot.yml"].sha256 = apply.sha256(incomingWorkflow);
+    writeFileSync(kitManifestPath, `${JSON.stringify(kitManifest, null, 2)}\n`);
+
+    const conflict = runApply(repo, "--kit", kit, "--skip-install", "--json");
+    expect(conflict.exitCode).toBe(1);
+    expect(jsonOutput(conflict)).toMatchObject({
+      mode: "upgrade",
+      status: "needs-merge",
+      conflicts: expect.arrayContaining([expect.objectContaining({ path: ".github/workflows/wiki-ssot.yml" })]),
+    });
+    expect(readFileSync(workflowPath, "utf8")).toBe(localWorkflow);
+    expect(readFileSync(`${workflowPath}.kit-new`, "utf8")).toBe(incomingWorkflow);
+
+    rmSync(`${workflowPath}.kit-new`);
+    const accepted = runApply(repo, "--kit", kit, "--skip-install", "--json", "--accept", ".github/workflows/wiki-ssot.yml");
+    expect(accepted.exitCode).toBe(0);
+    expect(jsonOutput(accepted)).toMatchObject({
+      mode: "upgrade",
+      status: "ready",
+      changes: expect.arrayContaining([".wiki/kit-manifest.json"]),
+    });
+    expect(readFileSync(workflowPath, "utf8")).toBe(localWorkflow);
+    const acceptedSnapshot = snapshot(repo);
+    const rerun = runApply(repo, "--kit", kit, "--skip-install", "--json");
+    expect(rerun.exitCode).toBe(0);
+    expect(jsonOutput(rerun)).toMatchObject({ mode: "upgrade", status: "ready", changes: [] });
+    expect(snapshot(repo)).toBe(acceptedSnapshot);
     const pkg = JSON.parse(readFileSync(join(repo, "package.json"), "utf8")) as { scripts: Record<string, string> };
     expect(pkg.scripts).toMatchObject({ test: "host-test", typecheck: "host-types", prepare: "host-prepare" });
   }, 60_000);

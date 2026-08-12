@@ -16,6 +16,7 @@ import {
   type ImpactReport,
   type ReviewManifest,
 } from "./core";
+import { enginePhasesWithinLimit, renderScaleMarkdown, runScaleBenchmark, SCALE_ENGINE_PHASE_LIMIT_MS, SCALE_PROFILES } from "../wiki-scale-benchmark";
 
 const temporary: string[] = [];
 const AMBIENT_PULL_REQUEST_KEYS = [
@@ -237,6 +238,65 @@ describe("PV-16 recursive publisher boundary", () => {
     for (const path of nestedFiles) {
       expect(downstream.freshContext.requiredWhen.changedFileGlobs.some((pattern) => new Bun.Glob(pattern).match(path))).toBe(true);
     }
+  });
+
+  test("keeps the publisher-only scale harness outside the recursive engine boundary", () => {
+    const view = createRepoView(process.cwd());
+    const pages = loadWikiPages(view).pages;
+    const sourceMap = buildSourceMap(pages);
+    expect(mappedPages(sourceMap, "scripts/wiki-scale-benchmark.ts")).toContain("product/scope");
+    expect(mappedPages(sourceMap, "scripts/wiki-scale-benchmark.ts")).not.toContain("product/invariants");
+    expect(mappedPages(sourceMap, "scripts/wiki-scale-benchmark.ts")).not.toContain("architecture/engine");
+    expect(SCALE_PROFILES.schooled).toMatchObject({
+      currentPages: 26,
+      proposalPages: 5,
+      workItems: 29,
+      conflicts: 12,
+      openConflicts: 3,
+      resolvedConflicts: 9,
+    });
+    expect(SCALE_PROFILES.large).toMatchObject({
+      currentPages: 1_000,
+      proposalPages: 100,
+      workItems: 10_000,
+      conflicts: 1_000,
+      openConflicts: 250,
+      resolvedConflicts: 750,
+      declaredSourceFiles: 10_000,
+    });
+  });
+
+  test("enforces tiny and Schooled profiles with recorded environment metadata", () => {
+    const tiny = runScaleBenchmark({ profile: "tiny", enforce: true });
+    const schooled = runScaleBenchmark({ profile: "schooled", enforce: true });
+    for (const report of [tiny, schooled]) {
+      expect(report.enforcement).toMatchObject({ requested: true, passed: true });
+      expect(report.environment).toMatchObject({
+        bun_version: expect.any(String),
+        platform: expect.any(String),
+        arch: expect.any(String),
+        cpu_model: expect.any(String),
+        logical_cpus: expect.any(Number),
+      });
+      expect(report.correctness).toMatchObject({
+        validation_findings: 0,
+        profile_counts_exact: true,
+        graph_counts_exact: true,
+        catalog_complete: true,
+        generated_deterministic: true,
+        search_exercised: true,
+      });
+      expect(renderScaleMarkdown(report)).not.toMatch(/\d{4}-\d{2}-\d{2}T/);
+      expect(renderScaleMarkdown(report).split("\n").some((line) => /[ \t]+$/.test(line))).toBe(false);
+      expect(JSON.stringify(report)).not.toMatch(/timestamp|created_at|updated_at/i);
+    }
+  });
+
+  test("enforces the timing boundary independently for each measured phase", () => {
+    const individuallyCompliant = [{ wall_ms: SCALE_ENGINE_PHASE_LIMIT_MS }, { wall_ms: SCALE_ENGINE_PHASE_LIMIT_MS }];
+    expect(individuallyCompliant.reduce((sum, phase) => sum + phase.wall_ms, 0)).toBeGreaterThan(SCALE_ENGINE_PHASE_LIMIT_MS);
+    expect(enginePhasesWithinLimit(individuallyCompliant)).toBe(true);
+    expect(enginePhasesWithinLimit([{ wall_ms: SCALE_ENGINE_PHASE_LIMIT_MS + 0.001 }])).toBe(false);
   });
 
   for (const target of ["scripts/wiki/parsers/edge.ts", "scripts/wiki/parsers/edge.test.ts"]) {

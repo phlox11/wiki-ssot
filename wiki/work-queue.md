@@ -15,9 +15,9 @@ tags: [generated, work, queue]
 
 This is a deterministic view of structured `work_items` on proposal pages. It is not current product authority; open the owning proposal and then the returned current context.
 
-**Recommended next:** none. Do not invent work; inspect blockers and open decisions below.
+**Recommended next:** none. Do not invent work; inspect blockers and open conflicts below.
 
-Outstanding work: 12. Completed work hidden: 34; run `bun run wiki:work -- --all` to inspect it.
+Outstanding work: 12. Completed work hidden: 36; run `bun run wiki:work -- --all` to inspect it.
 
 ## Active
 
@@ -43,7 +43,7 @@ Outstanding work: 12. Completed work hidden: 34; run `bun run wiki:work -- --all
 |---|---|---|---|---|---|---|
 | — | — | — | — | — | None | — |
 
-## Open decision conflicts
+## Open conflicts
 
 No open conflicts.
 

@@ -18,6 +18,7 @@ export const WIKI_SYSTEM_FILES = new Set([
   "wiki/SCHEMA.md",
   "wiki/WORKFLOW.md",
   "wiki/index.md",
+  "wiki/catalog.md",
   "wiki/current-status.md",
   "wiki/conflicts.md",
   "wiki/work-queue.md",

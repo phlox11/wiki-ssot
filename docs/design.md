@@ -23,18 +23,20 @@ Start with maximum closure inside the product's declared trust boundary — ever
 
 | Layer | Meaning | Authority |
 |---|---|---|
-| `status: current` wiki pages | agreed intent, architecture, contracts, invariants | **SSOT for intent** |
+| `status: current` wiki pages | the mutable latest snapshot of agreed intent, architecture, contracts, invariants | **SSOT for current intent** |
 | code, tests, schemas, migrations | what actually runs | **implementation evidence** |
-| `status: proposed` pages | not yet built or approved | not current |
-| conflict records | unresolved disagreements | a decision queue |
-| proposal `work_items` | validated future-work contracts and dependencies | not current behavior |
-| git history | who changed what, when | history of record |
+| `status: proposed` pages | future intent and its work contract | not current |
+| open / resolved conflict records | unresolved decision queue / preserved resolution evidence | not current intent |
+| outstanding / done proposal `work_items` | executable future work / durable completion evidence | not current behavior |
+| changelog | selected notable changes | not a complete ledger |
+| git history | ordinary page and implementation changes, authorship, and chronology | history of record |
 
 Rules that follow:
 
 - An agent does **not** overwrite a current page just because the code is newer. A disagreement that could change behavior becomes a **conflict**, not a silent edit.
 - A `status: current` page cannot rest solely on a proposal as evidence.
 - Future behavior stays `proposed` until an implementation PR promotes it.
+- Updating a current page does not erase the repository's accumulated artifact: done work and resolved conflicts stay queryable, while ordinary revisions remain in Git. The generated current-status page makes those lifecycle totals visible without pretending that a selective changelog is append-only history.
 
 ## source → wiki → schema
 
@@ -63,6 +65,16 @@ per-source drift rejection. PV-18 preserves reproducible new- and
 existing-repository adoption evidence, including the existing path's initial
 review finding, focused fix, and exact context-isolated PASS.
 
+The checked-in [Schooled-equivalent](evidence/wsn-01-schooled-scale.md) and
+[large](evidence/wsn-01-large-scale.md) scale-navigation evidence separately
+exercises the supported synthetic profiles. The large profile contains 1,000 current
+pages, 100 proposals, 10,000 work items, 1,000 conflict records, and 10,000
+source files. Its acceptance envelope requires each measured engine phase to
+finish within 30 seconds, peak RSS to stay at or below 1 GiB, the generated
+entry index to stay at or below 64 KiB, exact lifecycle/graph counts, and no
+validation findings. These are portable publisher acceptance limits, not a
+promise about every host, filesystem, or content distribution.
+
 This status is evidence for the declared product experience: a fresh session
 can discover work and controlling context, configured code can be traced to
 current authority, and risk-selected changes can complete the installed review
@@ -82,6 +94,12 @@ These checks block a GitHub merge only when deployment policy makes their jobs r
 - **Fresh-context preflight and attestation** (`wiki:review-preflight`, `wiki:review-check`): before PR creation, use trusted policy and the actual impact/manifest to return `not-required` or prepare a review bundle. The authoring agent reconciles actionable findings from a separate review context until local PASS. For applicable Ready PRs, CI recomputes the manifest and rejects a missing, malformed, non-PASS, stale, empty-evidence, or untrusted report.
 
 The distinction between *high-risk* and *low-risk* stale no longer decides pass/fail — both fail validation. It sharpens where a human looks first.
+
+## Bounded navigation without partial truth
+
+The generated entrypoint stays bounded even as records accumulate. `wiki/index.md` groups current pages by the first path segment and routes to the complete `wiki/catalog.md`; `wiki/current-status.md` carries lifecycle totals and direct links to all current invariants. A deterministic `.wiki/relationship-graph.json` exposes declared page and work relationships for graph/search consumers without making those edges a new source of authority.
+
+The navigation layer is bounded, but validation remains global. Lint, generation, audit, queue dependency derivation, and relationship checks still load and reconcile the complete Wiki. This release deliberately makes no incremental-validation or sublinear-runtime claim. The scale benchmark makes that full-load contract measurable so a later indexed implementation can be compared against the same semantic counts and findings instead of changing correctness to improve timing.
 
 ## Zero-knowledge work discovery
 

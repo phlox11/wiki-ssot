@@ -1,0 +1,106 @@
+{
+  "correctness": {
+    "catalog_complete": true,
+    "generated_deterministic": true,
+    "graph_counts_exact": true,
+    "graph_has_no_source_nodes": true,
+    "profile_counts_exact": true,
+    "queue_work_items": 10000,
+    "root_index_bounded": true,
+    "search_exercised": true,
+    "validation_finding_codes": [],
+    "validation_findings": 0
+  },
+  "counts": {
+    "catalog_pages": 2100,
+    "current_pages": 1000,
+    "graph_edges": 23056,
+    "graph_nodes": 12100,
+    "open_conflicts": 250,
+    "proposal_pages": 100,
+    "resolved_conflicts": 750,
+    "search_matches": 2100,
+    "source_files": 10000,
+    "total_conflicts": 1000,
+    "work_items": 10000
+  },
+  "enforcement": {
+    "limits": {
+      "max_engine_phase_ms": 30000,
+      "max_peak_rss_bytes": 1073741824,
+      "max_root_index_bytes": 65536
+    },
+    "passed": true,
+    "requested": true
+  },
+  "engine_total_ms": 579.837,
+  "environment": {
+    "arch": "arm64",
+    "bun_version": "1.3.10",
+    "cpu_model": "Apple M4 Max",
+    "logical_cpus": 14,
+    "platform": "darwin"
+  },
+  "input_digest": "8d41dcfd8527f138ab5b927c1e074737c98b02e9139f81fa6f68a0b2d3a1f55d",
+  "output_digest": "418ba48df824cc4159c9a77426433fea7f4ac4aba2a14364e71b9784d08ab697",
+  "peak_rss_bytes": 619462656,
+  "phases": [
+    {
+      "input_bytes": 4382667,
+      "input_count": 12100,
+      "name": "loadWikiPages",
+      "output_bytes": 4082667,
+      "output_count": 2100,
+      "peak_rss_bytes": 475512832,
+      "wall_ms": 460.866
+    },
+    {
+      "input_bytes": 4382667,
+      "input_count": 2100,
+      "name": "validatePages",
+      "output_bytes": 3,
+      "output_count": 0,
+      "peak_rss_bytes": 478838784,
+      "wall_ms": 40.502
+    },
+    {
+      "input_bytes": 4382667,
+      "input_count": 2100,
+      "name": "buildWorkQueue",
+      "output_bytes": 8564051,
+      "output_count": 10000,
+      "peak_rss_bytes": 480100352,
+      "wall_ms": 9.948
+    },
+    {
+      "input_bytes": 4382667,
+      "input_count": 2100,
+      "name": "searchWikiPages",
+      "output_bytes": 112603,
+      "output_count": 2100,
+      "peak_rss_bytes": 511344640,
+      "wall_ms": 2.401
+    },
+    {
+      "input_bytes": 4382667,
+      "input_count": 2100,
+      "name": "generatedViews",
+      "output_bytes": 6068222,
+      "output_count": 8,
+      "peak_rss_bytes": 531742720,
+      "wall_ms": 66.12
+    }
+  ],
+  "profile": {
+    "conflicts": 1000,
+    "currentPages": 1000,
+    "declaredSourceFiles": 10000,
+    "name": "large",
+    "openConflicts": 250,
+    "proposalPages": 100,
+    "resolvedConflicts": 750,
+    "workItems": 10000
+  },
+  "profile_digest": "65e3e7f16997fbdf6ce0a0c5aab171dfde5311a17429be8ceb5e57033ce45a0f",
+  "version": 1
+}

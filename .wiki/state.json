@@ -2,9 +2,9 @@
   "pages": {
     "architecture/engine": {
       "sources": {
-        "scripts/wiki/apply.test.ts": "86fce5594648f7dc382f238f7ab2cb0f928aaf6d70dbf80252a89ee77a8c6566",
+        "scripts/wiki/apply.test.ts": "b5527a3b43fd1a10035f0bd503295937dae89efec8932a76e51a9b9b18008778",
         "scripts/wiki/apply.ts": "5a273691372ff6fcfdd63214da513fa8b71b9fe8730ff2e49cdfec0793ad2c15",
-        "scripts/wiki/cli-discovery-handlers.ts": "38ea0501a0a1f11a7077aeb0da0d92a7c80e731163439e35356eb9b9097da73f",
+        "scripts/wiki/cli-discovery-handlers.ts": "19bd8c96c961255c6f5c728d0408002595fea8191dab386882c8e581afe2590f",
         "scripts/wiki/cli-generation-handlers.ts": "300151d9afe0438fc6de0b3cc00b7d9b89bad6d9942e68c60fb1df4e8e51fa8f",
         "scripts/wiki/cli-handlers.test.ts": "5d304f2725039fc6014eeaa54d1a6567c8a2a55d97a7064a7d829d3cc9f1b045",
         "scripts/wiki/cli-render.ts": "ee55791e87d4e2646aa032f037c92909859cbbc83e306574f3b0a1f76e6b10b6",
@@ -24,8 +24,8 @@
         "scripts/wiki/fresh-context-manifest.test.ts": "23d51b7a009b30767e053bcb2d1a132f16c8cc7755bb52b74b1217143ca056a7",
         "scripts/wiki/fresh-context-preflight.test.ts": "fc832375bab7e1c8dd23083a19efc12099123ae3eef200fbbb21dad08f44ef0b",
         "scripts/wiki/fresh-context-report.test.ts": "dd92f036bdd62a75190e2dd8935a4c2982111a1f9d1255f566e1965ddfdbe0c2",
-        "scripts/wiki/generated-views.test.ts": "fad68ac1383d8717962168e7a336e8a243345c144c0eb5562c1fe6aea7c947e9",
-        "scripts/wiki/generated-views.ts": "c340de1c499e3655251370233566a37a20084642369d9236252813e283f72dec",
+        "scripts/wiki/generated-views.test.ts": "80c17e671de3831ccd6463ef3ca21918e75d7b18307b23998dc812928bc123e5",
+        "scripts/wiki/generated-views.ts": "629f2ff42ff87851d3516a0c178f42a229c074f7c08a14a9d069b23fdf941af7",
         "scripts/wiki/github-attestation.ts": "cad5290748265f5b5cd1a5503f075cfb837283ca0e8b4e7c004567deb33139cb",
         "scripts/wiki/impact.test.ts": "0925b755e6d8f8804b89a505a615fa2d3517a5239f8bff30a366977df786a555",
         "scripts/wiki/impact.ts": "cd3b9f0301c7420939861ea9b169a27e45d5e09d926eb43602d87e9340cee903",
@@ -38,21 +38,21 @@
         "scripts/wiki/kit-modularity-exit.test.ts": "5656d10b2ae05819ce1a35d2621b9ddbd74f6fb3d2026037d18cb0f103ab3cf6",
         "scripts/wiki/kit-modularity-exit.ts": "cef57b3c828c9c283d52db032bf7871b99ce0de5b8cb51e61bf5b09f26738d9f",
         "scripts/wiki/kit-packaging-publisher.test.ts": "2b224d44d9320e273e8f40404aa09c7a55fc84ad34d411f4b6714445f09cfa7e",
-        "scripts/wiki/kit-packaging.test.ts": "ff50825020ca87047044758b90592a8f888c19f319dd3c1c6122efbf77c8d54b",
-        "scripts/wiki/kit-packaging.ts": "c64fdb5b9ad4ed120587ad3e6b71bdb33b2ce1accd7c5d2b1924354b4b74fad0",
+        "scripts/wiki/kit-packaging.test.ts": "cfcd50452331a6363028f74b001bbf332d94be9c523504a2f6683a2df4ee40f5",
+        "scripts/wiki/kit-packaging.ts": "68b621b2a000f1833b554db8e8f1e67473e71da5e4753ce3cacb200c69202b5a",
         "scripts/wiki/kit-sync.ts": "05d5d1d5187a4c470c47f52efe4483f5d05c27fc43f234f0ebfb071c8a57f9d9",
         "scripts/wiki/kit.test.ts": "06f4e5cd442248310ed1c34673efec7260a81e3a8eff2b54e7f9cec6eeccca4a",
         "scripts/wiki/model.ts": "c8d8a131feeab09ab4b8d454d8559c4c9e4f5a7c1b4fdb74a191c636dedcca54",
         "scripts/wiki/new-repository-adoption.test.ts": "9edcb9945f15e786c519de69bb3bb9fc58d74221830fa01ffdb953b311e5546d",
-        "scripts/wiki/page-validation.test.ts": "51a42e954fc181d2049c4ef7d4c208e701efbf85716464a7a704689aa6b54d6f",
-        "scripts/wiki/page-validation.ts": "39574e823bd2e13c47c83dd31f84965914707ea4bf908f6d6c221b06e0152ab5",
+        "scripts/wiki/page-validation.test.ts": "1d2366d38c4caf320861dac840786da91c099228b9f413b40b4f6b0d7846fffb",
+        "scripts/wiki/page-validation.ts": "fc6673bcc12d22d19c67ac4c62fd3e39f8d7c3bacb87659e502fcae0f622b3b2",
         "scripts/wiki/primary-baseline.test.ts": "4a0df89a35bd811ffbca75865a3153abe869caae11d1f585c599c902ee4e16b7",
         "scripts/wiki/primary-baseline.ts": "033bcbee20adfd6c306cb4e345d5a2d1b4051e211e9a8411877ade78f1dbf1b3",
         "scripts/wiki/primary-current.test.ts": "8de5039be9d9ed14a771b5df5e6fc230eae588f860aaff5a3cda641f4e980b03",
         "scripts/wiki/primary-current.ts": "c1c2b5839c540622d9a1fb404ae0de654d46f0b7cea6080d328d8307197f0cc2",
         "scripts/wiki/primary-scenarios.test.ts": "b73743ef76a079a014bcc1eba26ea7740a31cc1d776e31db40ed3c03e996de5b",
         "scripts/wiki/primary-scenarios.ts": "8e8ba1de2abf551d0003f90637f58370f470c7ecdfb62a50a8d9993e1f273dec",
-        "scripts/wiki/publisher-boundary.test.ts": "bfdcebbeb54c42933cc97aba9a59ee02de8c0080826c3f52a3df2578bd335d77",
+        "scripts/wiki/publisher-boundary.test.ts": "1aa09610d364fbe8e8abe6b172e7556876c3d2c8d86d95cebc9f211f8358444c",
         "scripts/wiki/repository-view.test.ts": "204b2347a764376a6c9d622ab4238392682da52d9605189dfefccc18c675c09e",
         "scripts/wiki/repository-view.ts": "62f732eada1cf31e520c8886d31f54611e1cb99992f7f308f60babe0fb2ac505",
         "scripts/wiki/review-attestation.test.ts": "bf03f6397f68542a76bce396d17c4148e37ad364f7da43a6bbd8ff6af3a0b628",
@@ -62,7 +62,7 @@
         "scripts/wiki/serialization.test.ts": "c8205949e06d20cf10360e0db01558fbbbedacf0d39786d3ea0bce5553d5520a",
         "scripts/wiki/serialization.ts": "e3b68feb689a818f88effc634f9ac057c92ae24477e9c80bbde220ace48dcded",
         "scripts/wiki/te04-focused-review.test.ts": "c46b53319a0242f9c58b56c5c0019e3e6943551cb8693ed1314304b5f905ee2c",
-        "scripts/wiki/te04-focused-review.ts": "2fb861c152b16824e59bbe18a287aa18ada651ddf8afe3d50a0403d4411fdd34",
+        "scripts/wiki/te04-focused-review.ts": "f1283638c18b3d248af2519a85e6b5ad82500aba1f05c87b4a50ade656c806fe",
         "scripts/wiki/te06-controlled-comparison.test.ts": "ac33110ae306ee21391d270b99c61b519653e59404eb706eaaf193bbc6bdc455",
         "scripts/wiki/te06-controlled-comparison.ts": "32067f0d522575ef0628cf6e8f6ab0fe9b69c8255022a5f9262041c7853d87aa",
         "scripts/wiki/te06-exit-validation.test.ts": "f3764d07eeb6a0d481ffb6d929a8afbafc71140a7ace86cb7e30429e0c01949a",
@@ -82,29 +82,30 @@
         "scripts/wiki/wiki-impact-conflicts.test.ts": "268988c8b0d6437723b5deff62944813d1c3c6be6d69572f112636ce2c7bb521",
         "scripts/wiki/wiki-pages.test.ts": "8fdcb064a163e50ce8a9ebb7ce0488646a72423007cfcec533d3759e0837255f",
         "scripts/wiki/wiki-repository-hooks.test.ts": "33ada4fa2cd6197cc0477a8ef474cbbde0f9a9f893377a84fff1ebf3a2f381cc",
-        "scripts/wiki/work-selected-context.test.ts": "fd0c9c98c9abcc8093d7bd8f502b9a94e9336cc00d41f57903cf01507d96cf5f",
+        "scripts/wiki/work-selected-context.test.ts": "2229635ddb427e637cc4a9cc002a140624289eeea45c2b526de8643644f35bf6",
         "scripts/wiki/work-topic-context.test.ts": "cc31828996d288bba46832bc275a3a43394f09171c5653a551a881db374f8397",
         "scripts/wiki/work-validation.test.ts": "f19654b5da5c73d775deb5bf6997757cbca3375bc4cdae17494a53ae5cb43e82",
         "scripts/wiki/work-validation.ts": "006704cac96d7dc83e4487c18db4bc35f772368b63bb5434c12a577c44f2af9a"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "Per-phase benchmark enforcement preserves the recursive engine boundary and downstream module contract."
       }
     },
     "operations/enforcement": {
       "sources": {
         ".github/pull_request_template.md": "916082ac1ca9bc573eec64cd7ed8857aec468b396ca68f91bd110e7fe4bd3d7e",
         ".github/workflows/checks.yml": "0aaea6d0903f1e951dfec6a1e3a4adcab38fd4c5d2389ca3d4ac87c0c4915cfa",
-        ".github/workflows/kit.yml": "28be4700d664817765ad66c8a9d02c9ce92decdafa42a131f72198ddf109fb97",
+        ".github/workflows/kit.yml": "a9c0798c810c943f9897716def2f3a7b7cc2be63e2dffd26f1a7277ebae667df",
         ".github/workflows/wiki-audit.yml": "33a3bf1dcf6482a293f137a4cfc332eb8804639bd3b8d950a9244fa6fdda97f4",
-        ".github/workflows/wiki-ssot.yml": "18d64a3cc0ce0ff542890777eff3876bd1128c92d92980f9910a7aebd9c7eb64",
+        ".github/workflows/wiki-ssot.yml": "e1f2ea97491df731e7adf61000a5c38b66b2d8db55b0211a824c82fde15bde13",
         ".husky/pre-commit": "6391e4a8b23e6eddb62b6863dbfd1a9aca995d0dde92646c7601f78eeb807eb1",
         ".husky/pre-push": "4b8ec74d4d4bc80d52e3f4bbf0c9c66d1cbf25432ff19460a7cc03daf61f0df2",
         ".wiki/config.json": "0c546d40f0fd8b49b189c559156650e6804a36889cf341d564c4869bdf1827d1",
         "AGENTS.md": "ce754be14c6dae7cb7bd70252e263842d960b8c8312170102cfae34bd8419746",
-        "package.json": "ae8c860cb45a3abfe8f13fe6141fdca434e03e2fbe2d254d848000c090b1c5f9",
+        "package.json": "9ca753473752d088fd438a6699bcbc6f9b8f360810cfb0ce47bf00c61dd6c891",
         "scripts/wiki/apply.ts": "5a273691372ff6fcfdd63214da513fa8b71b9fe8730ff2e49cdfec0793ad2c15",
-        "scripts/wiki/cli-discovery-handlers.ts": "38ea0501a0a1f11a7077aeb0da0d92a7c80e731163439e35356eb9b9097da73f",
+        "scripts/wiki/cli-discovery-handlers.ts": "19bd8c96c961255c6f5c728d0408002595fea8191dab386882c8e581afe2590f",
         "scripts/wiki/cli-generation-handlers.ts": "300151d9afe0438fc6de0b3cc00b7d9b89bad6d9942e68c60fb1df4e8e51fa8f",
         "scripts/wiki/cli-render.ts": "ee55791e87d4e2646aa032f037c92909859cbbc83e306574f3b0a1f76e6b10b6",
         "scripts/wiki/cli-review-handlers.ts": "7f7d52cac20e884cb38da97028efbfbcede23694a06aa93267005652c8ccdbda",
@@ -114,13 +115,13 @@
         "scripts/wiki/context.ts": "fb6d1168e87652a72b3b717ea6cfd43733b4301635573f71558b9b846ee2b5e2",
         "scripts/wiki/core.ts": "af733c8d079eb1bd44c4dcfb1c37aca8f167f5b8412b34eb04cd5a772382d663",
         "scripts/wiki/discovery.ts": "f1c5052d182b49aae3306fa53a75b8b1ffa20fc2c3e9a5fa953644e2c52180cc",
-        "scripts/wiki/generated-views.ts": "c340de1c499e3655251370233566a37a20084642369d9236252813e283f72dec",
+        "scripts/wiki/generated-views.ts": "629f2ff42ff87851d3516a0c178f42a229c074f7c08a14a9d069b23fdf941af7",
         "scripts/wiki/github-attestation.ts": "cad5290748265f5b5cd1a5503f075cfb837283ca0e8b4e7c004567deb33139cb",
         "scripts/wiki/impact.ts": "cd3b9f0301c7420939861ea9b169a27e45d5e09d926eb43602d87e9340cee903",
         "scripts/wiki/kit-growth-guard.ts": "2a0e2832de909d6af0245361edab0029bc7efd62ddfa7b7f9cd3ed4fb747fc0a",
-        "scripts/wiki/kit-packaging.ts": "c64fdb5b9ad4ed120587ad3e6b71bdb33b2ce1accd7c5d2b1924354b4b74fad0",
+        "scripts/wiki/kit-packaging.ts": "68b621b2a000f1833b554db8e8f1e67473e71da5e4753ce3cacb200c69202b5a",
         "scripts/wiki/model.ts": "c8d8a131feeab09ab4b8d454d8559c4c9e4f5a7c1b4fdb74a191c636dedcca54",
-        "scripts/wiki/page-validation.ts": "39574e823bd2e13c47c83dd31f84965914707ea4bf908f6d6c221b06e0152ab5",
+        "scripts/wiki/page-validation.ts": "fc6673bcc12d22d19c67ac4c62fd3e39f8d7c3bacb87659e502fcae0f622b3b2",
         "scripts/wiki/repository-view.ts": "62f732eada1cf31e520c8886d31f54611e1cb99992f7f308f60babe0fb2ac505",
         "scripts/wiki/review-attestation.ts": "dd7b9743891a0a943588ed9ed500a2e00ccf90be78d879753311e8b813dba4a2",
         "scripts/wiki/review-bundle.ts": "4a3599d88f3c7415b0f4b575d824c59d805077f5187e0fafe93b17a007085ceb",
@@ -136,7 +137,7 @@
       "sources": {
         "AGENTS.md": "ce754be14c6dae7cb7bd70252e263842d960b8c8312170102cfae34bd8419746",
         "scripts/wiki/apply.ts": "5a273691372ff6fcfdd63214da513fa8b71b9fe8730ff2e49cdfec0793ad2c15",
-        "scripts/wiki/cli-discovery-handlers.ts": "38ea0501a0a1f11a7077aeb0da0d92a7c80e731163439e35356eb9b9097da73f",
+        "scripts/wiki/cli-discovery-handlers.ts": "19bd8c96c961255c6f5c728d0408002595fea8191dab386882c8e581afe2590f",
         "scripts/wiki/cli-generation-handlers.ts": "300151d9afe0438fc6de0b3cc00b7d9b89bad6d9942e68c60fb1df4e8e51fa8f",
         "scripts/wiki/cli-render.ts": "ee55791e87d4e2646aa032f037c92909859cbbc83e306574f3b0a1f76e6b10b6",
         "scripts/wiki/cli-review-handlers.ts": "7f7d52cac20e884cb38da97028efbfbcede23694a06aa93267005652c8ccdbda",
@@ -146,12 +147,12 @@
         "scripts/wiki/context.ts": "fb6d1168e87652a72b3b717ea6cfd43733b4301635573f71558b9b846ee2b5e2",
         "scripts/wiki/core.ts": "af733c8d079eb1bd44c4dcfb1c37aca8f167f5b8412b34eb04cd5a772382d663",
         "scripts/wiki/discovery.ts": "f1c5052d182b49aae3306fa53a75b8b1ffa20fc2c3e9a5fa953644e2c52180cc",
-        "scripts/wiki/generated-views.ts": "c340de1c499e3655251370233566a37a20084642369d9236252813e283f72dec",
+        "scripts/wiki/generated-views.ts": "629f2ff42ff87851d3516a0c178f42a229c074f7c08a14a9d069b23fdf941af7",
         "scripts/wiki/impact.ts": "cd3b9f0301c7420939861ea9b169a27e45d5e09d926eb43602d87e9340cee903",
         "scripts/wiki/kit-growth-guard.ts": "2a0e2832de909d6af0245361edab0029bc7efd62ddfa7b7f9cd3ed4fb747fc0a",
-        "scripts/wiki/kit-packaging.ts": "c64fdb5b9ad4ed120587ad3e6b71bdb33b2ce1accd7c5d2b1924354b4b74fad0",
+        "scripts/wiki/kit-packaging.ts": "68b621b2a000f1833b554db8e8f1e67473e71da5e4753ce3cacb200c69202b5a",
         "scripts/wiki/model.ts": "c8d8a131feeab09ab4b8d454d8559c4c9e4f5a7c1b4fdb74a191c636dedcca54",
-        "scripts/wiki/page-validation.ts": "39574e823bd2e13c47c83dd31f84965914707ea4bf908f6d6c221b06e0152ab5",
+        "scripts/wiki/page-validation.ts": "fc6673bcc12d22d19c67ac4c62fd3e39f8d7c3bacb87659e502fcae0f622b3b2",
         "scripts/wiki/repository-view.ts": "62f732eada1cf31e520c8886d31f54611e1cb99992f7f308f60babe0fb2ac505",
         "scripts/wiki/review-attestation.ts": "dd7b9743891a0a943588ed9ed500a2e00ccf90be78d879753311e8b813dba4a2",
         "scripts/wiki/review-bundle.ts": "4a3599d88f3c7415b0f4b575d824c59d805077f5187e0fafe93b17a007085ceb",
@@ -160,17 +161,21 @@
         "scripts/wiki/work-validation.ts": "006704cac96d7dc83e4487c18db4bc35f772368b63bb5434c12a577c44f2af9a"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "global validation and source-traceability invariants remain unchanged by the derived navigation projections"
       }
     },
     "product/scope": {
       "sources": {
-        "docs/design.md": "8ef51e92f3b47102f7f69421324da81160395c37cc7ec7ff440d7eaef058147e",
-        "README.md": "6b991a3548bb25dec3b35654c1f0b16c9c56bf9adf6971d6155c88efcaedaed9"
+        "docs/design.md": "4baca93813d6cf95497cec9d201e989e2fd5df6bce8247af7e9ba4ff4ac8cd4a",
+        "docs/evidence/wsn-01-large-scale.json": "920979552b10068842a44adfc537789b42ea7caf7c8dfec9fb69e3efd25849bc",
+        "docs/evidence/wsn-01-schooled-scale.json": "e659d1ca26521db33a44da42ed4b9f0c5b31e7a03c28889780c9b3414f3111b9",
+        "README.md": "4354c40382c5bc5f5f5a87818fa982830cb869934004f1fefcfffcdc29e9b748",
+        "scripts/wiki-scale-benchmark.ts": "e6a0841fc8741a568af9300326472524d5a1875f324e5603404e5fe0c5257b52"
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "TE-06 publisher-only measurement changes do not alter the current product scope contract."
+        "reason": "Per-phase benchmark enforcement now matches the already-ratified scale boundary without changing product scope."
       }
     }
   },

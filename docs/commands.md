@@ -5,7 +5,7 @@ All commands are `bun run wiki:<name>`; each maps to `bun scripts/wiki/cli.ts <n
 | Command | What it does | Blocks? |
 |---|---|---|
 | `wiki:lint` | Frontmatter, links, source paths, coverage, generated freshness. | pre-commit + CI |
-| `wiki:generated` | Regenerate index, current-status, work queue, conflicts, reverse maps, inventories. Add `-- --check` to verify without writing. | CI (`--check`) |
+| `wiki:generated` | Regenerate the bounded index, complete catalog, cumulative current-status, work queue, conflicts, relationship graph, reverse maps, and inventories. Add `-- --check` to verify without writing. | CI (`--check`) |
 | `wiki:kit` | Regenerate the `kit/` copy-paste distribution from the files it ships. Add `-- --check` to fail on drift instead of writing. Refuses to run unless `.wiki/config.json` sets `publishesKit: true`, so it cannot overwrite an adopting repository's own `kit/`. | CI (`--check`) |
 | `wiki:impact -- --base <ref>` | From the diff since `<ref>`, print affected pages/conflicts, staleness, and metadata findings. Add `--enforce` to exit non-zero on any error. | CI (`--enforce`) |
 | `wiki:verify -- --page <id>` | Record current source hashes for a page you updated. Add `--unchanged "<20+ char reason>"` when meaning did not change. With no `--page`, re-verifies every current page. | — |
@@ -20,6 +20,11 @@ All commands are `bun run wiki:<name>`; each maps to `bun scripts/wiki/cli.ts <n
 | `wiki:check -- --base <ref>` | Everything at once: lint + generated + impact. | local convenience |
 | `wiki:audit` | Repo-wide: structure + generated + every current page's source hashes. | weekly CI |
 | `wiki:index` / `wiki:inventory` | Write just the core generated files / just the inventories. | — |
+| `wiki:scale` | Publisher-only deterministic benchmark for the declared Schooled and large synthetic profiles. `-- --enforce` checks correctness, phase/RSS limits, and the bounded index size; explicit output flags preserve JSON/Markdown evidence. This harness is intentionally omitted from the downstream kit. | release evidence |
+
+Generated navigation has two layers. `wiki/index.md` is a bounded first entrypoint grouped by the first path segment; `wiki/catalog.md` is the complete page listing. `wiki/current-status.md` reports cumulative lifecycle counts and links every current invariant without repeating the entire catalog. `.wiki/relationship-graph.json` is a deterministic, disposable projection for tools: page/work nodes plus declared `related`, `affects`, conflict-affect, work-context, and work-dependency edges. The graph does not add authority or change impact propagation.
+
+`wiki:scale` does not replace `wiki:lint`, `wiki:audit`, or application tests. It builds disposable Git repositories and exercises load/validation, queue derivation, search, and generated views under fixed record profiles. Wall-clock and RSS measurements remain environment-sensitive diagnostics; `--enforce` supplies the reproducible acceptance envelope used by this publisher. Downstream repositories receive the runtime paths exercised by the benchmark, not the publisher-only harness or its fixture generator.
 
 ## Install, adopt, or upgrade
 

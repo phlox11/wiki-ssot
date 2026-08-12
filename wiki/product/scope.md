@@ -8,6 +8,9 @@ owners: ["@phlox11"]
 sources:
   - path: README.md
   - path: docs/design.md
+  - path: scripts/wiki-scale-benchmark.ts
+  - path: docs/evidence/wsn-01-schooled-scale.json
+  - path: docs/evidence/wsn-01-large-scale.json
 related: [architecture/engine, product/invariants, operations/enforcement]
 tags: [scope, product]
 ---
@@ -20,6 +23,7 @@ wiki-ssot turns a repository's development knowledge into a small set of `status
 
 - A page schema and frontmatter contract (`wiki/SCHEMA.md`).
 - A repository-wide, offline work graph stored with proposal rationale, including executor classification independent from state, plus a no-query command and generated queue that let a fresh session discover agent-capable work and hand human work off without knowing a wiki node or task ID. Selected-work and topic context default to compact, source-complete routing with explicit exhaustive expansion, and partial-only discovery returns focused candidates before any full-body expansion.
+- Bounded generated entrypoints backed by a complete catalog, cumulative lifecycle counts, and a deterministic page/work/conflict relationship graph. These projections expose accumulated records and directed navigation without becoming current authority or changing source, conflict, work, impact, or review semantics.
 - Deterministic CLI checks: structure lint, generated-file freshness, code→page impact, source staleness, configured coverage, and a conflict lifecycle. Coverage applies to files matched by `.wiki/coverage.json`, each of which must map to current authority or a reasoned exclusion.
 - A pre-PR command that deterministically classifies risk, prepares a content-addressed independent-review bundle with focused, role-classified source inputs, and validates both the bundle and returned structured Fresh-context report before publication.
 - Explicit solo and team trust policies: separate review context is always procedural, while distinct GitHub actors are optional and machine-enforced only when configured.
@@ -37,6 +41,13 @@ candidate gates, and code-only drift probes met their declared expectations.
 PV-18 and the adoption fixtures preserve both documented starting paths to
 green, including an existing-repository review defect that was reconciled
 before exact PASS.
+
+The publishing-only portable-scale evidence additionally validates the exact
+Schooled-equivalent profile and a supported-large profile of 1,000 current
+pages, 100 proposals, 10,000 work items, 1,000 conflicts, and 10,000 declared
+source files. Its 30-second engine-phase, 1-GiB RSS, and 64-KiB root-index
+limits are absolute diagnostics on the recorded environment, not CI timing
+assertions or claims above that profile. Global validation remains complete.
 
 The validated user expectation is that a fresh session can discover
 repository-wide work without an internal ID, keep human-exclusive work visible

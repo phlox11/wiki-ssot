@@ -216,8 +216,7 @@ export function measureTe04FocusedReview(root = PROJECT_ROOT): Te04FocusedReview
       trust: { allowedReviewers: ["te04-fixture-reviewer"], requireDifferentActor: false, requireAuthenticatedActor: true },
       requiredWhen: { kind: "all" },
     } }), "utf8");
-    required(candidateRoot, [cli, "verify", "--page", "architecture/engine"]);
-    requiredExternal(candidateRoot, ["git", "add", CLI_PATH, "wiki/architecture/engine.md", ".wiki/state.json"]);
+    requiredExternal(candidateRoot, ["git", "add", CLI_PATH, "wiki/architecture/engine.md"]);
     requiredExternal(candidateRoot, ["git", "-c", "user.name=TE-04 fixture", "-c", "user.email=te04-fixture@example.invalid", "commit", "--quiet", "-m", "TE-04 disposable focused review candidate"], {
       GIT_AUTHOR_NAME: "TE-04 fixture",
       GIT_AUTHOR_EMAIL: "te04-fixture@example.invalid",
