@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { parse as parseYaml } from "yaml";
 import { expandSource, type RepoView } from "./repository-view";
 import type { ConflictMap, SourceMap } from "./generated-views";
@@ -134,7 +136,19 @@ export type FreshContextPolicy = {
   trust: FreshContextTrustPolicy;
   requiredWhen?: FreshContextRequiredWhen;
 };
-export type WikiConfig = {
+export type V2ChangedFileRule = {
+  glob: string;
+  reason: string;
+};
+export type V2ReviewWhen = {
+  kind: "risk-based";
+  changedFileRules: V2ChangedFileRule[];
+  changedKitOwnedFiles: boolean;
+  affectedInvariants: boolean;
+  affectedConflicts: boolean;
+  removedCurrentPages: boolean;
+};
+export type WikiConfigV1 = {
   version: 1;
   name: string;
   highRisk: string[];
@@ -149,6 +163,111 @@ export type WikiConfig = {
   publishesKit: boolean;
   freshContext?: FreshContextPolicy;
 };
+export type WikiConfigV2 = {
+  version: 2;
+  name: string;
+  /** The optional high-risk labels remain supported so v1 adopters can carry them forward. */
+  highRisk: string[];
+  publishesKit: boolean;
+  enforcement: {
+    mode: "local-status";
+    statusContext: string;
+  };
+  localChecks: { id: string; argv: string[] }[];
+  review: {
+    mode: "required";
+    when: V2ReviewWhen;
+  };
+};
+export type WikiConfig = WikiConfigV1 | WikiConfigV2;
+
+function objectRecord(value: unknown): Record<string, unknown> | undefined {
+  return value != null && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : undefined;
+}
+
+function validNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function hasOnlyKeys(value: Record<string, unknown>, allowed: readonly string[]): boolean {
+  const keys = new Set(allowed);
+  return Object.keys(value).every((key) => keys.has(key));
+}
+
+/**
+ * Parse the explicit v2 local-enforcement contract.  This is intentionally
+ * separate from the permissive v1 reader: an adopter with a malformed v2 file
+ * must not silently fall back to a different enforcement policy.
+ */
+export function parseWikiConfigV2(value: unknown): WikiConfigV2 | undefined {
+  const raw = objectRecord(value);
+  if (raw == null || raw.version !== 2 || !validNonEmptyString(raw.name) || typeof raw.publishesKit !== "boolean") return undefined;
+  const allowedKeys = new Set(["version", "name", "highRisk", "publishesKit", "enforcement", "localChecks", "review"]);
+  if (Object.keys(raw).some((key) => !allowedKeys.has(key))) return undefined;
+  // v2 has no GitHub actor/mirror seam. Reject the old policy explicitly so a
+  // partial conversion cannot claim local isolation while still depending on it.
+  if ("freshContext" in raw) return undefined;
+  if ("highRisk" in raw && !Array.isArray(raw.highRisk)) return undefined;
+  if (Array.isArray(raw.highRisk) && raw.highRisk.some((item) => !validNonEmptyString(item))) return undefined;
+  const enforcement = objectRecord(raw.enforcement);
+  if (enforcement == null || !hasOnlyKeys(enforcement, ["mode", "statusContext"]) || enforcement.mode !== "local-status" || !validNonEmptyString(enforcement.statusContext)) return undefined;
+
+  if (!Array.isArray(raw.localChecks)) return undefined;
+  const ids = new Set<string>();
+  const localChecks: { id: string; argv: string[] }[] = [];
+  for (const item of raw.localChecks) {
+    const check = objectRecord(item);
+    const id = check?.id;
+    const normalizedId = validNonEmptyString(id) ? id.trim() : "";
+    if (check == null || !hasOnlyKeys(check, ["id", "argv"]) || normalizedId.length === 0 || ids.has(normalizedId) || !Array.isArray(check.argv)
+      || check.argv.length === 0 || check.argv.some((arg) => !validNonEmptyString(arg))) return undefined;
+    ids.add(normalizedId);
+    // Preserve argv bytes exactly. Validation only rejects blank entries; an
+    // intentional argument may include surrounding spaces.
+    localChecks.push({ id: normalizedId, argv: [...check.argv] });
+  }
+
+  const review = objectRecord(raw.review);
+  const when = review == null ? undefined : objectRecord(review.when);
+  if (review == null || !hasOnlyKeys(review, ["mode", "when"]) || review.mode !== "required" || when == null || !hasOnlyKeys(when, ["kind", "changedFileRules", "changedKitOwnedFiles", "affectedInvariants", "affectedConflicts", "removedCurrentPages"]) || when.kind !== "risk-based"
+    || !Array.isArray(when.changedFileRules)
+    || typeof when.changedKitOwnedFiles !== "boolean"
+    || typeof when.affectedInvariants !== "boolean"
+    || typeof when.affectedConflicts !== "boolean"
+    || typeof when.removedCurrentPages !== "boolean") return undefined;
+  const changedFileRules: V2ChangedFileRule[] = [];
+  const globs = new Set<string>();
+  for (const item of when.changedFileRules) {
+    const rule = objectRecord(item);
+    const glob = validNonEmptyString(rule?.glob) ? rule.glob.trim() : "";
+    if (rule == null || !hasOnlyKeys(rule, ["glob", "reason"]) || glob.length === 0 || !validNonEmptyString(rule.reason) || rule.reason.trim().length < 20 || globs.has(glob)) return undefined;
+    try { new Bun.Glob(glob); } catch { return undefined; }
+    globs.add(glob);
+    changedFileRules.push({ glob, reason: rule.reason.trim() });
+  }
+  if (changedFileRules.length === 0 && !when.changedKitOwnedFiles && !when.affectedInvariants && !when.affectedConflicts && !when.removedCurrentPages) return undefined;
+  return {
+    version: 2,
+    name: raw.name.trim(),
+    highRisk: Array.isArray(raw.highRisk) ? raw.highRisk.map((item) => (item as string).trim()) : [],
+    publishesKit: raw.publishesKit,
+    enforcement: { mode: "local-status", statusContext: enforcement.statusContext.trim() },
+    localChecks,
+    review: {
+      mode: "required",
+      when: {
+        kind: "risk-based",
+        changedFileRules: changedFileRules.sort((a, b) => a.glob.localeCompare(b.glob) || a.reason.localeCompare(b.reason)),
+        changedKitOwnedFiles: when.changedKitOwnedFiles,
+        affectedInvariants: when.affectedInvariants,
+        affectedConflicts: when.affectedConflicts,
+        removedCurrentPages: when.removedCurrentPages,
+      },
+    },
+  };
+}
 
 export function parseFreshContextPolicy(value: unknown): FreshContextPolicy | undefined {
   if (value == null || typeof value !== "object" || Array.isArray(value)) return undefined;
@@ -206,6 +325,7 @@ export function readConfig(view: RepoView): WikiConfig {
   if (!view.exists(".wiki/config.json")) return fallback;
   try {
     const raw = JSON.parse(view.read(".wiki/config.json")) as Record<string, unknown>;
+    if (raw.version === 2) return parseWikiConfigV2(raw) ?? fallback;
     const freshContext = parseFreshContextPolicy(raw.freshContext);
     return {
       version: 1,
@@ -312,6 +432,7 @@ function agentEntrypointContractGaps(agents: string): string[] {
 export function validateIntegrationSeams(view: RepoView): Finding[] {
   const findings: Finding[] = [];
   let configRaw: Record<string, unknown> | undefined;
+  let parsedConfig: WikiConfig | undefined;
   if (!view.exists(".wiki/config.json")) {
     findings.push({ code: "fresh-context-config-missing", message: ".wiki/config.json must declare an explicit freshContext policy", path: ".wiki/config.json", severity: "error" });
   } else {
@@ -322,7 +443,15 @@ export function validateIntegrationSeams(view: RepoView): Finding[] {
     } catch (error) {
       findings.push({ code: "fresh-context-config-invalid", message: error instanceof Error ? error.message : String(error), path: ".wiki/config.json", severity: "error" });
     }
-    if (configRaw && configRaw.freshContext == null) {
+    if (configRaw?.version === 2) {
+      parsedConfig = parseWikiConfigV2(configRaw);
+      if (!parsedConfig) findings.push({
+        code: "local-status-config-invalid",
+        message: ".wiki/config.json v2 requires local-status enforcement, argv-array localChecks, and a non-inert risk-based review selector",
+        path: ".wiki/config.json",
+        severity: "error",
+      });
+    } else if (configRaw && configRaw.freshContext == null) {
       findings.push({ code: "fresh-context-config-missing", message: ".wiki/config.json must declare an explicit freshContext policy; missing policy never falls back silently to advisory", path: ".wiki/config.json", severity: "error" });
     } else if (configRaw && !parseFreshContextPolicy(configRaw.freshContext)) {
       findings.push({ code: "fresh-context-config-invalid", message: "freshContext requires mode, requiredVerdict: PASS, evidenceRequired, a complete trust policy, and a valid optional requiredWhen selector", path: ".wiki/config.json", severity: "error" });
@@ -363,6 +492,29 @@ export function validateIntegrationSeams(view: RepoView): Finding[] {
   }
   if (scripts["wiki:work"] !== "bun scripts/wiki/cli.ts work") {
     findings.push({ code: "work-command-missing", message: "package.json must expose the canonical wiki:work CLI entrypoint", path: packagePath, severity: "error" });
+  }
+
+  if (parsedConfig?.version === 2) {
+    if (scripts["wiki:check"] !== "bun scripts/wiki/cli.ts check" || scripts["wiki:publish"] !== "bun scripts/wiki/cli.ts publish") {
+      findings.push({ code: "local-status-command-missing", message: "v2 local-status enforcement requires canonical wiki:check and wiki:publish package scripts", path: packagePath, severity: "error" });
+    }
+    const workflowPaths = view.listFiles()
+      .filter((path) => /^\.github\/workflows\/[^/]+\.ya?ml$/.test(path))
+      .filter((path) => view.exists(path) && (view.mode === "staged" || existsSync(join(view.root, path))))
+      .filter((path) => {
+        const content = view.read(path);
+        return /(?:^|[\s/_-])wiki(?:-|:|\s|$)/i.test(path)
+          || /wiki-(?:structure|generated|impact|review-attestation)|scripts\/wiki\/(?:cli|github-attestation)\.ts|\bbun\s+(?:run\s+)?wiki:|\bwiki:(?:lint|doctor|audit|impact|generated|review|check)\b/.test(content);
+      })
+      .sort();
+    if (workflowPaths.length > 0) {
+      findings.push({
+        code: "local-status-needs-reconcile",
+        message: `v2 local-status enforcement still has active Wiki workflow(s): ${workflowPaths.join(", ")}. Confirm each host command is in localChecks, delete the workflows, run wiki:check and wiki:publish, then replace the branch rule with ${parsedConfig.enforcement.statusContext}.`,
+        path: workflowPaths[0],
+        severity: "error",
+      });
+    }
   }
 
   return findings;

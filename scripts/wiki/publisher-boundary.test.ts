@@ -5,9 +5,10 @@ import { tmpdir } from "node:os";
 import {
   buildSourceMap,
   createRepoView,
-  evaluateFreshContextRequirement,
+  evaluateLocalReviewRequirement,
   generatedCoreFiles,
   isHighRisk,
+  kitOwnedChangedFiles,
   jsonStable,
   loadWikiPages,
   mappedPages,
@@ -190,8 +191,7 @@ describe("PV-16 recursive publisher boundary", () => {
     ];
     const sourceMap = buildSourceMap(pages);
     const publisherConfig = readConfig(view);
-    const policy = publisherConfig.freshContext;
-    if (!policy) throw new Error("missing publisher Fresh-context policy");
+    if (publisherConfig.version !== 2) throw new Error("missing publisher local-status policy");
 
     const manifest: ReviewManifest = {
       version: 1,
@@ -225,19 +225,37 @@ describe("PV-16 recursive publisher boundary", () => {
         unmappedHighRisk: [],
         findings: [],
       };
-      expect(evaluateFreshContextRequirement(policy, manifest, impact)).toEqual({
-        applies: true,
-        reasons: [`changed file matches scripts/wiki/**: ${path}`],
-      });
+      expect(evaluateLocalReviewRequirement(publisherConfig.review.when, manifest, impact)).toEqual({ applies: false, reasons: [] });
     }
 
     const downstream = JSON.parse(readFileSync("kit/seed/.wiki/config.json", "utf8")) as {
-      freshContext: { requiredWhen: { changedFileGlobs: string[] } };
+      review: { when: { changedFileRules: { glob: string }[] } };
     };
-    expect(downstream.freshContext.requiredWhen.changedFileGlobs).toContain("scripts/wiki/**");
+    expect(downstream.review.when.changedFileRules.map((rule) => rule.glob)).not.toContain("scripts/wiki/**");
     for (const path of nestedFiles) {
-      expect(downstream.freshContext.requiredWhen.changedFileGlobs.some((pattern) => new Bun.Glob(pattern).match(path))).toBe(true);
+      expect(downstream.review.when.changedFileRules.some((rule) => new Bun.Glob(rule.glob).match(path))).toBe(false);
     }
+    const actualKitPath = "scripts/wiki/core.ts";
+    const kitFiles = kitOwnedChangedFiles(view, [actualKitPath]);
+    expect(kitFiles).toEqual([actualKitPath]);
+    expect(evaluateLocalReviewRequirement(publisherConfig.review.when, manifest, {
+      ...({
+        base: "origin/main",
+        mergeBase: manifest.merge_base_sha,
+        changedFiles: [actualKitPath],
+        affectedPages: [],
+        affectedConflicts: [],
+        removedCurrentPages: [],
+        stalePages: [],
+        highRiskStalePages: [],
+        advisoryStalePages: [],
+        unmappedHighRisk: [],
+        findings: [],
+      } as ImpactReport),
+    }, kitFiles)).toEqual({
+      applies: true,
+      reasons: [`kit-owned files changed: ${actualKitPath}`],
+    });
   });
 
   test("keeps the publisher-only scale harness outside the recursive engine boundary", () => {

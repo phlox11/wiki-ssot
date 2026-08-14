@@ -61,13 +61,31 @@ function metadata(options: {
   ].join("\n");
 }
 
-function repo(options: { risk?: boolean; changed?: boolean; publishesKit?: boolean; toolkitChanged?: boolean; invariant?: boolean; authenticatedPolicy?: boolean } = {}): string {
+function repo(options: { risk?: boolean; changed?: boolean; publishesKit?: boolean; toolkitChanged?: boolean; invariant?: boolean; authenticatedPolicy?: boolean; v2?: boolean; localChecks?: { id: string; argv: string[] }[] } = {}): string {
   const root = mkdtempSync(join(tmpdir(), "wiki-local-check-"));
   temporary.push(root);
   run(root, ["git", "init", "-q"]);
   run(root, ["git", "config", "user.name", "Wiki Local Test"]);
   run(root, ["git", "config", "user.email", "wiki-local@example.invalid"]);
-  put(root, ".wiki/config.json", jsonStable({
+  put(root, ".wiki/config.json", jsonStable(options.v2 ? {
+    version: 2,
+    name: "local-check-test",
+    publishesKit: options.publishesKit === true,
+    highRisk: options.risk ? ["src/**"] : [],
+    enforcement: { mode: "local-status", statusContext: "wiki-ssot/local" },
+    localChecks: options.localChecks ?? [{ id: "project-test", argv: ["bun", "run", "test"] }],
+    review: {
+      mode: "required",
+      when: {
+        kind: "risk-based",
+        changedFileRules: [{ glob: ".wiki/config.json", reason: "The local enforcement policy itself is changing." }],
+        changedKitOwnedFiles: true,
+        affectedInvariants: true,
+        affectedConflicts: true,
+        removedCurrentPages: true,
+      },
+    },
+  } : {
     version: 1,
     name: "local-check-test",
     publishesKit: options.publishesKit === true,
@@ -407,6 +425,78 @@ describe("canonical local check result", () => {
     expect(result.findings).toEqual(expect.arrayContaining([
       expect.objectContaining({ code: "tooling-check-failed", severity: "error" }),
     ]));
+  });
+
+  test("deduplicates explicit canonical toolkit checks and rejects conflicting IDs", () => {
+    const canonical = [
+      { id: "tooling-typecheck", argv: ["bun", "run", "wiki:tooling:typecheck"] },
+      { id: "tooling-test", argv: ["bun", "run", "wiki:tooling:test"] },
+    ];
+    const calls: string[][] = [];
+    const root = repo({ publishesKit: true, toolkitChanged: true, v2: true, localChecks: canonical });
+    const view = createRepoView(root);
+    const result = runLocalCheck({
+      root,
+      view,
+      pages: loadWikiPages(view).pages,
+      base: "HEAD~1",
+      metadataRaw: metadata(),
+      dirtyPaths: [],
+      runToolingChecks: true,
+      argvRunner: (argv) => {
+        calls.push(argv);
+        return { exitCode: 0, stdout: "", stderr: "" };
+      },
+    });
+    expect(calls).toEqual([
+      ["bun", "run", "wiki:tooling:typecheck"],
+      ["bun", "run", "wiki:tooling:test"],
+      ["bun", "run", "wiki:kit", "--", "--check"],
+      ["bun", "run", "wiki:tooling:guard"],
+    ]);
+    expect(result.checks.tooling.commands.filter((command) => command.id === "tooling-typecheck")).toHaveLength(1);
+    expect(result.checks.tooling.commands.filter((command) => command.id === "tooling-test")).toHaveLength(1);
+    expect(result.findings.map((item) => item.code)).not.toContain("local-check-id-conflict");
+
+    const conflictingRoot = repo({
+      publishesKit: true,
+      toolkitChanged: true,
+      v2: true,
+      localChecks: [{ id: "tooling-test", argv: ["bun", "run", "project:test"] }],
+    });
+    const conflictingView = createRepoView(conflictingRoot);
+    const conflicting = runLocalCheck({
+      root: conflictingRoot,
+      view: conflictingView,
+      pages: loadWikiPages(conflictingView).pages,
+      base: "HEAD~1",
+      metadataRaw: metadata(),
+      dirtyPaths: [],
+      runToolingChecks: true,
+      argvRunner: () => ({ exitCode: 0, stdout: "", stderr: "" }),
+    });
+    expect(conflicting.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: "local-check-id-conflict", severity: "error" }),
+    ]));
+    expect(conflicting.ok).toBe(false);
+  });
+
+  test("keeps one legacy mirror harmless during a v2 local migration", () => {
+    const root = repo({ v2: true, authenticatedPolicy: true });
+    const view = createRepoView(root);
+    const legacyMetadata = metadata({ freshContext: { verdict: "PENDING", reviewed_head_sha: "", bundle_digest: "", reviewer: "", evidence: [] } });
+    const result = runLocalCheck({
+      root,
+      view,
+      pages: loadWikiPages(view).pages,
+      base: "HEAD",
+      metadataRaw: legacyMetadata,
+      dirtyPaths: [],
+      runToolingChecks: true,
+      argvRunner: () => ({ exitCode: 0, stdout: "", stderr: "" }),
+    });
+    expect(result.checks.structural.findings.map((item) => item.code)).not.toContain("metadata-fresh-context-forbidden");
+    expect(result.checks.tooling.commands).toContainEqual({ id: "project-test", argv: ["bun", "run", "test"], exit_code: 0, ok: true });
   });
 
   test("keeps legacy check behavior when no output flag is selected", async () => {

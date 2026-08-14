@@ -13,7 +13,6 @@ import {
   jsonStable,
 } from "./core";
 import { generateInventories } from "./inventories";
-import { validateGitHubIntegrationSeams } from "./github-attestation";
 import { validateIntegrationSeams } from "./verification";
 import { emit, has, many, one, printFindings, type CliContext } from "./cli-runtime";
 import type { Finding } from "./model";
@@ -32,8 +31,28 @@ export function handleLint(context: CliContext): void {
   process.exitCode = result.findings.some((item) => item.severity === "error") ? 1 : 0;
 }
 
+function declaredConfigVersion(context: CliContext): number | undefined {
+  if (!context.view.exists(".wiki/config.json")) return undefined;
+  try {
+    const raw = JSON.parse(context.view.read(".wiki/config.json")) as unknown;
+    return raw != null && typeof raw === "object" && !Array.isArray(raw) && "version" in raw
+      ? Number((raw as { version?: unknown }).version)
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function handleDoctor(context: CliContext): void {
-  const findings = [...validateIntegrationSeams(context.view), ...validateGitHubIntegrationSeams(context.view)];
+  const config = readConfig(context.view);
+  const rawVersion = declaredConfigVersion(context);
+  const findings = validateIntegrationSeams(context.view);
+  if (config.version === 1 && rawVersion !== 2) {
+    // Keep the GitHub attestation seam loadable only for legacy v1. The v2
+    // local-status path must not import or execute this compatibility module.
+    const { validateGitHubIntegrationSeams } = require("./github-attestation") as typeof import("./github-attestation");
+    findings.push(...validateGitHubIntegrationSeams(context.view));
+  }
   const ok = !findings.some((item) => item.severity === "error");
   if (context.json) emit(context.io, { ok, findings }, true);
   else {
@@ -58,7 +77,7 @@ export function handleAudit(context: CliContext): void {
 export function handleImpact(context: CliContext): void {
   const metadataPath = one(context.parsed, "metadata");
   const metadataRaw = metadataPath ? readFileSync(metadataPath, "utf8") : process.env.WIKI_PR_BODY;
-  const validated = validatePrMetadata(metadataRaw, metadataPath != null || process.env.GITHUB_EVENT_NAME === "pull_request");
+  const validated = validatePrMetadata(metadataRaw, metadataPath != null || process.env.GITHUB_EVENT_NAME === "pull_request", readConfig(context.view));
   const report = impactReport(context.view, context.loaded.pages, { base: one(context.parsed, "base"), metadata: validated.metadata });
   report.findings.unshift(...validated.findings);
   emit(context.io, report, context.json);
@@ -80,7 +99,7 @@ export function handleCheck(context: CliContext): void {
   }
   const lint = allLintFindings(context.view, true);
   const generated = compareGenerated(context.view, { ...generatedCoreFiles(lint.pages, readConfig(context.view).name), ...generateInventories(context.view) });
-  const validated = validatePrMetadata(process.env.WIKI_PR_BODY, process.env.GITHUB_EVENT_NAME === "pull_request");
+  const validated = validatePrMetadata(process.env.WIKI_PR_BODY, process.env.GITHUB_EVENT_NAME === "pull_request", readConfig(context.view));
   const report = impactReport(context.view, lint.pages, { base: one(context.parsed, "base"), metadata: validated.metadata });
   report.findings.unshift(...validated.findings);
   const structural = [...lint.findings, ...generated];

@@ -360,20 +360,10 @@ Do not label pages with status proposed, conflicted, deprecated, or archived as 
       .toContain("human-work executor guardrail");
   });
 
-  test("GitHub reference workflow skips Drafts and validates Ready PRs", () => {
-    const workflow = readFileSync(join(process.cwd(), ".github/workflows/wiki-ssot.yml"), "utf8");
-    expect(workflow).toContain("wiki-review-attestation:");
-    expect(workflow).toContain("name: wiki-review-attestation");
-    expect(workflow).toContain("edited");
-    expect(workflow).toContain("synchronize");
-    expect(workflow).toContain("converted_to_draft");
-    expect(workflow).toContain("github.event.pull_request.draft == false");
-    expect(workflow).toContain("ref: ${{ github.event.pull_request.base.sha }}");
-    expect(workflow).toContain("--policy-file");
-    expect(workflow).toContain("working-directory: trusted");
-    expect(workflow).toContain('--root "${REVIEW_ROOT}"');
-    expect(workflow).not.toContain('cd "${REVIEW_ROOT}"');
-    expect(workflow).not.toContain("pull_request_target:");
+  test("v2 local-status kit ships no active GitHub workflow", () => {
+    for (const workflow of ["checks.yml", "kit.yml", "wiki-audit.yml", "wiki-ssot.yml"]) {
+      expect(existsSync(join(process.cwd(), ".github/workflows", workflow))).toBe(false);
+    }
   });
 
   test("GitHub seam validation rejects token-shaped text outside the required job", () => {

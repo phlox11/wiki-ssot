@@ -4,10 +4,9 @@ import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import {
   createRepoView,
-  evaluateFreshContextRequirement,
+  evaluateLocalReviewRequirement,
   isImplementationSourceChange,
   kitFiles,
-  parseFreshContextPolicy,
   readConfig,
   validateIntegrationSeams,
   type ImpactReport,
@@ -71,8 +70,8 @@ describe("kit entry table", () => {
 
 describe("emitted kit", () => {
   test("review-selects this publisher's product-scope contract without leaking its paths downstream", () => {
-    const publisherPolicy = readConfig(createRepoView(process.cwd())).freshContext;
-    expect(publisherPolicy).toBeDefined();
+    const publisherConfig = readConfig(createRepoView(process.cwd()));
+    expect(publisherConfig.version).toBe(2);
 
     const manifest: ReviewManifest = {
       version: 1,
@@ -103,19 +102,22 @@ describe("emitted kit", () => {
         unmappedHighRisk: [],
         findings: [],
       };
-      expect(evaluateFreshContextRequirement(publisherPolicy!, manifest, impact)).toEqual({
+      if (publisherConfig.version !== 2) throw new Error("expected v2 publisher config");
+      expect(evaluateLocalReviewRequirement(publisherConfig.review.when, manifest, impact)).toEqual({
         applies: true,
-        reasons: [`changed file matches ${path}: ${path}`],
+        reasons: [path === "README.md"
+          ? `Repository overview changes can alter the published operating contract. (${path})`
+            : path === "docs/design.md"
+              ? `Repository design documentation changes can alter operating expectations. (${path})`
+            : `Product scope changes require independent SSOT reconciliation. (${path})`],
       });
     }
 
-    const downstreamConfig = JSON.parse(realKit().files["kit/seed/.wiki/config.json"]) as { freshContext?: unknown };
-    const downstreamPolicy = parseFreshContextPolicy(downstreamConfig.freshContext);
-    expect(downstreamPolicy?.requiredWhen?.kind).toBe("risk-based");
-    if (downstreamPolicy?.requiredWhen?.kind !== "risk-based") throw new Error("expected downstream risk-based policy");
-    for (const path of productScopePaths) {
-      expect(downstreamPolicy.requiredWhen.changedFileGlobs).not.toContain(path);
-    }
+    const downstreamConfig = JSON.parse(realKit().files["kit/seed/.wiki/config.json"]) as { version: number; review?: { when?: { changedFileRules?: { glob: string }[] } } };
+    expect(downstreamConfig.version).toBe(2);
+    const downstreamRules = downstreamConfig.review?.when?.changedFileRules ?? [];
+    expect(downstreamRules.map((rule) => rule.glob)).not.toContain("wiki/product/scope.md");
+    expect(downstreamRules.map((rule) => rule.glob)).toContain("README.md");
   });
 
   test("keeps a complete provider-neutral agent entrypoint contract downstream", () => {

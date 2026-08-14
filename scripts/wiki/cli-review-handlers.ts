@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { emit, has, isAllowedLocalArtifact, one, printFindings, type CliContext } from "./cli-runtime";
 import { impactReport, validatePrMetadata, type PrMetadata } from "./impact";
+import { readConfig } from "./verification";
 import { makeReviewBundle } from "./review-bundle";
 import { parseFreshContextReport, reviewCheck } from "./review-attestation";
 import { parseFreshContextPolicy, UsageError } from "./verification";
@@ -57,7 +58,7 @@ export function handleReviewPreflight(context: CliContext): void {
     return;
   }
   const metadataRaw = metadataPath ? readFileSync(metadataPath, "utf8") : process.env.WIKI_PR_BODY;
-  const validated = validatePrMetadata(metadataRaw, true);
+  const validated = validatePrMetadata(metadataRaw, true, readConfig(context.view));
   if (validated.findings.some((item) => item.severity === "error")) {
     const result = { ok: false, ready: false, status: "invalid-metadata", findings: validated.findings };
     if (context.json) emit(context.io, result, true);
@@ -68,7 +69,7 @@ export function handleReviewPreflight(context: CliContext): void {
   const semanticMetadata: PrMetadata = { ...validated.metadata };
   delete semanticMetadata.fresh_context;
   const policyPath = one(context.parsed, "policy-file");
-  const policy = readPolicy(context, policyPath);
+  const policy = readConfig(context.view).version === 1 ? readPolicy(context, policyPath) : undefined;
   if (policy === null) return;
   const reportRaw = reportPath && existsSync(reportPath) ? readFileSync(reportPath, "utf8") : undefined;
   const parsedReportResult = reportRaw == null ? undefined : parseFreshContextReport(reportRaw);
@@ -144,7 +145,7 @@ export function handleReviewBundle(context: CliContext): void {
   if (context.staged) throw new UsageError("review-bundle requires a working repository");
   const metadataPath = one(context.parsed, "metadata");
   const metadataRaw = metadataPath ? readFileSync(metadataPath, "utf8") : process.env.WIKI_PR_BODY;
-  const validated = validatePrMetadata(metadataRaw, true);
+  const validated = validatePrMetadata(metadataRaw, true, readConfig(context.view));
   if (validated.findings.some((item) => item.severity === "error")) {
     if (context.json) emit(context.io, { ok: false, findings: validated.findings }, true);
     else printFindings(context.io, validated.findings);
@@ -162,7 +163,7 @@ export function handleReviewCheck(context: CliContext): void {
   if (context.staged) throw new UsageError("review-check requires a working repository");
   const metadataPath = one(context.parsed, "metadata");
   const metadataRaw = metadataPath ? readFileSync(metadataPath, "utf8") : process.env.WIKI_PR_BODY;
-  const validated = validatePrMetadata(metadataRaw, true);
+  const validated = validatePrMetadata(metadataRaw, true, readConfig(context.view));
   if (validated.findings.some((item) => item.severity === "error")) {
     if (context.json) emit(context.io, { ok: false, findings: validated.findings }, true);
     else printFindings(context.io, validated.findings);
@@ -172,7 +173,9 @@ export function handleReviewCheck(context: CliContext): void {
   const reportPath = one(context.parsed, "report");
   const reportRaw = reportPath && existsSync(reportPath) ? readFileSync(reportPath, "utf8") : undefined;
   const parsedReport = reportRaw == null ? undefined : (parseFreshContextReport(reportRaw).report ?? reportRaw);
-  const policy = readPolicy(context, one(context.parsed, "policy-file"));
+  const policy = readConfig(context.view).version === 1
+    ? readPolicy(context, one(context.parsed, "policy-file"))
+    : undefined;
   if (policy === null) return;
   const result = reviewCheck(context.view, context.loaded.pages, {
     base: one(context.parsed, "base"),

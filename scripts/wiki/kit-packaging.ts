@@ -64,21 +64,33 @@ type KitSource =
 export type KitEntry = { target: string; placement: KitPlacement; source: KitSource };
 
 const KIT_CONFIG_TEMPLATE = jsonStable({
-  version: 1,
+  version: 2,
   name: "your-repo",
-  highRisk: ["src/contracts/**", "src/db/**", "migrations/**"],
-  freshContext: {
+  publishesKit: false,
+  enforcement: {
+    mode: "local-status",
+    statusContext: "wiki-ssot/local",
+  },
+  localChecks: [
+    { id: "project-test", argv: ["bun", "run", "test"] },
+  ],
+  review: {
     mode: "required",
-    requiredVerdict: "PASS",
-    evidenceRequired: true,
-    requiredWhen: {
+    when: {
       kind: "risk-based",
-      changedFileGlobs: [".github/workflows/**", ".wiki/config.json", "AGENTS.md", "scripts/wiki/**", "wiki/SCHEMA.md", "wiki/WORKFLOW.md"],
+      changedFileRules: [
+        { glob: ".wiki/config.json", reason: "Wiki enforcement policy itself is changing." },
+        { glob: "AGENTS.md", reason: "Agent workflow changes can bypass required Wiki operating procedure." },
+        { glob: "README.md", reason: "Repository overview changes can alter the published operating contract." },
+        { glob: "docs/design.md", reason: "Repository design documentation changes can alter operating expectations." },
+        { glob: "wiki/SCHEMA.md", reason: "Wiki schema changes can alter the meaning of current records." },
+        { glob: "wiki/WORKFLOW.md", reason: "Wiki workflow changes can alter required authoring procedure." },
+      ],
+      changedKitOwnedFiles: true,
       affectedInvariants: true,
       affectedConflicts: true,
       removedCurrentPages: true,
     },
-    trust: { allowedReviewers: ["*"], requireDifferentActor: false, requireAuthenticatedActor: true },
   },
 });
 
@@ -164,17 +176,15 @@ export const KIT_ENTRIES: KitEntry[] = [
   { target: "scripts/wiki/test-runner.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/test-runner.test.ts" } },
   { target: "scripts/wiki/test-runner.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/test-runner.ts" } },
   { target: "scripts/wiki/tsconfig.json", placement: "files", source: { kind: "copy", from: "scripts/wiki/tsconfig.json" } },
-  { target: ".github/workflows/wiki-ssot.yml", placement: "files", source: { kind: "copy", from: ".github/workflows/wiki-ssot.yml" } },
-  { target: ".github/workflows/wiki-audit.yml", placement: "files", source: { kind: "copy", from: ".github/workflows/wiki-audit.yml" } },
   {
     target: "migrations/v1/checks.yml",
     placement: "reference",
-    source: { kind: "legacy-v1-workflow", host: ".github/workflows/checks.yml", wiki: ".github/workflows/wiki-ssot.yml" },
+    source: { kind: "copy", from: "kit/migrations/v1/checks.yml" },
   },
   {
     target: "migrations/v1/host-checks.yml",
     placement: "reference",
-    source: { kind: "copy", from: ".github/workflows/checks.yml" },
+    source: { kind: "copy", from: "kit/migrations/v1/host-checks.yml" },
   },
   {
     target: ".github/pull_request_template.md",

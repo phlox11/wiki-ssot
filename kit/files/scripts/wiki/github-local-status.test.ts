@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { localCheckDigest, type LocalCheckResult } from "./local-check";
@@ -160,5 +160,26 @@ describe("GitHub local status publishing", () => {
     const statusIndex = calls.findIndex((args) => args.some((arg) => arg.includes("/statuses/")));
     const commentIndex = calls.findIndex((args) => args.some((arg) => arg.includes("/comments")) && args.includes("POST"));
     expect(statusIndex).toBeGreaterThan(commentIndex);
+  });
+
+  test("uses the configured v2 status context while retaining the status-last order", () => {
+    const fixture = baseRepo();
+    mkdirSync(join(fixture.root, ".wiki"), { recursive: true });
+    writeFileSync(join(fixture.root, ".wiki/config.json"), JSON.stringify({
+      version: 2,
+      name: "status-context",
+      publishesKit: false,
+      enforcement: { mode: "local-status", statusContext: "project/wiki-local" },
+      localChecks: [{ id: "test", argv: ["bun", "run", "test"] }],
+      review: { mode: "required", when: { kind: "risk-based", changedFileRules: [{ glob: ".wiki/config.json", reason: "The local enforcement policy is changing here." }], changedKitOwnedFiles: false, affectedInvariants: true, affectedConflicts: true, removedCurrentPages: true } },
+    }, null, 2));
+    run(fixture.root, ["git", "add", "."]);
+    run(fixture.root, ["git", "commit", "-qm", "v2 status context"]);
+    const head = run(fixture.root, ["git", "rev-parse", "HEAD"]).trim();
+    const fake = fakeGh(head);
+    const resultPath = writeResult(fixture.root, result(head));
+    publishLocalStatus({ root: fixture.root, resultPath, repo: "owner/repo", pr: 17, gh: fake.gh });
+    const status = fake.calls.find((args) => args.some((arg) => arg.includes("/statuses/")));
+    expect(status).toContain("context=project/wiki-local");
   });
 });

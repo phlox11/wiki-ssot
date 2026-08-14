@@ -2,7 +2,9 @@ import { conflictSummary, openConflicts } from "./discovery";
 import type { ConflictSummary } from "./discovery";
 import {
   evaluateFreshContextRequirement,
+  evaluateLocalReviewRequirement,
   impactReport,
+  kitOwnedChangedFiles,
   type ImpactReport,
   type PrMetadata,
 } from "./impact";
@@ -419,7 +421,51 @@ export function reviewCheck(view: RepoView, pages: WikiPage[], options: {
 }): ReviewCheckResult {
   const impact = impactReport(view, pages, { base: options.base, metadata: options.metadata });
   const manifest = buildReviewManifest(view, pages, impact, options.metadata);
-  const policy = options.policy ?? readConfig(view).freshContext;
+  const config = readConfig(view);
+  if (config.version === 2) {
+    const requirement = evaluateLocalReviewRequirement(
+      config.review.when,
+      manifest,
+      impact,
+      kitOwnedChangedFiles(view, impact.changedFiles),
+    );
+    if (!requirement.applies) {
+      return {
+        ok: true,
+        mode: "required",
+        manifest,
+        impact,
+        required: false,
+        requirementReasons: [],
+        findings: [],
+      };
+    }
+    // V2's report remains exact-head/bundle bound, but local mode has no
+    // authenticated GitHub actor or editable PR-body mirror to validate.
+    const localPolicy: FreshContextPolicy = {
+      mode: "required",
+      requiredVerdict: "PASS",
+      evidenceRequired: true,
+      trust: { allowedReviewers: ["*"], requireDifferentActor: false, requireAuthenticatedActor: false },
+    };
+    const checked = validateFreshContextAttestation({
+      policy: localPolicy,
+      manifest,
+      report: options.report,
+      conflicts: openConflicts(pages)
+        .filter((page) => page.data.conflict_id != null && page.data.conflict_type != null && page.data.severity != null
+          && page.data.origin != null && page.data.opened_at != null && page.data.resolution != null)
+        .map(conflictSummary),
+    });
+    return {
+      ...checked,
+      manifest,
+      impact,
+      required: true,
+      requirementReasons: requirement.reasons,
+    };
+  }
+  const policy = options.policy ?? (config.version === 1 ? config.freshContext : undefined);
   if (!policy) {
     return {
       ok: false,

@@ -8,6 +8,7 @@ import {
   mappedConflicts,
   mappedPages,
   parseFreshContextPolicy,
+  parseWikiConfigV2,
   readConfig,
   validateCoverage,
   validateIntegrationSeams,
@@ -15,6 +16,7 @@ import {
   verifyState,
   type FreshContextPolicy,
 } from "./verification";
+import { validatePrMetadata } from "./impact";
 import type { RepoView } from "./repository-view";
 
 function view(files: Record<string, string>): RepoView {
@@ -45,6 +47,52 @@ sources:
 }
 
 describe("verification boundaries", () => {
+  test("parses the strict v2 local-status shape and rejects ambiguous selectors", () => {
+    const config = {
+      version: 2,
+      name: "demo",
+      publishesKit: false,
+      enforcement: { mode: "local-status", statusContext: "wiki-ssot/local" },
+      localChecks: [{ id: " project-test ", argv: ["bun", "run", "test"] }],
+      review: {
+        mode: "required",
+        when: {
+          kind: "risk-based",
+          changedFileRules: [{ glob: ".wiki/config.json", reason: "The local enforcement policy itself is changing." }],
+          changedKitOwnedFiles: true,
+          affectedInvariants: true,
+          affectedConflicts: true,
+          removedCurrentPages: true,
+        },
+      },
+    };
+    expect(parseWikiConfigV2(config)?.localChecks[0].id).toBe("project-test");
+    expect(parseWikiConfigV2({ ...config, localChecks: [{ id: "project-test", argv: [" bun ", " run ", " test "] }] })?.localChecks[0].argv).toEqual([" bun ", " run ", " test "]);
+    expect(parseWikiConfigV2({ ...config, localChecks: [{ id: "a", argv: ["bun"] }, { id: " a ", argv: ["bun"] }] })).toBeUndefined();
+    expect(parseWikiConfigV2({ ...config, review: { ...config.review, when: { ...config.review.when, changedFileRules: [] , changedKitOwnedFiles: false, affectedInvariants: false, affectedConflicts: false, removedCurrentPages: false } } })).toBeUndefined();
+    expect(parseWikiConfigV2({ ...config, freshContext: {} })).toBeUndefined();
+    expect(parseWikiConfigV2({ ...config, enforcement: { ...config.enforcement, unexpected: true } })).toBeUndefined();
+    const parsedV2 = parseWikiConfigV2(config);
+    expect(validatePrMetadata([
+      "change_type: refactor",
+      "semantic_change: false",
+      "wiki_action: verify",
+      "affected_pages: []",
+      "affected_invariants: []",
+      "touched_conflicts: []",
+      "fresh_context:",
+      "  verdict: PENDING",
+      "  reviewed_head_sha: \"\"",
+      "  bundle_digest: \"\"",
+      "  reviewer: \"\"",
+      "  evidence: []",
+    ].join("\n"), true, parsedV2!).findings).toEqual([]);
+    const v2WithLegacyMirror = jsonStable({
+      ...config,
+      freshContext: { verdict: "PENDING", reviewed_head_sha: "", bundle_digest: "", reviewer: "", evidence: [] },
+    });
+    expect(validatePrMetadata(`change_type: refactor\nsemantic_change: false\nwiki_action: verify\naffected_pages: []\naffected_invariants: []\ntouched_conflicts: []\nfresh_context:\n  verdict: PENDING\n  reviewed_head_sha: \"\"\n  bundle_digest: \"\"\n  reviewer: \"\"\n  evidence: []`, true, parseWikiConfigV2(JSON.parse(v2WithLegacyMirror))!).findings).toEqual([]);
+  });
   test("maps exact and glob source/conflict paths deterministically", () => {
     const mapped = { version: 1 as const, exact: { "src/value.ts": ["product/test"] }, globs: [{ glob: "src/**/*.ts", pages: ["architecture/code"] }] };
     const conflicts = { version: 1 as const, exact: { "src/value.ts": ["C-002"] }, globs: [{ glob: "src/**/*.ts", conflicts: ["C-001"] }] };

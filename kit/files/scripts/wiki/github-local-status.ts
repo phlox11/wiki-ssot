@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { git } from "./repository-view";
+import { createRepoView, git } from "./repository-view";
+import { readConfig } from "./verification";
 import { parseLocalCheckResult, validateLocalCheckResult, type LocalCheckResult } from "./local-check";
 import { UsageError } from "./verification";
 
@@ -28,7 +29,7 @@ export type PublishLocalStatusResult = {
   pr: number;
   head_sha: string;
   state: "success" | "failure";
-  status_context: typeof LOCAL_STATUS_CONTEXT;
+  status_context: string;
   comment: "created" | "updated";
   deleted_duplicate_comments: number;
 };
@@ -167,13 +168,13 @@ function commentsFor(gh: GhRunner, repo: string, pr: number): Comment[] {
   return flattenComments(parsed);
 }
 
-function postStatus(gh: GhRunner, repo: string, result: LocalCheckResult): void {
+function postStatus(gh: GhRunner, repo: string, result: LocalCheckResult, statusContext: string): void {
   const state = result.ok ? "success" : "failure";
   const description = oneLine(`local checks ${result.ok ? "passed" : "failed"}; ${summaryLine(result)}; warnings=${result.warnings.length}`);
   runGh(gh, [
     "api", "--method", "POST", `repos/${repo}/statuses/${result.head_sha}`,
     "-f", `state=${state}`,
-    "-f", `context=${LOCAL_STATUS_CONTEXT}`,
+    "-f", `context=${statusContext}`,
     "-f", `description=${description.slice(0, 140)}`,
   ]);
 }
@@ -221,17 +222,27 @@ export function publishLocalStatus(options: PublishLocalStatusOptions): PublishL
   const remote = remoteHeadSha(gh, repo, pr);
   if (remote !== result.head_sha) throw new UsageError(`pull request head ${remote} does not match local result HEAD ${result.head_sha}`);
 
+  let statusContext = LOCAL_STATUS_CONTEXT;
+  try {
+    const config = readConfig(createRepoView(root));
+    if (config.version === 2) statusContext = config.enforcement.statusContext;
+  } catch {
+    // The result boundary has already validated the exact result. A malformed
+    // local config is reported by the local gate/doctor; preserve the v1
+    // default here rather than guessing a custom context.
+  }
+
   // Do not start writes until all candidate/PR identity checks above pass.
   // Upsert the marker first; the required status is deliberately last so an
   // API/comment failure cannot leave this invocation reporting success.
   const comment = upsertMarkerComment(gh, repo, pr, markerBody(result));
-  postStatus(gh, repo, result);
+  postStatus(gh, repo, result, statusContext);
   return {
     repo,
     pr,
     head_sha: result.head_sha,
     state: result.ok ? "success" : "failure",
-    status_context: LOCAL_STATUS_CONTEXT,
+    status_context: statusContext,
     comment: comment.action,
     deleted_duplicate_comments: comment.deleted,
   };

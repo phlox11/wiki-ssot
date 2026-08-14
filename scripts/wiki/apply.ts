@@ -397,6 +397,17 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
   const checks: Record<string, "pass" | "fail" | "skipped"> = {};
   const findings: ApplyFinding[] = [];
 
+  // Active GitHub workflows were intentionally removed from the v2 kit. Sync
+  // never deletes an adopter's copy; make the handoff explicit so an existing
+  // v1/custom workflow cannot disappear silently during an upgrade.
+  for (const entry of plan.entries.filter((item) => item.action === "removed-upstream" && item.target.startsWith(".github/workflows/"))) {
+    findings.push({
+      code: "legacy-workflow-needs-reconcile",
+      path: entry.target,
+      action: "confirm its host commands are listed in localChecks, delete or reconcile the workflow manually, run wiki:check and wiki:publish, then replace the branch rule with wiki-ssot/local",
+    });
+  }
+
   const legacyWorkflow = ".github/workflows/checks.yml";
   const legacyEntry = previousManifest?.files?.[legacyWorkflow];
   const legacyPath = join(repo, legacyWorkflow);

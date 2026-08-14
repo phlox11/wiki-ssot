@@ -20,7 +20,7 @@ import {
 } from "./discovery";
 import { validatePages } from "./page-validation";
 import { jsonStable, emit, has, one, printFindings, type CliContext, type ParsedArgs, usage } from "./cli-runtime";
-import { UsageError } from "./verification";
+import { UsageError, readConfig } from "./verification";
 import {
   compactTopicText,
   compactWorkText,
@@ -246,7 +246,7 @@ export function handleContext(context: CliContext): void {
     if (artifactMode) {
       if (context.staged) throw new UsageError("reusable context artifacts require a working repository");
       const metadataPath = resolve(context.view.root, one(context.parsed, "metadata")!);
-      const validated = validatePrMetadata(readFileSync(metadataPath, "utf8"), true);
+      const validated = validatePrMetadata(readFileSync(metadataPath, "utf8"), true, readConfig(context.view));
       if (validated.findings.some((item) => item.severity === "error") || !validated.metadata) {
         contextError(context, validated.findings);
         return;

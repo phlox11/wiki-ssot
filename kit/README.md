@@ -34,7 +34,7 @@ bun /path/to/WikiSsot/scripts/wiki/apply.ts --into /path/to/project --json
 # use already-materialized dependencies; checks still run
 bun /path/to/WikiSsot/scripts/wiki/apply.ts --into /path/to/project --skip-install
 
-# accept a hand-resolved kit conflict, or retire the customized legacy checks workflow
+# accept a hand-resolved kit conflict
 bun /path/to/WikiSsot/scripts/wiki/apply.ts --into /path/to/project --accept path/to/file
 ```
 
@@ -50,7 +50,7 @@ Exit codes are `0` for `preview` or fully checked `ready`, `1` for expected `nee
 | `managed/**` | Only the marked Wiki SSOT block is owned. Content outside the block in `AGENTS.md`, the PR template, and hooks is preserved. Missing blocks are appended; malformed, duplicate, or ambiguous legacy blocks require a merge. |
 | `seed/**` | Project-owned after first creation. Existing files and later project edits are never replaced. This includes policy, coverage, verification state, inventory adapter, `.gitignore`, and root `tsconfig.json`. |
 | `package.kit.json` | Merge input, never copied. Only `wiki:*` scripts, compatible toolkit development dependencies, and the Bun minimum are managed. Host `test`, `typecheck`, `prepare`, `type`, and unrelated dependencies survive unchanged. |
-| `scripts/wiki/inventories.example.ts`, `migrations/v1/**` | References read from the WikiSsot checkout, never copied. The migration references identify the exact former combined workflow and its host-only result. |
+| `scripts/wiki/inventories.example.ts`, `migrations/v1/**` | References read from the WikiSsot checkout, never copied. Migration references preserve exact historical version 1 workflow payloads for compatibility tests only. |
 | `files/.wiki/kit-manifest.json` | Version 2 ownership map, managed-block metadata, per-item hashes, and the roll-up kit digest. |
 
 The kit has no release-number identity. Its `digest` covers file, managed-block, and reference content, so equal digests mean equal distributions.
@@ -90,35 +90,25 @@ Kit-owned files use the recorded three-way baseline:
 
 After hand-merging an ordinary kit conflict, delete `.kit-new` and rerun with `--accept <path>`. Managed blocks need no acceptance flag: put exactly one valid marked block in the host file and rerun.
 
-The exact version 1 combined `.github/workflows/checks.yml` migrates automatically: apply rewrites that file to its host-only `code-check` and installs the Wiki jobs in `.github/workflows/wiki-ssot.yml`. The regression fixture is byte-locked to the former shipped payload, so “recognized” does not mean merely trusting a local manifest hash.
-
-An unknown or customized legacy workflow is never deleted. Apply returns `needs-merge`; remove its Wiki jobs, retain every host job, and acknowledge that one-time split only after inspecting the result:
-
-```sh
-bun /path/to/WikiSsot/scripts/wiki/apply.ts --into /path/to/project \
-  --accept .github/workflows/checks.yml
-```
+New installations contain no active GitHub Actions workflow. An existing version 1 or customized workflow is never deleted merely because it disappeared from the incoming kit. Convert the project-owned configuration explicitly, copy every real host test/typecheck command into version 2 `localChecks`, include the intended workflow removal in that migration PR, and let `wiki:doctor` verify that no legacy active Wiki workflow remains. Historical workflow payloads stay byte-locked under `migrations/v1/**` so compatibility remains testable without shipping a live workflow.
 
 ## Project-owned reconciliation
 
 The seeded files are intentionally not upgraded. Review upstream changelog/contract changes, then update them only when the project needs it:
 
-- `.wiki/config.json` — project name, high-risk paths, and Fresh-context policy.
+- `.wiki/config.json` — project name, high-risk paths, local project-check argv, status context, and explicit review policy.
 - `.wiki/coverage.json` — maintained implementation/test globs and exclusions.
 - `.wiki/state.json` — source verification evidence, updated through `wiki:verify`.
 - `scripts/wiki/inventories.ts` — optional project-specific generated inventories.
 - `wiki/**` current/conflict/proposal content — the project's intent, never generic kit prose.
 
-The bounded-navigation upgrade follows the same ownership split. A pristine installation receives the upgraded generator, system-file rules, regression tests, package commands, and dedicated Wiki workflow. The next generation creates the complete `wiki/catalog.md`, rewrites the bounded `wiki/index.md` and cumulative `wiki/current-status.md`, and emits `.wiki/relationship-graph.json`. Those are disposable projections over existing records; no semantic record migration is required.
+The bounded-navigation upgrade follows the same ownership split. A pristine installation receives the upgraded generator, system-file rules, regression tests, and package commands, but no active workflow. The next generation creates the complete `wiki/catalog.md`, rewrites the bounded `wiki/index.md` and cumulative `wiki/current-status.md`, and emits `.wiki/relationship-graph.json`. Those are disposable projections over existing records; no semantic record migration is required.
 
 Apply never rewrites project-owned current/proposal/conflict records, configuration, coverage, verification state, inventory adapters, or a project changelog, and it never infers `related`, `affects`, or dependency edges. A customized kit-owned file still follows the normal `.kit-new` merge/`--accept` loop. After upgrade, commit the refreshed generated artifacts only after `wiki:generated -- --check`, `wiki:lint`, `wiki:audit`, and `wiki:doctor` pass.
 
-The dedicated `.github/workflows/wiki-ssot.yml` runs only Wiki SSOT jobs. The host keeps its own build/test workflow and script names, avoiding duplicate assumptions about the project's stack.
+## Local result and status
 
-## Bootstrap local result and status
-
-The shipped Bootstrap commands add a local, exact-result path while the
-existing Actions and Draft/Ready Fresh-context attestation remain in place.
+Version 2 uses a local exact-result path. GitHub does not run the Wiki engine.
 After committing a candidate, run:
 
 ```sh
@@ -137,16 +127,17 @@ metadata digest, check/review summaries and findings, and a deterministic
 result digest. It permits only the explicitly named metadata/report/result
 artifacts outside the committed tree. A changed toolkit-owned file selects the
 Wiki tooling typecheck and full tooling suite; publisher mode also runs kit
-freshness and growth guards. `wiki:publish` revalidates the result,
+freshness and growth guards. Every configured `localChecks` argv also runs;
+the configuration does not accept shell command strings. `wiki:publish` revalidates the result,
 requires matching clean local and remote PR SHAs, upserts one
-`wiki-ssot:local-status` marker comment, and posts `wiki-ssot/local` afterward.
+`wiki-ssot:local-status` marker comment, and posts the configured status context afterward.
 Warnings still produce success; malformed, stale, mismatched, or API-failed
 operations return non-zero. Publishing uses the authenticated `gh` CLI and
-introduces no daemon, GitHub App, or hosted service. Existing workflows remain
-the active deployed CI rail until a later cutover.
+introduces no daemon, GitHub App, or hosted service. A new PR HEAD has no status
+until the exact local result is rerun and republished.
 
 ## Requirements and trust boundary
 
 - Bun 1.1 or newer and Git.
-- GitHub Actions only for the reference CI rail.
-- Repository developers/admins are trusted not to gut a required workflow while preserving its check name. Required workflows, CODEOWNERS, rulesets, and administrator-bypass controls are optional deployment governance outside this toolkit.
+- An authenticated `gh` CLI only when publishing the local result to GitHub; GitHub Actions are not required.
+- Repository developers/admins are trusted not to weaken the local gate or required-status rule. Required workflows, CODEOWNERS, rulesets, and administrator-bypass controls are optional deployment governance outside this toolkit.

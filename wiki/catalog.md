@@ -25,7 +25,7 @@ Complete generated catalog of every Wiki content page. Current pages are authori
 
 | ID | Kind | Authority | Summary | Related | Affects |
 |---|---|---|---|---|---|
-| [operations/enforcement](./operations/enforcement.md) | operation | normative | Three rails enforce the wiki within a trusted-maintainer boundary — zero-knowledge agent entry, local hooks, and deterministic CI including portable growth and wiki-review-attestation checks. | [architecture/engine](./architecture/engine.md), [product/invariants](./product/invariants.md) | — |
+| [operations/enforcement](./operations/enforcement.md) | operation | normative | Three rails enforce the wiki within a trusted-maintainer boundary — zero-knowledge agent entry, local hooks, and an exact local gate published as a GitHub commit status. | [architecture/engine](./architecture/engine.md), [product/invariants](./product/invariants.md) | — |
 
 ## current / product
 

@@ -280,7 +280,7 @@ This document must not satisfy current-page bootstrap readiness.
     expect(hostWorkflow).toContain("bun run typecheck");
     expect(hostWorkflow).toContain("bun run test");
     expect(hostWorkflow).not.toContain("wiki-structure:");
-    expect(existsSync(join(pristine, ".github/workflows/wiki-ssot.yml"))).toBe(true);
+    expect(existsSync(join(pristine, ".github/workflows/wiki-ssot.yml"))).toBe(false);
     const pristineRerun = jsonOutput(runApply(pristine, "--skip-install", "--json"));
     expect(pristineRerun.status).not.toBe("needs-merge");
     expect(readFileSync(join(pristine, ".github/workflows/checks.yml"), "utf8")).toBe(hostWorkflow);
@@ -356,7 +356,7 @@ This document must not satisfy current-page bootstrap readiness.
       })]),
     });
     expect(readFileSync(join(repo, ".github/workflows/checks.yml"), "utf8")).toBe(oldWorkflow);
-    expect(existsSync(join(repo, ".github/workflows/wiki-ssot.yml"))).toBe(true);
+    expect(existsSync(join(repo, ".github/workflows/wiki-ssot.yml"))).toBe(false);
 
     const inspectedHostOnly = `${hostWorkflow}# inspected host jobs retained\n`;
     put(repo, ".github/workflows/checks.yml", inspectedHostOnly);
@@ -392,6 +392,39 @@ This document must not satisfy current-page bootstrap readiness.
     const converged = jsonOutput(runApply(repo, "--skip-install", "--json"));
     expect(converged.status).not.toBe("needs-merge");
     expect(readFileSync(join(repo, ".github/workflows/checks.yml"), "utf8")).toBe(inspectedHostOnly);
+  }, 30_000);
+
+  test("v2 upgrade preserves a removed Wiki workflow and reports reconciliation", () => {
+    const repo = fixture();
+    const kit = fastKit();
+    git(repo, "init", "-q");
+    const legacyWorkflow = readFileSync(join(process.cwd(), "kit/migrations/v1/checks.yml"), "utf8");
+    const incomingManifest = JSON.parse(readFileSync(join(kit, "files/.wiki/kit-manifest.json"), "utf8")) as {
+      version: number;
+      kit: string;
+      digest: string;
+      files: Record<string, { ownership: "kit" | "seed"; sha256: string }>;
+    };
+    incomingManifest.files[".github/workflows/wiki-ssot.yml"] = {
+      ownership: "kit",
+      sha256: apply.sha256(legacyWorkflow),
+    };
+    put(repo, ".github/workflows/wiki-ssot.yml", legacyWorkflow);
+    put(repo, ".wiki/kit-manifest.json", `${JSON.stringify(incomingManifest, null, 2)}\n`);
+
+    const result = jsonOutput(runApply(repo, "--kit", kit, "--skip-install", "--json"));
+    expect(result).toMatchObject({
+      mode: "upgrade",
+      status: "needs-reconcile",
+      findings: expect.arrayContaining([
+        expect.objectContaining({
+          code: "legacy-workflow-needs-reconcile",
+          path: ".github/workflows/wiki-ssot.yml",
+          action: expect.stringContaining("confirm its host commands are listed in localChecks, delete or reconcile the workflow manually, run wiki:check and wiki:publish, then replace the branch rule"),
+        }),
+      ]),
+    });
+    expect(readFileSync(join(repo, ".github/workflows/wiki-ssot.yml"), "utf8")).toBe(legacyWorkflow);
   }, 30_000);
 
   test("legacy Wiki job detection follows YAML structure before and after host tracking", () => {
@@ -557,52 +590,7 @@ The maintained source exports the current fixture value.
     expect(jsonOutput(preview)).toMatchObject({ mode: "upgrade", status: "preview", dryRun: true, changes: [] });
     expect(existsSync(join(repo, "wiki/catalog.md"))).toBe(true);
     expect(existsSync(join(repo, ".wiki/relationship-graph.json"))).toBe(true);
-    const wikiWorkflow = readFileSync(join(repo, ".github/workflows/wiki-ssot.yml"), "utf8");
-    const structureWorkflow = wikiWorkflow.match(/  wiki-structure:[\s\S]*?  wiki-generated:/)?.[0] ?? "";
-    const generatedWorkflow = wikiWorkflow.match(/  wiki-generated:[\s\S]*?  wiki-impact:/)?.[0] ?? "";
-    expect(structureWorkflow).not.toContain("fetch-depth: 0");
-    expect(generatedWorkflow).not.toContain("fetch-depth: 0");
-
-    // A double edit of a kit-owned workflow is preserved as .kit-new. Accepting
-    // the reconciled local file advances its per-file baseline and makes a
-    // subsequent run both ready and byte-idempotent.
-    const workflowPath = join(repo, ".github/workflows/wiki-ssot.yml");
-    const localWorkflow = `${wikiWorkflow}\n# local workflow customization\n`;
-    put(repo, ".github/workflows/wiki-ssot.yml", localWorkflow);
-    const incomingWorkflowPath = join(kit, "files/.github/workflows/wiki-ssot.yml");
-    const incomingWorkflow = `${readFileSync(incomingWorkflowPath, "utf8")}\n# upstream workflow update\n`;
-    writeFileSync(incomingWorkflowPath, incomingWorkflow);
-    const kitManifestPath = join(kit, "files/.wiki/kit-manifest.json");
-    const kitManifest = JSON.parse(readFileSync(kitManifestPath, "utf8")) as {
-      files: Record<string, { sha256: string; ownership: string }>;
-    };
-    kitManifest.files[".github/workflows/wiki-ssot.yml"].sha256 = apply.sha256(incomingWorkflow);
-    writeFileSync(kitManifestPath, `${JSON.stringify(kitManifest, null, 2)}\n`);
-
-    const conflict = runApply(repo, "--kit", kit, "--skip-install", "--json");
-    expect(conflict.exitCode).toBe(1);
-    expect(jsonOutput(conflict)).toMatchObject({
-      mode: "upgrade",
-      status: "needs-merge",
-      conflicts: expect.arrayContaining([expect.objectContaining({ path: ".github/workflows/wiki-ssot.yml" })]),
-    });
-    expect(readFileSync(workflowPath, "utf8")).toBe(localWorkflow);
-    expect(readFileSync(`${workflowPath}.kit-new`, "utf8")).toBe(incomingWorkflow);
-
-    rmSync(`${workflowPath}.kit-new`);
-    const accepted = runApply(repo, "--kit", kit, "--skip-install", "--json", "--accept", ".github/workflows/wiki-ssot.yml");
-    expect(accepted.exitCode).toBe(0);
-    expect(jsonOutput(accepted)).toMatchObject({
-      mode: "upgrade",
-      status: "ready",
-      changes: expect.arrayContaining([".wiki/kit-manifest.json"]),
-    });
-    expect(readFileSync(workflowPath, "utf8")).toBe(localWorkflow);
-    const acceptedSnapshot = snapshot(repo);
-    const rerun = runApply(repo, "--kit", kit, "--skip-install", "--json");
-    expect(rerun.exitCode).toBe(0);
-    expect(jsonOutput(rerun)).toMatchObject({ mode: "upgrade", status: "ready", changes: [] });
-    expect(snapshot(repo)).toBe(acceptedSnapshot);
+    expect(existsSync(join(repo, ".github/workflows/wiki-ssot.yml"))).toBe(false);
     const pkg = JSON.parse(readFileSync(join(repo, "package.json"), "utf8")) as { scripts: Record<string, string> };
     expect(pkg.scripts).toMatchObject({ test: "host-test", typecheck: "host-types", prepare: "host-prepare" });
   }, 60_000);

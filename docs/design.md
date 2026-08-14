@@ -1,6 +1,6 @@
 # Design
 
-wiki-ssot exists to stop one expensive failure mode and a secondary one. Repository checks remain deterministic, while the authoring code agent performs risk-selected independent semantic reconciliation before opening a PR and CI verifies the resulting attestation for applicable Ready PRs.
+wiki-ssot exists to stop one expensive failure mode and a secondary one. Repository checks remain deterministic, while the authoring code agent performs risk-selected independent semantic reconciliation and publishes an exact local result for the PR HEAD.
 
 ## The problem
 
@@ -50,13 +50,11 @@ Enforcement is only real if it fires on events that always happen:
 
 1. **Session start** — every agent auto-reads `AGENTS.md`: a generic remaining-work request routes to the no-query repository queue, while selected work routes through a compact projection of its current invariants, context pages, conflicts, sources, and explicitly non-current proposal owner. Stable digests and focused commands open the exhaustive `--full` representation only when needed. (Compliance rail.)
 2. **Local commit** — a pre-commit hook runs the cheap structural lint on staged files; a pre-push hook blocks direct pushes to `main`. Bypassable feedback.
-3. **Pre-PR / pull request / CI** — `wiki:review-preflight` prepares and validates risk-selected independent reconciliation before publication. Structural, generated-freshness, impact, integration-seam, and Ready-only review-attestation checks then reject invalid candidates; deployments that make those jobs required checks also use them to block merges. A weekly job re-audits everything.
+3. **Pre-PR / pull request** — `wiki:review-preflight` prepares and validates risk-selected independent reconciliation, then the canonical local gate runs the deterministic repository checks. `wiki:publish` binds that exact result to the PR HEAD as a commit status; deployments may require that status for merge. GitHub displays the result but does not run the Wiki engine.
 
-### Bootstrap local result/status path
+### Local result/status path
 
-The Bootstrap implementation adds an opt-in local aggregate; it does not yet
-remove or replace the existing Actions jobs or Draft/Ready attestation. On a
-committed candidate, `wiki:check --base <ref> --metadata <file> [--report
+On a committed candidate, `wiki:check --base <ref> --metadata <file> [--report
 <file>] --output <result.json>` composes the existing structural, generated,
 state, impact, and review validation into an exact result envelope. The
 envelope binds the local HEAD, resolved base and merge-base, canonical metadata
@@ -65,7 +63,9 @@ closed for unresolved revisions and unexpected dirty/untracked files, while
 the explicitly named metadata/report/output artifacts may remain outside the
 candidate commit. A changed toolkit-owned file selects the Wiki tooling
 typecheck and full tooling test suite; a publisher repository also runs kit
-freshness and growth guards.
+freshness and growth guards. Version 2 configuration also runs every declared
+project check from its argv array; no shell command string or automatic test
+selection graph is introduced.
 
 `wiki:publish -- --result <result.json> [--repo owner/repo] [--pr N]` validates
 that envelope again, checks the clean local HEAD and remote PR head, then
@@ -108,13 +108,13 @@ contained.
 
 ## What rejects an invalid candidate (all deterministic)
 
-These checks block a GitHub merge only when deployment policy makes their jobs required; otherwise they still fail deterministically and provide evidence to trusted maintainers.
+These checks block a GitHub merge only when deployment policy requires the published `wiki-ssot/local` status; otherwise they still fail deterministically and provide evidence to trusted maintainers.
 
 - **Structure** (`wiki:lint`): frontmatter and required fields, duplicate page/work IDs, work dependency/lifecycle/context rules, broken internal links, missing source paths, orphaned/empty globs, coverage, and generated-file freshness.
 - **Generated freshness** (`wiki:generated --check`): the index, current-status, repository work queue, conflicts index, reverse maps, and any code-derived inventories must match a clean regeneration.
 - **Impact** (`wiki:impact --enforce`): from the PR diff, compute affected pages and conflicts, then reject — a changed source whose page is stale or unverified; an unmapped high-risk source; a current page silently dropped; PR metadata that omits an affected page or conflict; an invalid conflict transition; or `wiki_action: none` on a code change.
-- **Integration seams** (`wiki:doctor`): provider-neutral core checks require the Fresh-context config, canonical CLI commands, and a root `AGENTS.md` with affirmative clause shapes for the wiki index/current status/invariants, no-query generic work discovery, human-work non-selection/reporting/handoff without assumed authority, selected-work context, topic search/context, and non-current authority labels. Marker-only, placeholder, command-name-only, and commonly negated route clauses fail; this is not general semantic analysis of arbitrary prose. The GitHub adapter separately checks the PR metadata template and stable workflow job. The composed command requires every selected seam to remain installed.
-- **Fresh-context preflight and attestation** (`wiki:review-preflight`, `wiki:review-check`): before PR creation, use trusted policy and the actual impact/manifest to return `not-required` or prepare a review bundle. The authoring agent reconciles actionable findings from a separate review context until local PASS. For applicable Ready PRs, CI recomputes the manifest and rejects a missing, malformed, non-PASS, stale, empty-evidence, or untrusted report.
+- **Integration seams** (`wiki:doctor`): provider-neutral core checks require valid configuration, canonical CLI commands, and a root `AGENTS.md` with affirmative clause shapes for the wiki index/current status/invariants, no-query generic work discovery, human-work non-selection/reporting/handoff without assumed authority, selected-work context, topic search/context, and non-current authority labels. Marker-only, placeholder, command-name-only, and commonly negated route clauses fail; this is not general semantic analysis of arbitrary prose. In local-status mode doctor also reports an actionable reconciliation error when obsolete active Wiki workflows remain.
+- **Independent-review preflight** (`wiki:review-preflight`, `wiki:review-check`): before PR creation, use trusted policy and the actual impact/manifest to return `not-required` or prepare a review bundle. The authoring agent reconciles actionable findings from a separate review context until local PASS. The canonical result rejects a missing, malformed, non-PASS, stale, or empty-evidence report for a selected change.
 
 The distinction between *high-risk* and *low-risk* stale no longer decides pass/fail — both fail validation. It sharpens where a human looks first.
 
@@ -142,25 +142,23 @@ A missing or ambiguous decision is not permission to invent behavior; it is a **
 
 ## Why no LLM in the deterministic validation path
 
-CI does not need to invoke an LLM, depend on one vendor, or turn model availability into an implicit repository secret. Before a PR exists, `wiki:review-preflight` classifies actual changed paths, merge-base/HEAD affected invariants, affected conflicts, and current-page removals. When review applies it produces a manifest bound to the full candidate HEAD, merge-base, canonical semantic metadata, impact report, diff, affected pages/invariants/conflicts, and path-sorted bundle file hashes. A focused manifest stores identical page/invariant/conflict bodies once by digest, references overlapping roles to that object, and classifies changed sources, directly affected authority sources, relevant tests, and supporting sources without treating broad glob coverage as permission to omit a required primary input. Every role, provenance record, content object, and digest binding is validated deterministically. The authoring code agent gives that bundle to a context-isolated reviewer or sub-agent, reconciles actionable `NEEDS_RECONCILE` findings, and validates PASS locally.
+GitHub does not need to invoke an LLM, depend on one vendor, or turn model availability into an implicit repository secret. Before a PR exists, `wiki:review-preflight` classifies actual changed paths, merge-base/HEAD affected invariants, affected conflicts, and current-page removals. When review applies it produces a manifest bound to the full candidate HEAD, merge-base, canonical semantic metadata, impact report, diff, affected pages/invariants/conflicts, and path-sorted bundle file hashes. A focused manifest stores identical page/invariant/conflict bodies once by digest, references overlapping roles to that object, and classifies changed sources, directly affected authority sources, relevant tests, and supporting sources without treating broad glob coverage as permission to omit a required primary input. Every role, provenance record, content object, and digest binding is validated deterministically. The authoring code agent gives that bundle to a context-isolated reviewer or sub-agent, reconciles actionable `NEEDS_RECONCILE` findings, and validates PASS locally.
 
-The Ready-only `wiki-review-attestation` job performs no semantic inference or Fresh-context review. Its risk selector is deterministic and executes from trusted base code/policy rather than author labels alone. For applicable changes it recomputes the manifest and validates the external attestation's schema, verdict, evidence, exact SHA/digests, authenticated actor, allowlist, and—when enabled—author-separation policy. This reliably prevents omission, reuse after a new commit or metadata change, a PASS for the wrong base, empty evidence, and an author-editable PR-body string masquerading as the authenticated report. Risk-based mode deliberately does not provide the same semantic-review coverage for non-selected changes.
+The version 2 local gate validates the report's schema, verdict, evidence, exact SHA, merge-base, and bundle bindings and includes that result in the exact-result digest. This prevents omission, reuse after a new commit or metadata change, a PASS for the wrong base, and empty evidence. Risk-based mode deliberately does not provide the same semantic-review coverage for non-selected changes.
 
-That does **not** prove the reviewer really had no prior context, reasoned well, or inspected every claimed source. Context isolation and reviewer quality remain inside the selected reviewer/orchestrator trust boundary. The default GitHub reference policy is therefore accurately an **attestation presence guard**, not cryptographic proof of independent cognition.
+That does **not** prove the reviewer really had no prior context, reasoned well, or inspected every claimed source. Context isolation and reviewer quality remain inside the selected reviewer/orchestrator trust boundary. Local-status mode claims procedural separation only, not cryptographic proof of independent cognition or authenticated actor separation.
 
-Actor separation is a deployment choice. When review applies, a solo repository uses `requireDifferentActor: false`: a separate context-isolated session creates the report, while the PR author's authenticated GitHub account may publish it. CI can verify the publisher and bindings, but not the session separation. A team can set `requireDifferentActor: true` after provisioning a second reviewer account or bot; enabling it without that channel intentionally fails the attestation job for applicable solo PRs and blocks merge only where deployment policy makes that job required.
+Teams that require an authenticated actor different from the PR author must keep the version 1 external-attestation path or provide another enforcement path; the migration never silently converts that policy to local-status mode.
 
-Reviewer failures are explicit rather than hidden: every `NEEDS_RECONCILE` finding is dispositioned before PR creation — fixed, tracked in an open conflict with acceptance criteria, or recorded as a named follow-up — and each new HEAD receives a new bundle/review. Convergence is therefore defined by disposition rather than by an empty finding list, which keeps a large change from looping until the whole repository is perfect. Ambiguity becomes a conflict or owner decision rather than a speculative repair loop. A required report is attached to a Draft after local PASS; Drafts skip the review-attestation check, while the Ready-PR job succeeds only with either `required: false` or PASS for the current HEAD. Deployment policy decides whether that job is required for merge. Projects that deliberately choose `advisory` mode receive warnings; missing config never silently becomes advisory. Existing configurations that omit `requiredWhen` retain all-PR review.
+Reviewer failures are explicit rather than hidden: every `NEEDS_RECONCILE` finding is dispositioned before PR creation — fixed, tracked in an open conflict with acceptance criteria, or recorded as a named follow-up — and each new HEAD receives a new bundle/review. Convergence is therefore defined by disposition rather than by an empty finding list, which keeps a large change from looping until the whole repository is perfect. Ambiguity becomes a conflict or owner decision rather than a speculative repair loop. After a local PASS, the author opens or updates the PR and publishes the exact result for its current HEAD. A new commit has no matching status and requires a new result and report. Version 2 requires explicit risk selection; it has no implicit all-PR fallback.
 
-## GitHub reference trust boundary
+## GitHub status trust boundary
 
-The Bootstrap local path is additive. The reference Actions workflows and
-Draft/Ready Fresh-context attestation remain the active deployed rail until a
-later, explicit cutover changes branch protection and workflow ownership.
+The publisher and newly generated kit contain no active GitHub Actions workflow. The GitHub integration is one narrow, caller-invoked commit-status/comment publisher. It verifies the local result, clean local HEAD, and remote PR head before writing, and posts the status last so an earlier API failure cannot leave success behind. A new SHA naturally lacks the required status.
 
-The GitHub reference job runs on `pull_request` for non-Draft PRs so GitHub associates the Ready-only validation check with the PR test-merge commit without producing an expected failure while a locally-passed report is being attached. It explicitly checks out the base implementation and trust policy, fetches the PR HEAD into a detached worktree, and treats every head file as data. Bun remains in the trusted base working directory and receives the detached head only through the CLI's `--root` data path, so an untrusted `bunfig.toml` or preload cannot run before validation. The job never imports scripts, installs dependencies, or runs commands from the PR head. The external report is selected from GitHub PR reviews/comments and its `reviewer` must match the authenticated envelope actor; the PR body's `fresh_context` block is only a required status mirror. Marking the prepared Draft Ready triggers the Ready-only validation job.
+Version 1 configuration and its historical GitHub attestation contract remain compatibility inputs for existing adopters. Apply does not rewrite project-owned configuration or delete workflows that disappeared upstream. One explicit migration candidate therefore copies each real host test/typecheck command into `localChecks` and removes the obsolete workflow, then verifies and publishes the exact local status before the repository's required check is changed and the PR is merged. A first upgrade PR whose merge-base engine still requires the legacy PR-body mirror may carry it once; version 2 ignores that compatibility field and new templates omit it.
 
-This still has a bootstrap boundary. The engine and trust policy are pinned to the base, but the `pull_request` workflow definition is part of the PR test-merge tree and can itself be edited. A rewrite that preserves a required job name can counterfeit success. wiki-ssot explicitly assumes that repository developers and administrators are trusted not to do that; defending against those actors with required workflows, CODEOWNERS, rulesets, or administrator-bypass policy is organization-level governance outside the product contract. Deployments may add those controls, but the toolkit neither requires nor audits them. A green job is therefore evidence within the trusted-maintainer model, not a security guarantee against a hostile or compromised maintainer.
+This remains a trusted-maintainer boundary. An actor allowed to change the validation implementation or branch rule can weaken the system. Defending against that actor through required workflows, CODEOWNERS, rulesets, administrator-bypass restrictions, force-push policy, or deletion policy is organization-level governance outside the product contract. A successful status is evidence within that boundary, not a security guarantee against a hostile or compromised maintainer.
 
 ## What it is not
 
