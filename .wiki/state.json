@@ -66,7 +66,7 @@
         "scripts/wiki/serialization.test.ts": "c8205949e06d20cf10360e0db01558fbbbedacf0d39786d3ea0bce5553d5520a",
         "scripts/wiki/serialization.ts": "e3b68feb689a818f88effc634f9ac057c92ae24477e9c80bbde220ace48dcded",
         "scripts/wiki/te04-focused-review.test.ts": "1accbf97796724397dc29ebb4bb13993347e817eaef6506b34d1353417f4543e",
-        "scripts/wiki/te04-focused-review.ts": "28517167790366e64946649cbc98e9f2c16ded6818d3ad90614ba879594ef217",
+        "scripts/wiki/te04-focused-review.ts": "e2e11c432ae315dfe1d9c52d428b8ba8dcfc58aaab9d64865a4e96a5e2246327",
         "scripts/wiki/te06-controlled-comparison.test.ts": "ac33110ae306ee21391d270b99c61b519653e59404eb706eaaf193bbc6bdc455",
         "scripts/wiki/te06-controlled-comparison.ts": "32067f0d522575ef0628cf6e8f6ab0fe9b69c8255022a5f9262041c7853d87aa",
         "scripts/wiki/te06-exit-validation.test.ts": "f3764d07eeb6a0d481ffb6d929a8afbafc71140a7ace86cb7e30429e0c01949a",
@@ -93,7 +93,7 @@
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "Adopter ownership filtering now matches the existing actual kit-owned contract."
+        "reason": "TE-04 rebaseline records the measured local-status source-manifest cost without changing engine behavior."
       }
     },
     "operations/enforcement": {
