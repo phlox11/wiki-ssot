@@ -173,7 +173,7 @@
         "docs/design.md": "3820f7e72e5d3235fa78725182bb1f2f24796fd3df8a38aac1faf9456fe94d70",
         "docs/evidence/wsn-01-large-scale.json": "920979552b10068842a44adfc537789b42ea7caf7c8dfec9fb69e3efd25849bc",
         "docs/evidence/wsn-01-schooled-scale.json": "e659d1ca26521db33a44da42ed4b9f0c5b31e7a03c28889780c9b3414f3111b9",
-        "README.md": "99bb666e4edaff149d5f51f34ab7a971a2f320876f41a500b749821a61da0998",
+        "README.md": "0d2a5d60b7177630297ac442d7b49cf87d733bd40d18af85d708fe02b43cca66",
         "scripts/wiki-scale-benchmark.ts": "e6a0841fc8741a568af9300326472524d5a1875f324e5603404e5fe0c5257b52"
       },
       "verification": {

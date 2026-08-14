@@ -81,7 +81,7 @@ Full command reference: [docs/commands.md](docs/commands.md).
 
 ## Try it here
 
-This repository **dogfoods itself** — its own `wiki/` describes the toolkit, and its own gates run in CI. Clone it and run:
+This repository **dogfoods itself** — its own `wiki/` describes the toolkit, its gates run locally, and the exact result is published as the required GitHub commit status. Clone it and run:
 
 ```sh
 bun install
