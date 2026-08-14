@@ -95,9 +95,13 @@ controlled pilot records them. Compact results are digest-bound to retained
 full evidence, and exit validation reruns the Primary, kit, adoption,
 selected-work, and focused-review correctness floors.
 TE-04 reports retained authority-object bytes separately from non-diff
-structural overhead; its fixture-bound 28,716-byte structural ceiling detects
+structural overhead; its fixture-bound 29,974-byte structural ceiling detects
 manifest/choreography re-expansion without misclassifying required current
-authority or invariant body growth as duplicated review structure.
+authority or invariant body growth as duplicated review structure. The
+1,258-byte increase from the 28,716-byte merge-base reference is entirely the
+focused-manifest cost of the required `local-check.ts` and
+`github-local-status.ts` source paths; reviewer source breadth remains 28,
+below the pinned TE-00 bound of 33.
 
 `kit-modularity-baseline.ts` pins the pre-motion revision and records compiler
 edges, public exports, CLI fixtures, generated paths, suite ownership,
