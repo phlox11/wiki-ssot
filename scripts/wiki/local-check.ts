@@ -399,7 +399,10 @@ function installedToolkitPaths(view: RepoView): { paths: Set<string>; findings: 
     for (const section of ["files", "managed"] as const) {
       const entries = raw[section];
       if (entries != null && typeof entries === "object" && !Array.isArray(entries)) {
-        for (const path of Object.keys(entries as Record<string, unknown>)) paths.add(path);
+        for (const [path, entry] of Object.entries(entries as Record<string, unknown>)) {
+          if (section === "managed" || (entry != null && typeof entry === "object" && !Array.isArray(entry)
+            && (entry as Record<string, unknown>).ownership === "kit")) paths.add(path);
+        }
       }
     }
     return { paths, findings: [] };

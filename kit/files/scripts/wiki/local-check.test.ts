@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { dirname, join } from "node:path";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { createRepoView, generatedCoreFiles, loadWikiPages, readConfig, reviewCheck, validatePrMetadata, verifyState, type PrMetadata } from "./core";
+import { createRepoView, generatedCoreFiles, kitOwnedChangedFiles, loadWikiPages, readConfig, reviewCheck, validatePrMetadata, verifyState, type PrMetadata } from "./core";
 import { localCheckDigest, parseLocalCheckResult, runLocalCheck, validateLocalCheckResult, type LocalCheckResult } from "./local-check";
 import { jsonStable } from "./serialization";
 
@@ -479,6 +479,86 @@ describe("canonical local check result", () => {
       expect.objectContaining({ code: "local-check-id-conflict", severity: "error" }),
     ]));
     expect(conflicting.ok).toBe(false);
+  });
+
+  test("keeps adopter seed files out of kit ownership and tooling selection", () => {
+    const root = repo({ v2: true });
+    put(root, "tsconfig.json", "{\"compilerOptions\":{}}\n");
+    put(root, "scripts/wiki/local-check.ts", "export const baseline = true;\n");
+    put(root, "AGENTS.md", "managed\n");
+    put(root, ".wiki/kit-manifest.json", jsonStable({
+      files: {
+        ".wiki/coverage.json": { ownership: "seed", sha256: "seed" },
+        ".wiki/state.json": { ownership: "seed", sha256: "seed" },
+        "tsconfig.json": { ownership: "seed", sha256: "seed" },
+        "scripts/wiki/local-check.ts": { ownership: "kit", sha256: "kit" },
+      },
+      managed: {
+        "AGENTS.md": { start: "managed:start", end: "managed:end", sha256: "managed" },
+      },
+    }));
+    run(root, ["git", "add", "."]);
+    run(root, ["git", "commit", "-qm", "adopter manifest"]);
+
+    const manifestView = createRepoView(root);
+    expect(kitOwnedChangedFiles(manifestView, [
+      ".wiki/coverage.json",
+      ".wiki/state.json",
+      "tsconfig.json",
+      "scripts/wiki/local-check.ts",
+      "AGENTS.md",
+      ".wiki/kit-manifest.json",
+    ])).toEqual([".wiki/kit-manifest.json", "AGENTS.md", "scripts/wiki/local-check.ts"].sort((a, b) => a.localeCompare(b)));
+
+    put(root, "tsconfig.json", "{\"compilerOptions\":{\"strict\":true}}\n");
+    run(root, ["git", "add", "tsconfig.json"]);
+    run(root, ["git", "commit", "-qm", "seed-only change"]);
+    const seedView = createRepoView(root);
+    const seedCalls: string[][] = [];
+    const seedResult = runLocalCheck({
+      root,
+      view: seedView,
+      pages: loadWikiPages(seedView).pages,
+      base: "HEAD~1",
+      metadataRaw: metadata(),
+      dirtyPaths: [],
+      runToolingChecks: true,
+      argvRunner: (argv) => {
+        seedCalls.push(argv);
+        return { exitCode: 0, stdout: "", stderr: "" };
+      },
+    });
+    expect(seedResult.checks.review.requirement_reasons).not.toContainEqual(expect.stringContaining("kit-owned files changed"));
+    expect(seedResult.checks.tooling.changed_files).toEqual([]);
+    expect(seedCalls.map((argv) => argv.join(" "))).not.toEqual(expect.arrayContaining([
+      "bun run wiki:tooling:typecheck",
+      "bun run wiki:tooling:test",
+    ]));
+
+    put(root, "scripts/wiki/local-check.ts", "export const baseline = false;\n");
+    run(root, ["git", "add", "scripts/wiki/local-check.ts"]);
+    run(root, ["git", "commit", "-qm", "kit-owned change"]);
+    const kitView = createRepoView(root);
+    const kitCalls: string[][] = [];
+    const kitResult = runLocalCheck({
+      root,
+      view: kitView,
+      pages: loadWikiPages(kitView).pages,
+      base: "HEAD~1",
+      metadataRaw: metadata(),
+      dirtyPaths: [],
+      runToolingChecks: true,
+      argvRunner: (argv) => {
+        kitCalls.push(argv);
+        return { exitCode: 0, stdout: "", stderr: "" };
+      },
+    });
+    expect(kitResult.checks.tooling.changed_files).toEqual(["scripts/wiki/local-check.ts"]);
+    expect(kitResult.checks.review.requirement_reasons).toContain("kit-owned files changed: scripts/wiki/local-check.ts");
+    expect(kitCalls.map((argv) => argv.join(" "))).toEqual(expect.arrayContaining([
+      "bun run wiki:tooling:typecheck",
+      "bun run wiki:tooling:test",
+    ]));
   });
 
   test("keeps one legacy mirror harmless during a v2 local migration", () => {

@@ -30,7 +30,7 @@
         "scripts/wiki/github-local-status.test.ts": "de057e0efc4099924f854f7500e0b43b280451db782f4b1f89e450f2dfab0245",
         "scripts/wiki/github-local-status.ts": "0c18e15d55153d6ccc398b7da4d3cd4a401ac68d03fe838553d2730f6938643a",
         "scripts/wiki/impact.test.ts": "0925b755e6d8f8804b89a505a615fa2d3517a5239f8bff30a366977df786a555",
-        "scripts/wiki/impact.ts": "d643962b665cc4dda3d5830f452c510e2823c735a90434b8f353b9ea7ab9da81",
+        "scripts/wiki/impact.ts": "31c491b473d1ed657323458b6f164b4133928b7097b8384d6734abcdb56013ad",
         "scripts/wiki/inventories.example.ts": "c77492bf25a8e89d6c5f2de5d1238bb426e41b81cd255d7c153e05d295e91c4e",
         "scripts/wiki/inventories.ts": "131ed20abeb41498461d07db72beef8b18fc80977364dca0b181450cca2f75ca",
         "scripts/wiki/kit-growth-guard.test.ts": "ba5d217ff983b4cf0610b4f529802c0605112df2611ce3b8691302ee27cec83e",
@@ -44,10 +44,10 @@
         "scripts/wiki/kit-packaging.ts": "7210ac4563dd5ca1e12ad73dd68fbd5b0ade9a8483736ed761abfc5d270efd1f",
         "scripts/wiki/kit-sync.ts": "05d5d1d5187a4c470c47f52efe4483f5d05c27fc43f234f0ebfb071c8a57f9d9",
         "scripts/wiki/kit.test.ts": "9fd1d07b928c12c2a8ce98591691b683a51a3617136d614ba9aa4cff2b6d0a1f",
-        "scripts/wiki/local-check.test.ts": "3d33038d48489f1415f6af2931caa8e1ebe15df57535a70711613970f834cb60",
-        "scripts/wiki/local-check.ts": "446542c4d9421c395fb799b02ef06b6f38c03a525d8dd33cf577477e11153108",
+        "scripts/wiki/local-check.test.ts": "a8a943f3fe68f81435d84d786dfc1c2d5921ffc57525d672c7d5f89a5289bd40",
+        "scripts/wiki/local-check.ts": "579d785ce56472c5c929338cdd7e4cc094d7186a30dc844dee1614d4ba6bb5d1",
         "scripts/wiki/model.ts": "c8d8a131feeab09ab4b8d454d8559c4c9e4f5a7c1b4fdb74a191c636dedcca54",
-        "scripts/wiki/new-repository-adoption.test.ts": "1a5371bffcd98c98eef35e062e2fe0a4a88d31254961f54ac89d2993b969bf38",
+        "scripts/wiki/new-repository-adoption.test.ts": "5d120023dfb71bcaf009eab7273c22607333c2172688c0db819027bd6e6a7a6f",
         "scripts/wiki/page-validation.test.ts": "1d2366d38c4caf320861dac840786da91c099228b9f413b40b4f6b0d7846fffb",
         "scripts/wiki/page-validation.ts": "fc6673bcc12d22d19c67ac4c62fd3e39f8d7c3bacb87659e502fcae0f622b3b2",
         "scripts/wiki/primary-baseline.test.ts": "4a0df89a35bd811ffbca75865a3153abe869caae11d1f585c599c902ee4e16b7",
@@ -92,7 +92,8 @@
         "scripts/wiki/work-validation.ts": "006704cac96d7dc83e4487c18db4bc35f772368b63bb5434c12a577c44f2af9a"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "Adopter ownership filtering now matches the existing actual kit-owned contract."
       }
     },
     "operations/enforcement": {
@@ -100,7 +101,7 @@
         ".github/pull_request_template.md": "bb93ac8f48dd1ae163f6b4e7243e814fcb3adba8e7cdef60d760e5e72bd168a4",
         ".husky/pre-commit": "6391e4a8b23e6eddb62b6863dbfd1a9aca995d0dde92646c7601f78eeb807eb1",
         ".husky/pre-push": "4b8ec74d4d4bc80d52e3f4bbf0c9c66d1cbf25432ff19460a7cc03daf61f0df2",
-        ".wiki/config.json": "0dbeedac2e3fd3d6d18484b3f10596e0b688b1a53458c66d81c941575b76fc63",
+        ".wiki/config.json": "8ca85f82af149a5406c32f07b1c242cf6ccbc0dbaa6f759ed1b693ec5de94031",
         "AGENTS.md": "a2ddcb0915c7e1af571ee244a922c3a799d234f3177be516d387291bd19b33b1",
         "package.json": "df07a03aa60c13b1a78aa4c7545c4ba28542443e85f9da63805268fad25e9d9d",
         "scripts/wiki/apply.ts": "87010d17451918b028ed453dab2d15dfa320bd36fdea01ed9a6b5ed9e22506ea",
@@ -117,10 +118,10 @@
         "scripts/wiki/generated-views.ts": "629f2ff42ff87851d3516a0c178f42a229c074f7c08a14a9d069b23fdf941af7",
         "scripts/wiki/github-attestation.ts": "cad5290748265f5b5cd1a5503f075cfb837283ca0e8b4e7c004567deb33139cb",
         "scripts/wiki/github-local-status.ts": "0c18e15d55153d6ccc398b7da4d3cd4a401ac68d03fe838553d2730f6938643a",
-        "scripts/wiki/impact.ts": "d643962b665cc4dda3d5830f452c510e2823c735a90434b8f353b9ea7ab9da81",
+        "scripts/wiki/impact.ts": "31c491b473d1ed657323458b6f164b4133928b7097b8384d6734abcdb56013ad",
         "scripts/wiki/kit-growth-guard.ts": "a9d1d5aa876acdf9923c64f273eb7f420a6f41a76335db6bb2c55779d5c5b614",
         "scripts/wiki/kit-packaging.ts": "7210ac4563dd5ca1e12ad73dd68fbd5b0ade9a8483736ed761abfc5d270efd1f",
-        "scripts/wiki/local-check.ts": "446542c4d9421c395fb799b02ef06b6f38c03a525d8dd33cf577477e11153108",
+        "scripts/wiki/local-check.ts": "579d785ce56472c5c929338cdd7e4cc094d7186a30dc844dee1614d4ba6bb5d1",
         "scripts/wiki/model.ts": "c8d8a131feeab09ab4b8d454d8559c4c9e4f5a7c1b4fdb74a191c636dedcca54",
         "scripts/wiki/page-validation.ts": "fc6673bcc12d22d19c67ac4c62fd3e39f8d7c3bacb87659e502fcae0f622b3b2",
         "scripts/wiki/repository-view.ts": "62f732eada1cf31e520c8886d31f54611e1cb99992f7f308f60babe0fb2ac505",
@@ -150,10 +151,10 @@
         "scripts/wiki/discovery.ts": "f1c5052d182b49aae3306fa53a75b8b1ffa20fc2c3e9a5fa953644e2c52180cc",
         "scripts/wiki/generated-views.ts": "629f2ff42ff87851d3516a0c178f42a229c074f7c08a14a9d069b23fdf941af7",
         "scripts/wiki/github-local-status.ts": "0c18e15d55153d6ccc398b7da4d3cd4a401ac68d03fe838553d2730f6938643a",
-        "scripts/wiki/impact.ts": "d643962b665cc4dda3d5830f452c510e2823c735a90434b8f353b9ea7ab9da81",
+        "scripts/wiki/impact.ts": "31c491b473d1ed657323458b6f164b4133928b7097b8384d6734abcdb56013ad",
         "scripts/wiki/kit-growth-guard.ts": "a9d1d5aa876acdf9923c64f273eb7f420a6f41a76335db6bb2c55779d5c5b614",
         "scripts/wiki/kit-packaging.ts": "7210ac4563dd5ca1e12ad73dd68fbd5b0ade9a8483736ed761abfc5d270efd1f",
-        "scripts/wiki/local-check.ts": "446542c4d9421c395fb799b02ef06b6f38c03a525d8dd33cf577477e11153108",
+        "scripts/wiki/local-check.ts": "579d785ce56472c5c929338cdd7e4cc094d7186a30dc844dee1614d4ba6bb5d1",
         "scripts/wiki/model.ts": "c8d8a131feeab09ab4b8d454d8559c4c9e4f5a7c1b4fdb74a191c636dedcca54",
         "scripts/wiki/page-validation.ts": "fc6673bcc12d22d19c67ac4c62fd3e39f8d7c3bacb87659e502fcae0f622b3b2",
         "scripts/wiki/repository-view.ts": "62f732eada1cf31e520c8886d31f54611e1cb99992f7f308f60babe0fb2ac505",
@@ -164,7 +165,8 @@
         "scripts/wiki/work-validation.ts": "006704cac96d7dc83e4487c18db4bc35f772368b63bb5434c12a577c44f2af9a"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "Seed files are excluded to restore the already documented ownership invariant."
       }
     },
     "product/scope": {

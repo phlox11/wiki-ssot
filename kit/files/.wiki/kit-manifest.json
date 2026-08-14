@@ -1,5 +1,5 @@
 {
-  "digest": "7ba9bbc2e861a2979932d2bde392f64fe57a322967d1789e83f1ffdb0d1ea6e8",
+  "digest": "9b68bb39f17a0ce7c397d576d8bf14cb5e6ccaf415d9e04b1e869c48a4c3a322",
   "files": {
     ".gitignore": {
       "ownership": "seed",
@@ -123,7 +123,7 @@
     },
     "scripts/wiki/impact.ts": {
       "ownership": "kit",
-      "sha256": "d643962b665cc4dda3d5830f452c510e2823c735a90434b8f353b9ea7ab9da81"
+      "sha256": "31c491b473d1ed657323458b6f164b4133928b7097b8384d6734abcdb56013ad"
     },
     "scripts/wiki/inventories.ts": {
       "ownership": "seed",
@@ -147,11 +147,11 @@
     },
     "scripts/wiki/local-check.test.ts": {
       "ownership": "kit",
-      "sha256": "3d33038d48489f1415f6af2931caa8e1ebe15df57535a70711613970f834cb60"
+      "sha256": "a8a943f3fe68f81435d84d786dfc1c2d5921ffc57525d672c7d5f89a5289bd40"
     },
     "scripts/wiki/local-check.ts": {
       "ownership": "kit",
-      "sha256": "446542c4d9421c395fb799b02ef06b6f38c03a525d8dd33cf577477e11153108"
+      "sha256": "579d785ce56472c5c929338cdd7e4cc094d7186a30dc844dee1614d4ba6bb5d1"
     },
     "scripts/wiki/model.ts": {
       "ownership": "kit",

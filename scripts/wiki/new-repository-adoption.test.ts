@@ -349,9 +349,9 @@ sources:
     ).stdout);
     expect(preflight).toMatchObject({
       ok: true,
-      ready: false,
-      status: "review-required",
-      requirementReasons: ["kit-owned files changed: .wiki/coverage.json, .wiki/state.json, tsconfig.json"],
+      ready: true,
+      status: "not-required",
+      requirementReasons: [],
     });
 
     expect(run(repo, ["git", "status", "--porcelain"]).stdout).toBe("");

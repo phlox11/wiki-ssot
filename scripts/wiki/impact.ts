@@ -144,7 +144,10 @@ export function kitOwnedChangedFiles(view: RepoView, changed: string[]): string[
       for (const section of ["files", "managed"] as const) {
         const entries = manifest[section];
         if (entries != null && typeof entries === "object" && !Array.isArray(entries)) {
-          for (const path of Object.keys(entries as Record<string, unknown>)) owned.add(path);
+          for (const [path, entry] of Object.entries(entries as Record<string, unknown>)) {
+            if (section === "managed" || (entry != null && typeof entry === "object" && !Array.isArray(entry)
+              && (entry as Record<string, unknown>).ownership === "kit")) owned.add(path);
+          }
         }
       }
       owned.add(".wiki/kit-manifest.json");

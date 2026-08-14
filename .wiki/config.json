@@ -26,6 +26,7 @@
         { "glob": "package.json", "reason": "Project command changes can alter the local gate inputs." },
         { "glob": "wiki/SCHEMA.md", "reason": "Wiki schema changes can alter the meaning of current records." },
         { "glob": "wiki/WORKFLOW.md", "reason": "Wiki workflow changes can alter required authoring procedure." },
+        { "glob": "wiki/architecture/engine.md", "reason": "Engine contract changes require independent SSOT reconciliation." },
         { "glob": "wiki/operations/enforcement.md", "reason": "Enforcement contract changes can alter merge safety expectations." },
         { "glob": "wiki/product/invariants.md", "reason": "Invariant contract changes require independent SSOT reconciliation." },
         { "glob": "wiki/product/scope.md", "reason": "Product scope changes require independent SSOT reconciliation." }
