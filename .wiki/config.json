@@ -10,6 +10,7 @@
     "statusContext": "wiki-ssot/local"
   },
   "localChecks": [
+    { "id": "project-typecheck", "argv": ["bun", "run", "typecheck"] },
     { "id": "tooling-typecheck", "argv": ["bun", "run", "wiki:tooling:typecheck"] },
     { "id": "tooling-test", "argv": ["bun", "run", "wiki:tooling:test"] }
   ],

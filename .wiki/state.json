@@ -100,7 +100,7 @@
         ".github/pull_request_template.md": "bb93ac8f48dd1ae163f6b4e7243e814fcb3adba8e7cdef60d760e5e72bd168a4",
         ".husky/pre-commit": "6391e4a8b23e6eddb62b6863dbfd1a9aca995d0dde92646c7601f78eeb807eb1",
         ".husky/pre-push": "4b8ec74d4d4bc80d52e3f4bbf0c9c66d1cbf25432ff19460a7cc03daf61f0df2",
-        ".wiki/config.json": "8ca85f82af149a5406c32f07b1c242cf6ccbc0dbaa6f759ed1b693ec5de94031",
+        ".wiki/config.json": "9a85e8aa21f25711766f504feef8bad85f4ce01d8b214be7f365a8ba80ddd763",
         "AGENTS.md": "a2ddcb0915c7e1af571ee244a922c3a799d234f3177be516d387291bd19b33b1",
         "package.json": "df07a03aa60c13b1a78aa4c7545c4ba28542443e85f9da63805268fad25e9d9d",
         "scripts/wiki/apply.ts": "87010d17451918b028ed453dab2d15dfa320bd36fdea01ed9a6b5ed9e22506ea",
