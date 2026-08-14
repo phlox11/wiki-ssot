@@ -47,11 +47,19 @@ export const TE04_ENGINE_PATHS = [
   "scripts/wiki/cli-render.ts",
   "scripts/wiki/cli-discovery-handlers.ts",
   "scripts/wiki/cli-generation-handlers.ts",
+  "scripts/wiki/local-check.ts",
+  "scripts/wiki/github-local-status.ts",
   "scripts/wiki/cli-validation-handlers.ts",
   "scripts/wiki/cli-review-handlers.ts",
 ] as const;
 /** TE-00 publisher review source breadth observed by the pinned baseline. */
 export const TE00_REVIEWER_SOURCE_BREADTH = 33;
+/**
+ * Exact origin/main structural non-diff bundle bytes. Authority/invariant
+ * objects are intentionally measured separately because their current
+ * bodies remain required review inputs and may legitimately evolve.
+ */
+export const TE04_ORIGIN_MAIN_STRUCTURAL_NON_DIFF_BYTES = 28_716;
 
 export type Te04Availability = "available" | "unavailable";
 export type Te04Diagnostic = {
@@ -72,6 +80,8 @@ export type Te04FocusedReviewMeasurement = {
   component_bytes: Record<string, number>;
   diff_bytes: number;
   non_diff_bundle_bytes: number;
+  authority_object_bytes: number;
+  structural_non_diff_bytes: number;
   reviewer_source_breadth: number;
   reviewer_source_paths: string[];
   model_calls: Te04Diagnostic;
@@ -174,7 +184,7 @@ export function measureTe04FocusedReview(root = PROJECT_ROOT): Te04FocusedReview
     const cli = join(candidateRoot, CLI_PATH);
     const page = join(candidateRoot, "wiki/architecture/engine.md");
     // The harness is also runnable from a dirty authoring checkout. Copy the
-    // two engine entrypoints into the disposable candidate so its exact
+    // engine dependency closure into the disposable candidate so its exact
     // implementation revision includes the current focused-review code; the
     // candidate itself remains isolated and is never pushed.
     for (const path of TE04_ENGINE_PATHS) {
@@ -195,16 +205,26 @@ export function measureTe04FocusedReview(root = PROJECT_ROOT): Te04FocusedReview
       const result = Bun.spawnSync(["git", "show", `${repositorySha}:${path}`], { cwd: root, stdout: "pipe", stderr: "pipe" });
       return result.exitCode !== 0 || result.stdout.toString() !== engineSource(root, path);
     });
-    if (copiedEngineDiffersFromRepository) {
-      requiredExternal(candidateRoot, ["git", "add", ...enginePathsInRoot]);
-      requiredExternal(candidateRoot, ["git", "-c", "user.name=TE-04 fixture", "-c", "user.email=te04-fixture@example.invalid", "commit", "--quiet", "-m", "TE-04 current engine snapshot"], {
-        GIT_AUTHOR_NAME: "TE-04 fixture",
-        GIT_AUTHOR_EMAIL: "te04-fixture@example.invalid",
-        GIT_COMMITTER_NAME: "TE-04 fixture",
-        GIT_COMMITTER_EMAIL: "te04-fixture@example.invalid",
-        GIT_AUTHOR_DATE: "2000-01-01T00:00:00Z",
-        GIT_COMMITTER_DATE: "2000-01-01T00:00:00Z",
-      });
+    // Current dirty/working-tree engine copies need a consistent state
+    // snapshot before they become the focused candidate's base. Historical
+    // fallback fixtures deliberately retain their requested pinned revision:
+    // their supplemental dependency files are ignored and must not trigger a
+    // new verification or snapshot commit.
+    if (!historicalDependencyFallback && copiedEngineDiffersFromRepository) {
+      required(candidateRoot, [cli, "verify", "--page", "architecture/engine"]);
+      requiredExternal(candidateRoot, ["git", "add", ...enginePathsInRoot, ".wiki/state.json"]);
+      const staged = Bun.spawnSync(["git", "diff", "--cached", "--quiet"], { cwd: candidateRoot, stdout: "pipe", stderr: "pipe" });
+      if (staged.exitCode !== 0 && staged.exitCode !== 1) throw new Error(staged.stderr.toString().trim() || "unable to inspect TE-04 engine snapshot");
+      if (staged.exitCode === 1) {
+        requiredExternal(candidateRoot, ["git", "-c", "user.name=TE-04 fixture", "-c", "user.email=te04-fixture@example.invalid", "commit", "--quiet", "-m", "TE-04 current engine snapshot"], {
+          GIT_AUTHOR_NAME: "TE-04 fixture",
+          GIT_AUTHOR_EMAIL: "te04-fixture@example.invalid",
+          GIT_COMMITTER_NAME: "TE-04 fixture",
+          GIT_COMMITTER_EMAIL: "te04-fixture@example.invalid",
+          GIT_AUTHOR_DATE: "2000-01-01T00:00:00Z",
+          GIT_COMMITTER_DATE: "2000-01-01T00:00:00Z",
+        });
+      }
     }
     const baseSha = git(candidateRoot, ["rev-parse", "HEAD^{commit}"]);
     writeFileSync(page, `${readFileSync(page, "utf8")}\n## TE-04 disposable focused-review candidate\n\nThis marker exists only in the fixed measurement fixture.\n`, "utf8");
@@ -255,6 +275,8 @@ export function measureTe04FocusedReview(root = PROJECT_ROOT): Te04FocusedReview
     const preflight = JSON.parse(preflightRaw) as { status?: string; ready?: boolean };
     if (preflight.status !== "pass") throw new Error(`TE-04 disposable preflight did not PASS\n${preflightRaw}`);
     const activeMs = performance.now() - started;
+    const nonDiffBundleBytes = rawBundleBytes - diffBytes;
+    const authorityObjectBytes = componentBytes.objects ?? 0;
     return {
       version: 1,
       base_sha: baseSha,
@@ -266,7 +288,9 @@ export function measureTe04FocusedReview(root = PROJECT_ROOT): Te04FocusedReview
       raw_bundle_bytes: rawBundleBytes,
       component_bytes: componentBytes,
       diff_bytes: diffBytes,
-      non_diff_bundle_bytes: rawBundleBytes - diffBytes,
+      non_diff_bundle_bytes: nonDiffBundleBytes,
+      authority_object_bytes: authorityObjectBytes,
+      structural_non_diff_bytes: nonDiffBundleBytes - authorityObjectBytes,
       reviewer_source_breadth: sourcePaths.length,
       reviewer_source_paths: sourcePaths,
       model_calls: { availability: "unavailable", value: null, method: "deterministic local harness; no provider invocation", limitation: "Model calls require an external controlled pilot and are not inferred from repository bytes." },
@@ -274,7 +298,7 @@ export function measureTe04FocusedReview(root = PROJECT_ROOT): Te04FocusedReview
       provider_latency: { availability: "unavailable", value: null, method: "not captured", limitation: "The deterministic harness intentionally makes no model/provider call." },
       notes: [
         `Reviewer source breadth is ${sourcePaths.length}; TE-00 pinned breadth reference is ${TE00_REVIEWER_SOURCE_BREADTH}.`,
-        "Non-diff bytes include the focused manifest, content-addressed Wiki objects, source declarations, and review contract files.",
+        `Non-diff bytes separate ${authorityObjectBytes} authority/invariant object bytes from ${nonDiffBundleBytes - authorityObjectBytes} structural bytes; the origin/main structural reference is ${TE04_ORIGIN_MAIN_STRUCTURAL_NON_DIFF_BYTES}.`,
         "Exact PASS and portable fixture correctness are local engine evidence; model-call count and provider timing remain external observations.",
       ],
     };

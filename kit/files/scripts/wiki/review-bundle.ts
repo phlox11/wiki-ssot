@@ -11,7 +11,7 @@ import type {
 } from "./model";
 import { currentPages } from "./discovery";
 import { hashContent, jsonStable } from "./serialization";
-import { canonicalPrMetadata, type ImpactReport, type PrMetadata } from "./impact";
+import { affectedInvariantIdsForReview, canonicalPrMetadata, type ImpactReport, type PrMetadata } from "./impact";
 
 export type ReviewManifest = {
   version: 1;
@@ -901,24 +901,7 @@ export function buildReviewManifest(view: RepoView, pages: WikiPage[], report: I
   const focused = focusedReviewData(view, pages, report, metadata);
   const files = reviewBundleFiles(view, pages, report, metadata);
   const fileDigests = Object.fromEntries(Object.entries(files).map(([path, content]) => [path, hashContent(content)]).sort(([a], [b]) => a.localeCompare(b)));
-  const baseInvariantIds = new Set(git(view.root, ["ls-tree", "-r", "--name-only", report.mergeBase, "--", "wiki"], true)
-    .split("\n")
-    .filter(isContentPage)
-    .flatMap((path) => {
-      const raw = git(view.root, ["show", `${report.mergeBase}:${path}`], true);
-      if (!raw) return [];
-      try {
-        const page = parseWikiPage(path, raw);
-        return page.data.status === "current" && page.data.kind === "invariant" ? [page.data.id] : [];
-      } catch {
-        return [];
-      }
-    }));
-  const affectedInvariantIds = new Set(metadata?.affected_invariants ?? []);
-  for (const id of report.affectedPages) {
-    if (baseInvariantIds.has(id) || pages.find((page) => page.data.id === id)?.data.kind === "invariant") affectedInvariantIds.add(id);
-  }
-  for (const conflict of report.affectedConflicts) for (const id of conflict.affectedInvariants) affectedInvariantIds.add(id);
+  const affectedInvariantIds = affectedInvariantIdsForReview(view, pages, report, metadata);
   const core = {
     version: 1 as const,
     base_ref: report.base.trim().replaceAll("\\", "/"),
@@ -928,7 +911,7 @@ export function buildReviewManifest(view: RepoView, pages: WikiPage[], report: I
     impact_report_digest: hashContent(files["impact.json"]),
     diff_digest: hashContent(files["diff.patch"]),
     affected_page_ids: [...report.affectedPages].sort((a, b) => a.localeCompare(b)),
-    affected_invariant_ids: [...affectedInvariantIds].sort((a, b) => a.localeCompare(b)),
+    affected_invariant_ids: affectedInvariantIds,
     affected_conflict_ids: report.affectedConflicts.map((conflict) => conflict.id).sort((a, b) => a.localeCompare(b)),
     file_digests: fileDigests,
     focused_manifest_digest: hashContent(files["focused-manifest.json"]),

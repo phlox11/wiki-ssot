@@ -115,6 +115,36 @@ Apply never rewrites project-owned current/proposal/conflict records, configurat
 
 The dedicated `.github/workflows/wiki-ssot.yml` runs only Wiki SSOT jobs. The host keeps its own build/test workflow and script names, avoiding duplicate assumptions about the project's stack.
 
+## Bootstrap local result and status
+
+The shipped Bootstrap commands add a local, exact-result path while the
+existing Actions and Draft/Ready Fresh-context attestation remain in place.
+After committing a candidate, run:
+
+```sh
+bun run wiki:check -- --base origin/main --metadata pr-body.md \
+  --output /tmp/wiki-result.json
+# With a review report:
+bun run wiki:check -- --base origin/main --metadata pr-body.md \
+  --report review-report.json --output /tmp/wiki-result.json
+bun run wiki:publish -- --result /tmp/wiki-result.json
+# Or identify the PR explicitly:
+bun run wiki:publish -- --result /tmp/wiki-result.json --repo owner/repo --pr 123
+```
+
+`wiki:check` binds the committed HEAD, resolved base/merge-base, canonical
+metadata digest, check/review summaries and findings, and a deterministic
+result digest. It permits only the explicitly named metadata/report/result
+artifacts outside the committed tree. A changed toolkit-owned file selects the
+Wiki tooling typecheck and full tooling suite; publisher mode also runs kit
+freshness and growth guards. `wiki:publish` revalidates the result,
+requires matching clean local and remote PR SHAs, upserts one
+`wiki-ssot:local-status` marker comment, and posts `wiki-ssot/local` afterward.
+Warnings still produce success; malformed, stale, mismatched, or API-failed
+operations return non-zero. Publishing uses the authenticated `gh` CLI and
+introduces no daemon, GitHub App, or hosted service. Existing workflows remain
+the active deployed CI rail until a later cutover.
+
 ## Requirements and trust boundary
 
 - Bun 1.1 or newer and Git.

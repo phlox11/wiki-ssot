@@ -120,6 +120,10 @@ export const KIT_ENTRIES: KitEntry[] = [
   { target: "scripts/wiki/cli-generation-handlers.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/cli-generation-handlers.ts" } },
   { target: "scripts/wiki/cli-validation-handlers.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/cli-validation-handlers.ts" } },
   { target: "scripts/wiki/cli-review-handlers.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/cli-review-handlers.ts" } },
+  { target: "scripts/wiki/local-check.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/local-check.ts" } },
+  { target: "scripts/wiki/github-local-status.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/github-local-status.ts" } },
+  { target: "scripts/wiki/local-check.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/local-check.test.ts" } },
+  { target: "scripts/wiki/github-local-status.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/github-local-status.test.ts" } },
   { target: "scripts/wiki/github-attestation.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/github-attestation.ts" } },
   // Reference, not copied at all: it is documentation of the inventory patterns,
   // read from the kit checkout when someone writes their own `inventories.ts`.

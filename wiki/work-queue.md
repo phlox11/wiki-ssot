@@ -15,9 +15,9 @@ tags: [generated, work, queue]
 
 This is a deterministic view of structured `work_items` on proposal pages. It is not current product authority; open the owning proposal and then the returned current context.
 
-**Recommended next:** none. Do not invent work; inspect blockers and open conflicts below.
+**Recommended next:** `LS-01` — run `bun run wiki:context -- --work LS-01`.
 
-Outstanding work: 12. Completed work hidden: 36; run `bun run wiki:work -- --all` to inspect it.
+Outstanding work: 16. Completed work hidden: 37; run `bun run wiki:work -- --all` to inspect it.
 
 ## Active
 
@@ -29,13 +29,15 @@ Outstanding work: 12. Completed work hidden: 36; run `bun run wiki:work -- --all
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| — | — | — | — | — | None | — |
+| LS-01 | critical | agent | [proposal/local-enforcement-scope-control](./proposals/local-enforcement-scope-control.md) | LS-00 | Cut the publisher over to version 2 local-status enforcement | `bun run wiki:context -- --work LS-01` |
 
 ## Waiting
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| — | — | — | — | — | None | — |
+| LS-02 | high | agent | [proposal/local-enforcement-scope-control](./proposals/local-enforcement-scope-control.md) | LS-01 | Bound source context and independent-review selection with auditable causes — Waiting on: LS-01 | `bun run wiki:context -- --work LS-02` |
+| LS-03 | high | agent | [proposal/local-enforcement-scope-control](./proposals/local-enforcement-scope-control.md) | LS-02 | Remove validation, agent-rule, context, work-output, and publication choreography duplication — Waiting on: LS-02 | `bun run wiki:context -- --work LS-03` |
+| LS-04 | high | either | [proposal/local-enforcement-scope-control](./proposals/local-enforcement-scope-control.md) | LS-03 | Validate safe version 1 upgrades and migrate known adopters sequentially — Waiting on: LS-03 | `bun run wiki:context -- --work LS-04` |
 
 ## Blocked
 

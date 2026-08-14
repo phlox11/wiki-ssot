@@ -20,6 +20,7 @@
     "wiki:index": "bun scripts/wiki/cli.ts index",
     "wiki:inventory": "bun scripts/wiki/cli.ts inventory",
     "wiki:lint": "bun scripts/wiki/cli.ts lint",
+    "wiki:publish": "bun scripts/wiki/cli.ts publish",
     "wiki:review-bundle": "bun scripts/wiki/cli.ts review-bundle",
     "wiki:review-check": "bun scripts/wiki/cli.ts review-check",
     "wiki:review-preflight": "bun scripts/wiki/cli.ts review-preflight",

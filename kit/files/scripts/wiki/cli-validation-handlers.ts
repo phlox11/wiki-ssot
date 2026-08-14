@@ -18,6 +18,9 @@ import { validateIntegrationSeams } from "./verification";
 import { emit, has, many, one, printFindings, type CliContext } from "./cli-runtime";
 import type { Finding } from "./model";
 import { UsageError } from "./verification";
+import { localCheckDirtyPaths, readLocalInput, runLocalCheck, writeLocalCheckResult } from "./local-check";
+import { publishLocalStatus } from "./github-local-status";
+import { resolve } from "node:path";
 
 export function handleLint(context: CliContext): void {
   const result = allLintFindings(context.view, true);
@@ -71,6 +74,10 @@ export function handleVerify(context: CliContext): void {
 }
 
 export function handleCheck(context: CliContext): void {
+  if (one(context.parsed, "output") != null) {
+    handleLocalCheck(context);
+    return;
+  }
   const lint = allLintFindings(context.view, true);
   const generated = compareGenerated(context.view, { ...generatedCoreFiles(lint.pages, readConfig(context.view).name), ...generateInventories(context.view) });
   const validated = validatePrMetadata(process.env.WIKI_PR_BODY, process.env.GITHUB_EVENT_NAME === "pull_request");
@@ -83,6 +90,58 @@ export function handleCheck(context: CliContext): void {
   if (structural.some((item) => item.severity === "error") || (has(context.parsed, "enforce") && report.findings.some((item) => item.severity === "error")) || (has(context.parsed, "enforce-conflicts") && report.findings.some(isConflictGuardFinding))) process.exitCode = 1;
 }
 
+/** The opt-in canonical local gate. Legacy `wiki:check` output remains above. */
+export function handleLocalCheck(context: CliContext): void {
+  if (context.staged) throw new UsageError("canonical wiki:check does not support --staged");
+  const outputPath = one(context.parsed, "output");
+  if (!outputPath || outputPath === "true") throw new UsageError("wiki:check --output requires a result path");
+  const metadataPath = one(context.parsed, "metadata");
+  const reportPath = one(context.parsed, "report");
+  const metadataRaw = readLocalInput(context.root, metadataPath) ?? process.env.WIKI_PR_BODY;
+  const reportRaw = readLocalInput(context.root, reportPath);
+  const allowed = [metadataPath, reportPath, outputPath].filter((path): path is string => path != null);
+  const dirty = localCheckDirtyPaths(context.root, allowed);
+  const result = runLocalCheck({
+    root: context.root,
+    view: context.view,
+    pages: context.loaded.pages,
+    base: one(context.parsed, "base"),
+    metadataRaw,
+    reportRaw,
+    dirtyPaths: dirty,
+    inventoryFindings: compareGenerated(context.view, generateInventories(context.view)),
+    // The canonical CLI gate is the only caller that opts into the full
+    // toolkit-owned orchestration. Direct/unit callers keep this disabled so
+    // they can exercise the aggregate without recursively running the suite.
+    runToolingChecks: true,
+    reviewerActor: one(context.parsed, "reviewer-actor"),
+    prAuthor: one(context.parsed, "pr-author"),
+  });
+  const written = writeLocalCheckResult(context.root, outputPath, result);
+  if (context.json) emit(context.io, { ...result, output: written }, true);
+  else {
+    printFindings(context.io, result.findings);
+    emit(context.io, `${result.ok ? "wiki local check passed" : "wiki local check failed"}; result: ${written}`, false);
+  }
+  process.exitCode = result.ok ? 0 : 1;
+}
+
+export function handlePublish(context: CliContext): void {
+  if (context.staged) throw new UsageError("publish requires a working repository");
+  const resultPath = one(context.parsed, "result");
+  if (!resultPath || resultPath === "true") throw new UsageError("publish requires --result <result.json>");
+  const prRaw = one(context.parsed, "pr");
+  const pr = prRaw == null || prRaw === "true" ? undefined : Number(prRaw);
+  if (prRaw != null && (!Number.isInteger(pr) || (pr as number) <= 0)) throw new UsageError("--pr must be a positive pull request number");
+  const published = publishLocalStatus({
+    root: context.root,
+    resultPath: resolve(context.root, resultPath),
+    repo: one(context.parsed, "repo"),
+    pr,
+  });
+  emit(context.io, context.json ? published : `published ${published.state} ${published.status_context} for ${published.repo}#${published.pr} (${published.comment} marker comment)`, context.json);
+}
+
 export type ValidationHandler = (context: CliContext) => void;
 
 export const validationHandlers: Record<string, ValidationHandler> = {
@@ -92,4 +151,5 @@ export const validationHandlers: Record<string, ValidationHandler> = {
   impact: handleImpact,
   verify: handleVerify,
   check: handleCheck,
+  publish: handlePublish,
 };
