@@ -17,7 +17,9 @@ All commands are `bun run wiki:<name>`; each maps to `bun scripts/wiki/cli.ts <n
 | `wiki:review-bundle -- --base <ref> --metadata <file>` | Write a deterministic content-addressed bundle with `manifest.json`, `focused-manifest.json`, reviewer instructions, and a report example. Wiki/conflict bodies are stored once by digest; overlapping roles and changed/authority/test/supporting source classifications remain explicit and validated. | review input |
 | `wiki:review-check -- --base <ref> --metadata <file> [--report <file>]` | Evaluate trusted risk policy and return `required`/reasons. When required, recompute the current manifest and validate report schema, PASS, evidence, SHA/digests, and reviewer trust. | CI (`required` mode) |
 | `wiki:doctor` | Validate required downstream seams: explicit config, affirmative provider-neutral AGENTS authority/work/context clause shapes, canonical commands, PR template, and GitHub job/events. | pre-commit + CI |
-| `wiki:check -- --base <ref>` | Everything at once: lint + generated + impact. | local convenience |
+| `wiki:check -- --base <ref>` | Legacy convenience projection: lint + generated + impact. Its flags and output remain compatible when `--output` is absent. | local convenience |
+| `wiki:check -- --base <ref> --metadata <file> [--report <file>] --output <result.json>` | Bootstrap canonical local gate. Writes an exact result binding committed HEAD, resolved base/merge-base, metadata digest, check/review summaries/findings, and a deterministic digest. Changed toolkit-owned files select Wiki tooling typecheck + the full tooling suite; publisher mode also runs kit freshness/growth guards. Explicit metadata/report/output paths are the only permitted worktree exceptions. | local required gate |
+| `wiki:publish -- --result <result.json> [--repo owner/repo] [--pr N]` | Revalidates the result, clean local HEAD, and remote PR head; upserts one `wiki-ssot:local-status` comment, then posts `wiki-ssot/local`. Warnings are successful status; API failures are non-zero. | GitHub status publisher |
 | `wiki:audit` | Repo-wide: structure + generated + every current page's source hashes. | weekly CI |
 | `wiki:index` / `wiki:inventory` | Write just the core generated files / just the inventories. | — |
 | `wiki:scale` | Publisher-only deterministic benchmark for the declared Schooled and large synthetic profiles. `-- --enforce` checks correctness, phase/RSS limits, and the bounded index size; explicit output flags preserve JSON/Markdown evidence. This harness is intentionally omitted from the downstream kit. | release evidence |
@@ -71,6 +73,24 @@ bun run wiki:doctor
 bun run wiki:impact -- --base origin/main --enforce
 bun run typecheck && bun run test
 ```
+
+Bootstrap local status is currently additive to that flow. Once the candidate
+is committed, the opt-in exact-result path is:
+
+```sh
+bun run wiki:check -- --base origin/main --metadata pr-body.md \
+  --output /tmp/wiki-result.json
+# With a review report:
+bun run wiki:check -- --base origin/main --metadata pr-body.md \
+  --report review-report.json --output /tmp/wiki-result.json
+bun run wiki:publish -- --result /tmp/wiki-result.json
+# Or identify the PR explicitly:
+bun run wiki:publish -- --result /tmp/wiki-result.json --repo owner/repo --pr 123
+```
+
+The existing Actions jobs and Draft/Ready attestation remain active until a
+later cutover. Publishing requires an authenticated `gh` CLI, but the toolkit
+does not store tokens or run a hosted service.
 
 You changed a source and its page's meaning:
 

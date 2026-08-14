@@ -1,5 +1,5 @@
 {
-  "digest": "8e8e68c5d426dc79da985b50c0ce8f884742496f17d9c0feb0dd10dbbced9fb4",
+  "digest": "d3f36a8c51f80e71365cb7a29859ee97270cbf26976e1bf456cf8e9cf1e590be",
   "files": {
     ".github/workflows/wiki-audit.yml": {
       "ownership": "kit",
@@ -39,7 +39,7 @@
     },
     "scripts/wiki/cli-handlers.test.ts": {
       "ownership": "kit",
-      "sha256": "5d304f2725039fc6014eeaa54d1a6567c8a2a55d97a7064a7d829d3cc9f1b045"
+      "sha256": "cfacd2a7f609120bae89b00cf8197ed968a3c01e89e32d61589688cf9666bf02"
     },
     "scripts/wiki/cli-render.ts": {
       "ownership": "kit",
@@ -51,15 +51,15 @@
     },
     "scripts/wiki/cli-runtime.ts": {
       "ownership": "kit",
-      "sha256": "6192d7579c2da64874cc34d367172de9fce39c7fe681a929f06f70d36a5a8dad"
+      "sha256": "5a8f28f80f01057e8a35266e9a892e9cf59bccd83abccfd28b7c407520426514"
     },
     "scripts/wiki/cli-validation-handlers.ts": {
       "ownership": "kit",
-      "sha256": "ac75964358a3d8a420e52baad6e1240a87a9a4f35b504f0e19f4e598dffa5df2"
+      "sha256": "709a4a76d07222f0d11a6dd755a4569e4e63037ae66505b0c28a26291e026f32"
     },
     "scripts/wiki/cli.ts": {
       "ownership": "kit",
-      "sha256": "36b06813a3b4018d5aab94399474a75f91adad48061aef66190fbaa2041a3d86"
+      "sha256": "27f0c508f86488296fdad21b306ecf27cd0dfe94f86e09293a87f6f66588be62"
     },
     "scripts/wiki/context.test.ts": {
       "ownership": "kit",
@@ -117,13 +117,21 @@
       "ownership": "kit",
       "sha256": "cad5290748265f5b5cd1a5503f075cfb837283ca0e8b4e7c004567deb33139cb"
     },
+    "scripts/wiki/github-local-status.test.ts": {
+      "ownership": "kit",
+      "sha256": "9a18448bab34fa6609bd75b14b2f44d26a3a929396023b6d9bd70509d77c8e7d"
+    },
+    "scripts/wiki/github-local-status.ts": {
+      "ownership": "kit",
+      "sha256": "bb2ac30306813e85a2c4e77bec036f267a993b1cf276daf32ae7de9fbef28b92"
+    },
     "scripts/wiki/impact.test.ts": {
       "ownership": "kit",
       "sha256": "0925b755e6d8f8804b89a505a615fa2d3517a5239f8bff30a366977df786a555"
     },
     "scripts/wiki/impact.ts": {
       "ownership": "kit",
-      "sha256": "cd3b9f0301c7420939861ea9b169a27e45d5e09d926eb43602d87e9340cee903"
+      "sha256": "b462de388793d197d74ece6c67142937e29a6ee180ad6bed18d2e705dfa4f58f"
     },
     "scripts/wiki/inventories.ts": {
       "ownership": "seed",
@@ -135,7 +143,7 @@
     },
     "scripts/wiki/kit-growth-guard.ts": {
       "ownership": "kit",
-      "sha256": "2a0e2832de909d6af0245361edab0029bc7efd62ddfa7b7f9cd3ed4fb747fc0a"
+      "sha256": "a9d1d5aa876acdf9923c64f273eb7f420a6f41a76335db6bb2c55779d5c5b614"
     },
     "scripts/wiki/kit-packaging.test.ts": {
       "ownership": "kit",
@@ -143,7 +151,15 @@
     },
     "scripts/wiki/kit-packaging.ts": {
       "ownership": "kit",
-      "sha256": "68b621b2a000f1833b554db8e8f1e67473e71da5e4753ce3cacb200c69202b5a"
+      "sha256": "46fdcfcb53f67d3689f915c2a167f39542609757096897464872d5ef6718e33b"
+    },
+    "scripts/wiki/local-check.test.ts": {
+      "ownership": "kit",
+      "sha256": "eba27ec5d8356860fe29c293b771124a684a195e2f3e128a9404aa31a42fdca8"
+    },
+    "scripts/wiki/local-check.ts": {
+      "ownership": "kit",
+      "sha256": "0a0e25eb6ffbcdbdad60155c9239b9333dfe810f4efcdd12fbe9808fb101738d"
     },
     "scripts/wiki/model.ts": {
       "ownership": "kit",
@@ -179,7 +195,7 @@
     },
     "scripts/wiki/review-bundle.ts": {
       "ownership": "kit",
-      "sha256": "4a3599d88f3c7415b0f4b575d824c59d805077f5187e0fafe93b17a007085ceb"
+      "sha256": "e3bd820ed7f4d6c24982e74c0496d4dffc20eb9db84363879ead5f234dd698e5"
     },
     "scripts/wiki/serialization.test.ts": {
       "ownership": "kit",
@@ -316,7 +332,7 @@
   "reference": {
     "migrations/v1/checks.yml": "7b80d39485cd5d7b65c088cea39cdf085866371f3c13ab012e760b7d66f0efac",
     "migrations/v1/host-checks.yml": "0aaea6d0903f1e951dfec6a1e3a4adcab38fd4c5d2389ca3d4ac87c0c4915cfa",
-    "package.kit.json": "46295e56fe6bb9326ff05715360ff9f42c1f98b455fbaa04ff9b18ec276513ea",
+    "package.kit.json": "752a57acca9e79d16be8b488327b95296bf9aafe05b3464b639786846edb36bf",
     "scripts/wiki/inventories.example.ts": "c77492bf25a8e89d6c5f2de5d1238bb426e41b81cd255d7c153e05d295e91c4e"
   },
   "version": 2

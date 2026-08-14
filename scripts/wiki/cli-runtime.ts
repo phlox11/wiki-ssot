@@ -13,7 +13,7 @@ export type ParsedArgs = { positional: string[]; flags: Map<string, string[]> };
 /** The public command order is part of the portable CLI contract. */
 export const CLI_COMMANDS = [
   "lint", "inventory", "index", "generated", "kit", "work", "search", "conflicts", "context",
-  "impact", "verify", "review-preflight", "review-bundle", "review-check", "doctor", "check", "audit",
+  "impact", "verify", "review-preflight", "review-bundle", "review-check", "doctor", "check", "audit", "publish",
 ] as const;
 export type CliCommand = typeof CLI_COMMANDS[number];
 

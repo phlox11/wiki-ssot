@@ -68,6 +68,7 @@ export const CLI_HANDLERS: Readonly<Record<string, CliHandler>> = Object.freeze(
   doctor: validationHandlers.doctor,
   check: validationHandlers.check,
   audit: validationHandlers.audit,
+  publish: validationHandlers.publish,
 });
 
 /** Dispatch an already-created context, retaining the historical short-circuit order. */
@@ -84,6 +85,15 @@ export function dispatchCommand(context: CliContext): void {
   // Lint and doctor diagnose malformed repositories themselves and therefore
   // run before the generic loaded-page error short-circuit.
   if (context.command === "lint" || context.command === "doctor") {
+    handler?.(context);
+    return;
+  }
+
+  // A canonical result and the publisher are deliberately result-boundary
+  // commands. They must still run when eager page loading found an error: a
+  // failure result needs to be written/published so the required status is
+  // not silently omitted. Legacy commands retain the loaded-page short-circuit.
+  if (context.command === "publish" || (context.command === "check" && has(context.parsed, "output"))) {
     handler?.(context);
     return;
   }

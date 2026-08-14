@@ -97,6 +97,9 @@
     "scripts/wiki/github-attestation.ts": [
       "operations/enforcement"
     ],
+    "scripts/wiki/github-local-status.ts": [
+      "operations/enforcement"
+    ],
     "scripts/wiki/impact.ts": [
       "operations/enforcement",
       "product/invariants"
@@ -108,6 +111,9 @@
     "scripts/wiki/kit-packaging.ts": [
       "operations/enforcement",
       "product/invariants"
+    ],
+    "scripts/wiki/local-check.ts": [
+      "operations/enforcement"
     ],
     "scripts/wiki/model.ts": [
       "operations/enforcement",

@@ -9,10 +9,10 @@ The current contract is a mutable snapshot. Done work and resolved conflicts rem
 | Record | Count |
 |---|---:|
 | Current pages | 4 |
-| Proposal pages | 5 |
-| Total work | 48 |
-| Outstanding work | 12 |
-| Done work | 36 |
+| Proposal pages | 6 |
+| Total work | 53 |
+| Outstanding work | 16 |
+| Done work | 37 |
 | Total conflicts | 0 |
 | Open conflicts | 0 |
 | Resolved conflicts | 0 |
@@ -25,7 +25,7 @@ The current contract is a mutable snapshot. Done work and resolved conflicts rem
 
 ## Work and conflicts
 
-No agent-recommendable work is available; inspect the complete queue and open conflicts for details.
+Recommended next: `LS-01`. Run `bun run wiki:context -- --work LS-01`.
 
 See the [complete Wiki catalog](./catalog.md), [repository work queue](./work-queue.md), or run `bun run wiki:work`.
 

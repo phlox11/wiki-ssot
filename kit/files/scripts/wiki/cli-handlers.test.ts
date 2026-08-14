@@ -19,6 +19,14 @@ function capture(): { io: CliIo; stdout: string[]; stderr: string[] } {
 const isGeneratedKitMirror = import.meta.dir.includes("/kit/files/");
 
 describe("direct CLI handler dispatch", () => {
+  test("parses canonical local-check reviewer and PR actor flags", async () => {
+    if (isGeneratedKitMirror) return;
+    const { parseArgs } = await import("./cli");
+    const parsed = parseArgs(["check", "--output", "result.json", "--reviewer-actor", "trusted-reviewer", "--pr-author", "author"]);
+    expect(parsed.flags.get("reviewer-actor")).toEqual(["trusted-reviewer"]);
+    expect(parsed.flags.get("pr-author")).toEqual(["author"]);
+  });
+
   test("dispatches a successful JSON command through injectable IO", async () => {
     if (isGeneratedKitMirror) return;
     const { dispatch } = await import("./cli");
@@ -56,6 +64,27 @@ describe("direct CLI handler dispatch", () => {
     const failed = capture();
     expect(runCli(["search", "x", "--root", root], { cwd: process.cwd(), io: failed.io })).toBe(1);
     expect(failed.stderr.join("")).toContain("ERROR [frontmatter-parse]");
+  });
+
+  test("sends publish to the result boundary before malformed loaded-page errors", async () => {
+    if (isGeneratedKitMirror) return;
+    const { dispatchCommand } = await import("./cli");
+    const output = capture();
+    const context = {
+      command: "publish",
+      parsed: { positional: [], flags: new Map<string, string[]>() },
+      json: false,
+      staged: false,
+      root: process.cwd(),
+      view: {} as never,
+      loaded: {
+        pages: [],
+        findings: [{ code: "frontmatter-parse", message: "malformed page", severity: "error" as const }],
+      },
+      io: output.io,
+    } as Parameters<typeof dispatchCommand>[0];
+    expect(() => dispatchCommand(context)).toThrow("publish requires --result <result.json>");
+    expect(output.stderr).toEqual([]);
   });
 
   test("enforces staged write guards directly", async () => {

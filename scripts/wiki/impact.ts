@@ -137,6 +137,43 @@ export type ImpactReport = {
   findings: Finding[];
 };
 
+/**
+ * Derive the invariant scope used by both the local result and review
+ * manifest.  Keep this calculation upstream of either projection so a local
+ * failure cannot make impact and review disagree about the same candidate.
+ * Merge-base invariant IDs are retained for the existing demotion/removal
+ * compatibility rule used by review manifests.
+ */
+export function affectedInvariantIdsForReview(
+  view: RepoView,
+  pages: WikiPage[],
+  report: Pick<ImpactReport, "mergeBase" | "affectedPages" | "affectedConflicts">,
+  metadata?: PrMetadata,
+): string[] {
+  const affected = new Set(metadata?.affected_invariants ?? []);
+  const baseInvariantIds = new Set(
+    git(view.root, ["ls-tree", "-r", "--name-only", report.mergeBase, "--", "wiki"], true)
+      .split("\n")
+      .filter(isContentPage)
+      .flatMap((path) => {
+        const raw = git(view.root, ["show", `${report.mergeBase}:${path}`], true);
+        if (!raw) return [];
+        try {
+          const page = parseWikiPage(path, raw);
+          return page.data.status === "current" && page.data.kind === "invariant" ? [page.data.id] : [];
+        } catch {
+          return [];
+        }
+      }),
+  );
+  for (const id of report.affectedPages) {
+    const page = pages.find((item) => item.data.id === id);
+    if (baseInvariantIds.has(id) || page?.data.kind === "invariant") affected.add(id);
+  }
+  for (const conflict of report.affectedConflicts) for (const id of conflict.affectedInvariants) affected.add(id);
+  return [...affected].sort((a, b) => a.localeCompare(b));
+}
+
 export function impactReport(view: RepoView, pages: WikiPage[], options: { base?: string; metadata?: PrMetadata } = {}): ImpactReport {
   const resolvedBase = resolveDiffBase(view.root, options.base);
   const mergeBase = git(view.root, ["merge-base", resolvedBase, "HEAD"]).trim();

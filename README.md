@@ -60,7 +60,8 @@ publication.
 
 - [Bun](https://bun.sh) ≥ 1.1 (the engine uses `Bun.Glob`, `Bun.CryptoHasher`, and shells out to `git`).
 - Git.
-- GitHub Actions for the CI rail (optional but recommended); the local hooks and CLI work anywhere.
+- GitHub Actions for the current CI rail (optional but recommended); the local hooks and CLI work anywhere.
+- `gh` authenticated to the target repository only when publishing a local result to GitHub.
 
 ## Get started
 
@@ -95,6 +96,42 @@ bun run wiki:work -- --executor human  # human/either work to report and hand of
 bun run wiki:context -- "enforcement"   # compact authority/source routing before a change
 bun run wiki:context -- "enforcement" --full  # exhaustive page bodies when needed
 ```
+
+## Bootstrap local result and status (additive)
+
+The Bootstrap release adds a canonical local gate without removing the existing
+Actions or Draft/Ready Fresh-context attestation flow. After committing the
+candidate, run the opt-in result path with metadata (and a review report when
+required):
+
+```sh
+bun run wiki:check -- --base origin/main --metadata pr-body.md \
+  --output /tmp/wiki-result.json
+# With a review report:
+bun run wiki:check -- --base origin/main --metadata pr-body.md \
+  --report review-report.json --output /tmp/wiki-result.json
+bun run wiki:publish -- --result /tmp/wiki-result.json
+# Or identify the PR explicitly:
+bun run wiki:publish -- --result /tmp/wiki-result.json --repo owner/repo --pr 123
+```
+
+The result binds the exact committed HEAD, resolved base and merge-base,
+canonical metadata digest, check/review summaries and findings, and a
+deterministic result digest. The check rejects other dirty or untracked files;
+the explicitly supplied metadata, report, and result paths are allowed. The
+canonical gate also selects the Wiki tooling typecheck and full tooling test
+suite when tracked toolkit-owned files change; publisher repositories additionally
+run kit freshness and growth guards. The publisher revalidates the schema and
+digest, requires the same clean local
+HEAD, and compares it with the remote PR head before writing. It upserts one
+`wiki-ssot:local-status` marker comment and then posts the
+`wiki-ssot/local` commit status. Warnings remain a successful status and are
+listed in the comment; GitHub/API failures return non-zero and are never
+treated as success. No daemon, GitHub App, or hosted service is introduced.
+
+Until the later cutover, the existing GitHub workflows and Draft/Ready
+attestation remain active and continue to provide the repository's deployed
+CI path.
 
 ## What's in the box
 

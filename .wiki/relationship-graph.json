@@ -191,6 +191,126 @@
       "type": "work-context-page"
     },
     {
+      "from": "LS-00",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-00",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-00",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-00",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-01",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-01",
+      "to": "LS-00",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "LS-01",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-01",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-01",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-02",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-02",
+      "to": "LS-01",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "LS-02",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-02",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-02",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-03",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-03",
+      "to": "LS-02",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "LS-03",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-03",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-03",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-04",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-04",
+      "to": "LS-03",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "LS-04",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-04",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-04",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
       "from": "operations/enforcement",
       "to": "architecture/engine",
       "type": "related"
@@ -257,6 +377,46 @@
     },
     {
       "from": "proposal/kit-code-splitting",
+      "to": "proposal/token-efficiency",
+      "type": "related"
+    },
+    {
+      "from": "proposal/local-enforcement-scope-control",
+      "to": "architecture/engine",
+      "type": "affects"
+    },
+    {
+      "from": "proposal/local-enforcement-scope-control",
+      "to": "architecture/engine",
+      "type": "related"
+    },
+    {
+      "from": "proposal/local-enforcement-scope-control",
+      "to": "operations/enforcement",
+      "type": "affects"
+    },
+    {
+      "from": "proposal/local-enforcement-scope-control",
+      "to": "operations/enforcement",
+      "type": "related"
+    },
+    {
+      "from": "proposal/local-enforcement-scope-control",
+      "to": "product/invariants",
+      "type": "affects"
+    },
+    {
+      "from": "proposal/local-enforcement-scope-control",
+      "to": "product/scope",
+      "type": "affects"
+    },
+    {
+      "from": "proposal/local-enforcement-scope-control",
+      "to": "proposal/portable-scale-navigation",
+      "type": "related"
+    },
+    {
+      "from": "proposal/local-enforcement-scope-control",
       "to": "proposal/token-efficiency",
       "type": "related"
     },
@@ -1503,6 +1663,41 @@
       "type": "work"
     },
     {
+      "id": "LS-00",
+      "kind": "work",
+      "path": "wiki/proposals/local-enforcement-scope-control.md",
+      "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "LS-01",
+      "kind": "work",
+      "path": "wiki/proposals/local-enforcement-scope-control.md",
+      "state": "not-started",
+      "type": "work"
+    },
+    {
+      "id": "LS-02",
+      "kind": "work",
+      "path": "wiki/proposals/local-enforcement-scope-control.md",
+      "state": "not-started",
+      "type": "work"
+    },
+    {
+      "id": "LS-03",
+      "kind": "work",
+      "path": "wiki/proposals/local-enforcement-scope-control.md",
+      "state": "not-started",
+      "type": "work"
+    },
+    {
+      "id": "LS-04",
+      "kind": "work",
+      "path": "wiki/proposals/local-enforcement-scope-control.md",
+      "state": "not-started",
+      "type": "work"
+    },
+    {
       "id": "operations/enforcement",
       "kind": "operation",
       "path": "wiki/operations/enforcement.md",
@@ -1527,6 +1722,13 @@
       "id": "proposal/kit-code-splitting",
       "kind": "proposal",
       "path": "wiki/proposals/kit-code-splitting.md",
+      "status": "proposed",
+      "type": "page"
+    },
+    {
+      "id": "proposal/local-enforcement-scope-control",
+      "kind": "proposal",
+      "path": "wiki/proposals/local-enforcement-scope-control.md",
       "status": "proposed",
       "type": "page"
     },
