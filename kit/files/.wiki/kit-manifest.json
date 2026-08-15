@@ -1,5 +1,5 @@
 {
-  "digest": "5c3baae0f5c0dd5212e5dc77b47e5ddacf522c3a8330d754e22356237c30ec2f",
+  "digest": "a98d251b7cd2fd74caf3a0f607f674d1cb2a94a3bab2e9cdb8dfa2f8e70b8aff",
   "files": {
     ".gitignore": {
       "ownership": "seed",
@@ -151,7 +151,7 @@
     },
     "scripts/wiki/kit-packaging.test.ts": {
       "ownership": "kit",
-      "sha256": "66ffe48c1ea380d2bfc5e83c39fc67887dfd336e2104d92b678fa660e9732dd4"
+      "sha256": "6b7eac06e8e553becb6cf3fe5a3ae35f34c57eea697c538da7f31d6c36add5ee"
     },
     "scripts/wiki/kit-packaging.ts": {
       "ownership": "kit",

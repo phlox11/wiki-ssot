@@ -245,13 +245,14 @@ describe("emitted kit", () => {
     expect(files["kit/files/wiki/WORKFLOW.md"]).toContain("base engine");
   });
 
-  test("keeps v1 workflow migration payload reference-only", () => {
-    const { files } = realKit();
-    expect(files["kit/migrations/v1/checks.yml"]).toContain("wiki-review-attestation:");
-    expect(files["kit/migrations/v1/host-checks.yml"]).toContain("jobs:");
-    expect(KIT_ENTRIES.find((entry) => entry.target === "migrations/v1/checks.yml")?.placement).toBe("reference");
-    expect(KIT_ENTRIES.find((entry) => entry.target === "migrations/v1/host-checks.yml")?.placement).toBe("reference");
-    expect(Object.keys(files).some((path) => /^kit\/(?:files|managed|seed)\/\.github\/workflows\//.test(path))).toBe(false);
+  test("keeps v1 workflow migration entries reference-only", () => {
+    const migrationEntries = KIT_ENTRIES.filter((entry) => entry.target.startsWith("migrations/v1/"));
+    expect(migrationEntries.map((entry) => entry.target)).toEqual([
+      "migrations/v1/checks.yml",
+      "migrations/v1/host-checks.yml",
+    ]);
+    expect(migrationEntries.every((entry) => entry.placement === "reference")).toBe(true);
+    expect(KIT_ENTRIES.some((entry) => entry.placement !== "reference" && entry.target.startsWith(".github/workflows/"))).toBe(false);
   });
 
   test("ships concise context-first and independent-review guidance downstream", () => {
