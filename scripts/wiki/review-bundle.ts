@@ -885,7 +885,15 @@ export function validateFocusedReviewManifest(
         const isAffectedAuthorityBody = (bodyRole.role === "affected_page" && expected.affected_page_ids.includes(bodyRole.id))
           || (bodyRole.role === "invariant" && expected.affected_invariant_ids.includes(bodyRole.id));
         if (!isAffectedAuthorityBody || !pagesWithRemovedSourceDeclarations.has(bodyRole.wiki_path)) continue;
-        if (!bodyRoles.has(`${bodyRole.role}:${bodyRole.id}:merge-base`)) {
+        // An invariant can also be listed as an affected page when its
+        // source declarations change. Its historical body keeps the
+        // invariant role, so accept that role as the page's merge-base
+        // provenance.
+        const historicalRole = bodyRole.role === "affected_page"
+          && expected.affected_invariant_ids.includes(bodyRole.id)
+          ? "invariant"
+          : bodyRole.role;
+        if (!bodyRoles.has(`${historicalRole}:${bodyRole.id}:merge-base`)) {
           error(`focused-manifest-${bodyRole.role}-merge-base-missing`, `source declarations changed in affected authority page without its merge-base body: ${bodyRole.id}`, bodyRole.wiki_path);
         }
       }
