@@ -75,7 +75,7 @@ work_items:
       - AGENTS.md
   - id: LS-02
     title: Bound source context and independent-review selection with auditable causes
-    state: not-started
+    state: done
     executor: agent
     priority: high
     depends_on: [LS-01]
@@ -86,7 +86,19 @@ work_items:
       - Version 2 review selection uses reasoned changed-file rules, actual kit-owned files, affected invariants and conflicts, and removed current pages with no implicit all-PR fallback.
       - wiki:scope explains page and glob breadth, reverse fan-out, review-selection causes, and base deltas without imposing arbitrary numeric budgets.
       - A 10,000-file fixture proves broad tracking remains complete without forcing every catalog file into the mandatory read list.
-    evidence: []
+    evidence:
+      - scripts/wiki/context.ts
+      - scripts/wiki/core.ts
+      - scripts/wiki/scope.ts
+      - scripts/wiki/scope.test.ts
+      - scripts/wiki/review-bundle.ts
+      - scripts/wiki/review-bundle.test.ts
+      - scripts/wiki/local-check.ts
+      - scripts/wiki/github-local-status.ts
+      - scripts/wiki/apply.ts
+      - scripts/wiki/apply.test.ts
+      - docs/adopt-existing-repo.md
+      - kit/README.md
   - id: LS-03
     title: Remove validation, agent-rule, context, work-output, and publication choreography duplication
     state: not-started

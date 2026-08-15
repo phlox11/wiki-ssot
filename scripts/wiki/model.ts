@@ -8,7 +8,16 @@
 
 export type WikiStatus = "current" | "proposed" | "deprecated" | "conflicted" | "archived";
 export type WikiAuthority = "normative" | "observed" | "derived";
-export type WikiSource = { path: string; symbols?: string[] } | { glob: string };
+export type WikiSourceContext = "always" | "catalog";
+/**
+ * A source declaration may opt into a compact catalog projection.  Omitting
+ * context is deliberately retained as the legacy `always` behaviour so v1
+ * pages remain readable while adopters migrate declarations incrementally.
+ */
+export type WikiSource = ({ path: string; symbols?: string[] } | { glob: string }) & {
+  context?: WikiSourceContext;
+  reason?: string;
+};
 export type ConflictType = "decision" | "implementation" | "documentation";
 export type ConflictSeverity = "high" | "medium" | "low";
 export type ConflictOrigin = "baseline" | "introduced_by_change";

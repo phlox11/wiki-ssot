@@ -18,6 +18,7 @@ import type {
   WikiFrontmatter,
   WikiPage,
   WikiSource,
+  WikiSourceContext,
   WikiStatus,
   WorkExecutor,
   WorkItem,
@@ -36,6 +37,8 @@ import {
   type MarkdownLinkPolicy,
 } from "./page-validation";
 import { hashContent, jsonStable } from "./serialization";
+import { scopeReport, scopeText } from "./scope";
+import type { ScopeReport } from "./scope";
 import {
   buildWorkQueue,
   conflictSummary,
@@ -195,6 +198,8 @@ export {
   validateWorkItems,
   hashContent,
   jsonStable,
+  scopeReport,
+  scopeText,
 };
 export type {
   RepoView,
@@ -208,6 +213,7 @@ export type {
   WikiFrontmatter,
   WikiPage,
   WikiSource,
+  WikiSourceContext,
   WikiStatus,
   WorkExecutor,
   WorkItem,
@@ -314,6 +320,7 @@ export {
   evaluateLocalReviewRequirement,
 };
 export type { ImpactReport, PrMetadata, FreshContextRequirement };
+export type { ScopeReport } from "./scope";
 export {
   buildFocusedReviewManifest,
   validateFocusedReviewManifest,
@@ -384,8 +391,7 @@ export function compareGenerated(view: RepoView, expected: Record<string, string
   return findings;
 }
 
-export type ReusableWorkContextArtifact = {
-  version: 1;
+type ReusableWorkContextArtifactBase = {
   selector: { kind: "work"; id: string };
   repository: {
     base_ref: string;
@@ -404,21 +410,51 @@ export type ReusableWorkContextArtifact = {
     acceptance: string[];
   };
   read_order: SelectedWorkContextReadEntry[];
+  artifact_digest: string;
+};
+
+export type ReusableWorkContextArtifactV1 = ReusableWorkContextArtifactBase & {
+  version: 1;
+  read_order: SelectedWorkContextReadEntry[];
   bindings: {
     context_digest: string;
     pages: { id: string; path: string; digest: string }[];
     conflicts: { id: string; path: string; digest: string }[];
     sources: { path: string; declared_by: string[]; digest: string }[];
   };
-  artifact_digest: string;
 };
+
+export type ReusableCatalogBinding = {
+  declaration: WikiSource;
+  declared_by: string[];
+  digest: string;
+  count: number;
+  bytes: number;
+  expand_command: string;
+};
+
+export type ReusableWorkContextArtifactV2 = ReusableWorkContextArtifactBase & {
+  version: 2;
+  read_order: SelectedWorkContextReadEntry[];
+  bindings: {
+    context_digest: string;
+    pages: { id: string; path: string; digest: string }[];
+    conflicts: { id: string; path: string; digest: string }[];
+    /** Individual mandatory/always source bindings only. */
+    sources: { path: string; declared_by: string[]; digest: string }[];
+    /** Catalog sets are intentionally aggregate and never serialize matched paths. */
+    catalog_sets: ReusableCatalogBinding[];
+  };
+};
+
+export type ReusableWorkContextArtifact = ReusableWorkContextArtifactV1 | ReusableWorkContextArtifactV2;
 
 function reusableArtifactCore(
   view: RepoView,
   pages: WikiPage[],
   work: WorkQueueItem,
   options: { base: string; metadata: PrMetadata },
-): Omit<ReusableWorkContextArtifact, "artifact_digest"> {
+): Omit<ReusableWorkContextArtifactV2, "artifact_digest"> {
   const context = buildSelectedWorkContext(view, pages, work);
   const baseRef = resolveDiffBase(view.root, options.base);
   const baseSha = git(view.root, ["rev-parse", "--verify", `${baseRef}^{commit}`]).trim();
@@ -431,34 +467,65 @@ function reusableArtifactCore(
     .map((conflict) => ({ id: conflict.id, path: conflict.path, digest: hashContent(view.read(conflict.path)) }))
     .sort((a, b) => a.id.localeCompare(b.id));
   const sourceDeclarations = new Map<string, Set<string>>();
+  const catalogDeclarations = new Map<string, { declaration: WikiSource; declaredBy: Set<string>; files: Set<string> }>();
   for (const summary of context.sources) {
-    for (const path of summary.sourceFiles) {
-      const declaredBy = sourceDeclarations.get(path) ?? new Set<string>();
-      declaredBy.add(summary.pageId);
-      sourceDeclarations.set(path, declaredBy);
+    for (const declaration of summary.declared) {
+      const files = expandSource(view, declaration);
+      if ((declaration.context ?? "always") === "catalog") {
+        const key = jsonStable(declaration);
+        const existing = catalogDeclarations.get(key) ?? { declaration, declaredBy: new Set<string>(), files: new Set<string>() };
+        existing.declaredBy.add(summary.pageId);
+        for (const path of files) existing.files.add(path);
+        catalogDeclarations.set(key, existing);
+        continue;
+      }
+      for (const path of files) {
+        const declaredBy = sourceDeclarations.get(path) ?? new Set<string>();
+        declaredBy.add(summary.pageId);
+        sourceDeclarations.set(path, declaredBy);
+      }
     }
   }
   const sources = [...sourceDeclarations.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([path, declaredBy]) => ({ path, declared_by: [...declaredBy].sort((a, b) => a.localeCompare(b)), digest: hashContent(view.read(path)) }));
+  const catalog_sets = [...catalogDeclarations.values()]
+    .map(({ declaration, declaredBy, files }) => {
+      const paths = [...files].sort((a, b) => a.localeCompare(b));
+      const records = paths.map((path) => [path, hashContent(view.read(path))]);
+      const declared_by = [...declaredBy].sort((a, b) => a.localeCompare(b));
+      return {
+        declaration,
+        declared_by,
+        digest: hashContent(jsonStable(records)),
+        count: paths.length,
+        bytes: paths.reduce((total, path) => total + Buffer.byteLength(view.read(path), "utf8"), 0),
+        expand_command: `bun run wiki:context -- --page ${declared_by[0]} --full`,
+      };
+    })
+    .sort((a, b) => jsonStable(a.declaration).localeCompare(jsonStable(b.declaration)));
+  // Rebuild the source tail from mandatory bindings only.  The exhaustive
+  // context read order contains catalog paths, but reusable artifacts must
+  // never serialize those 10k-path expansions.
   const readOrderSources = new Map(
-    context.readOrder
-      .filter((entry): entry is Extract<SelectedWorkContextReadEntry, { kind: "source" }> => entry.kind === "source")
-      .map((entry) => [entry.path, new Set(entry.declaredBy)]),
+    [...sourceDeclarations.entries()].map(([path, declaredBy]) => [path, new Set(declaredBy)]),
   );
-  for (const [path, declaredBy] of sourceDeclarations) {
-    const existing = readOrderSources.get(path) ?? new Set<string>();
-    for (const id of declaredBy) existing.add(id);
-    readOrderSources.set(path, existing);
-  }
   const readOrder: SelectedWorkContextReadEntry[] = [
     ...context.readOrder.filter((entry) => entry.kind !== "source"),
     ...[...readOrderSources.entries()]
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([path, declaredBy]) => ({ kind: "source" as const, path, declaredBy: [...declaredBy].sort((a, b) => a.localeCompare(b)) })),
   ];
+  const compactContextDigest = hashContent(jsonStable({
+    version: context.version,
+    read_order: readOrder,
+    pages: contextPages,
+    conflicts,
+    mandatory_sources: sources,
+    catalog_sets,
+  }));
   return {
-    version: 1,
+    version: 2,
     selector: { kind: "work", id: work.id },
     repository: {
       base_ref: baseRef,
@@ -478,10 +545,11 @@ function reusableArtifactCore(
     },
     read_order: readOrder,
     bindings: {
-      context_digest: hashContent(jsonStable(context)),
+      context_digest: compactContextDigest,
       pages: contextPages,
       conflicts,
       sources,
+      catalog_sets,
     },
   };
 }
@@ -514,13 +582,14 @@ export function validateReusableWorkContextArtifact(
   const artifact = candidate as Partial<ReusableWorkContextArtifact>;
   const findings: Finding[] = [];
   const stale = (code: string, message: string) => findings.push({ code, message, severity: "error" });
-  if (artifact.version !== 1 || artifact.selector?.kind !== "work" || typeof artifact.selector.id !== "string"
+  if ((artifact.version !== 1 && artifact.version !== 2) || artifact.selector?.kind !== "work" || typeof artifact.selector.id !== "string"
     || typeof artifact.artifact_digest !== "string" || artifact.repository == null || artifact.bindings == null) {
     return [{ code: "context-artifact-malformed", message: "reusable context artifact is missing its version, selector, repository, bindings, or digest", severity: "error" }];
   }
   const { artifact_digest: declaredDigest, ...candidateCore } = artifact as ReusableWorkContextArtifact;
   if (hashContent(jsonStable(candidateCore)) !== declaredDigest) stale("context-artifact-digest-invalid", "reusable context artifact content does not match its artifact_digest");
   if (artifact.selector.id !== expected.selector.id) stale("context-artifact-selector-stale", `artifact work ${artifact.selector.id} does not match ${expected.selector.id}`);
+  if (artifact.version !== expected.version) stale("context-artifact-version-stale", `artifact version ${artifact.version} does not match expected version ${expected.version}`);
   if (artifact.repository.base_ref !== expected.repository.base_ref || artifact.repository.base_sha !== expected.repository.base_sha
     || artifact.repository.merge_base_sha !== expected.repository.merge_base_sha) {
     stale("context-artifact-base-stale", "artifact base ref, base SHA, or merge-base SHA changed");
@@ -530,6 +599,11 @@ export function validateReusableWorkContextArtifact(
   if (jsonStable(artifact.bindings?.pages) !== jsonStable(expected.bindings.pages)) stale("context-artifact-pages-stale", "a controlling page digest changed");
   if (jsonStable(artifact.bindings?.conflicts) !== jsonStable(expected.bindings.conflicts)) stale("context-artifact-conflicts-stale", "a controlling conflict digest changed");
   if (jsonStable(artifact.bindings?.sources) !== jsonStable(expected.bindings.sources)) stale("context-artifact-sources-stale", "a required source digest or declaration changed");
+  if (expected.version === 2) {
+    if (artifact.version !== 2 || jsonStable((artifact.bindings as ReusableWorkContextArtifactV2["bindings"])?.catalog_sets) !== jsonStable(expected.bindings.catalog_sets)) {
+      stale("context-artifact-catalog-stale", "a catalog source set digest, declaration, or aggregate changed");
+    }
+  }
   if (artifact.bindings?.context_digest !== expected.bindings.context_digest
     || jsonStable(artifact.work) !== jsonStable(expected.work)
     || jsonStable(artifact.read_order) !== jsonStable(expected.read_order)) {

@@ -138,6 +138,46 @@ describe("apply workflow", () => {
     expect(apply.currentPageIdsFromSourceMap({ version: 1, exact: { "proposal.md": "proposal/plan" }, globs: [{ pages: [42] }] })).toEqual([]);
   });
 
+  test("reports legacy source omissions as non-blocking upgrade warnings", () => {
+    const repo = fixture();
+    git(repo, "init", "-q");
+    put(repo, ".wiki/kit-manifest.json", '{"version":1,"kit":"wiki-ssot","digest":"old","files":{}}\n');
+    put(repo, ".wiki/config.json", '{"version":1,"name":"legacy","highRisk":[],"publishesKit":false}\n');
+    put(repo, "package.json", '{"name":"legacy-fixture"}\n');
+    put(repo, "src/app.ts", "export const value = 1;\n");
+    put(repo, "wiki/product/app.md", `---
+id: product/app
+summary: A legacy page with an intentionally omitted source context.
+kind: product
+status: current
+authority: observed
+owners: ["@fixture"]
+sources:
+  - path: src/app.ts
+related: []
+tags: [fixture]
+---
+
+# Legacy application
+
+This page intentionally keeps the v1 source declaration shape.
+`);
+    commitFixture(repo);
+
+    const before = snapshot(repo);
+    const result = jsonOutput(runApply(repo, "--dry-run", "--json"));
+    expect(result.warnings).toEqual([expect.stringContaining("legacy source declarations omit context")]);
+    expect(String((result.warnings as string[])[0])).toContain("bun run wiki:scope -- --base HEAD");
+    expect(result.findings).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: "source-context-legacy" }),
+    ]));
+    const second = jsonOutput(runApply(repo, "--dry-run", "--json"));
+    expect(second.status).toBe(result.status);
+    expect(second.changes).toEqual(result.changes);
+    expect(second.warnings).toEqual(result.warnings);
+    expect(snapshot(repo)).toBe(before);
+  });
+
   test("non-current markdown cannot make a post-install rerun ready", () => {
     const repo = fixture();
     const kit = fastKit();

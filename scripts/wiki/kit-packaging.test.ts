@@ -254,7 +254,10 @@ describe("emitted kit", () => {
     for (const required of [
       "bun run wiki:context -- --work <ID> --artifact <path> --metadata <pr-body> --base <ref>",
       "--reuse <path>",
-      "Reuse never replaces reading the listed current pages and sources directly",
+      "Read each affected page's `context: always` sources directly.",
+      "A `context: catalog` declaration remains fully tracked; inspect its compact declaration/reason/count/bytes/digest",
+      "Mandatory sources bind individually; catalog sets bind by declaration, digest, count, and bytes.",
+      "Reuse never replaces reading the listed current pages and required implementation sources directly.",
       "batch independent reads and deterministic checks and do not rerun `wiki:work` or broad context discovery",
       "Use bounded waits for running work rather than status polling",
       "Keep successful summaries bounded and point to digest-addressed full evidence",

@@ -90,11 +90,13 @@ Version 1 remains supported with its old meaning, including all-PR review when `
 Do **not** paste old prose docs in. Recompile current knowledge from primary sources — ideally with a coding agent, one area at a time:
 
 1. Inventory the real surface: entry points, routes, schema/migrations, shared contracts, and the invariants your tests pin.
-2. For each major area, write one small `wiki/<group>/<name>.md` page (see `wiki/SCHEMA.md`) whose `sources` point at the real files, describing **current** behavior only.
+2. For each major area, write one small `wiki/<group>/<name>.md` page (see `wiki/SCHEMA.md`) whose `sources` point at the real files, describing **current** behavior only. Mark the few contract-routing anchors `context: always`; use `context: catalog` plus a concrete reason for broad implementation/test sets that must stay tracked without entering every compact read order.
 3. Anything you cannot confirm, or where docs and code disagree in a way that could change behavior, becomes a `wiki/conflicts/open/**` page — not a guess.
 4. Keep pages atomic and link-first; let code stay the detail and have the page link to it.
 
 Map every file matched by `coverage.json` `include` to some page's `sources`, or add a reasoned exclusion. `wiki:lint` names every unmapped file, so you can drive this to zero.
+
+Run `bun run wiki:scope -- --base <ref>` before finalizing broad declarations. It shows mandatory/catalog counts and bytes, reverse page/invariant/conflict fan-out, review-selection causes, and the delta from the merge base. The command does not impose a global size budget; it fails only when declaration intent or a cause is structurally invalid.
 
 ## 4. Optional: code-derived inventories
 
@@ -133,7 +135,7 @@ Commit the wiki, `.wiki/`, and generated files together.
 
 Every change follows `wiki/WORKFLOW.md`. A generic remaining-work request starts with no-query `wiki:work`; human-exclusive work is reported and handed off, while a selected recommended agent/either item proceeds through its printed `wiki:context -- --work <ID>` command. Topic-specific work still starts with search/context. From there: read sources → change code + page + tests together → regenerate → prospective PR metadata → preflight bundle and independent reconciliation when required → exact local check → PR publication → exact commit status. `NEEDS_RECONCILE` or a new commit stays local and requires a new bundle, report, result, and status.
 
-For an existing version 1 installation, run `apply.ts --dry-run`, then `apply.ts`; neither command rewrites project-owned `.wiki/config.json` nor deletes an existing workflow. In one explicit migration PR, copy each actual host check argv from the old workflow into version 2 config and include the intended workflow deletion. The candidate's doctor and local gate must pass with no active legacy Wiki workflow. Publish that exact PR HEAD status, then replace branch protection before merging. A first upgrade PR whose base engine still requires the legacy PR-body mirror may include it once; the version 2 candidate ignores it, and subsequent PRs omit it.
+For an existing version 1 installation, run `apply.ts --dry-run`, then `apply.ts`; neither command rewrites project-owned `.wiki/config.json`, Wiki pages, or an existing workflow. Existing source declarations without `context` retain their historical `always` meaning, and apply summarizes them in one non-blocking warning rather than generating per-page migration work. In the explicit migration PR, copy each actual host check argv from the old workflow into version 2 config, run the warning's `wiki:scope -- --base <ref>` command, and classify only the broad declarations you have actually reviewed; do not mechanically turn every glob into catalog. Include the intended workflow deletion only after its host checks are represented locally. The candidate's doctor and local gate must pass with no active legacy Wiki workflow. Publish that exact PR HEAD status, then replace branch protection before merging. A first upgrade PR whose base engine still requires the legacy PR-body mirror may include it once; the version 2 candidate ignores it, and subsequent PRs omit it.
 
 After upgrade, verify that `wiki:generated -- --check`, `wiki:lint`, `wiki:audit`, and `wiki:doctor` pass and commit the new generated catalog/graph with the upgraded toolkit. No record-conversion command is required: the catalog and graph are projections over the existing Wiki records, while Git remains the ordinary history of record.
 

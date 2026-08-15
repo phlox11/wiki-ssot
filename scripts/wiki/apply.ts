@@ -29,6 +29,10 @@ import {
   type KitManifest,
   type SyncPlan,
 } from "./kit-sync";
+import { createRepoView } from "./repository-view";
+import { loadWikiPages } from "./page-validation";
+import type { WikiPage } from "./model";
+import { jsonStable } from "./serialization";
 
 export { sha256 } from "./kit-sync";
 
@@ -51,6 +55,8 @@ export type ApplyReport = {
   changes: string[];
   conflicts: { path: string; reason: string }[];
   findings: ApplyFinding[];
+  /** Non-blocking upgrade guidance, kept separate from reconcile findings. */
+  warnings: string[];
   checks: Record<string, "pass" | "fail" | "skipped">;
   nextCommand: string;
 };
@@ -338,6 +344,35 @@ function bootstrapFindings(repo: string): ApplyFinding[] {
   return findings;
 }
 
+/**
+ * Surface legacy source declarations during an upgrade without turning a
+ * compatible omission into a reconcile failure.  This is intentionally a
+ * narrow projection of scope: apply is not a second scope gate, and all
+ * structural/errors remain owned by the normal check command.
+ */
+function legacySourceWarningsForPages(pages: WikiPage[]): string[] {
+  const records = pages.flatMap((page) => page.data.sources
+    .filter((source) => source.context == null)
+    .map((source) => ({ page: page.data.id, declaration: source })));
+  if (records.length === 0) return [];
+  records.sort((left, right) => left.page.localeCompare(right.page) || jsonStable(left.declaration).localeCompare(jsonStable(right.declaration)));
+  const digest = sha256(jsonStable(records));
+  return [`legacy source declarations omit context and remain compatible as always (${records.length} declarations across ${new Set(records.map((item) => item.page)).size} pages; digest ${digest}); run bun run wiki:scope -- --base HEAD to inspect the migration scope`];
+}
+
+function legacySourceWarnings(repo: string): string[] {
+  if (!hasHead(repo) || !existsSync(join(repo, ".wiki/config.json"))) return [];
+  try {
+    const view = createRepoView(repo);
+    const loaded = loadWikiPages(view);
+    return legacySourceWarningsForPages(loaded.pages);
+  } catch {
+    // Dry-run must remain useful for partially bootstrapped adopters.  The
+    // regular check/lint path will report malformed repositories explicitly.
+    return [];
+  }
+}
+
 function findingObjects(raw: string): { code?: string; path?: string; message?: string }[] {
   try {
     const parsed = JSON.parse(raw) as { findings?: { code?: string; path?: string; message?: string }[] };
@@ -396,6 +431,7 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
   const applied: string[] = [];
   const checks: Record<string, "pass" | "fail" | "skipped"> = {};
   const findings: ApplyFinding[] = [];
+  const warnings = legacySourceWarnings(repo);
 
   // Active GitHub workflows were intentionally removed from the v2 kit. Sync
   // never deletes an adopter's copy; make the handoff explicit so an existing
@@ -489,6 +525,7 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
       changes: [...new Set(previewChanges)].sort(),
       conflicts,
       findings,
+      warnings,
       checks,
       nextCommand,
     };
@@ -552,6 +589,7 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
       changes: [...new Set(applied)].sort(),
       conflicts,
       findings,
+      warnings,
       checks,
       nextCommand,
     };
@@ -565,6 +603,7 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
       return {
         version: 1, mode, status: "failed", dryRun: false, kitDigest: plan.digest,
         applied: [...new Set(applied)].sort(), changes: [...new Set(applied)].sort(), conflicts, findings, checks, nextCommand,
+        warnings,
       };
     }
     const hooks = command(repo, ["bun", "run", "wiki:hooks:install"], { disableHusky: false });
@@ -613,6 +652,7 @@ export async function applyProject(options: ApplyOptions): Promise<ApplyReport> 
     changes: [...new Set(applied)].sort(),
     conflicts,
     findings,
+    warnings,
     checks,
     nextCommand,
   };
@@ -637,6 +677,7 @@ function printReport(report: ApplyReport, json: boolean): void {
   console.log(`wiki-ssot ${report.mode}: ${report.status} (kit ${report.kitDigest.slice(0, 12)})`);
   if (report.applied.length > 0) console.log(`applied: ${report.applied.join(", ")}`);
   for (const conflict of report.conflicts) console.log(`merge: ${conflict.path} — ${conflict.reason}`);
+  for (const warning of report.warnings) console.log(`warning: ${warning}`);
   for (const finding of report.findings) console.log(`reconcile: ${finding.code}${finding.path ? ` (${finding.path})` : ""} — ${finding.action}`);
   if (report.status !== "ready" && report.status !== "preview") console.log(`rerun: ${report.nextCommand}`);
 }

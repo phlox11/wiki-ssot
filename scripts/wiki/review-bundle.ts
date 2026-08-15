@@ -105,8 +105,17 @@ function focusedSourcePath(path: string): boolean {
 
 function canonicalSourceDeclaration(source: WikiSource): WikiSource {
   return "path" in source
-    ? { path: source.path, ...(source.symbols ? { symbols: [...source.symbols].sort((a, b) => a.localeCompare(b)) } : {}) }
-    : { glob: source.glob };
+    ? {
+      path: source.path,
+      ...(source.symbols ? { symbols: [...source.symbols].sort((a, b) => a.localeCompare(b)) } : {}),
+      ...(source.context ? { context: source.context } : {}),
+      ...(source.reason ? { reason: source.reason } : {}),
+    }
+    : {
+      glob: source.glob,
+      ...(source.context ? { context: source.context } : {}),
+      ...(source.reason ? { reason: source.reason } : {}),
+    };
 }
 
 function pageAtRevision(root: string, revision: string, path: string): WikiPage | undefined {
@@ -767,7 +776,7 @@ export function validateFocusedReviewManifest(
       }
     }
     const authorityPageIds = new Set([...expected.affected_page_ids, ...expected.affected_invariant_ids]);
-    type AuthorityDeclaration = { page_id: string; declaration: WikiSource; matched_via: "path" | "glob" };
+    type AuthorityDeclaration = { page_id: string; declaration: WikiSource; matched_via: "path" | "glob"; lifecycle: "head" | "merge-base" };
     const authorityExact = new Map<string, AuthorityDeclaration[]>();
     const authorityGlobs: AuthorityDeclaration[] = [];
     const authorityBodyKeys = new Set<string>();
@@ -794,14 +803,19 @@ export function validateFocusedReviewManifest(
           page_id: authorityPage.data.id,
           declaration: canonicalSourceDeclaration(rawDeclaration),
           matched_via: "path" in rawDeclaration ? "path" : "glob",
+          lifecycle: bodyRole.lifecycle,
         };
         if ("path" in rawDeclaration) {
           const path = rawDeclaration.path;
           const records = authorityExact.get(path) ?? [];
-          if (!records.some((record) => record.page_id === declaration.page_id && jsonStable(record.declaration) === jsonStable(declaration.declaration))) records.push(declaration);
+          if (!records.some((record) => record.page_id === declaration.page_id
+            && record.lifecycle === declaration.lifecycle
+            && jsonStable(record.declaration) === jsonStable(declaration.declaration))) records.push(declaration);
           authorityExact.set(path, records);
         } else {
-          if (!authorityGlobs.some((record) => record.page_id === declaration.page_id && jsonStable(record.declaration) === jsonStable(declaration.declaration))) {
+          if (!authorityGlobs.some((record) => record.page_id === declaration.page_id
+            && record.lifecycle === declaration.lifecycle
+            && jsonStable(record.declaration) === jsonStable(declaration.declaration))) {
             authorityGlobs.push(declaration);
           }
         }
@@ -813,6 +827,11 @@ export function validateFocusedReviewManifest(
       if (jsonStable(declaration.declaration) !== jsonStable(requirement.declaration)) return false;
       return requirement.matched_via !== "glob" || ("glob" in requirement.declaration && declaration.expanded_glob === requirement.declaration.glob);
     });
+    const sourceHasRevision = (source: FocusedSourceBinding, requirement: AuthorityDeclaration): boolean => requirement.lifecycle === "head"
+      // A removed path has no HEAD bytes, but a surviving HEAD glob is still
+      // the declaration that must explain its retained merge-base evidence.
+      ? source.head_digest != null || source.lifecycle === "removed"
+      : source.merge_base_digest != null;
     for (const [path, requirements] of authorityExact.entries()) {
       const matches = (Array.isArray(focused.source_roles) ? focused.source_roles : []).filter((source) => source.path === path);
       if (matches.length !== 1) {
@@ -822,6 +841,10 @@ export function validateFocusedReviewManifest(
       const source = matches[0];
       if (!source.roles.includes("affected_authority_source")) error("focused-manifest-authority-role-required", `exact affected authority source is missing affected_authority_source: ${path}`, path);
       for (const requirement of requirements) {
+        // A declaration from the other lifecycle cannot bind a source that
+        // did not exist at that revision (for example, a newly added file
+        // cannot have a merge-base glob match).
+        if (!sourceHasRevision(source, requirement)) continue;
         if (!source.declared_by.includes(requirement.page_id)) error("focused-manifest-authority-provenance", `exact authority source is missing declaring page provenance: ${path}`, path);
         if (!declarationMatches(source, requirement)) error("focused-manifest-authority-declaration-required", `exact authority source is missing its canonical declaration ID: ${path}`, path);
       }
@@ -845,6 +868,7 @@ export function validateFocusedReviewManifest(
           }
           const source = matches[0];
           if (!source.roles.includes("affected_authority_source")) error("focused-manifest-authority-role-required", `changed authority glob match is missing affected_authority_source: ${path}`, path);
+          if (!sourceHasRevision(source, requirement)) continue;
           if (!source.declared_by.includes(requirement.page_id)) error("focused-manifest-authority-provenance", `changed authority glob match is missing declaring page provenance: ${path}`, path);
           if (!declarationMatches(source, requirement)) error("focused-manifest-authority-declaration-required", `changed authority glob match is missing its canonical declaration ID: ${path}`, path);
         }

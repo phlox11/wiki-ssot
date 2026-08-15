@@ -16,6 +16,7 @@ import {
   type ParsedArgs,
 } from "./cli-runtime";
 import { validationHandlers } from "./cli-validation-handlers";
+import { handleScope } from "./cli-scope-handler";
 import { UsageError } from "./verification";
 
 export type { CliContext, CliContextOptions, CliIo };
@@ -69,6 +70,7 @@ export const CLI_HANDLERS: Readonly<Record<string, CliHandler>> = Object.freeze(
   check: validationHandlers.check,
   audit: validationHandlers.audit,
   publish: validationHandlers.publish,
+  scope: handleScope,
 });
 
 /** Dispatch an already-created context, retaining the historical short-circuit order. */

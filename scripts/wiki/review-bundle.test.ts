@@ -54,6 +54,7 @@ sources:
 # Contracts
 `;
   put(root, source, "export const version = 1;\n");
+  put(root, "src/unchanged.ts", "export const unchanged = true;\n");
   put(root, page, pageBody);
   put(root, ".wiki/config.json", jsonStable({ version: 1, name: "bundle", highRisk: ["src/**"], publishesKit: false }));
   put(root, ".wiki/state.json", jsonStable({ version: 1, pages: { "architecture/contracts": { sources: { [source]: hashContent("export const version = 1;\n") }, verification: { kind: "updated" } } } }));
@@ -62,6 +63,39 @@ sources:
   put(root, source, "export const version = 2;\n");
   run(root, ["git", "add", source]);
   run(root, ["git", "commit", "-qm", "candidate"]);
+  return root;
+}
+
+function globAdditionFixture() {
+  const root = mkdtempSync(join(tmpdir(), "review-bundle-glob-addition-"));
+  temporary.push(root);
+  run(root, ["git", "init", "-q"]);
+  run(root, ["git", "config", "user.name", "Review Bundle Test"]);
+  run(root, ["git", "config", "user.email", "review-bundle@example.invalid"]);
+  const page = "wiki/architecture/contracts.md";
+  const pageBody = `---
+id: architecture/contracts
+summary: Contract
+kind: architecture
+status: current
+authority: observed
+owners: ["@owner"]
+sources:
+  - glob: src/*.ts
+---
+
+# Contracts
+`;
+  put(root, "src/contract.ts", "export const version = 1;\n");
+  put(root, "src/unchanged.ts", "export const unchanged = true;\n");
+  put(root, page, pageBody);
+  put(root, ".wiki/config.json", jsonStable({ version: 1, name: "bundle", highRisk: ["src/**"], publishesKit: false }));
+  put(root, ".wiki/state.json", jsonStable({ version: 1, pages: { "architecture/contracts": { sources: { "src/contract.ts": hashContent("export const version = 1;\n") }, verification: { kind: "updated" } } } }));
+  run(root, ["git", "add", "."]);
+  run(root, ["git", "commit", "-qm", "baseline"]);
+  put(root, "src/new.ts", "export const added = true;\n");
+  run(root, ["git", "add", "src/new.ts"]);
+  run(root, ["git", "commit", "-qm", "add a glob match"]);
   return root;
 }
 
@@ -186,4 +220,48 @@ describe("review-bundle boundaries", () => {
     ]));
     expect(() => buildReviewManifest(view, pages, report, prMetadata)).not.toThrow();
   });
+
+  test("retains source context/reason in focused declarations and binds declaration-only drift", () => {
+    const root = fixture();
+    const page = join(root, "wiki/architecture/contracts.md");
+    writeFileSync(page, readFileSync(page, "utf8").replace("  - path: src/contract.ts", "  - path: src/contract.ts\n  - glob: src/*.ts\n    context: catalog\n    reason: Catalog expansion is reserved for focused review requests."));
+    writeFileSync(join(root, "src/contract.ts"), "export const version = 3;\n");
+    run(root, ["git", "add", page, "src/contract.ts"]);
+    run(root, ["git", "commit", "-qm", "declare catalog context"]);
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const firstReport = impactReport(view, pages, { base: "HEAD~1", metadata: metadata() });
+    const first = buildFocusedReviewManifest(view, pages, firstReport, metadata());
+    const catalog = first.source_declarations.find((item) => "glob" in item.declaration && item.declaration.glob === "src/*.ts");
+    expect(catalog?.declaration).toMatchObject({ context: "catalog", reason: "Catalog expansion is reserved for focused review requests." });
+    expect(first.source_roles.map((item) => item.path)).not.toContain("src/unchanged.ts");
+    const firstDigest = hashContent(jsonStable(first));
+    writeFileSync(page, readFileSync(page, "utf8").replace("reserved for focused review requests", "reserved for independently focused review requests"));
+    run(root, ["git", "add", page]);
+    run(root, ["git", "commit", "-qm", "change catalog reason"]);
+    const changedView = createRepoView(root);
+    const changedPages = loadWikiPages(changedView).pages;
+    const changedReport = impactReport(changedView, changedPages, { base: "HEAD~1", metadata: metadata() });
+    const changed = buildFocusedReviewManifest(changedView, changedPages, changedReport, metadata());
+    expect(hashContent(jsonStable(changed))).not.toBe(firstDigest);
+    const output = join(root, "bundle-reason-only");
+    makeReviewBundle(changedView, changedPages, changedReport, output, metadata());
+    const focused = JSON.parse(readFileSync(join(output, "focused-manifest.json"), "utf8")) as FocusedReviewManifest;
+    const affected = focused.body_roles.find((role) => role.role === "affected_page" && role.lifecycle === "head");
+    expect(affected).toBeDefined();
+    expect(readFileSync(join(output, `objects/${affected!.digest}.md`), "utf8")).toContain("independently focused review requests");
+  });
+
+  test("requires only the lifecycle declaration that can bind a newly added glob match", () => {
+    const root = globAdditionFixture();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const report = impactReport(view, pages, { base: "HEAD~1", metadata: metadata() });
+    expect(() => buildReviewManifest(view, pages, report, metadata())).not.toThrow();
+    const focused = buildFocusedReviewManifest(view, pages, report, metadata());
+    const added = focused.source_roles.find((item) => item.path === "src/new.ts");
+    expect(added?.lifecycle).toBe("added");
+    expect(added?.declaration_ids.length).toBe(1);
+  });
+
 });
