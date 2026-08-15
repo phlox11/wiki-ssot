@@ -61,8 +61,8 @@
         "scripts/wiki/repository-view.ts": "62f732eada1cf31e520c8886d31f54611e1cb99992f7f308f60babe0fb2ac505",
         "scripts/wiki/review-attestation.test.ts": "bf03f6397f68542a76bce396d17c4148e37ad364f7da43a6bbd8ff6af3a0b628",
         "scripts/wiki/review-attestation.ts": "88143444d5c4f4d2e1ff25ce3fddb8143428c11d16fc7fc31c3ed293d78d4b50",
-        "scripts/wiki/review-bundle.test.ts": "2592abd8ff92a17b1982f01075576d0f58533c9cc3475074ea10065a4c0f2dc2",
-        "scripts/wiki/review-bundle.ts": "e3bd820ed7f4d6c24982e74c0496d4dffc20eb9db84363879ead5f234dd698e5",
+        "scripts/wiki/review-bundle.test.ts": "7b8d673eda9bd82c48be5948ae7285d156860b68f51d4d215ac05629bf2bc80e",
+        "scripts/wiki/review-bundle.ts": "663ad2c70c8a09cd104ddd487d39742cb52cee5d761ca24ed7388ea0957592d3",
         "scripts/wiki/serialization.test.ts": "c8205949e06d20cf10360e0db01558fbbbedacf0d39786d3ea0bce5553d5520a",
         "scripts/wiki/serialization.ts": "e3b68feb689a818f88effc634f9ac057c92ae24477e9c80bbde220ace48dcded",
         "scripts/wiki/te04-focused-review.test.ts": "1accbf97796724397dc29ebb4bb13993347e817eaef6506b34d1353417f4543e",
@@ -92,7 +92,8 @@
         "scripts/wiki/work-validation.ts": "006704cac96d7dc83e4487c18db4bc35f772368b63bb5434c12a577c44f2af9a"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "Existing exact-review provenance contract already requires the corrected invariant historical role."
       }
     },
     "operations/enforcement": {
@@ -125,13 +126,14 @@
         "scripts/wiki/page-validation.ts": "fc6673bcc12d22d19c67ac4c62fd3e39f8d7c3bacb87659e502fcae0f622b3b2",
         "scripts/wiki/repository-view.ts": "62f732eada1cf31e520c8886d31f54611e1cb99992f7f308f60babe0fb2ac505",
         "scripts/wiki/review-attestation.ts": "88143444d5c4f4d2e1ff25ce3fddb8143428c11d16fc7fc31c3ed293d78d4b50",
-        "scripts/wiki/review-bundle.ts": "e3bd820ed7f4d6c24982e74c0496d4dffc20eb9db84363879ead5f234dd698e5",
+        "scripts/wiki/review-bundle.ts": "663ad2c70c8a09cd104ddd487d39742cb52cee5d761ca24ed7388ea0957592d3",
         "scripts/wiki/serialization.ts": "e3b68feb689a818f88effc634f9ac057c92ae24477e9c80bbde220ace48dcded",
         "scripts/wiki/verification.ts": "852f54a42fb773fd66b6bae1bbb1c0ea09b72f53df96cd47b7085a4b574c615b",
         "scripts/wiki/work-validation.ts": "006704cac96d7dc83e4487c18db4bc35f772368b63bb5434c12a577c44f2af9a"
       },
       "verification": {
-        "kind": "updated"
+        "kind": "unchanged",
+        "reason": "Existing exact-review provenance contract already requires the corrected invariant historical role."
       }
     },
     "product/invariants": {
@@ -158,14 +160,14 @@
         "scripts/wiki/page-validation.ts": "fc6673bcc12d22d19c67ac4c62fd3e39f8d7c3bacb87659e502fcae0f622b3b2",
         "scripts/wiki/repository-view.ts": "62f732eada1cf31e520c8886d31f54611e1cb99992f7f308f60babe0fb2ac505",
         "scripts/wiki/review-attestation.ts": "88143444d5c4f4d2e1ff25ce3fddb8143428c11d16fc7fc31c3ed293d78d4b50",
-        "scripts/wiki/review-bundle.ts": "e3bd820ed7f4d6c24982e74c0496d4dffc20eb9db84363879ead5f234dd698e5",
+        "scripts/wiki/review-bundle.ts": "663ad2c70c8a09cd104ddd487d39742cb52cee5d761ca24ed7388ea0957592d3",
         "scripts/wiki/serialization.ts": "e3b68feb689a818f88effc634f9ac057c92ae24477e9c80bbde220ace48dcded",
         "scripts/wiki/verification.ts": "852f54a42fb773fd66b6bae1bbb1c0ea09b72f53df96cd47b7085a4b574c615b",
         "scripts/wiki/work-validation.ts": "006704cac96d7dc83e4487c18db4bc35f772368b63bb5434c12a577c44f2af9a"
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "Seed files are excluded to restore the already documented ownership invariant."
+        "reason": "Existing exact-review provenance contract already requires the corrected invariant historical role."
       }
     },
     "product/scope": {

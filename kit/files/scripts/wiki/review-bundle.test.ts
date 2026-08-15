@@ -65,6 +65,40 @@ sources:
   return root;
 }
 
+function invariantSourceDeclarationFixture() {
+  const root = mkdtempSync(join(tmpdir(), "review-bundle-invariant-source-"));
+  temporary.push(root);
+  run(root, ["git", "init", "-q"]);
+  run(root, ["git", "config", "user.name", "Review Bundle Test"]);
+  run(root, ["git", "config", "user.email", "review-bundle@example.invalid"]);
+  const page = "wiki/product/invariants.md";
+  const baseBody = `---
+id: product/invariants
+summary: Invariants
+kind: invariant
+status: current
+authority: normative
+owners: ["@owner"]
+sources:
+  - path: src/contract.ts
+---
+
+# Invariants
+`;
+  const headBody = baseBody.replace("  - path: src/contract.ts", "  - glob: src/*.ts");
+  put(root, "src/contract.ts", "export const version = 1;\n");
+  put(root, page, baseBody);
+  put(root, ".wiki/config.json", jsonStable({ version: 1, name: "bundle", highRisk: ["src/**"], publishesKit: false }));
+  put(root, ".wiki/state.json", jsonStable({ version: 1, pages: { "product/invariants": { sources: { "src/contract.ts": hashContent("export const version = 1;\n") }, verification: { kind: "updated" } } } }));
+  run(root, ["git", "add", "."]);
+  run(root, ["git", "commit", "-qm", "baseline"]);
+  put(root, page, headBody);
+  put(root, "src/contract.ts", "export const version = 2;\n");
+  run(root, ["git", "add", page, "src/contract.ts"]);
+  run(root, ["git", "commit", "-qm", "change invariant source declaration"]);
+  return root;
+}
+
 function metadata(): PrMetadata {
   return {
     change_type: "refactor",
@@ -126,5 +160,30 @@ describe("review-bundle boundaries", () => {
     const paths = Object.keys(files);
     expect(new Set(paths).size).toBe(paths.length);
     expect(paths).toContain("manifest.json");
+  });
+
+  test("retains invariant merge-base provenance when the invariant is also an affected page", () => {
+    const root = invariantSourceDeclarationFixture();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const prMetadata: PrMetadata = {
+      change_type: "refactor",
+      semantic_change: true,
+      wiki_action: "update",
+      affected_pages: ["product/invariants"],
+      affected_invariants: ["product/invariants"],
+      touched_conflicts: [],
+    };
+    const report = impactReport(view, pages, { base: "HEAD~1", metadata: prMetadata });
+    const focused = buildFocusedReviewManifest(view, pages, report, prMetadata);
+    expect(focused.body_roles).toEqual(expect.arrayContaining([
+      expect.objectContaining({ role: "affected_page", id: "product/invariants", lifecycle: "head" }),
+      expect.objectContaining({ role: "invariant", id: "product/invariants", lifecycle: "merge-base" }),
+    ]));
+    expect(focused.source_declarations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ page_id: "product/invariants", matched_via: "path", declaration: { path: "src/contract.ts" } }),
+      expect.objectContaining({ page_id: "product/invariants", matched_via: "glob", declaration: { glob: "src/*.ts" } }),
+    ]));
+    expect(() => buildReviewManifest(view, pages, report, prMetadata)).not.toThrow();
   });
 });

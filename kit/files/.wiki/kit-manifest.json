@@ -1,5 +1,5 @@
 {
-  "digest": "9b68bb39f17a0ce7c397d576d8bf14cb5e6ccaf415d9e04b1e869c48a4c3a322",
+  "digest": "f882e9810871c8d59fd9a14684feb8979f793f41d3bdb8d9b925a3786ae409fb",
   "files": {
     ".gitignore": {
       "ownership": "seed",
@@ -183,11 +183,11 @@
     },
     "scripts/wiki/review-bundle.test.ts": {
       "ownership": "kit",
-      "sha256": "2592abd8ff92a17b1982f01075576d0f58533c9cc3475074ea10065a4c0f2dc2"
+      "sha256": "7b8d673eda9bd82c48be5948ae7285d156860b68f51d4d215ac05629bf2bc80e"
     },
     "scripts/wiki/review-bundle.ts": {
       "ownership": "kit",
-      "sha256": "e3bd820ed7f4d6c24982e74c0496d4dffc20eb9db84363879ead5f234dd698e5"
+      "sha256": "663ad2c70c8a09cd104ddd487d39742cb52cee5d761ca24ed7388ea0957592d3"
     },
     "scripts/wiki/serialization.test.ts": {
       "ownership": "kit",
