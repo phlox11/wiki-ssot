@@ -270,8 +270,15 @@ describe("emitted kit", () => {
     expect(workflow).toContain("context-isolated reviewer");
   });
 
-  test("ships the local status boundary in the workflow guidance", () => {
-    expect(realKit().files["kit/files/wiki/WORKFLOW.md"]).toContain("branch protection requires the configured local commit-status context");
+  test("ships the portable v2 branch-protection recipe in workflow guidance", () => {
+    const workflow = realKit().files["kit/files/wiki/WORKFLOW.md"];
+    expect(workflow).toContain("branch protection requires the configured local commit-status context");
+    expect(workflow).toMatch(/enforcement\.statusContext[^\n]*default[^\n]*wiki-ssot\/local/i);
+    expect(workflow).toMatch(/require(?:s|d)? (?:a )?pull requests?/i);
+    expect(workflow).toMatch(/any source/i);
+    expect(workflow).toMatch(/strict/i);
+    expect(workflow).toMatch(/up[- ]to[- ]date/i);
+    expect(workflow).toMatch(/(?:optional(?: deployment)? hardening|separate deployment choices)/i);
   });
 });
 

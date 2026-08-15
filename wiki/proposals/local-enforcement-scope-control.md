@@ -132,18 +132,26 @@ work_items:
       - docs/commands.md
       - docs/design.md
   - id: LS-04
-    title: Validate safe version 1 upgrades and migrate known adopters sequentially
-    state: not-started
+    title: Validate safe version 1 upgrades and hand migration to each adopter
+    state: done
     executor: either
     priority: high
     depends_on: [LS-03]
     context_pages: [product/invariants, architecture/engine, operations/enforcement, product/scope]
     acceptance:
       - Pristine and customized version 1 fixtures preserve project configuration, Wiki pages, host workflows, and removed-upstream files through dry-run and idempotent apply reruns.
-      - Each known adopter copies its actual host checks into argv-based localChecks, classifies broad sources, removes Wiki Actions only after reconciliation, publishes an exact local status, and changes its branch requirement only after that status exists.
-      - Adopters are migrated one repository and one PR at a time, and each later migration uses the previous result only as a mechanical template while reading its own workflow and configuration directly.
-      - The post-merge apply rerun is ready and the next adopter PR creates no Wiki Actions run.
-    evidence: []
+      - Portable new/adopt/upgrade guidance tells each repository to copy its own host checks into argv-based localChecks, classify only reviewed broad sources, remove Wiki Actions only after reconciliation, and publish an exact local status before changing branch protection.
+      - The portable branch-protection recipe requires a PR, the configured commit-status context from any source, and strict/up-to-date branches while separating optional repository hardening.
+      - The publisher does not centrally migrate known adopters; each adopter owns its repository-specific migration and validation.
+      - New installations ship no active Wiki Actions workflow, and upgrade keeps project-owned configuration and workflows fail-closed until that repository reconciles them.
+    evidence:
+      - scripts/wiki/existing-repo-bootstrap.test.ts
+      - scripts/wiki/apply.test.ts
+      - scripts/wiki/kit-packaging.test.ts
+      - docs/adopt-existing-repo.md
+      - docs/adopt-new-repo.md
+      - wiki/WORKFLOW.md
+      - kit/README.md
 ---
 
 # Local enforcement and bounded scope

@@ -138,6 +138,12 @@ operations return non-zero. Publishing uses the authenticated `gh` CLI and
 introduces no daemon, GitHub App, or hosted service. A new PR HEAD has no status
 until the exact local result is rerun and republished.
 
+To make that status a merge boundary, follow the generated
+[`wiki/WORKFLOW.md` branch-protection recipe](files/wiki/WORKFLOW.md#github-branch-protection-for-local-status).
+It requires a pull request, the configured status context from `any source`,
+and strict/up-to-date branches; it also separates those functional requirements
+from optional repository hardening.
+
 ## Requirements and trust boundary
 
 - Bun 1.1 or newer and Git.

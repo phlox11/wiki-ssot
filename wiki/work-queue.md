@@ -15,9 +15,9 @@ tags: [generated, work, queue]
 
 This is a deterministic view of structured `work_items` on proposal pages. It is not current product authority; open the owning proposal and then the returned current context.
 
-**Recommended next:** `LS-04` — run `bun run wiki:context -- --work LS-04`.
+**Recommended next:** none. Do not invent work; inspect blockers and open conflicts below.
 
-Outstanding work: 13. Completed work hidden: 40; run `bun run wiki:work -- --all` to inspect it.
+Outstanding work: 12. Completed work hidden: 41; run `bun run wiki:work -- --all` to inspect it.
 
 ## Active
 
@@ -29,7 +29,7 @@ Outstanding work: 13. Completed work hidden: 40; run `bun run wiki:work -- --all
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| LS-04 | high | either | [proposal/local-enforcement-scope-control](./proposals/local-enforcement-scope-control.md) | LS-03 | Validate safe version 1 upgrades and migrate known adopters sequentially | `bun run wiki:context -- --work LS-04` |
+| — | — | — | — | — | None | — |
 
 ## Waiting
 
