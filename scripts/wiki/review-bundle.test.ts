@@ -66,6 +66,39 @@ sources:
   return root;
 }
 
+function globAdditionFixture() {
+  const root = mkdtempSync(join(tmpdir(), "review-bundle-glob-addition-"));
+  temporary.push(root);
+  run(root, ["git", "init", "-q"]);
+  run(root, ["git", "config", "user.name", "Review Bundle Test"]);
+  run(root, ["git", "config", "user.email", "review-bundle@example.invalid"]);
+  const page = "wiki/architecture/contracts.md";
+  const pageBody = `---
+id: architecture/contracts
+summary: Contract
+kind: architecture
+status: current
+authority: observed
+owners: ["@owner"]
+sources:
+  - glob: src/*.ts
+---
+
+# Contracts
+`;
+  put(root, "src/contract.ts", "export const version = 1;\n");
+  put(root, "src/unchanged.ts", "export const unchanged = true;\n");
+  put(root, page, pageBody);
+  put(root, ".wiki/config.json", jsonStable({ version: 1, name: "bundle", highRisk: ["src/**"], publishesKit: false }));
+  put(root, ".wiki/state.json", jsonStable({ version: 1, pages: { "architecture/contracts": { sources: { "src/contract.ts": hashContent("export const version = 1;\n") }, verification: { kind: "updated" } } } }));
+  run(root, ["git", "add", "."]);
+  run(root, ["git", "commit", "-qm", "baseline"]);
+  put(root, "src/new.ts", "export const added = true;\n");
+  run(root, ["git", "add", "src/new.ts"]);
+  run(root, ["git", "commit", "-qm", "add a glob match"]);
+  return root;
+}
+
 function invariantSourceDeclarationFixture() {
   const root = mkdtempSync(join(tmpdir(), "review-bundle-invariant-source-"));
   temporary.push(root);
@@ -218,4 +251,17 @@ describe("review-bundle boundaries", () => {
     expect(affected).toBeDefined();
     expect(readFileSync(join(output, `objects/${affected!.digest}.md`), "utf8")).toContain("independently focused review requests");
   });
+
+  test("requires only the lifecycle declaration that can bind a newly added glob match", () => {
+    const root = globAdditionFixture();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const report = impactReport(view, pages, { base: "HEAD~1", metadata: metadata() });
+    expect(() => buildReviewManifest(view, pages, report, metadata())).not.toThrow();
+    const focused = buildFocusedReviewManifest(view, pages, report, metadata());
+    const added = focused.source_roles.find((item) => item.path === "src/new.ts");
+    expect(added?.lifecycle).toBe("added");
+    expect(added?.declaration_ids.length).toBe(1);
+  });
+
 });

@@ -1,5 +1,5 @@
 {
-  "digest": "70492ae24493c381fd3c77e5e3a8800d95b584ba30aa98fa8a515b49a087d63e",
+  "digest": "cd259a03da2b76f719b3707cc8362a53201339f403465825a2e9daf6474cff33",
   "files": {
     ".gitignore": {
       "ownership": "seed",
@@ -187,11 +187,11 @@
     },
     "scripts/wiki/review-bundle.test.ts": {
       "ownership": "kit",
-      "sha256": "00dab80f25fcacb872fff2697bac5fa3092ed652773ef65feac1eb2b3de039ca"
+      "sha256": "a3cdddff2e2b1fe939437439fc3cfdbb08f2c7b80f880fafdfb8902a68d87c36"
     },
     "scripts/wiki/review-bundle.ts": {
       "ownership": "kit",
-      "sha256": "4f3dfa4530cdb1cb01094a28ef6fa519368f8a393b987747be4ae56f43003ee1"
+      "sha256": "c06edb735a901d656365ef02a5ffa2b1102c82c3de7de275fa1e5327779243c8"
     },
     "scripts/wiki/scope.test.ts": {
       "ownership": "kit",

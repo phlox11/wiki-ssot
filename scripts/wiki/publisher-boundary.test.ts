@@ -181,8 +181,9 @@ describe("PV-16 recursive publisher boundary", () => {
     if (!architecture) throw new Error("missing architecture/engine");
 
     const recursive = architecture.data.sources.find((source) => "glob" in source && source.glob === "scripts/wiki/**/*.ts");
+    if (!recursive) throw new Error("missing recursive architecture source declaration");
     expect(recursive).toMatchObject({ glob: "scripts/wiki/**/*.ts", context: "catalog" });
-    expect("reason" in (recursive ?? {}) && typeof recursive.reason === "string" && recursive.reason.trim().length).toBeGreaterThanOrEqual(20);
+    expect("reason" in recursive && typeof recursive.reason === "string" && recursive.reason.trim().length).toBeGreaterThanOrEqual(20);
     expect(architecture.data.sources
       .filter((source) => source.context === "always")
       .map((source) => ("path" in source ? source.path : source.glob)))
