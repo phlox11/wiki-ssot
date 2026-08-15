@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import type { CliIo } from "./cli-runtime";
@@ -131,6 +131,39 @@ describe("direct CLI handler dispatch", () => {
     expect(codes).toContain("local-status-config-invalid");
     expect(codes).not.toContain("fresh-context-template-missing");
     expect(codes).not.toContain("fresh-context-workflow-missing");
+  });
+
+  test("v2 doctor does not resolve the legacy GitHub attestation module", async () => {
+    if (isGeneratedKitMirror) return;
+    const { runCli } = await import("./cli");
+    const root = mkdtempSync(join(tmpdir(), "wiki-cli-v2-no-attestation-"));
+    temporary.push(root);
+    mkdirSync(join(root, ".wiki"), { recursive: true });
+    writeFileSync(join(root, ".wiki/config.json"), JSON.stringify({
+      version: 2,
+      name: "local-only",
+      publishesKit: false,
+      enforcement: { mode: "local-status", statusContext: "wiki-ssot/local" },
+      localChecks: [{ id: "project-test", argv: ["bun", "run", "test"] }],
+      review: {
+        mode: "required",
+        when: {
+          kind: "risk-based",
+          changedFileRules: [{ glob: ".wiki/config.json", reason: "Local enforcement policy changes require review." }],
+          changedKitOwnedFiles: false,
+          affectedInvariants: false,
+          affectedConflicts: false,
+          removedCurrentPages: false,
+        },
+      },
+    }));
+    expect(Bun.spawnSync(["git", "init", "-q"], { cwd: root, stdout: "pipe", stderr: "pipe" }).exitCode).toBe(0);
+    const handlerSource = readFileSync(join(process.cwd(), "scripts/wiki/cli-validation-handlers.ts"), "utf8");
+    expect(handlerSource).toContain("if (config.version === 1 && rawVersion !== 2)");
+    expect(handlerSource).toContain('require("./github-attestation")');
+    const output = capture();
+    expect(runCli(["doctor", "--json", "--root", root], { cwd: process.cwd(), io: output.io })).toBe(1);
+    expect(output.stderr.join(" ")).not.toContain("github-attestation");
   });
 
   test("enforces staged write guards directly", async () => {

@@ -28,20 +28,46 @@ describe("work queue and selected context", () => {
     const root = cliRepo([
       work({ id: "WK-00", state: "done", priority: "critical", evidence: ["source.ts"] }),
       work({ id: "WK-01", depends_on: ["WK-00"], priority: "critical" }),
+      work({ id: "WK-02", state: "deferred", deferred_reason: "Waiting for an explicit owner decision before implementation." }),
     ]);
     const cli = join(process.cwd(), "scripts/wiki/cli.ts");
     const result = JSON.parse(run(root, [process.execPath, cli, "work", "--json"]));
     expect(result.recommended_next).toEqual({ kind: "work", id: "WK-01" });
     expect(result.groups.ready[0].context_command).toBe("bun run wiki:context -- --work WK-01");
+    expect(result.groups.deferred).toBeUndefined();
+    expect(result.deferred_count).toBe(1);
+    expect(result.done_count).toBe(1);
     expect(result.groups.done).toBeUndefined();
     expect(result.open_conflicts[0].id).toBe("C-900");
     const text = run(root, [process.execPath, cli, "work"]);
     expect(text).toContain(`Recommended next: ${result.recommended_next.id}`);
     expect(text).toContain("READY (1)");
     expect(text).toContain(`${result.groups.ready[0].id} [${result.groups.ready[0].queue_state}, ${result.groups.ready[0].priority}]`);
+    expect(text).toContain("DEFERRED (1)");
+    expect(text).toContain("Details hidden");
+    expect(text).toContain("DONE (1)");
+    expect(text).not.toContain("WK-02 [deferred");
     expect(text).toContain(`OPEN CONFLICTS (${result.open_conflicts.length})`);
     const all = JSON.parse(run(root, [process.execPath, cli, "work", "--all", "--json"]));
     expect(all.groups.done[0].id).toBe("WK-00");
+    expect(all.groups.deferred.map((item: { id: string }) => item.id)).toEqual(["WK-02"]);
+  });
+
+  test("keeps default no-work text while reporting deferred and done counts", () => {
+    const root = cliRepo([
+      work({ id: "WK-DONE", state: "done", evidence: ["source.ts"] }),
+    ], false);
+    const cli = join(process.cwd(), "scripts/wiki/cli.ts");
+    const allDone = run(root, [process.execPath, cli, "work"]);
+    expect(allDone).toContain("No remaining work.");
+    expect(allDone).toContain("DEFERRED (0)");
+    expect(allDone).toContain("DONE (1)");
+
+    const empty = cliRepo([], false);
+    const noWork = run(empty, [process.execPath, cli, "work"]);
+    expect(noWork).toContain("No remaining work.");
+    expect(noWork).toContain("DEFERRED (0)");
+    expect(noWork).toContain("DONE (0)");
   });
 
   test("supports executor filter matrices, --all combinations, and work-specific help", () => {
@@ -67,7 +93,7 @@ describe("work queue and selected context", () => {
     expect(human.groups.ready.map((item: { id: string }) => item.id)).toEqual(["WK-EITHER", "WK-HUMAN"]);
     expect(human.groups.done.map((item: { id: string; executor: string }) => [item.id, item.executor])).toEqual([["WK-HUMAN-DONE", "human"]]);
     expect(run(root, [process.execPath, cli, "work", "--help"])).toContain("--executor agent|human|all");
-    expect(run(root, [process.execPath, cli, "work", "--help"])).toContain("--all includes completed rows");
+    expect(run(root, [process.execPath, cli, "work", "--help"])).toContain("--all includes full deferred and completed rows");
 
     for (const argv of [["--executor", "robot"], ["--executor"]]) {
       const invalid = Bun.spawnSync([process.execPath, cli, "work", ...argv], { cwd: root, stdout: "pipe", stderr: "pipe" });

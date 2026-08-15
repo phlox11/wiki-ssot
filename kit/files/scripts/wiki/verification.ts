@@ -7,6 +7,7 @@ import { buildSourceMap } from "./generated-views";
 import { currentPages } from "./discovery";
 import type { Finding, WikiPage } from "./model";
 import { hashContent, jsonStable } from "./serialization";
+import { hasTypedManagedAgentRules, validateManagedAgentRules } from "./agent-rules";
 
 function stringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === "string" && item.trim().length > 0);
@@ -339,96 +340,6 @@ export function readConfig(view: RepoView): WikiConfig {
   }
 }
 
-function agentEntrypointContractGaps(agents: string): string[] {
-  const lines = agents
-    .split(/\r?\n/)
-    .map((line) => line.replace(/[‘’]/g, "'").toLowerCase().replace(/[`*_]/g, "").replace(/\s+/g, " ").trim())
-    .filter((line) => line.length > 0);
-  const gaps: string[] = [];
-  const hasLine = (predicate: (line: string) => boolean) => lines.some(predicate);
-  const hasWorkCommand = (line: string) => /(?:^|\s)bun run wiki:work(?=$|[\s,.;:—–])/.test(line);
-  const explicitlyNegatesAction = (line: string, action: RegExp) => {
-    const negation = /\b(?:do not|does not|don't|never|avoid|ignore|skip|must not|should not|cannot|can't|refuse to|not to)\b/g;
-    for (const match of line.matchAll(negation)) {
-      const sameClause = line.slice((match.index ?? 0) + match[0].length).split(/[.;—–]/, 1)[0];
-      if (action.test(sameClause)) return true;
-    }
-    return false;
-  };
-  const hasNegatedWorkAction = (line: string) => explicitlyNegatesAction(
-    line,
-    /(?:^\s*bun run wiki:work\b|\b(?:run(?:ning)?|execut(?:e|ing)|us(?:e|ing)|invok(?:e|ing))\b[^.;]*\bbun run wiki:work\b)/,
-  );
-  const hasNoQueryPrerequisite = (line: string) =>
-    /(without|no (?:known )?(?:node|id|search term)|before topic search)/.test(line)
-    || /\b(?:do not require|(?:do|does) not need)\s+(?:(?:a|an|any|the)\s+)?(?:known\s+)?(?:node|proposal id|work id|search term)\b/.test(line);
-
-  if (!hasLine((line) =>
-    !explicitlyNegatesAction(line, /\b(start|begin|open|read|consult)\b/)
-    && /\b(start|begin|open|read|consult)\b/.test(line)
-    && line.includes("wiki/index.md")
-    && line.includes("wiki/current-status.md")
-    && line.includes("kind: invariant"))) {
-    gaps.push("the wiki index/current-status/invariant read route");
-  }
-  if (!hasLine((line) =>
-    !hasNegatedWorkAction(line)
-    && hasWorkCommand(line)
-    && /(what remains|unfinished|what should (?:we|you) do next|what should happen next|remaining[- ]work|next[- ]work)/.test(line)
-    && hasNoQueryPrerequisite(line))) {
-    gaps.push("the no-query generic remaining-work route");
-  }
-  if (!hasLine((line) =>
-    !explicitlyNegatesAction(line, /\b(run|execute|follow|use|open)\b/)
-    && /\bselect(?:ed|ing)?\b/.test(line)
-    && /(returned|result|printed)/.test(line)
-    && /\b(run|execute|follow|use|open)\b/.test(line)
-    && line.includes("wiki:context -- --work <id>"))) {
-    gaps.push("the selected-work context route");
-  }
-  if (!hasLine((line) =>
-    !explicitlyNegatesAction(line, /\b(search|run|execute|use|open|consult)\b/)
-    && /\b(search|topic)\b/.test(line)
-    && /\b(edit|editing|implement|implementation)\b/.test(line)
-    && line.includes('wiki:search -- "<task terms>"')
-    && line.includes('wiki:context -- "<task terms>"'))) {
-    gaps.push("the topic search/context route");
-  }
-  if (!hasLine((line) =>
-    !explicitlyNegatesAction(line, /\b(label|present|state|treat|keep)\w*\b/)
-    && ["proposed", "conflicted", "deprecated", "archived"].every((status) => line.includes(status))
-    && /\b(label|present|state|status|treat)\w*\b/.test(line)
-    && /(not current|non-current)/.test(line))) {
-    gaps.push("the non-current authority boundary");
-  }
-  // Executor metadata is a routing contract, not an authorization mechanism.
-  // This guardrail intentionally accepts the required negative authority
-  // clause ("do not assume authority") instead of sending it through the
-  // generic route-negation detector above.
-  const humanOnlyNotAutoSelected = lines.some((line) =>
-    ( /\bhuman[- ](?:only|exclusive)\b/.test(line)
-      || /\bexecutor\s*:\s*human\b/.test(line)
-      || /\bhuman\s+work\b/.test(line) )
-    && (
-      /\b(?:never|not|must not|should not|cannot|can't|do not)\b[^.;—–]{0,120}\b(?:auto[- ]?select(?:ed|ion)?|recommend(?:ed|ation)?|select(?:ed)? automatically|automatically\s+select)\b/.test(line)
-      || /\b(?:never|not|must not|should not|cannot|can't|do not)\b[^.;—–]{0,120}\b(?:auto[- ]?select(?:ed|ion)?|recommend(?:ed|ation)?|select(?:ed)? automatically|automatically\s+select)\b[^.;—–]{0,120}(?:human[- ](?:only|exclusive)|executor\s*:\s*human|human\s+work)\b/.test(line)
-    ));
-  const reportsProcedure = lines.some((line) =>
-    /\b(?:report|document|describe|provide|explain|state)\b[^.;—–]{0,120}\b(?:procedure|steps?|process|instructions?)\b/.test(line)
-    && !explicitlyNegatesAction(line, /\b(?:report|document|describe|provide|explain|state)\b/));
-  const handsOffToHuman = lines.some((line) =>
-    /\b(?:hand(?:\s+it)?[- ]off|handoff|escalat(?:e|ion)|refer)\b[^.;—–]{0,100}\bhumans?\b/.test(line)
-    && !explicitlyNegatesAction(line, /\b(?:hand(?:\s+it)?[- ]off|handoff|escalat(?:e|ion)|refer)\b/));
-  const doesNotAssumeAuthority = lines.some((line) =>
-    /\b(?:do not|must not|should not|never|cannot|can't)\s+(?:assume|presume)\s+(?:(?:any|additional|extra)\s+)?(?:credentials?|authority|permissions?)(?:\s+or\s+(?:credentials?|authority|permissions?))?\b/.test(line)
-    || /\bno\s+(?:assumed|assumption of)\s+(?:credentials?|authority|permissions?)\b/.test(line)
-    || /\bwithout\s+assuming\b[^.;—–]{0,100}\b(?:credentials?|authority|permissions?)\b/.test(line));
-  if (!humanOnlyNotAutoSelected || !reportsProcedure || !handsOffToHuman || !doesNotAssumeAuthority) {
-    gaps.push("the human-work executor guardrail (human-only auto-selection exclusion, procedure report/handoff, and no assumed authority)");
-  }
-  return gaps;
-}
-
 export function validateIntegrationSeams(view: RepoView): Finding[] {
   const findings: Finding[] = [];
   let configRaw: Record<string, unknown> | undefined;
@@ -459,20 +370,12 @@ export function validateIntegrationSeams(view: RepoView): Finding[] {
   }
 
   const agents = view.exists("AGENTS.md") ? view.read("AGENTS.md") : "";
-  if (!agents.includes("wiki-ssot:fresh-context-guardrail")) {
+  if (parsedConfig?.version === 2 || hasTypedManagedAgentRules(agents)) {
+    findings.push(...validateManagedAgentRules(agents));
+  } else if (!agents.includes("wiki-ssot:fresh-context-guardrail")) {
+    // v1 adopters keep their legacy marker contract until an upgrade replaces
+    // the managed block with the typed v2 rule payload.
     findings.push({ code: "fresh-context-agents-marker-missing", message: "root AGENTS.md must contain the wiki-ssot:fresh-context-guardrail integration marker", path: "AGENTS.md", severity: "error" });
-  }
-  const entrypointGaps = agentEntrypointContractGaps(agents);
-  if (!agents.includes("wiki-ssot:work-discovery") || entrypointGaps.includes("the no-query generic remaining-work route")) {
-    findings.push({ code: "work-discovery-entrypoint-missing", message: "root AGENTS.md must route generic remaining-work requests to bun run wiki:work without requiring a known node, ID, or search term", path: "AGENTS.md", severity: "error" });
-  }
-  if (entrypointGaps.length > 0) {
-    findings.push({
-      code: "agent-entrypoint-contract-incomplete",
-      message: `root AGENTS.md must provide a meaningful provider-neutral wiki route; missing ${entrypointGaps.join(", ")}`,
-      path: "AGENTS.md",
-      severity: "error",
-    });
   }
 
   const packagePath = "package.json";

@@ -1,5 +1,5 @@
 {
-  "digest": "cd259a03da2b76f719b3707cc8362a53201339f403465825a2e9daf6474cff33",
+  "digest": "5c3baae0f5c0dd5212e5dc77b47e5ddacf522c3a8330d754e22356237c30ec2f",
   "files": {
     ".gitignore": {
       "ownership": "seed",
@@ -21,9 +21,17 @@
       "ownership": "seed",
       "sha256": "3ca00cefe7f0f391fe2ad6bb078ee3064aa82f8a5ae1ec02099dfa8f4862dad9"
     },
+    "scripts/wiki/agent-rules.test.ts": {
+      "ownership": "kit",
+      "sha256": "f2b3aab089d72b2b5d9fdfb9717a26580c781866460499cf1097c70bc6b5c1f7"
+    },
+    "scripts/wiki/agent-rules.ts": {
+      "ownership": "kit",
+      "sha256": "bd9a055cd4d54352ade115d2007ffceb22c03b13309ba6ffc5b82c8ecdbcecdf"
+    },
     "scripts/wiki/cli-discovery-handlers.ts": {
       "ownership": "kit",
-      "sha256": "7e8070c00b2b36dd8ec7edc7600da68ca701d6a0f230e69e497e9fb30cf4ef8f"
+      "sha256": "f3f76700892c6d2c11012cbb684d5e10dacf994400802e5706aa37c928123af1"
     },
     "scripts/wiki/cli-generation-handlers.ts": {
       "ownership": "kit",
@@ -31,11 +39,11 @@
     },
     "scripts/wiki/cli-handlers.test.ts": {
       "ownership": "kit",
-      "sha256": "15dc8a72da399ff03b3b7997dc52599223ade32f2cf84b443b42d73b2f325140"
+      "sha256": "0dcffb9a710f28d985c6ec3cb1c0f31466a13a3236fb9985bcdb2e17edff4afa"
     },
     "scripts/wiki/cli-render.ts": {
       "ownership": "kit",
-      "sha256": "50f301ad13d83f1eeaa05749eabf00eebdc8553fb7e324f59d74f7e945b87f76"
+      "sha256": "5713300e05f62057a792d702ca3c73b4ed1c681f058918449e8a9d2c58d3cd19"
     },
     "scripts/wiki/cli-review-handlers.ts": {
       "ownership": "kit",
@@ -51,7 +59,7 @@
     },
     "scripts/wiki/cli-validation-handlers.ts": {
       "ownership": "kit",
-      "sha256": "959a89b773c6b5ba5be06a6ba0fae25757fc57b3f8178594d8895c09f391aaa9"
+      "sha256": "84eb497979b21cb4e818aa9382da68565fcfaf926f640b0d22b1ce505fee328e"
     },
     "scripts/wiki/cli.ts": {
       "ownership": "kit",
@@ -71,7 +79,7 @@
     },
     "scripts/wiki/core.ts": {
       "ownership": "kit",
-      "sha256": "75b8f9400cdbd3da497b014555bd5e38c13f461de409fc271673431d177f6cfa"
+      "sha256": "5bc356d8bfb3e2d4c5cb598feb777ac1a3f23fb1b87afb832698ee443875760d"
     },
     "scripts/wiki/discovery.test.ts": {
       "ownership": "kit",
@@ -87,7 +95,7 @@
     },
     "scripts/wiki/fresh-context-integration.test.ts": {
       "ownership": "kit",
-      "sha256": "6dc21b74b8cb965acaed8606b8f560a3d5b30636c31a976e11ef354cb0098c3a"
+      "sha256": "c31739841671ba9adf178dff1caa35fcd8a0d2babe95bf17f5c007d6ead8ee84"
     },
     "scripts/wiki/fresh-context-manifest.test.ts": {
       "ownership": "kit",
@@ -139,15 +147,15 @@
     },
     "scripts/wiki/kit-growth-guard.ts": {
       "ownership": "kit",
-      "sha256": "c138cee48dbdb41873a721db993c1eca64254a087b9e8200c3b93f618242c45f"
+      "sha256": "86507427c610928088d0276e7c5d1d0acd97b7b08e12e0fae33667ae8a7da6cd"
     },
     "scripts/wiki/kit-packaging.test.ts": {
       "ownership": "kit",
-      "sha256": "bae6805619116062d963ac7e6394c744966c4a4cfb0bec73df096a32a601cb16"
+      "sha256": "66ffe48c1ea380d2bfc5e83c39fc67887dfd336e2104d92b678fa660e9732dd4"
     },
     "scripts/wiki/kit-packaging.ts": {
       "ownership": "kit",
-      "sha256": "1076b559f2a7e906035ded5de90ecfaee779c22efb1c2db0d4e8166a11efec49"
+      "sha256": "f12c791537fa2e4952604ce1f7a739a3793d2cf53d609e96e59f1e0ed6f985f0"
     },
     "scripts/wiki/local-check.test.ts": {
       "ownership": "kit",
@@ -155,7 +163,7 @@
     },
     "scripts/wiki/local-check.ts": {
       "ownership": "kit",
-      "sha256": "530f556d9bf2f80fb4ebef070eae4b95e98650ae5cbb126b53fbde02333edabb"
+      "sha256": "cd81f6d7df3d93c1c776d32116ec37808c95d30fcdfe7d9ff8dd7080a9c3f4dd"
     },
     "scripts/wiki/model.ts": {
       "ownership": "kit",
@@ -168,6 +176,14 @@
     "scripts/wiki/page-validation.ts": {
       "ownership": "kit",
       "sha256": "eeb6d5e943e801ac84990c60a233c37a734dd80778352fe7c02d8570e8e4f48c"
+    },
+    "scripts/wiki/repository-validation.test.ts": {
+      "ownership": "kit",
+      "sha256": "9b5502deab482085a56ed385743f7e5d5e1adec25faa8dc8d3da2332e8de0a1e"
+    },
+    "scripts/wiki/repository-validation.ts": {
+      "ownership": "kit",
+      "sha256": "e7cc8e738c0cdce4543b7013daa7c72b09e3e61811ea6680679b1b1f081aa549"
     },
     "scripts/wiki/repository-view.test.ts": {
       "ownership": "kit",
@@ -187,11 +203,11 @@
     },
     "scripts/wiki/review-bundle.test.ts": {
       "ownership": "kit",
-      "sha256": "a3cdddff2e2b1fe939437439fc3cfdbb08f2c7b80f880fafdfb8902a68d87c36"
+      "sha256": "68c9cc975fc7304a448bf40261be22f05c3e96c4edcfea4a8ba4b0ec72aa97e7"
     },
     "scripts/wiki/review-bundle.ts": {
       "ownership": "kit",
-      "sha256": "c06edb735a901d656365ef02a5ffa2b1102c82c3de7de275fa1e5327779243c8"
+      "sha256": "579cf50fb2ac62baf640f74b80daf800301dd439dfa950127a2f73a85aef081d"
     },
     "scripts/wiki/scope.test.ts": {
       "ownership": "kit",
@@ -239,7 +255,7 @@
     },
     "scripts/wiki/verification.ts": {
       "ownership": "kit",
-      "sha256": "852f54a42fb773fd66b6bae1bbb1c0ea09b72f53df96cd47b7085a4b574c615b"
+      "sha256": "af23589ac1ddf3448e961d111bdf9b7b79328810b717410a28cca638a35b6993"
     },
     "scripts/wiki/wiki-coverage.test.ts": {
       "ownership": "kit",
@@ -263,11 +279,11 @@
     },
     "scripts/wiki/work-selected-context.test.ts": {
       "ownership": "kit",
-      "sha256": "d9a3a5f63e4c7544c91a059c9b60362d56689069d58f178d9adbd9a00a131a7f"
+      "sha256": "936a11ce283a765b680d6ea4a46d42c95bf66a2157421071794844ebd01eae71"
     },
     "scripts/wiki/work-topic-context.test.ts": {
       "ownership": "kit",
-      "sha256": "cc31828996d288bba46832bc275a3a43394f09171c5653a551a881db374f8397"
+      "sha256": "c1be05c0a3988970725a8abb373d143de2b14939ea38cb38a69ad782bc3717a0"
     },
     "scripts/wiki/work-validation.test.ts": {
       "ownership": "kit",
@@ -295,7 +311,7 @@
     },
     "wiki/WORKFLOW.md": {
       "ownership": "kit",
-      "sha256": "7cb909ff1491e0e7085267cbdf6e3ab5154cfd7c41c0d70b208ae4b1c725f32b"
+      "sha256": "7529472cd3314e0957b42ec3961370cf42801ee11e12627f540a978e321a733a"
     }
   },
   "kit": "wiki-ssot",
@@ -329,7 +345,7 @@
       "legacyMarkers": [
         "<!-- wiki-ssot:fresh-context-guardrail -->"
       ],
-      "sha256": "4e7af0d8d424bb655a1c4a0cb6b93c927310ba7f1cb2270febcf934724ca48cb",
+      "sha256": "2235114819961c888004cc752fb9044eb579209470402ded6f0006244f7b8144",
       "start": "<!-- wiki-ssot:managed:start -->"
     }
   },

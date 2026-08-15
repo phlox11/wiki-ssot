@@ -15,6 +15,7 @@ import {
   stripKitExclusions,
   writeKit,
 } from "./kit-packaging";
+import { AGENT_VERSION_MARKER, MANAGED_AGENT_RULES } from "./agent-rules";
 import { jsonStable } from "./serialization";
 
 const temporary: string[] = [];
@@ -234,9 +235,13 @@ describe("emitted kit", () => {
   test("keeps the base-engine bundle rule, which applies downstream too", () => {
     // The local review bundle still uses the base.sha engine and the v2 policy
     // selects actual kit-owned engine files, so an adopter editing the engine
-    // hits the same digest recomputation without a hosted workflow.
+    // hits the same digest recomputation without a hosted workflow. The
+    // managed AGENTS payload is concise typed guidance; details stay in the
+    // workflow page rather than being duplicated as prose.
     const { files } = realKit();
-    expect(files["kit/managed/AGENTS.md"]).toContain("base-checkout");
+    const agents = files["kit/managed/AGENTS.md"];
+    expect(agents).toContain(AGENT_VERSION_MARKER);
+    for (const rule of MANAGED_AGENT_RULES) expect(agents).toContain(`<!-- wiki-ssot:rule id=${rule.id} -->`);
     expect(files["kit/files/wiki/WORKFLOW.md"]).toContain("base engine");
   });
 
@@ -249,31 +254,23 @@ describe("emitted kit", () => {
     expect(Object.keys(files).some((path) => /^kit\/(?:files|managed|seed)\/\.github\/workflows\//.test(path))).toBe(false);
   });
 
-  test("ships bounded reusable-context and orchestration guidance downstream", () => {
+  test("ships concise context-first and independent-review guidance downstream", () => {
     const agents = realKit().files["kit/managed/AGENTS.md"];
     for (const required of [
-      "bun run wiki:context -- --work <ID> --artifact <path> --metadata <pr-body> --base <ref>",
-      "--reuse <path>",
-      "Read each affected page's `context: always` sources directly.",
-      "A `context: catalog` declaration remains fully tracked; inspect its compact declaration/reason/count/bytes/digest",
-      "Mandatory sources bind individually; catalog sets bind by declaration, digest, count, and bytes.",
-      "Reuse never replaces reading the listed current pages and required implementation sources directly.",
-      "batch independent reads and deterministic checks and do not rerun `wiki:work` or broad context discovery",
-      "Use bounded waits for running work rather than status polling",
-      "Keep successful summaries bounded and point to digest-addressed full evidence",
-      "one bounded phase handoff before publication",
-      "the context-isolated reviewer are mandatory and remain separate",
-      "provider-specific fan-out is optional",
-      "does not promise provider cache continuity, approval behavior, model routing",
+      "Start a named topic with bun run wiki:context -- \"<task terms>\".",
+      "bun run wiki:search remains available for optional manual exploration and is not a required prerequisite.",
+      "Run bun run wiki:review-preflight before the canonical local check and independent review.",
+      "Detailed workflow and migration steps live in wiki/WORKFLOW.md.",
     ]) {
       expect(agents).toContain(required);
     }
+    const workflow = realKit().files["kit/files/wiki/WORKFLOW.md"];
+    expect(workflow).toContain("A `catalog` descriptor remains fully tracked");
+    expect(workflow).toContain("context-isolated reviewer");
   });
 
-  test("ships the warning that branch protection matches on check name", () => {
-    // The warning remains part of the managed operating guidance even though
-    // v2 no longer ships an active GitHub workflow.
-    expect(realKit().files["kit/managed/AGENTS.md"]).toContain("Branch protection matches a status context rather than its implementation meaning");
+  test("ships the local status boundary in the workflow guidance", () => {
+    expect(realKit().files["kit/files/wiki/WORKFLOW.md"]).toContain("branch protection requires the configured local commit-status context");
   });
 });
 

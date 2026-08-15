@@ -3,9 +3,9 @@
 ## Before editing
 
 1. Read the bounded `wiki/index.md` and `wiki/current-status.md`; follow `wiki/catalog.md` when their group or lifecycle summary points to the complete catalog.
-2. For a generic "what remains?", "what is unfinished?", or "what should happen next?" request, run `bun run wiki:work` without asking for an ID or search term. Select only recommended `agent` or `either` work in `active` or `ready`, then run the item's printed `bun run wiki:context -- --work <ID>` command. Never auto-select `executor: human`, waiting, blocked, deferred, or conflict work. Human work remains visible; use `bun run wiki:work -- --executor human` to report its procedure and hand it off without assuming human credentials or authority.
-3. For a topic-specific task, run `bun run wiki:search -- "<terms>"`.
-4. Run `bun run wiki:context -- "<terms>"`; use its compact authority/source routing and inspect every returned open conflict and acceptance list. If a partial-match candidate list is returned, follow the candidate's focused command instead of expanding every body.
+2. For a generic "what remains?", "what is unfinished?", or "what should happen next?" request, run `bun run wiki:work` without asking for an ID or search term. Select only recommended `agent` or `either` work in `active` or `ready`, then run the item's printed `bun run wiki:context -- --work <ID>` command. Never auto-select `executor: human`, waiting, blocked, deferred, or conflict work. Human work remains visible; use `bun run wiki:work -- --executor human` to report its procedure and hand it off without assuming human credentials or authority. The default output gives deferred/done counts only; use `--all` when their detailed rows are relevant.
+3. For a topic-specific task, start with `bun run wiki:context -- "<terms>"`. It performs the same deterministic matching as `wiki:search` and returns current authority, conflicts, and bounded source routing in one step. Keep `wiki:search` for optional manual catalog exploration.
+4. Inspect every returned open conflict and acceptance list. If a partial-match candidate list is returned, follow the candidate's focused command instead of expanding every body.
 5. Read the matched pages, conflicts, and every `context: always` source in the mandatory read order. A `catalog` descriptor remains fully tracked: inspect its declaration/reason/count/bytes/digest and expand it with the printed command when the changed file, task, or review evidence needs that implementation detail. Add `--full` when exhaustive bodies and all catalog paths are needed.
 
 ## While editing
@@ -22,11 +22,9 @@
 ```sh
 bun run wiki:generated
 bun run wiki:lint
-bun run wiki:doctor
 bun run wiki:impact -- --base origin/main --enforce
 bun run typecheck
-bun run test
-bun run wiki:audit
+bun run test  # or the relevant project tests while implementing
 bun run wiki:review-preflight -- --base origin/main \
   --metadata /path/to/pr-body.md --output /path/to/review-bundle --json
 ```
@@ -55,5 +53,5 @@ Generated catalog, cumulative status, relationship graph, and reverse maps are p
 
 - pre-commit: staged wiki structure/link/source/generated validation only.
 - pre-push: direct `main` push prevention.
-- local gate: structural/generated/inventory/state/impact/review checks, configured project argv checks, toolkit tests when owned files change, and publisher kit guards produce one exact result.
+- local gate: one shared repository-validation result feeds lint/doctor/audit/legacy projections and the canonical structural/generated/inventory/state checks; impact/review, configured project argv checks, toolkit tests when owned files change, and publisher kit guards complete one exact result.
 - remote policy: branch protection requires the configured local commit-status context. Deployments may add other rules, but wiki-ssot assumes repository write/admin actors are trusted and does not make organization-security policy part of its product contract.

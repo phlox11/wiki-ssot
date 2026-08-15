@@ -99,6 +99,8 @@ export type KitGrowthReport = {
 /** Explicit contract-area ownership for every currently shipped TypeScript file. */
 export const KIT_CONTRACT_AREAS: Readonly<Record<string, KitContractArea>> = {
   "scripts/wiki/core.ts": "production",
+  "scripts/wiki/repository-validation.ts": "production",
+  "scripts/wiki/agent-rules.ts": "production",
   "scripts/wiki/verification.ts": "production",
   "scripts/wiki/impact.ts": "production",
   "scripts/wiki/review-bundle.ts": "production",
@@ -158,6 +160,8 @@ export const KIT_CONTRACT_AREAS: Readonly<Record<string, KitContractArea>> = {
   "scripts/wiki/core-facade.test.ts": "regression",
   "scripts/wiki/verification.test.ts": "regression",
   "scripts/wiki/cli-handlers.test.ts": "regression",
+  "scripts/wiki/repository-validation.test.ts": "regression",
+  "scripts/wiki/agent-rules.test.ts": "regression",
   "scripts/wiki/local-check.test.ts": "regression",
   "scripts/wiki/github-local-status.test.ts": "regression",
   "scripts/wiki/impact.test.ts": "regression",

@@ -28,7 +28,7 @@ wiki-ssot turns a repository's development knowledge into a small set of `status
 - An auditable source/read/review scope projection that explains broad-set size, reverse authority/conflict fan-out, file-to-review cause paths, potential selection, and merge-base deltas without imposing repository-global count, percentage, or byte budgets.
 - A pre-PR command that deterministically classifies risk, prepares a content-addressed independent-review bundle with focused, role-classified source inputs, and validates both the bundle and returned structured report before publication.
 - A procedural independent-review boundary in version 2 local-status mode; authenticated actor separation remains a version 1 or external-enforcement concern and is never silently weakened during migration.
-- Enforcement rails within a trusted repository-developer boundary: a provider-neutral agent entrypoint (`AGENTS.md`) with machine-checked affirmative authority, work-discovery, and focused-context clause shapes; local git hooks; an exact-result local gate; a narrow GitHub commit-status/comment publisher; and downstream integration seams.
+- Enforcement rails within a trusted repository-developer boundary: a provider-neutral agent entrypoint (`AGENTS.md`) rendered from a typed, versioned managed rule list whose stable IDs are structurally checked without prose interpretation; local git hooks; one shared repository-validation result projected by the public diagnostics and exact-result gate; a narrow GitHub commit-status/comment publisher; and downstream integration seams.
 - One idempotent apply loop across every lifecycle state: install while beginning a Git project, adopt into an existing codebase, or upgrade an installed Wiki SSOT. Every path performs the same deterministic Wiki/code checks and returns project-specific semantic reconciliation to the invoking coding agent.
 - A generated `kit/` distribution with separate kit-owned, managed-block, seeded project-owned, and reference content. New installations receive no active GitHub workflow. Upgrades replace only what the toolkit owns, preserve host scripts/workflows and project policy, retain version 1 compatibility inputs, and fail closed instead of deleting or overwriting ambiguous customizations. This repository's own wiki pages, conflicts, and proposals are instance content and are not part of it.
 
@@ -52,11 +52,12 @@ assertions or claims above that profile. Global validation remains complete.
 
 The validated user expectation is that a fresh session can discover
 repository-wide work without an internal ID, keep human-exclusive work visible
-without agent auto-selection or assumed authority, load a selected item's controlling
-current authority and sources, trace every configured covered file to a current
+without agent auto-selection or assumed authority, start topic work with one
+query-based context command, load a selected item's controlling current
+authority and sources, trace every configured covered file to a current
 page or exclusion, and complete the installed review path when deterministic
-risk policy selects it. The required installation seam is the affirmative root
-`AGENTS.md` routing contract, structured semantic PR metadata, canonical package
+risk policy selects it. The required installation seam is the versioned root
+`AGENTS.md` managed rule-ID contract, structured semantic PR metadata, canonical package
 commands, valid local-status configuration, and the exact result publication
 path; `wiki:doctor` validates those surfaces.
 

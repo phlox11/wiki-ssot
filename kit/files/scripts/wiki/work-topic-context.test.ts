@@ -295,7 +295,7 @@ describe("generic topic context", () => {
     const empty = tempRepo();
     run(empty, ["git", "commit", "--allow-empty", "-qm", "empty"]);
     const cli = join(process.cwd(), "scripts/wiki/cli.ts");
-    expect(run(empty, [process.execPath, cli, "work"]).trim()).toBe("No remaining work.");
+    expect(run(empty, [process.execPath, cli, "work"])).toMatch(/No remaining work\.[\s\S]*DEFERRED \(0\)[\s\S]*DONE \(0\)/);
 
     const conflictOnly = tempRepo();
     put(conflictOnly, "source.ts", "export const value = true;\n");
@@ -327,11 +327,9 @@ describe("generic topic context", () => {
     const prompts = ["What work remains?", "What is unfinished?", "What should we do next?", "할 일 남은 거 뭐야?"];
     expect(prompts.every((prompt) => !/PV-\d|proposal\/|wiki:/.test(prompt))).toBe(true);
     const agents = readFileSync(join(process.cwd(), "AGENTS.md"), "utf8");
-    expect(agents).toContain("wiki-ssot:work-discovery");
-    expect(agents).toContain("run `bun run wiki:work`");
-    expect(agents).toContain("할 일 남은 거 뭐야?");
-    expect(agents).toContain("Do not require a proposal ID, work ID, or search term.");
+    expect(agents).toContain("<!-- wiki-ssot:managed:version=2 -->");
+    expect(agents).toContain("<!-- wiki-ssot:rule id=work-discovery -->");
+    expect(agents).toContain("<!-- wiki-ssot:rule id=context-first -->");
   });
 
 });
-

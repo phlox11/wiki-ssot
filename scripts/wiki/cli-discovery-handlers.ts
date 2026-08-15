@@ -66,16 +66,28 @@ export function handleWork(context: CliContext): void {
     ready: queue.groups.ready,
     waiting: queue.groups.waiting,
     blocked: queue.groups.blocked,
-    deferred: queue.groups.deferred,
     ...(has(context.parsed, "all") ? { done: queue.groups.done } : {}),
+    ...(has(context.parsed, "all") ? { deferred: queue.groups.deferred } : {}),
   };
   if (context.json) {
-    emit(context.io, { version: queue.version, recommended_next: queue.recommended_next, groups, open_conflicts: queue.open_conflicts }, true);
+    emit(context.io, {
+      version: queue.version,
+      recommended_next: queue.recommended_next,
+      groups,
+      deferred_count: queue.groups.deferred.length,
+      done_count: queue.groups.done.length,
+      open_conflicts: queue.open_conflicts,
+    }, true);
     return;
   }
   const outstanding = queue.groups.active.length + queue.groups.ready.length + queue.groups.waiting.length + queue.groups.blocked.length + queue.groups.deferred.length;
-  if (outstanding === 0 && queue.open_conflicts.length === 0 && (!has(context.parsed, "all") || queue.groups.done.length === 0)) {
-    emit(context.io, "No remaining work.", false);
+  if (outstanding === 0 && queue.open_conflicts.length === 0 && !has(context.parsed, "all")) {
+    emit(context.io, [
+      "No remaining work.",
+      "",
+      `DEFERRED (${queue.groups.deferred.length})`,
+      `DONE (${queue.groups.done.length})`,
+    ].join("\n"), false);
     return;
   }
   const humanOutstanding = ["active", "ready"]
@@ -101,9 +113,15 @@ export function handleWork(context: CliContext): void {
   lines.push(...(queue.open_conflicts.length > 0
     ? queue.open_conflicts.map((item) => `${item.id} [${item.severity}, ${item.type}, ${item.state}]\t${item.summary}\n  Context: bun run wiki:context -- --conflict ${item.id}`)
     : ["none"]), "");
-  lines.push(`DEFERRED (${queue.groups.deferred.length})`, ...(queue.groups.deferred.length > 0 ? queue.groups.deferred.map(workText) : ["none"]));
-  if (has(context.parsed, "all")) lines.push("", `DONE (${queue.groups.done.length})`, ...(queue.groups.done.length > 0 ? queue.groups.done.map(workText) : ["none"]));
-  else if (queue.groups.done.length > 0) lines.push("", `Completed work hidden: ${queue.groups.done.length}. Run bun run wiki:work -- --all to inspect it.`);
+  if (has(context.parsed, "all")) {
+    lines.push(`DEFERRED (${queue.groups.deferred.length})`, ...(queue.groups.deferred.length > 0 ? queue.groups.deferred.map(workText) : ["none"]));
+    lines.push("", `DONE (${queue.groups.done.length})`, ...(queue.groups.done.length > 0 ? queue.groups.done.map(workText) : ["none"]));
+  } else {
+    lines.push(`DEFERRED (${queue.groups.deferred.length})`);
+    if (queue.groups.deferred.length > 0) lines.push("  Details hidden; run bun run wiki:work -- --all to inspect deferred work.");
+    lines.push("", `DONE (${queue.groups.done.length})`);
+    if (queue.groups.done.length > 0) lines.push("  Details hidden; run bun run wiki:work -- --all to inspect completed work.");
+  }
   emit(context.io, lines.join("\n").trimEnd(), false);
 }
 

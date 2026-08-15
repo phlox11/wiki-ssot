@@ -255,8 +255,9 @@ function focusedReviewData(view: RepoView, pages: WikiPage[], report: ImpactRepo
     // drop the page identity.
     void authority;
   };
-  const requiredPageIds = new Set([...report.affectedPages, ...invariants.map((page) => page.data.id)]);
-  for (const page of pages.filter((item) => item.data.status === "current" && requiredPageIds.has(item.data.id))) addDeclarations(page, authorityIds.has(page.data.id), "head");
+  const affectedInvariantIds = new Set(invariants.map((page) => page.data.id).filter((id) => authorityIds.has(id)));
+  const requiredPageIds = new Set(report.affectedPages);
+  for (const page of pages.filter((item) => item.data.status === "current" && (requiredPageIds.has(item.data.id) || affectedInvariantIds.has(item.data.id)))) addDeclarations(page, authorityIds.has(page.data.id), "head");
   // The merge-base declaration view is required for every affected current
   // authority page, not only invariants. Keep all merge-base invariants for
   // their independent authority bodies, then add affected product/architecture
@@ -264,7 +265,7 @@ function focusedReviewData(view: RepoView, pages: WikiPage[], report: ImpactRepo
   for (const path of baseAuthorityPaths) {
     const basePage = pageAtRevision(view.root, report.mergeBase, path);
     if (basePage?.data.status !== "current") continue;
-    if (basePage.data.kind === "invariant" || authorityIds.has(basePage.data.id)) addDeclarations(basePage, authorityIds.has(basePage.data.id), "merge-base");
+    if ((basePage.data.kind === "invariant" && affectedInvariantIds.has(basePage.data.id)) || authorityIds.has(basePage.data.id)) addDeclarations(basePage, authorityIds.has(basePage.data.id), "merge-base");
   }
   for (const conflictPage of pages.filter((item) => item.data.kind === "conflict" && report.affectedConflicts.some((summary) => summary.id === item.data.conflict_id))) addDeclarations(conflictPage, false, "head");
   for (const summary of report.affectedConflicts) {

@@ -15,9 +15,9 @@ tags: [generated, work, queue]
 
 This is a deterministic view of structured `work_items` on proposal pages. It is not current product authority; open the owning proposal and then the returned current context.
 
-**Recommended next:** `LS-03` — run `bun run wiki:context -- --work LS-03`.
+**Recommended next:** `LS-04` — run `bun run wiki:context -- --work LS-04`.
 
-Outstanding work: 14. Completed work hidden: 39; run `bun run wiki:work -- --all` to inspect it.
+Outstanding work: 13. Completed work hidden: 40; run `bun run wiki:work -- --all` to inspect it.
 
 ## Active
 
@@ -29,13 +29,13 @@ Outstanding work: 14. Completed work hidden: 39; run `bun run wiki:work -- --all
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| LS-03 | high | agent | [proposal/local-enforcement-scope-control](./proposals/local-enforcement-scope-control.md) | LS-02 | Remove validation, agent-rule, context, work-output, and publication choreography duplication | `bun run wiki:context -- --work LS-03` |
+| LS-04 | high | either | [proposal/local-enforcement-scope-control](./proposals/local-enforcement-scope-control.md) | LS-03 | Validate safe version 1 upgrades and migrate known adopters sequentially | `bun run wiki:context -- --work LS-04` |
 
 ## Waiting
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| LS-04 | high | either | [proposal/local-enforcement-scope-control](./proposals/local-enforcement-scope-control.md) | LS-03 | Validate safe version 1 upgrades and migrate known adopters sequentially — Waiting on: LS-03 | `bun run wiki:context -- --work LS-04` |
+| — | — | — | — | — | None | — |
 
 ## Blocked
 

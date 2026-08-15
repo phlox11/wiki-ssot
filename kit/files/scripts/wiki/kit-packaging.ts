@@ -3,6 +3,7 @@ import { dirname, join } from "node:path";
 import type { Finding } from "./model";
 import type { RepoView } from "./repository-view";
 import { hashContent, jsonStable } from "./serialization";
+import { renderManagedAgentBlock } from "./agent-rules";
 
 // ---------------------------------------------------------------------------
 // Portable kit
@@ -111,6 +112,8 @@ Record only current-contract changes here: product-contract changes, significant
  */
 export const KIT_ENTRIES: KitEntry[] = [
   { target: "scripts/wiki/core.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/core.ts" } },
+  { target: "scripts/wiki/repository-validation.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/repository-validation.ts" } },
+  { target: "scripts/wiki/agent-rules.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/agent-rules.ts" } },
   { target: "scripts/wiki/verification.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/verification.ts" } },
   { target: "scripts/wiki/impact.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/impact.ts" } },
   { target: "scripts/wiki/review-bundle.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/review-bundle.ts" } },
@@ -171,6 +174,8 @@ export const KIT_ENTRIES: KitEntry[] = [
   { target: "scripts/wiki/page-validation.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/page-validation.test.ts" } },
   { target: "scripts/wiki/work-validation.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/work-validation.test.ts" } },
   { target: "scripts/wiki/core-facade.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/core-facade.test.ts" } },
+  { target: "scripts/wiki/agent-rules.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/agent-rules.test.ts" } },
+  { target: "scripts/wiki/repository-validation.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/repository-validation.test.ts" } },
   { target: "scripts/wiki/verification.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/verification.test.ts" } },
   { target: "scripts/wiki/cli-handlers.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/cli-handlers.test.ts" } },
   { target: "scripts/wiki/impact.test.ts", placement: "files", source: { kind: "copy", from: "scripts/wiki/impact.test.ts" } },
@@ -357,6 +362,10 @@ function renderKitEntry(view: RepoView, entry: KitEntry, findings: Finding[]): s
     return fragment.content;
   }
   if (source.kind === "managed-block") {
+    // AGENTS is a policy payload, not a copy of this checkout's prose.  The
+    // typed rules own the managed block so an adopter gets a stable, auditable
+    // rule set while host content outside the block remains project-owned.
+    if (entry.target === "AGENTS.md") return renderManagedAgentBlock();
     const block = extractManagedBlock(raw, source);
     if (block.error) {
       pushFinding(findings, source.from, "kit-managed-block-invalid", `kit entry ${entry.target}: ${block.error}`);
