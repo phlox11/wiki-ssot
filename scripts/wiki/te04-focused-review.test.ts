@@ -11,6 +11,8 @@ describe("TE-04 focused review measurement", () => {
   test("copies the complete KM-03 engine dependency closure", () => {
     expect(TE04_ENGINE_PATHS).toEqual(expect.arrayContaining([
       "scripts/wiki/core.ts",
+      "scripts/wiki/repository-validation.ts",
+      "scripts/wiki/agent-rules.ts",
       "scripts/wiki/verification.ts",
       "scripts/wiki/impact.ts",
       "scripts/wiki/review-bundle.ts",

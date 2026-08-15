@@ -29,6 +29,8 @@ const CLI_PATH = "scripts/wiki/cli.ts";
 /** Engine entrypoints copied into the disposable candidate as one dependency closure. */
 export const TE04_ENGINE_PATHS = [
   "scripts/wiki/core.ts",
+  "scripts/wiki/repository-validation.ts",
+  "scripts/wiki/agent-rules.ts",
   "scripts/wiki/verification.ts",
   "scripts/wiki/impact.ts",
   "scripts/wiki/review-bundle.ts",

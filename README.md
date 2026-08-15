@@ -17,7 +17,7 @@ It is derived from Andrej Karpathy's [LLM wiki](https://gist.github.com/karpathy
 - Each page's frontmatter lists its **`sources`** (real paths / globs). `context: always` makes an anchor a mandatory compact read; a reasoned `context: catalog` keeps a broad set fully mapped, covered, hashed, drift-checked, and impact-visible while representing it compactly by digest/count/bytes. When any tracked source changes, its page goes *stale* and must be updated or explicitly verified — in the same PR.
 - A **configured coverage** gate ensures every file matched by `.wiki/coverage.json` maps to a current page or a reasoned exclusion, so the repository can make its declared code boundary findable without pretending to cover files outside that boundary.
 - When intent is unclear or code and wiki disagree, you open a **conflict** — a first-class, machine-tracked record with acceptance criteria — instead of guessing.
-- Proposal frontmatter carries a validated, repository-wide **work queue**. An optional `executor: agent | human | either` classifies who can perform a task independently from its lifecycle state; omission remains backward-compatible `agent`. A fresh session can run `wiki:work` with no topic, node, or task ID, see human work without auto-selecting it, then load a selected item's current invariants, context pages, conflicts, sources, and non-current proposal owner through a compact default projection. Stable digests and focused commands route to detail, while `wiki:context -- --full` retains exhaustive body inspection.
+- Proposal frontmatter carries a validated, repository-wide **work queue**. An optional `executor: agent | human | either` classifies who can perform a task independently from its lifecycle state; omission remains backward-compatible `agent`. A fresh session can run `wiki:work` with no topic, node, or task ID, see actionable work without auto-selecting human work, and keep deferred/done detail behind `--all`; it then loads a selected item's current invariants, context pages, conflicts, sources, and non-current proposal owner through a compact default projection. Stable digests and focused commands route to detail, while `wiki:context -- --full` retains exhaustive body inspection.
 - A bounded **`wiki/index.md` entrypoint** routes by first path group into a complete generated catalog. Current-status exposes current/proposal, outstanding/done work, open/resolved conflict, and archived/deprecated totals; a generated relationship graph exposes declared page/work links without changing authority or validation semantics.
 - `wiki:review-preflight` decides whether independent reconciliation is required before a PR exists, prepares an exact content-addressed bundle with focused authority/source/test roles, and validates the separate review context's report. `wiki:check` binds that report and every deterministic check to the committed HEAD; `wiki:publish` refuses stale evidence before posting the protected status.
 
@@ -169,10 +169,12 @@ Version 2 requires an explicit risk-based selector; it never falls back to all-P
 ## Required integration seam
 
 Adoption is complete only while the installed repository keeps the full seam:
-a root `AGENTS.md` with the affirmative current-authority, no-query work,
-human-work handoff, and focused/topic context routes; the semantic PR metadata
+a root `AGENTS.md` managed block rendered from a versioned typed rule list with
+stable current-authority, no-query work, human-handoff, selected-work, direct
+topic-context, and non-current-boundary IDs; the semantic PR metadata
 template; explicit v2 local-status configuration; and the canonical local
-check/publish commands. `wiki:doctor` checks these surfaces and fails when v2
+check/publish commands. `wiki:doctor` checks marker/version/ID structure rather
+than interpreting host prose, and fails when v2
 configuration still coexists with legacy active Wiki workflows. Version 1
 GitHub attestation remains an isolated compatibility seam for existing adopters.
 

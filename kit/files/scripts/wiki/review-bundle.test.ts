@@ -133,6 +133,39 @@ sources:
   return root;
 }
 
+function twoInvariantFixture() {
+  const root = mkdtempSync(join(tmpdir(), "review-bundle-two-invariants-"));
+  temporary.push(root);
+  run(root, ["git", "init", "-q"]);
+  run(root, ["git", "config", "user.name", "Review Bundle Test"]);
+  run(root, ["git", "config", "user.email", "review-bundle@example.invalid"]);
+  const page = (id: string, source: string) => `---
+id: ${id}
+summary: ${id}
+kind: invariant
+status: current
+authority: normative
+owners: ["@owner"]
+sources:
+  - path: ${source}
+---
+
+# ${id}
+`;
+  put(root, "src/one.ts", "export const one = 1;\n");
+  put(root, "src/two.ts", "export const two = 1;\n");
+  put(root, "wiki/product/one.md", page("product/one", "src/one.ts"));
+  put(root, "wiki/product/two.md", page("product/two", "src/two.ts"));
+  put(root, ".wiki/config.json", jsonStable({ version: 1, name: "bundle", highRisk: ["src/**"], publishesKit: false }));
+  put(root, ".wiki/state.json", jsonStable({ version: 1, pages: {} }));
+  run(root, ["git", "add", "."]);
+  run(root, ["git", "commit", "-qm", "baseline"]);
+  put(root, "src/one.ts", "export const one = 2;\n");
+  run(root, ["git", "add", "src/one.ts"]);
+  run(root, ["git", "commit", "-qm", "change one invariant"]);
+  return root;
+}
+
 function metadata(): PrMetadata {
   return {
     change_type: "refactor",
@@ -219,6 +252,31 @@ describe("review-bundle boundaries", () => {
       expect.objectContaining({ page_id: "product/invariants", matched_via: "glob", declaration: { glob: "src/*.ts" } }),
     ]));
     expect(() => buildReviewManifest(view, pages, report, prMetadata)).not.toThrow();
+  });
+
+  test("retains every invariant body without shipping unaffected invariant sources", () => {
+    const root = twoInvariantFixture();
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const report = impactReport(view, pages, {
+      base: "HEAD~1",
+      metadata: {
+        change_type: "feature",
+        semantic_change: true,
+        wiki_action: "update",
+        affected_pages: ["product/one"],
+        affected_invariants: ["product/one"],
+        touched_conflicts: [],
+      },
+    });
+    const focused = buildFocusedReviewManifest(view, pages, report);
+    expect(focused.body_roles).toEqual(expect.arrayContaining([
+      expect.objectContaining({ role: "invariant", id: "product/one", lifecycle: "head" }),
+      expect.objectContaining({ role: "invariant", id: "product/two", lifecycle: "head" }),
+    ]));
+    expect(focused.source_declarations.map((item) => item.page_id)).not.toContain("product/two");
+    expect(focused.source_roles.map((item) => item.path)).not.toContain("src/two.ts");
+    expect(focused.source_roles.map((item) => item.path)).toContain("src/one.ts");
   });
 
   test("retains source context/reason in focused declarations and binds declaration-only drift", () => {

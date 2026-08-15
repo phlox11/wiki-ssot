@@ -1,9 +1,8 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import {
-  allLintFindings,
+  buildRepositoryValidation,
+  aggregateFindings,
   auditReport,
-  compareGenerated,
-  generatedCoreFiles,
   impactReport,
   isConflictGuardFinding,
   readConfig,
@@ -12,8 +11,6 @@ import {
   writeGenerated,
   jsonStable,
 } from "./core";
-import { generateInventories } from "./inventories";
-import { validateIntegrationSeams } from "./verification";
 import { emit, has, many, one, printFindings, type CliContext } from "./cli-runtime";
 import type { Finding } from "./model";
 import { UsageError } from "./verification";
@@ -22,7 +19,8 @@ import { publishLocalStatus } from "./github-local-status";
 import { resolve } from "node:path";
 
 export function handleLint(context: CliContext): void {
-  const result = allLintFindings(context.view, true);
+  const validation = buildRepositoryValidation(context.view, { loaded: context.loaded, checkGenerated: true, checkInventory: false, checkState: false });
+  const result = { pages: validation.loaded.pages, findings: aggregateFindings(validation, { includeCoreGenerated: true, includeInventoryGenerated: false, includeState: false }) };
   if (context.json) emit(context.io, { ok: !result.findings.some((item) => item.severity === "error"), mode: context.view.mode, findings: result.findings }, true);
   else {
     printFindings(context.io, result.findings);
@@ -46,7 +44,8 @@ function declaredConfigVersion(context: CliContext): number | undefined {
 export function handleDoctor(context: CliContext): void {
   const config = readConfig(context.view);
   const rawVersion = declaredConfigVersion(context);
-  const findings = validateIntegrationSeams(context.view);
+  const validation = buildRepositoryValidation(context.view, { loaded: context.loaded, checkGenerated: false, checkInventory: false, checkState: false });
+  const findings = [...validation.integration];
   if (config.version === 1 && rawVersion !== 2) {
     // Keep the GitHub attestation seam loadable only for legacy v1. The v2
     // local-status path must not import or execute this compatibility module.
@@ -63,7 +62,8 @@ export function handleDoctor(context: CliContext): void {
 }
 
 export function handleAudit(context: CliContext): void {
-  const report = auditReport(context.view, context.loaded.pages, generateInventories(context.view));
+  const validation = buildRepositoryValidation(context.view, { loaded: context.loaded, checkGenerated: true, checkInventory: true, checkState: true });
+  const report = auditReport(context.view, context.loaded.pages, {}, validation);
   if (context.json) emit(context.io, report, true);
   else {
     printFindings(context.io, report.findings);
@@ -97,8 +97,9 @@ export function handleCheck(context: CliContext): void {
     handleLocalCheck(context);
     return;
   }
-  const lint = allLintFindings(context.view, true);
-  const generated = compareGenerated(context.view, { ...generatedCoreFiles(lint.pages, readConfig(context.view).name), ...generateInventories(context.view) });
+  const validation = buildRepositoryValidation(context.view, { loaded: context.loaded, checkGenerated: true, checkInventory: true, checkState: false });
+  const lint = { pages: validation.loaded.pages, findings: aggregateFindings(validation, { includeCoreGenerated: true, includeInventoryGenerated: false, includeState: false }) };
+  const generated = validation.inventoryGenerated;
   const validated = validatePrMetadata(process.env.WIKI_PR_BODY, process.env.GITHUB_EVENT_NAME === "pull_request", readConfig(context.view));
   const report = impactReport(context.view, lint.pages, { base: one(context.parsed, "base"), metadata: validated.metadata });
   report.findings.unshift(...validated.findings);
@@ -128,7 +129,7 @@ export function handleLocalCheck(context: CliContext): void {
     metadataRaw,
     reportRaw,
     dirtyPaths: dirty,
-    inventoryFindings: compareGenerated(context.view, generateInventories(context.view)),
+    validation: buildRepositoryValidation(context.view, { loaded: context.loaded, checkGenerated: true, checkInventory: true, checkState: true }),
     // The canonical CLI gate is the only caller that opts into the full
     // toolkit-owned orchestration. Direct/unit callers keep this disabled so
     // they can exercise the aggregate without recursively running the suite.

@@ -34,6 +34,10 @@
     "scripts/wiki-scale-benchmark.ts": [
       "product/scope"
     ],
+    "scripts/wiki/agent-rules.ts": [
+      "operations/enforcement",
+      "product/invariants"
+    ],
     "scripts/wiki/apply.ts": [
       "operations/enforcement"
     ],
@@ -64,6 +68,10 @@
     ],
     "scripts/wiki/model.ts": [
       "architecture/engine",
+      "product/invariants"
+    ],
+    "scripts/wiki/repository-validation.ts": [
+      "operations/enforcement",
       "product/invariants"
     ],
     "scripts/wiki/review-attestation.ts": [

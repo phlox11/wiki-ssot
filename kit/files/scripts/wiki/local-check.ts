@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import {
-  allLintFindings,
+  buildRepositoryValidation,
   KIT_ENTRIES,
   kitPath,
   impactReport,
@@ -9,8 +9,8 @@ import {
   resolveDiffBase,
   reviewCheck,
   validatePrMetadata,
-  validateState,
   type ImpactReport,
+  type RepositoryValidation,
   type ReviewCheckResult,
 } from "./core";
 import { affectedInvariantIdsForReview, canonicalPrMetadata, type PrMetadata } from "./impact";
@@ -130,6 +130,8 @@ export type LocalCheckOptions = {
   reportRaw?: string;
   dirtyPaths?: string[];
   inventoryFindings?: Finding[];
+  /** Shared repository validation from the canonical CLI context, when available. */
+  validation?: RepositoryValidation;
   /** Direct callers keep this false to avoid recursively running the suite. */
   runToolingChecks?: boolean;
   argvRunner?: LocalArgvRunner;
@@ -643,10 +645,27 @@ export function runLocalCheck(options: LocalCheckOptions): LocalCheckResult {
 
   let structuralPages = options.pages;
   let structuralFindings: Finding[] = [];
+  let validation: RepositoryValidation | undefined = options.validation;
   try {
-    const lint = allLintFindings(options.view, true);
-    structuralPages = lint.pages;
-    structuralFindings = [...lint.findings, ...(options.inventoryFindings ?? []), ...metadataFindings];
+    const injectedInventoryFindings = options.validation == null && options.inventoryFindings != null;
+    validation ??= buildRepositoryValidation(options.view, {
+      loaded: { pages: options.pages, findings: [] },
+      checkGenerated: true,
+      // Preserve the old direct injection seam. If a caller supplied the
+      // precomputed inventory findings, do not compute and append the same
+      // family a second time.
+      checkInventory: !injectedInventoryFindings,
+      checkState: true,
+    });
+    structuralPages = validation.loaded.pages;
+    structuralFindings = [
+      ...validation.structural,
+      ...validation.integration,
+      ...validation.coreGenerated,
+      ...validation.inventoryGenerated,
+      ...(injectedInventoryFindings ? (options.inventoryFindings ?? []) : []),
+      ...metadataFindings,
+    ];
   } catch (error) {
     structuralFindings = [finding("local-check-structural-error", error instanceof Error ? error.message : String(error), "error"), ...metadataFindings];
   }
@@ -702,12 +721,7 @@ export function runLocalCheck(options: LocalCheckOptions): LocalCheckResult {
     };
   }
 
-  let stateFindings: Finding[] = [];
-  try {
-    stateFindings = validateState(options.view, structuralPages).findings;
-  } catch (error) {
-    stateFindings = [finding("local-check-state-error", error instanceof Error ? error.message : String(error), "error")];
-  }
+  const stateFindings = validation?.state.findings ?? [];
 
   let review: LocalReviewSummary;
   try {

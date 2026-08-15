@@ -43,8 +43,9 @@ export function workHelp(): string {
     "  agent   show agent and either work",
     "  human   show human and either work",
     "",
-    "--all includes completed rows in addition to the visible outstanding groups.",
-    "Combine --all with --executor to include completed rows for that executor view.",
+    "Default output shows active, ready, waiting, and blocked work plus a deferred count; deferred and done details are hidden.",
+    "--all includes full deferred and completed rows in addition to the visible outstanding groups.",
+    "Combine --all with --executor to include deferred and completed rows for that executor view.",
     "Recommendations are agent auto-selection: human-only work is never recommended.",
   ].join("\n");
 }

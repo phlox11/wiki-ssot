@@ -1,63 +1,68 @@
 <!-- wiki-ssot:managed:start -->
-# Agent instructions
+<!-- wiki-ssot:managed:version=2 -->
+<!-- wiki-ssot:rule id=authority-current-pages -->
+## Wiki SSOT authority
 
-These rules apply to every coding agent and every task in this repository. They exist so an agent starting a fresh session with no memory of past work can still find the code and constraints it must account for, and cannot silently drift the wiki out of sync with the code.
+- Start at wiki/index.md, then read wiki/current-status.md and every current kind: invariant page before editing.
+- Current pages linked from wiki/index.md define current product intent, architecture, contracts, invariants, and operations.
+- Code, tests, schemas, and migrations are implementation evidence; record a conflict when evidence and current wiki disagree.
+- Proposed, conflicted, deprecated, and archived pages are not current behavior.
 
-<!-- wiki-ssot:fresh-context-guardrail -->
+<!-- wiki-ssot:rule id=work-discovery -->
+## Work discovery
 
-## Wiki SSOT
+- For an unspecified remaining-work request, run bun run wiki:work before selecting a work item.
+- After selecting an item, run its printed bun run wiki:context -- --work <ID> command.
+- Dependency derivation happens before executor filtering, and human-only work is never auto-selected.
 
-- Pages with `status: current` linked from `wiki/index.md` are the single source of truth for product intent, architecture, feature contracts, invariants, and operations.
-- Code, tests, schemas, and migrations are implementation evidence. When evidence and the wiki disagree, do not silently pick a side: record or resolve the conflict.
-- `status: proposed | conflicted | deprecated | archived` pages are not current behavior.
-- Never infer current behavior from old plans, roadmaps, or handoffs without following their current wiki entrypoint.
+<!-- wiki-ssot:rule id=context-first -->
+## Topic context
 
-## Required workflow
+- Start a named topic with bun run wiki:context -- "<task terms>".
+- bun run wiki:search remains available for optional manual exploration and is not a required prerequisite.
 
-1. Start at `wiki/index.md`, then read `wiki/current-status.md` and any `kind: invariant` pages.
-<!-- wiki-ssot:work-discovery -->
-2. If the user asks what remains, what is unfinished, or what should happen next without naming a task — including “할 일 남은 거 뭐야?” — run `bun run wiki:work` before topic search. Do not require a proposal ID, work ID, or search term. After selecting a returned item, run its printed `wiki:context -- --work <ID>` command.
-   - Do not automatically select `executor: human` work. Keep it visible, report the required work and procedure, and hand it off to a human without assuming their credentials or authority. `executor: either` does not expand external-write, destructive-action, or other permissions.
-3. Search before editing: `bun run wiki:search -- "<task terms>"` and `bun run wiki:context -- "<task terms>"`. Context automatically includes related open conflicts.
-4. Read each affected page's `context: always` sources directly. A `context: catalog` declaration remains fully tracked; inspect its compact declaration/reason/count/bytes/digest and expand it when the changed file, task, or review evidence requires those implementation details. Use `--full` for exhaustive source expansion. Do not rely on the wiki summary alone for implementation details.
-   - After a work item is selected and prospective PR metadata exists, a committed exact revision may emit one reusable, body-free handoff with `bun run wiki:context -- --work <ID> --artifact <path> --metadata <pr-body> --base <ref>`. A later role must validate it with the same command using `--reuse <path>` before relying on its routing data. Mandatory sources bind individually; catalog sets bind by declaration, digest, count, and bytes. Any work selector, metadata, base, merge-base, HEAD, controlling page, conflict, source set, or read-order change invalidates the whole artifact. Reuse never replaces reading the listed current pages and required implementation sources directly.
-   - At one exact revision, batch independent reads and deterministic checks and do not rerun `wiki:work` or broad context discovery merely to rebuild context already bound by a valid artifact. Use bounded waits for running work rather than status polling. Keep successful summaries bounded and point to digest-addressed full evidence. If authoring context has grown materially, create one bounded phase handoff before publication rather than replaying the full session.
-   - The authoring role and, when required, the context-isolated reviewer are mandatory and remain separate. Explorer, implementation worker, guardian, multi-lens, or other provider-specific fan-out is optional: use it only when task risk justifies its added calls and coordination. The repository does not promise provider cache continuity, approval behavior, model routing, latency, or subscription accounting.
-5. Change wiki, code, and tests in the same PR when behavior or intent changes. If semantics do not change, run `bun run wiki:verify -- --page <id> --unchanged "<20+ character reason>"`.
-6. Regenerate deterministic artifacts with `bun run wiki:generated`, then run `bun run wiki:lint`, `bun run wiki:impact -- --base origin/main --enforce`, `bun run typecheck`, and the relevant tests.
-7. Fill the parseable YAML metadata block in the PR template, including `touched_conflicts`. Implementation-source changes may not use `wiki_action: none`.
-8. Commit the candidate so the review can bind an exact HEAD, then—before opening a PR—run `bun run wiki:review-preflight -- --base origin/main --metadata <pr-body.md> --output <bundle-dir> --json`. Keep metadata, report, and bundle files outside the repository or pass their paths explicitly; other uncommitted/untracked files make preflight fail.
-   - `status: not-required` means the candidate is ready for the ordinary PR flow.
-   - `status: review-required` means the authoring agent must give the emitted bundle to a context-isolated reviewer or a context-free review sub-agent. The authoring session must never mark its own work `PASS`.
-   - The reviewer performs independent SSOT reconciliation, not a general style review: code, tests, current wiki, metadata, invariants, and conflicts must make the same semantic claims.
-   - Validate the returned report locally with `bun run wiki:review-preflight -- --base origin/main --metadata <pr-body.md> --report <report.json> --json`. Version 1 policies may additionally require `--reviewer-actor <publisher> --pr-author <author>`; version 2 local-status mode validates exact report bindings without claiming authenticated actor separation.
-   - `NEEDS_RECONCILE` is not permission for an unknown or speculative edit. Every finding must identify the exact discrepancy, controlling authority, required code/wiki/test change, and acceptance criteria.
-   - Disposition each finding rather than assuming it must be fixed here. Fix what this candidate broke or what the PR itself declares; track a pre-existing mismatch, an undecidable product intent, or a documentation disagreement in an open conflict with acceptance criteria; record a named follow-up for a real defect outside this change's semantic scope. A disposition that points elsewhere must name the conflict or follow-up it points at. The engine enforces that split: a `candidate_regression` or `declared_contract_violation` accepts no deferring disposition, a `decision_ambiguity` may be fixed or tracked in a conflict but never dismissed or deferred, `recorded` is confined to a `suggestion`, and a conflict pointer must resolve to an open conflict whose affected pages agree with the finding, whose type matches where the classification implies one, and whose `origin` is `baseline` where the classification says the problem predates the change — so a finding declaring no `page:` scope ref cannot be tracked by a conflict. Then rerun deterministic checks and generate a new bundle for the new HEAD.
-   - Do not open the PR until preflight returns `status: pass` or `status: not-required`. If intent is ambiguous, open a conflict or request the owner decision instead of repeating speculative fix/review loops.
-   - A change to `scripts/wiki/**` that alters bundle content must also generate its own bundle with the base engine — `bun <base-checkout>/scripts/wiki/cli.ts review-preflight --root <candidate> --base origin/main ...` — so the introducing PR is reconciled against the contract that governed its base. New bundle guidance governs the PRs that follow it, not the PR that introduces it.
-9. After preflight returns `pass` or `not-required`, run `bun run wiki:check -- --base origin/main --metadata <pr-body.md> [--report <report.json>] --output <result.json>` on the committed candidate. Open or update the PR, then publish that exact result with `bun run wiki:publish -- --result <result.json> [--repo <owner/repo>] [--pr <number>]`.
-   - Any new commit or semantic PR metadata change invalidates the old report and result. The new SHA has no protected status until preflight, check, and publish are repeated.
-   - Version 2 needs no Draft-to-Ready choreography, PR-body report mirror, or separate attestation comment. A first v1-to-v2 migration PR may carry one final legacy mirror only when its merge-base workflow still requires it; the version 2 path ignores that field.
-   - If the code-agent environment cannot create an isolated reviewer and no external reviewer is available, stop before opening the PR and ask for the missing review capability.
+<!-- wiki-ssot:rule id=source-read-order -->
+## Source evidence
 
-## Editing rules
+- Read affected current pages and their context: always sources directly; expand context: catalog sources when the task or evidence requires them.
+- Do not rely on a compact wiki summary as a substitute for the listed implementation evidence.
 
-- Follow `wiki/SCHEMA.md`; IDs are stable and path-independent.
-- Only `status: current` pages state the current contract. Put future intent under `wiki/proposals/**`.
-- Do not edit `wiki/index.md`, `wiki/current-status.md`, `wiki/conflicts.md`, `wiki/work-queue.md`, `wiki/_generated/**`, `.wiki/source-map.json`, or `.wiki/conflict-map.json` by hand — they are generated.
-- Do not add timestamps to generated files.
-- A missing or ambiguous product decision is a conflict, not permission to invent behavior.
-- Open conflicts under `wiki/conflicts/open/**` are resolution contracts. Inspect them with `bun run wiki:conflicts` or `bun run wiki:context -- --conflict C-NNN`.
-- If a task or diff touches a conflict source, declare `resolve`, `retain`, or `introduce` in PR metadata. `retain` requires a concrete 20+ character reason.
-- Never resolve a decision conflict without an explicit owner decision.
+<!-- wiki-ssot:rule id=change-and-generated-checks -->
+## Change and generated checks
 
+- Change wiki, implementation, and tests together when behavior or intent changes.
+- Regenerate deterministic artifacts, then run the canonical lint, impact, typecheck, and relevant tests.
+
+<!-- wiki-ssot:rule id=review-exact-head -->
+## Exact revision review
+
+- Commit the candidate before review so metadata, sources, report, and bundle bind one exact HEAD.
+- Run bun run wiki:review-preflight before the canonical local check and independent review.
+- A required review is independent SSOT reconciliation; the authoring session never marks its own work PASS.
+- Run wiki:check and publish its exact result through the wiki-ssot/local status boundary.
+- Detailed workflow and migration steps live in wiki/WORKFLOW.md.
+
+<!-- wiki-ssot:rule id=conflict-resolution -->
+## Conflict and schema safety
+
+- Follow wiki/SCHEMA.md and keep stable IDs path-independent.
+- A missing or ambiguous product decision is an open conflict, not permission to invent behavior.
+- Never resolve an open decision conflict without an explicit owner decision.
+
+<!-- wiki-ssot:rule id=human-work-guardrail -->
+## Human work guardrail
+
+- Do not automatically select executor: human work.
+- Report the required procedure and hand it off to a human without assuming credentials, authority, or permissions.
+
+<!-- wiki-ssot:rule id=git-safety -->
 ## Git and safety
 
-- Work on a feature branch and use PRs. Do not push directly to `main`.
-- Hooks are local feedback. The exact `wiki-ssot/local` commit status may provide the remote merge boundary when branch protection requires it, but this toolkit assumes repository write/admin actors are trusted and does not prescribe organization-security policy.
-- Branch protection matches a status context rather than its implementation meaning. Required workflows, CODEOWNERS, and administrator-bypass controls are optional deployment hardening outside the product contract.
-<!-- kit:exclude:start -->
-- The accepted workflow-bootstrap trust decision for this repository is recorded in `wiki/proposals/protected-main.md`.
-<!-- kit:exclude:end -->
-- Keep unrelated changes intact and do not bypass checks to make a change appear valid.
+- Work on a feature branch and preserve unrelated changes.
+- Do not bypass checks or use destructive Git operations to make a change appear valid.
+
 <!-- wiki-ssot:managed:end -->
+
+<!-- kit:exclude:start -->
+- This repository's accepted protection decision is recorded in `wiki/proposals/protected-main.md`.
+<!-- kit:exclude:end -->

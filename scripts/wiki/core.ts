@@ -172,6 +172,24 @@ import {
   parseFreshContextReport,
   reviewCheck,
 } from "./review-attestation";
+import {
+  aggregateFindings,
+  buildRepositoryValidation,
+  compareGenerated as compareGeneratedAggregate,
+  type LoadedWikiPages,
+  type RepositoryValidation,
+} from "./repository-validation";
+import {
+  AGENT_MANAGED_END,
+  AGENT_MANAGED_START,
+  AGENT_RULES_VERSION,
+  AGENT_VERSION_MARKER,
+  MANAGED_AGENT_RULES,
+  REQUIRED_AGENT_RULE_IDS,
+  hasTypedManagedAgentRules,
+  renderManagedAgentBlock,
+  validateManagedAgentRules,
+} from "./agent-rules";
 import type {
   FreshContextVerdict,
   FreshContextClassification,
@@ -201,6 +219,20 @@ export {
   scopeReport,
   scopeText,
 };
+export {
+  aggregateFindings,
+  buildRepositoryValidation,
+  AGENT_MANAGED_END,
+  AGENT_MANAGED_START,
+  AGENT_RULES_VERSION,
+  AGENT_VERSION_MARKER,
+  MANAGED_AGENT_RULES,
+  REQUIRED_AGENT_RULE_IDS,
+  hasTypedManagedAgentRules,
+  renderManagedAgentBlock,
+  validateManagedAgentRules,
+};
+export type { LoadedWikiPages, RepositoryValidation };
 export type {
   RepoView,
   ConflictOrigin,
@@ -379,17 +411,7 @@ export function writeGenerated(root: string, files: Record<string, string>) {
   }
 }
 
-export function compareGenerated(view: RepoView, expected: Record<string, string>): Finding[] {
-  const findings: Finding[] = [];
-  for (const [path, content] of Object.entries(expected)) {
-    if (!view.exists(path)) pushFinding(findings, path, "generated-missing", `generated file is missing; regenerate ${path}`);
-    else if (view.read(path) !== content) pushFinding(findings, path, "generated-stale", `generated file differs from deterministic output; regenerate ${path}`);
-    else if (path.endsWith(".md") && !content.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "").trimStart().startsWith(GENERATED_HEADER)) {
-      pushFinding(findings, path, "generated-header", "generated Markdown requires the do-not-edit header");
-    }
-  }
-  return findings;
-}
+export const compareGenerated = compareGeneratedAggregate;
 
 type ReusableWorkContextArtifactBase = {
   selector: { kind: "work"; id: string };
@@ -621,18 +643,47 @@ export type AuditReport = {
   openConflicts: ConflictSummary[];
 };
 
-export function allLintFindings(view: RepoView, checkGenerated = true): { pages: WikiPage[]; findings: Finding[] } {
-  const loaded = loadWikiPages(view);
-  const findings = [...loaded.findings, ...validatePages(view, loaded.pages), ...validateMarkdownLinks(view), ...validateCoverage(view, loaded.pages), ...validateIntegrationSeams(view)];
-  if (checkGenerated) findings.push(...compareGenerated(view, generatedCoreFiles(loaded.pages, readConfig(view).name)));
-  return { pages: loaded.pages, findings };
+export function allLintFindings(
+  view: RepoView,
+  checkGenerated = true,
+  loaded?: LoadedWikiPages,
+  validation?: RepositoryValidation,
+): { pages: WikiPage[]; findings: Finding[] } {
+  const aggregate = validation ?? buildRepositoryValidation(view, {
+    loaded,
+    checkGenerated,
+    checkInventory: false,
+    checkState: false,
+  });
+  return {
+    pages: aggregate.loaded.pages,
+    findings: aggregateFindings(aggregate, { includeCoreGenerated: checkGenerated, includeInventoryGenerated: false, includeState: false }),
+  };
 }
 
-export function auditReport(view: RepoView, pages: WikiPage[], extraGenerated: Record<string, string> = {}): AuditReport {
-  const lint = allLintFindings(view, false);
-  const generated = compareGenerated(view, { ...generatedCoreFiles(pages, readConfig(view).name), ...extraGenerated });
-  const state = validateState(view, pages);
-  const findings = [...lint.findings, ...generated, ...state.findings];
+export function auditReport(
+  view: RepoView,
+  pages: WikiPage[],
+  extraGenerated: Record<string, string> = {},
+  validation?: RepositoryValidation,
+): AuditReport {
+  const aggregate = validation ?? buildRepositoryValidation(view, {
+    loaded: { pages, findings: [] },
+    checkGenerated: true,
+    checkInventory: false,
+    checkState: true,
+    extraGenerated,
+  });
+  // The legacy direct form supplies inventory files through `extraGenerated`.
+  // A caller that injects an aggregate (the CLI handler) has already asked
+  // the shared validator to compare inventories, so project that family here
+  // without changing the old direct-call contract.
+  const findings = aggregateFindings(aggregate, {
+    includeCoreGenerated: true,
+    includeInventoryGenerated: validation != null,
+    includeState: true,
+  });
+  const state = aggregate.state;
   return {
     ok: !findings.some((finding) => finding.severity === "error"),
     findings,

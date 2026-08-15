@@ -21,6 +21,7 @@ import {
 } from "./core";
 import { MANIFEST_TARGET, applySync, planSync, sha256 } from "./kit-sync";
 import { mergeManagedBlock } from "./apply";
+import { AGENT_VERSION_MARKER, MANAGED_AGENT_RULES } from "./agent-rules";
 
 const temporary: string[] = [];
 
@@ -272,7 +273,9 @@ describe("existing-repository bootstrap evidence", () => {
     expect(initialAgents.status).toBe("ready");
     writeFileSync(join(repo, "AGENTS.md"), initialAgents.content);
     expect(initialAgents.content).toContain("Existing repository instructions");
-    expect(initialAgents.content).toContain("wiki-ssot:fresh-context-guardrail");
+    expect(initialAgents.content).toContain(AGENT_VERSION_MARKER);
+    for (const rule of MANAGED_AGENT_RULES) expect(initialAgents.content).toContain(`<!-- wiki-ssot:rule id=${rule.id} -->`);
+    expect(initialAgents.content).toContain("Start a named topic with bun run wiki:context");
     mergePackageFragment(repo, kit);
 
     put(repo, ".wiki/config.json", jsonStable({
