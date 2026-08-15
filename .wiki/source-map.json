@@ -3,18 +3,6 @@
     ".github/pull_request_template.md": [
       "operations/enforcement"
     ],
-    ".github/workflows/checks.yml": [
-      "operations/enforcement"
-    ],
-    ".github/workflows/kit.yml": [
-      "operations/enforcement"
-    ],
-    ".github/workflows/wiki-audit.yml": [
-      "operations/enforcement"
-    ],
-    ".github/workflows/wiki-ssot.yml": [
-      "operations/enforcement"
-    ],
     ".husky/pre-commit": [
       "operations/enforcement"
     ],
@@ -98,7 +86,8 @@
       "operations/enforcement"
     ],
     "scripts/wiki/github-local-status.ts": [
-      "operations/enforcement"
+      "operations/enforcement",
+      "product/invariants"
     ],
     "scripts/wiki/impact.ts": [
       "operations/enforcement",
@@ -113,7 +102,8 @@
       "product/invariants"
     ],
     "scripts/wiki/local-check.ts": [
-      "operations/enforcement"
+      "operations/enforcement",
+      "product/invariants"
     ],
     "scripts/wiki/model.ts": [
       "operations/enforcement",

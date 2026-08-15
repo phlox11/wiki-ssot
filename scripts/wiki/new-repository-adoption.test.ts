@@ -351,6 +351,7 @@ sources:
       ok: true,
       ready: true,
       status: "not-required",
+      requirementReasons: [],
     });
 
     expect(run(repo, ["git", "status", "--porcelain"]).stdout).toBe("");

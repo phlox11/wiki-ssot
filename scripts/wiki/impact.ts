@@ -9,8 +9,8 @@ import { conflictSummary } from "./discovery";
 import type { ConflictSummary } from "./discovery";
 import { buildConflictMap, buildSourceMap } from "./generated-views";
 import { isContentPage, parseWikiPage } from "./page-validation";
-import { isHighRisk, mappedConflicts, mappedPages, readConfig, readState, sourceHashes, UsageError, type FreshContextPolicy } from "./verification";
-import { isKitManagedPath } from "./kit-packaging";
+import { isHighRisk, mappedConflicts, mappedPages, readConfig, readState, sourceHashes, UsageError, type FreshContextPolicy, type V2ReviewWhen, type WikiConfig } from "./verification";
+import { isKitManagedPath, KIT_ENTRIES, kitPath } from "./kit-packaging";
 import { jsonStable } from "./serialization";
 
 export function changedFiles(root: string, base?: string): string[] {
@@ -56,7 +56,7 @@ const CHANGE_TYPES = new Set(["feature", "fix", "refactor", "operations", "propo
 const WIKI_ACTIONS = new Set(["update", "verify", "none"]);
 const CONFLICT_ACTIONS = new Set(["resolve", "retain", "introduce"]);
 
-export function validatePrMetadata(raw?: string, required = false): { metadata?: PrMetadata; findings: Finding[] } {
+export function validatePrMetadata(raw?: string, required = false, config?: WikiConfig): { metadata?: PrMetadata; findings: Finding[] } {
   const findings: Finding[] = [];
   if (!raw?.trim()) {
     if (required) findings.push({ code: "metadata-missing", message: "PR body requires a parseable yaml metadata block", severity: "error" });
@@ -98,7 +98,13 @@ export function validatePrMetadata(raw?: string, required = false): { metadata?:
       if (touch.action === "retain" && (typeof touch.reason !== "string" || touch.reason.trim().length < 20)) findings.push({ code: "metadata-conflict-retain-reason", message: `retaining ${String(touch.id)} requires a 20+ character reason`, severity: "error" });
     }
   }
-  if (value.fresh_context == null) {
+  const v2 = config?.version === 2;
+  if (v2) {
+    // During the one-release migration window an adopter may still carry the
+    // old editable mirror. V2 deliberately ignores it: it is neither required
+    // nor included in the semantic digest, and the exact report remains the
+    // only review evidence.
+  } else if (value.fresh_context == null) {
     if (required) findings.push({ code: "metadata-fresh-context-missing", message: "PR metadata requires the structured fresh_context block even when the template is bypassed", severity: "error" });
   } else if (typeof value.fresh_context !== "object" || Array.isArray(value.fresh_context)) {
     findings.push({ code: "metadata-fresh-context-shape", message: "fresh_context must be a mapping", severity: "error" });
@@ -121,6 +127,36 @@ export function validatePrMetadata(raw?: string, required = false): { metadata?:
     }
   }
   return findings.length > 0 ? { findings } : { metadata: value as PrMetadata, findings };
+}
+
+/** Kit-owned changed paths used by v2 risk selection and local review reasons. */
+export function kitOwnedChangedFiles(view: RepoView, changed: string[]): string[] {
+  const config = readConfig(view);
+  const owned = new Set<string>();
+  if (config.publishesKit) {
+    for (const entry of KIT_ENTRIES) {
+      owned.add(entry.target);
+      owned.add(kitPath(entry));
+    }
+  } else if (view.exists(".wiki/kit-manifest.json")) {
+    try {
+      const manifest = JSON.parse(view.read(".wiki/kit-manifest.json")) as Record<string, unknown>;
+      for (const section of ["files", "managed"] as const) {
+        const entries = manifest[section];
+        if (entries != null && typeof entries === "object" && !Array.isArray(entries)) {
+          for (const [path, entry] of Object.entries(entries as Record<string, unknown>)) {
+            if (section === "managed" || (entry != null && typeof entry === "object" && !Array.isArray(entry)
+              && (entry as Record<string, unknown>).ownership === "kit")) owned.add(path);
+          }
+        }
+      }
+      owned.add(".wiki/kit-manifest.json");
+    } catch {
+      // The ordinary integration validator reports a malformed manifest. A
+      // malformed manifest cannot safely select every file as kit-owned.
+    }
+  }
+  return changed.filter((path) => owned.has(path)).sort((a, b) => a.localeCompare(b));
 }
 
 export type ImpactReport = {
@@ -387,6 +423,40 @@ export function evaluateFreshContextRequirement(
     reasons.add(`affected conflicts: ${manifest.affected_conflict_ids.join(", ")}`);
   }
   if (requiredWhen.removedCurrentPages && impact.removedCurrentPages.length > 0) {
+    reasons.add(`removed or demoted current pages: ${impact.removedCurrentPages.map((page) => page.id).join(", ")}`);
+  }
+  return { applies: reasons.size > 0, reasons: [...reasons].sort((a, b) => a.localeCompare(b)) };
+}
+
+/**
+ * V2 uses explicit reasons instead of the v1 implicit Fresh-context wording.
+ * Keep the selector evaluation separate so v1's all-PR/default semantics and
+ * authenticated GitHub trust checks remain byte-compatible.
+ */
+export function evaluateLocalReviewRequirement(
+  when: V2ReviewWhen,
+  manifest: { affected_invariant_ids: string[]; affected_conflict_ids: string[] },
+  impact: ImpactReport,
+  kitChangedFiles: string[] = [],
+): FreshContextRequirement {
+  const reasons = new Set<string>();
+  for (const rule of when.changedFileRules) {
+    let glob: Bun.Glob;
+    try { glob = new Bun.Glob(rule.glob); } catch { return { applies: true, reasons: [`invalid local-status risk glob fails closed: ${rule.glob}`] }; }
+    for (const path of impact.changedFiles) {
+      if (glob.match(path)) reasons.add(`${rule.reason.trim()} (${path})`);
+    }
+  }
+  if (when.changedKitOwnedFiles && kitChangedFiles.length > 0) {
+    reasons.add(`kit-owned files changed: ${kitChangedFiles.join(", ")}`);
+  }
+  if (when.affectedInvariants && manifest.affected_invariant_ids.length > 0) {
+    reasons.add(`affected invariants: ${manifest.affected_invariant_ids.join(", ")}`);
+  }
+  if (when.affectedConflicts && manifest.affected_conflict_ids.length > 0) {
+    reasons.add(`affected conflicts: ${manifest.affected_conflict_ids.join(", ")}`);
+  }
+  if (when.removedCurrentPages && impact.removedCurrentPages.length > 0) {
     reasons.add(`removed or demoted current pages: ${impact.removedCurrentPages.map((page) => page.id).join(", ")}`);
   }
   return { applies: reasons.size > 0, reasons: [...reasons].sort((a, b) => a.localeCompare(b)) };

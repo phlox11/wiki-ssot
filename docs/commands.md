@@ -4,23 +4,23 @@ All commands are `bun run wiki:<name>`; each maps to `bun scripts/wiki/cli.ts <n
 
 | Command | What it does | Blocks? |
 |---|---|---|
-| `wiki:lint` | Frontmatter, links, source paths, coverage, generated freshness. | pre-commit + CI |
-| `wiki:generated` | Regenerate the bounded index, complete catalog, cumulative current-status, work queue, conflicts, relationship graph, reverse maps, and inventories. Add `-- --check` to verify without writing. | CI (`--check`) |
-| `wiki:kit` | Regenerate the `kit/` copy-paste distribution from the files it ships. Add `-- --check` to fail on drift instead of writing. Refuses to run unless `.wiki/config.json` sets `publishesKit: true`, so it cannot overwrite an adopting repository's own `kit/`. | CI (`--check`) |
-| `wiki:impact -- --base <ref>` | From the diff since `<ref>`, print affected pages/conflicts, staleness, and metadata findings. Add `--enforce` to exit non-zero on any error. | CI (`--enforce`) |
+| `wiki:lint` | Frontmatter, links, source paths, coverage, generated freshness. | pre-commit + local gate |
+| `wiki:generated` | Regenerate the bounded index, complete catalog, cumulative current-status, work queue, conflicts, relationship graph, reverse maps, and inventories. Add `-- --check` to verify without writing. | local gate (`--check`) |
+| `wiki:kit` | Regenerate the `kit/` copy-paste distribution from the files it ships. Add `-- --check` to fail on drift instead of writing. Refuses to run unless `.wiki/config.json` sets `publishesKit: true`, so it cannot overwrite an adopting repository's own `kit/`. | publisher local gate (`--check`) |
+| `wiki:impact -- --base <ref>` | From the diff since `<ref>`, print affected pages/conflicts, staleness, and metadata findings. Add `--enforce` to exit non-zero on any error. | local gate (`--enforce`) |
 | `wiki:verify -- --page <id>` | Record current source hashes for a page you updated. Add `--unchanged "<20+ char reason>"` when meaning did not change. With no `--page`, re-verifies every current page. | — |
 | `wiki:search -- "<terms>"` | Search page IDs, summaries, tags, and bodies. Complete all-term matches are preferred when present; otherwise scored partial matches are returned deterministically. | — |
 | `wiki:work` | With no query or ID, list every proposal work item and open conflict, derive ready/waiting state, and recommend the highest-priority active or ready `agent`/`either` item. `-- --executor agent` shows agent/either, `human` shows human/either for handoff, and `all` shows every executor; human-exclusive work is never auto-recommended. Add `--all` independently for completed work, `--json` for versioned output, or `--help` for work options. | — |
 | `wiki:context -- "<terms>"` | The current pages, open conflicts, non-current rationale, and sources an agent should read for a topic. Query and `-- --work <ID>` default to a compact text/JSON projection with authority labels, paths, summaries, body digests, focused commands, exact sources, deterministically expanded globs, page-local conflict IDs, and an invariant → conflict → current-page → source read order. Add `--full` for the exhaustive body-complete representation. Complete matches keep the current selection semantics; partial-only matches return ordered compact candidates before source expansion, and each page candidate links to exact `-- --page <ID> --full` context. Also accepts `-- --conflict C-NNN` or `-- --base <ref>`; selectors cannot be combined. For a selected work item at a clean committed HEAD, `--work <ID> --artifact <path> --metadata <pr-body> --base <ref>` writes a bounded body-free handoff, while replacing `--artifact` with `--reuse` validates every binding before reuse. | — |
 | `wiki:conflicts` | List open conflicts. `-- C-NNN` prints one resolution contract; `-- --all` includes resolved. | — |
-| `wiki:review-preflight -- --base <ref> --metadata <file> [--output <dir>] [--report <file>]` | Before opening a PR, classify risk, prepare the exact independent-review bundle, or validate the returned report while the PR mirror is still pending. | pre-PR |
+| `wiki:review-preflight -- --base <ref> --metadata <file> [--output <dir>] [--report <file>]` | Before opening a PR, classify risk, prepare the exact independent-review bundle, or validate the returned report. Version 2 needs no PR-body report mirror or GitHub actor assertion. | pre-PR |
 | `wiki:review-bundle -- --base <ref> --metadata <file>` | Write a deterministic content-addressed bundle with `manifest.json`, `focused-manifest.json`, reviewer instructions, and a report example. Wiki/conflict bodies are stored once by digest; overlapping roles and changed/authority/test/supporting source classifications remain explicit and validated. | review input |
-| `wiki:review-check -- --base <ref> --metadata <file> [--report <file>]` | Evaluate trusted risk policy and return `required`/reasons. When required, recompute the current manifest and validate report schema, PASS, evidence, SHA/digests, and reviewer trust. | CI (`required` mode) |
-| `wiki:doctor` | Validate required downstream seams: explicit config, affirmative provider-neutral AGENTS authority/work/context clause shapes, canonical commands, PR template, and GitHub job/events. | pre-commit + CI |
+| `wiki:review-check -- --base <ref> --metadata <file> [--report <file>]` | Evaluate trusted risk policy and return `required`/reasons. When required, recompute the current manifest and validate report schema, PASS, evidence, and exact SHA/digests. Version 1 additionally retains authenticated actor/mirror validation. | local review gate |
+| `wiki:doctor` | Validate required downstream seams: explicit config, affirmative provider-neutral AGENTS authority/work/context clause shapes, canonical commands, semantic PR template, and enforcement-mode consistency. Version 2 reports actionable reconciliation when legacy Wiki workflows remain active. | local gate |
 | `wiki:check -- --base <ref>` | Legacy convenience projection: lint + generated + impact. Its flags and output remain compatible when `--output` is absent. | local convenience |
-| `wiki:check -- --base <ref> --metadata <file> [--report <file>] --output <result.json>` | Bootstrap canonical local gate. Writes an exact result binding committed HEAD, resolved base/merge-base, metadata digest, check/review summaries/findings, and a deterministic digest. Changed toolkit-owned files select Wiki tooling typecheck + the full tooling suite; publisher mode also runs kit freshness/growth guards. Explicit metadata/report/output paths are the only permitted worktree exceptions. | local required gate |
-| `wiki:publish -- --result <result.json> [--repo owner/repo] [--pr N]` | Revalidates the result, clean local HEAD, and remote PR head; upserts one `wiki-ssot:local-status` comment, then posts `wiki-ssot/local`. Warnings are successful status; API failures are non-zero. | GitHub status publisher |
-| `wiki:audit` | Repo-wide: structure + generated + every current page's source hashes. | weekly CI |
+| `wiki:check -- --base <ref> --metadata <file> [--report <file>] --output <result.json>` | Canonical local gate. Writes an exact result binding committed HEAD, resolved base/merge-base, metadata digest, check/review summaries/findings, configured v2 argv checks, and a deterministic digest. Changed toolkit-owned files select Wiki tooling typecheck + the full tooling suite; publisher mode also runs kit freshness/growth guards. Explicit metadata/report/output paths are the only permitted worktree exceptions. | required local gate |
+| `wiki:publish -- --result <result.json> [--repo owner/repo] [--pr N]` | Revalidates the result, clean local HEAD, and remote PR head; upserts one `wiki-ssot:local-status` comment, then posts the configured v2 status context. Warnings are successful status; API failures are non-zero. | protected GitHub status |
+| `wiki:audit` | Repo-wide diagnostic: structure + generated + every current page's source hashes. The canonical local gate already includes this coverage. | local diagnostic |
 | `wiki:index` / `wiki:inventory` | Write just the core generated files / just the inventories. | — |
 | `wiki:scale` | Publisher-only deterministic benchmark for the declared Schooled and large synthetic profiles. `-- --enforce` checks correctness, phase/RSS limits, and the bounded index size; explicit output flags preserve JSON/Markdown evidence. This harness is intentionally omitted from the downstream kit. | release evidence |
 
@@ -74,8 +74,7 @@ bun run wiki:impact -- --base origin/main --enforce
 bun run typecheck && bun run test
 ```
 
-Bootstrap local status is currently additive to that flow. Once the candidate
-is committed, the opt-in exact-result path is:
+Once the candidate is committed, the required exact-result path is:
 
 ```sh
 bun run wiki:check -- --base origin/main --metadata pr-body.md \
@@ -88,9 +87,10 @@ bun run wiki:publish -- --result /tmp/wiki-result.json
 bun run wiki:publish -- --result /tmp/wiki-result.json --repo owner/repo --pr 123
 ```
 
-The existing Actions jobs and Draft/Ready attestation remain active until a
-later cutover. Publishing requires an authenticated `gh` CLI, but the toolkit
-does not store tokens or run a hosted service.
+Version 2 runs its configured project argv checks locally and publishes only
+the exact status. It ships no active Actions workflow and needs no Draft/Ready
+attestation choreography. Publishing requires an authenticated `gh` CLI, but
+the toolkit does not store tokens or run a hosted service.
 
 You changed a source and its page's meaning:
 
@@ -114,19 +114,25 @@ bun run wiki:review-preflight -- --base origin/main --metadata pr-body.md \
   --output review-bundle --json
 # Give the bundle to a context-isolated reviewer/sub-agent, then validate its report.
 bun run wiki:review-preflight -- --base origin/main --metadata pr-body.md \
-  --report report.json --reviewer-actor reviewer-login --pr-author author-login --json
+  --report report.json --json
 ```
 
 Preflight returns `not-required`, `review-required`, `needs-reconcile`, or `pass`. A required `NEEDS_RECONCILE` report must identify the exact discrepancy, controlling authority, required code/wiki/test change, and acceptance criteria. The authoring agent dispositions each finding before opening the PR — fixing what this candidate broke or declared, tracking a pre-existing mismatch or undecidable intent in an open conflict, or recording a named follow-up — and reruns preflight on the new HEAD.
 
 The report is JSON/YAML with exact bindings, reviewer, evidence, and summary or findings. `version: 1` carries free-text findings and stays accepted. `version: 2` carries structured findings: `id`, `classification`, `disposition`, `scope_refs`, `discrepancy`, `authority`, `evidence`, and `acceptance_criteria`, where `conflict_introduced`/`existing_conflict_linked` require `conflict_id`, `followup_created` requires `followup_ref`, and `dismissed_with_reason` requires a 20+ character `dismissal_reason`. A `PASS` may not carry an `unresolved` finding; `recorded` retires nothing and is confined to a `suggestion`. A fixed table decides which dispositions retire which classification — `candidate_regression` and `declared_contract_violation` accept only `fixed` or `unresolved`, and `decision_ambiguity` accepts those plus a conflict disposition but never a dismissal or follow-up — and a `conflict_id` must resolve to a conflict open at the reviewed HEAD whose conflict type matches where the classification implies one, whose `origin` is `baseline` when the classification says the problem predates the candidate, and whose affected pages overlap the finding's `page:` scope refs, which a finding declaring none cannot satisfy. `unrelated_defect` implies no type, and `decision_ambiguity` is exempt from the `origin` rule.
 
-After local PASS, open a Draft PR, publish the report, mirror its verdict/HEAD/bundle/reviewer/evidence into PR metadata, and mark the PR Ready. Drafts skip `wiki-review-attestation`; Ready PRs validate the authenticated envelope and mirror. A valid low-risk result needs no report. Omitting `requiredWhen` preserves all-PR review.
+After local PASS, run canonical `wiki:check`, open or update the PR, and publish
+that result. A new commit has no status and is blocked until the gate is rerun.
+Version 2 keeps review evidence in the separate report and requires only the
+semantic metadata block in the PR body. Its explicit risk selector has no
+implicit all-PR fallback.
 
-`trust.requireDifferentActor` controls GitHub identity separation, not context isolation. Set it to `false` for a solo maintainer: when review is required, the authoring session still cannot create its own PASS, but the PR author's authenticated account may publish a report created by a separate review session. Set it to `true` only when a distinct reviewer account or bot is operational.
-
-`fresh_context` in the PR body is required and parsed even when an author bypasses the template, but it is only a status mirror. GitHub enforcement reads the authoritative report and actor from a PR review/comment envelope. Add `--json` to read/check commands for machine-readable output.
-
-CI passes the PR body through the `WIKI_PR_BODY` environment variable, so the impact job validates the metadata block from the pull-request description. Locally, pass `--metadata <file>` instead.
+Version 1 remains compatible: `fresh_context`, authenticated actor checks,
+`requiredWhen` omission, and `--reviewer-actor`/`--pr-author` retain their old
+meaning. A first v1-to-v2 migration PR may carry one last legacy mirror for its
+merge-base workflow; the v2 path ignores it. Local mode does not claim distinct
+GitHub actor proof, so a v1 team with `requireDifferentActor: true` must not be
+silently converted. Add `--json` to read/check commands for machine-readable
+output.
 
 See [WORKFLOW](../wiki/WORKFLOW.md) for the change process and [design](design.md) for why each gate exists.

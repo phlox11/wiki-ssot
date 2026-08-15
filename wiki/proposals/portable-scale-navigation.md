@@ -18,8 +18,8 @@ sources:
   - path: scripts/wiki/kit-packaging.ts
   - path: scripts/wiki/kit-packaging.test.ts
   - path: scripts/wiki/apply.test.ts
-  - path: .github/workflows/wiki-ssot.yml
-  - path: .github/workflows/kit.yml
+  - path: scripts/wiki/local-check.ts
+  - path: kit/migrations/v1/checks.yml
   - path: package.json
   - path: README.md
   - path: docs/design.md

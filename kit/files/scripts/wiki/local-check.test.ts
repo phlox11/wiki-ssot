@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { dirname, join } from "node:path";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { createRepoView, generatedCoreFiles, loadWikiPages, readConfig, reviewCheck, validatePrMetadata, verifyState, type PrMetadata } from "./core";
+import { createRepoView, generatedCoreFiles, kitOwnedChangedFiles, loadWikiPages, readConfig, reviewCheck, validatePrMetadata, verifyState, type PrMetadata } from "./core";
 import { localCheckDigest, parseLocalCheckResult, runLocalCheck, validateLocalCheckResult, type LocalCheckResult } from "./local-check";
 import { jsonStable } from "./serialization";
 
@@ -61,13 +61,31 @@ function metadata(options: {
   ].join("\n");
 }
 
-function repo(options: { risk?: boolean; changed?: boolean; publishesKit?: boolean; toolkitChanged?: boolean; invariant?: boolean; authenticatedPolicy?: boolean } = {}): string {
+function repo(options: { risk?: boolean; changed?: boolean; publishesKit?: boolean; toolkitChanged?: boolean; invariant?: boolean; authenticatedPolicy?: boolean; v2?: boolean; localChecks?: { id: string; argv: string[] }[] } = {}): string {
   const root = mkdtempSync(join(tmpdir(), "wiki-local-check-"));
   temporary.push(root);
   run(root, ["git", "init", "-q"]);
   run(root, ["git", "config", "user.name", "Wiki Local Test"]);
   run(root, ["git", "config", "user.email", "wiki-local@example.invalid"]);
-  put(root, ".wiki/config.json", jsonStable({
+  put(root, ".wiki/config.json", jsonStable(options.v2 ? {
+    version: 2,
+    name: "local-check-test",
+    publishesKit: options.publishesKit === true,
+    highRisk: options.risk ? ["src/**"] : [],
+    enforcement: { mode: "local-status", statusContext: "wiki-ssot/local" },
+    localChecks: options.localChecks ?? [{ id: "project-test", argv: ["bun", "run", "test"] }],
+    review: {
+      mode: "required",
+      when: {
+        kind: "risk-based",
+        changedFileRules: [{ glob: ".wiki/config.json", reason: "The local enforcement policy itself is changing." }],
+        changedKitOwnedFiles: true,
+        affectedInvariants: true,
+        affectedConflicts: true,
+        removedCurrentPages: true,
+      },
+    },
+  } : {
     version: 1,
     name: "local-check-test",
     publishesKit: options.publishesKit === true,
@@ -407,6 +425,158 @@ describe("canonical local check result", () => {
     expect(result.findings).toEqual(expect.arrayContaining([
       expect.objectContaining({ code: "tooling-check-failed", severity: "error" }),
     ]));
+  });
+
+  test("deduplicates explicit canonical toolkit checks and rejects conflicting IDs", () => {
+    const canonical = [
+      { id: "tooling-typecheck", argv: ["bun", "run", "wiki:tooling:typecheck"] },
+      { id: "tooling-test", argv: ["bun", "run", "wiki:tooling:test"] },
+    ];
+    const calls: string[][] = [];
+    const root = repo({ publishesKit: true, toolkitChanged: true, v2: true, localChecks: canonical });
+    const view = createRepoView(root);
+    const result = runLocalCheck({
+      root,
+      view,
+      pages: loadWikiPages(view).pages,
+      base: "HEAD~1",
+      metadataRaw: metadata(),
+      dirtyPaths: [],
+      runToolingChecks: true,
+      argvRunner: (argv) => {
+        calls.push(argv);
+        return { exitCode: 0, stdout: "", stderr: "" };
+      },
+    });
+    expect(calls).toEqual([
+      ["bun", "run", "wiki:tooling:typecheck"],
+      ["bun", "run", "wiki:tooling:test"],
+      ["bun", "run", "wiki:kit", "--", "--check"],
+      ["bun", "run", "wiki:tooling:guard"],
+    ]);
+    expect(result.checks.tooling.commands.filter((command) => command.id === "tooling-typecheck")).toHaveLength(1);
+    expect(result.checks.tooling.commands.filter((command) => command.id === "tooling-test")).toHaveLength(1);
+    expect(result.findings.map((item) => item.code)).not.toContain("local-check-id-conflict");
+
+    const conflictingRoot = repo({
+      publishesKit: true,
+      toolkitChanged: true,
+      v2: true,
+      localChecks: [{ id: "tooling-test", argv: ["bun", "run", "project:test"] }],
+    });
+    const conflictingView = createRepoView(conflictingRoot);
+    const conflicting = runLocalCheck({
+      root: conflictingRoot,
+      view: conflictingView,
+      pages: loadWikiPages(conflictingView).pages,
+      base: "HEAD~1",
+      metadataRaw: metadata(),
+      dirtyPaths: [],
+      runToolingChecks: true,
+      argvRunner: () => ({ exitCode: 0, stdout: "", stderr: "" }),
+    });
+    expect(conflicting.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: "local-check-id-conflict", severity: "error" }),
+    ]));
+    expect(conflicting.ok).toBe(false);
+  });
+
+  test("keeps adopter seed files out of kit ownership and tooling selection", () => {
+    const root = repo({ v2: true });
+    put(root, "tsconfig.json", "{\"compilerOptions\":{}}\n");
+    put(root, "scripts/wiki/local-check.ts", "export const baseline = true;\n");
+    put(root, "AGENTS.md", "managed\n");
+    put(root, ".wiki/kit-manifest.json", jsonStable({
+      files: {
+        ".wiki/coverage.json": { ownership: "seed", sha256: "seed" },
+        ".wiki/state.json": { ownership: "seed", sha256: "seed" },
+        "tsconfig.json": { ownership: "seed", sha256: "seed" },
+        "scripts/wiki/local-check.ts": { ownership: "kit", sha256: "kit" },
+      },
+      managed: {
+        "AGENTS.md": { start: "managed:start", end: "managed:end", sha256: "managed" },
+      },
+    }));
+    run(root, ["git", "add", "."]);
+    run(root, ["git", "commit", "-qm", "adopter manifest"]);
+
+    const manifestView = createRepoView(root);
+    expect(kitOwnedChangedFiles(manifestView, [
+      ".wiki/coverage.json",
+      ".wiki/state.json",
+      "tsconfig.json",
+      "scripts/wiki/local-check.ts",
+      "AGENTS.md",
+      ".wiki/kit-manifest.json",
+    ])).toEqual([".wiki/kit-manifest.json", "AGENTS.md", "scripts/wiki/local-check.ts"].sort((a, b) => a.localeCompare(b)));
+
+    put(root, "tsconfig.json", "{\"compilerOptions\":{\"strict\":true}}\n");
+    run(root, ["git", "add", "tsconfig.json"]);
+    run(root, ["git", "commit", "-qm", "seed-only change"]);
+    const seedView = createRepoView(root);
+    const seedCalls: string[][] = [];
+    const seedResult = runLocalCheck({
+      root,
+      view: seedView,
+      pages: loadWikiPages(seedView).pages,
+      base: "HEAD~1",
+      metadataRaw: metadata(),
+      dirtyPaths: [],
+      runToolingChecks: true,
+      argvRunner: (argv) => {
+        seedCalls.push(argv);
+        return { exitCode: 0, stdout: "", stderr: "" };
+      },
+    });
+    expect(seedResult.checks.review.requirement_reasons).not.toContainEqual(expect.stringContaining("kit-owned files changed"));
+    expect(seedResult.checks.tooling.changed_files).toEqual([]);
+    expect(seedCalls.map((argv) => argv.join(" "))).not.toEqual(expect.arrayContaining([
+      "bun run wiki:tooling:typecheck",
+      "bun run wiki:tooling:test",
+    ]));
+
+    put(root, "scripts/wiki/local-check.ts", "export const baseline = false;\n");
+    run(root, ["git", "add", "scripts/wiki/local-check.ts"]);
+    run(root, ["git", "commit", "-qm", "kit-owned change"]);
+    const kitView = createRepoView(root);
+    const kitCalls: string[][] = [];
+    const kitResult = runLocalCheck({
+      root,
+      view: kitView,
+      pages: loadWikiPages(kitView).pages,
+      base: "HEAD~1",
+      metadataRaw: metadata(),
+      dirtyPaths: [],
+      runToolingChecks: true,
+      argvRunner: (argv) => {
+        kitCalls.push(argv);
+        return { exitCode: 0, stdout: "", stderr: "" };
+      },
+    });
+    expect(kitResult.checks.tooling.changed_files).toEqual(["scripts/wiki/local-check.ts"]);
+    expect(kitResult.checks.review.requirement_reasons).toContain("kit-owned files changed: scripts/wiki/local-check.ts");
+    expect(kitCalls.map((argv) => argv.join(" "))).toEqual(expect.arrayContaining([
+      "bun run wiki:tooling:typecheck",
+      "bun run wiki:tooling:test",
+    ]));
+  });
+
+  test("keeps one legacy mirror harmless during a v2 local migration", () => {
+    const root = repo({ v2: true, authenticatedPolicy: true });
+    const view = createRepoView(root);
+    const legacyMetadata = metadata({ freshContext: { verdict: "PENDING", reviewed_head_sha: "", bundle_digest: "", reviewer: "", evidence: [] } });
+    const result = runLocalCheck({
+      root,
+      view,
+      pages: loadWikiPages(view).pages,
+      base: "HEAD",
+      metadataRaw: legacyMetadata,
+      dirtyPaths: [],
+      runToolingChecks: true,
+      argvRunner: () => ({ exitCode: 0, stdout: "", stderr: "" }),
+    });
+    expect(result.checks.structural.findings.map((item) => item.code)).not.toContain("metadata-fresh-context-forbidden");
+    expect(result.checks.tooling.commands).toContainEqual({ id: "project-test", argv: ["bun", "run", "test"], exit_code: 0, ok: true });
   });
 
   test("keeps legacy check behavior when no output flag is selected", async () => {

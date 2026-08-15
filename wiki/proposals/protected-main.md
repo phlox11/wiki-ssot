@@ -6,7 +6,7 @@ status: archived
 authority: normative
 owners: ["@phlox11"]
 sources:
-  - path: .github/workflows/checks.yml
+  - path: kit/migrations/v1/checks.yml
 related: [operations/enforcement]
 tags: [proposal, github, branch-protection]
 ---

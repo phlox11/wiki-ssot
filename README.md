@@ -7,7 +7,7 @@ Coding agents increasingly do the work in a repository, each starting from a bla
 1. **Primary failure:** an agent that *cannot find the code or constraint it should have accounted for*, so it edits blind — repeating a fixed mistake or breaking an intent it never saw.
 2. **Secondary failure:** two individually-correct pull requests merge into a wiki that now contradicts itself.
 
-wiki-ssot fixes both with deterministic repository gates plus pre-PR, risk-scoped Fresh-context reconciliation. Before opening a PR, the authoring code agent gives a deterministic bundle to a context-isolated reviewer or sub-agent and reconciles any concrete code/wiki mismatch. CI does not run an LLM; it only validates the already-produced verdict's target SHA, bundle digest, evidence, and authenticated actor when the PR becomes Ready.
+wiki-ssot fixes both with deterministic repository gates plus pre-PR, risk-scoped Fresh-context reconciliation. Before opening a PR, the authoring code agent gives a deterministic bundle to a context-isolated reviewer or sub-agent and reconciles any concrete code/wiki mismatch. The exact committed result is checked locally and published to GitHub as a commit status; GitHub does not run the engine or an LLM.
 
 It is derived from Andrej Karpathy's [LLM wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) `source → wiki → schema` idea, hardened into an enforcement system.
 
@@ -19,7 +19,7 @@ It is derived from Andrej Karpathy's [LLM wiki](https://gist.github.com/karpathy
 - When intent is unclear or code and wiki disagree, you open a **conflict** — a first-class, machine-tracked record with acceptance criteria — instead of guessing.
 - Proposal frontmatter carries a validated, repository-wide **work queue**. An optional `executor: agent | human | either` classifies who can perform a task independently from its lifecycle state; omission remains backward-compatible `agent`. A fresh session can run `wiki:work` with no topic, node, or task ID, see human work without auto-selecting it, then load a selected item's current invariants, context pages, conflicts, sources, and non-current proposal owner through a compact default projection. Stable digests and focused commands route to detail, while `wiki:context -- --full` retains exhaustive body inspection.
 - A bounded **`wiki/index.md` entrypoint** routes by first path group into a complete generated catalog. Current-status exposes current/proposal, outstanding/done work, open/resolved conflict, and archived/deprecated totals; a generated relationship graph exposes declared page/work links without changing authority or validation semantics.
-- `wiki:review-preflight` decides whether independent reconciliation is required before a PR exists, prepares an exact content-addressed bundle with focused authority/source/test roles, and validates the separate review context's report. Draft PRs do not emit an expected Fresh-context failure; applicable Ready PRs reject missing, non-PASS, stale, malformed, empty-evidence, or untrusted reports.
+- `wiki:review-preflight` decides whether independent reconciliation is required before a PR exists, prepares an exact content-addressed bundle with focused authority/source/test roles, and validates the separate review context's report. `wiki:check` binds that report and every deterministic check to the committed HEAD; `wiki:publish` refuses stale evidence before posting the protected status.
 
 Full rationale: [docs/design.md](docs/design.md).
 
@@ -60,8 +60,7 @@ publication.
 
 - [Bun](https://bun.sh) ≥ 1.1 (the engine uses `Bun.Glob`, `Bun.CryptoHasher`, and shells out to `git`).
 - Git.
-- GitHub Actions for the current CI rail (optional but recommended); the local hooks and CLI work anywhere.
-- `gh` authenticated to the target repository only when publishing a local result to GitHub.
+- `gh` authenticated to the target repository only when publishing a local result to GitHub. GitHub Actions are not required by the v2 local-status path.
 
 ## Get started
 
@@ -82,7 +81,7 @@ Full command reference: [docs/commands.md](docs/commands.md).
 
 ## Try it here
 
-This repository **dogfoods itself** — its own `wiki/` describes the toolkit, and its own gates run in CI. Clone it and run:
+This repository **dogfoods itself** — its own `wiki/` describes the toolkit, its gates run locally, and the exact result is published as the required GitHub commit status. Clone it and run:
 
 ```sh
 bun install
@@ -97,12 +96,10 @@ bun run wiki:context -- "enforcement"   # compact authority/source routing befor
 bun run wiki:context -- "enforcement" --full  # exhaustive page bodies when needed
 ```
 
-## Bootstrap local result and status (additive)
+## Local result and status
 
-The Bootstrap release adds a canonical local gate without removing the existing
-Actions or Draft/Ready Fresh-context attestation flow. After committing the
-candidate, run the opt-in result path with metadata (and a review report when
-required):
+After committing the candidate, run the canonical local gate with semantic PR
+metadata and, when selected, the independently produced review report:
 
 ```sh
 bun run wiki:check -- --base origin/main --metadata pr-body.md \
@@ -115,23 +112,22 @@ bun run wiki:publish -- --result /tmp/wiki-result.json
 bun run wiki:publish -- --result /tmp/wiki-result.json --repo owner/repo --pr 123
 ```
 
+Version 2 configuration also runs every project-owned `localChecks` argv array.
+Toolkit-owned changes select the Wiki tooling typecheck and complete tooling
+suite, and publisher changes additionally run kit freshness and growth guards.
 The result binds the exact committed HEAD, resolved base and merge-base,
 canonical metadata digest, check/review summaries and findings, and a
 deterministic result digest. The check rejects other dirty or untracked files;
 the explicitly supplied metadata, report, and result paths are allowed. The
-canonical gate also selects the Wiki tooling typecheck and full tooling test
-suite when tracked toolkit-owned files change; publisher repositories additionally
-run kit freshness and growth guards. The publisher revalidates the schema and
-digest, requires the same clean local
+publisher revalidates the schema and digest, requires the same clean local
 HEAD, and compares it with the remote PR head before writing. It upserts one
 `wiki-ssot:local-status` marker comment and then posts the
 `wiki-ssot/local` commit status. Warnings remain a successful status and are
 listed in the comment; GitHub/API failures return non-zero and are never
-treated as success. No daemon, GitHub App, or hosted service is introduced.
-
-Until the later cutover, the existing GitHub workflows and Draft/Ready
-attestation remain active and continue to provide the repository's deployed
-CI path.
+treated as success. The PR template carries only semantic metadata; review
+evidence stays in the exact report rather than being mirrored into editable PR
+text. No Draft-to-Ready choreography, daemon, GitHub App, hosted service, or
+active Wiki Actions workflow is introduced.
 
 ## What's in the box
 
@@ -141,7 +137,7 @@ scripts/wiki/            # engine, CLI, provider/project adapters, kit tooling,
 wiki/                    # the SSOT pages + SCHEMA.md + WORKFLOW.md
 .wiki/                   # machine config + generated maps/relationship graph + verification ledger
 .husky/                  # pre-commit (lint) + pre-push (block main)
-.github/workflows/       # host checks + wiki-ssot.yml gates + kit.yml + weekly audit
+.github/                 # PR template; v2 ships no active Actions workflows
 AGENTS.md / CLAUDE.md    # the agent entrypoint
 kit/                     # the generated distribution other repos copy
 docs/                    # design + adoption playbooks + command reference
@@ -153,21 +149,21 @@ That is this repository's layout. Nothing outside [`kit/`](kit/README.md) travel
 
 Three project seams make it yours; everything else is generic:
 
-- **`.wiki/config.json`** — your wiki's `name`, stale-page `highRisk` globs, and explicit Fresh-context mode/scope/evidence/reviewer trust policy.
+- **`.wiki/config.json`** — version 2 names the repository, local-status context, argv-based project checks, and explicit reasoned review-selection signals. Version 1 Fresh-context policy remains readable for compatibility.
 - **`.wiki/coverage.json`** — the implementation/test globs that must map to current pages, plus any narrowly reasoned exclusions.
 - **`scripts/wiki/inventories.ts`** — optional. Teach the engine to emit deterministic `wiki/_generated/**` pages from your stack; read `kit/scripts/wiki/inventories.example.ts` in a wiki-ssot checkout for a worked adapter.
 
-Omit `freshContext.requiredWhen` to require review for every PR. A `risk-based` selector can instead require it for trusted changed-file globs, affected invariants/conflicts, and current-page removals. For a solo-maintainer repository, set `trust.requireDifferentActor` to `false`: before opening the PR, the authoring agent must still use a separate context-isolated reviewer or sub-agent, but the authenticated publisher may be the PR author. Teams with a provisioned reviewer account or bot can set it to `true` to make distinct GitHub identities a CI-validated requirement.
+Version 2 requires an explicit risk-based selector; it never falls back to all-PR review. Every changed-file rule carries a reason, actual kit-owned changes are selected from the kit manifest, and invariant/conflict/removal signals remain available. Local status proves exact evidence, not a distinct GitHub reviewer identity. A version 1 team that requires a different authenticated actor stays on its external enforcement path until it deliberately changes that trust policy.
 
 ## Required integration seam
 
 Adoption is complete only while the installed repository keeps the full seam:
 a root `AGENTS.md` with the affirmative current-authority, no-query work,
-human-work handoff, and focused/topic context routes; the structured PR metadata template; the
-Ready-only `wiki-review-attestation` CI job and required events; and the
-canonical package commands. `wiki:doctor` checks these provider-neutral and
-GitHub reference surfaces together and fails when one is missing or reduced to
-a marker, placeholder, command list, or explicitly negated route.
+human-work handoff, and focused/topic context routes; the semantic PR metadata
+template; explicit v2 local-status configuration; and the canonical local
+check/publish commands. `wiki:doctor` checks these surfaces and fails when v2
+configuration still coexists with legacy active Wiki workflows. Version 1
+GitHub attestation remains an isolated compatibility seam for existing adopters.
 
 ## Non-guarantees and trust boundary
 

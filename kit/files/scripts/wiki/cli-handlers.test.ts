@@ -87,6 +87,29 @@ describe("direct CLI handler dispatch", () => {
     expect(output.stderr).toEqual([]);
   });
 
+  test("keeps malformed v2 doctor on the local-status path", async () => {
+    if (isGeneratedKitMirror) return;
+    const { runCli } = await import("./cli");
+    const root = mkdtempSync(join(tmpdir(), "wiki-cli-v2-doctor-"));
+    temporary.push(root);
+    mkdirSync(join(root, ".wiki"), { recursive: true });
+    writeFileSync(join(root, ".wiki/config.json"), JSON.stringify({
+      version: 2,
+      name: "invalid-v2",
+      publishesKit: false,
+      enforcement: { mode: "local-status", statusContext: "wiki-ssot/local" },
+      localChecks: [],
+      review: { mode: "required", when: { kind: "risk-based", changedFileRules: [], changedKitOwnedFiles: false, affectedInvariants: false, affectedConflicts: false, removedCurrentPages: false } },
+    }));
+    expect(Bun.spawnSync(["git", "init", "-q"], { cwd: root, stdout: "pipe", stderr: "pipe" }).exitCode).toBe(0);
+    const output = capture();
+    expect(runCli(["doctor", "--json", "--root", root], { cwd: process.cwd(), io: output.io })).toBe(1);
+    const codes = (JSON.parse(output.stdout.join("")) as { findings: { code: string }[] }).findings.map((item) => item.code);
+    expect(codes).toContain("local-status-config-invalid");
+    expect(codes).not.toContain("fresh-context-template-missing");
+    expect(codes).not.toContain("fresh-context-workflow-missing");
+  });
+
   test("enforces staged write guards directly", async () => {
     if (isGeneratedKitMirror) return;
     const { runCli } = await import("./cli");

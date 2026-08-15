@@ -1,41 +1,41 @@
 {
-  "version": 1,
+  "version": 2,
   "name": "wiki-ssot",
   "publishesKit": true,
   "highRisk": [
-    ".github/workflows/checks.yml",
-    ".github/workflows/wiki-ssot.yml",
     "scripts/wiki/**"
   ],
-  "freshContext": {
+  "enforcement": {
+    "mode": "local-status",
+    "statusContext": "wiki-ssot/local"
+  },
+  "localChecks": [
+    { "id": "project-typecheck", "argv": ["bun", "run", "typecheck"] },
+    { "id": "tooling-typecheck", "argv": ["bun", "run", "wiki:tooling:typecheck"] },
+    { "id": "tooling-test", "argv": ["bun", "run", "wiki:tooling:test"] }
+  ],
+  "review": {
     "mode": "required",
-    "requiredVerdict": "PASS",
-    "evidenceRequired": true,
-    "requiredWhen": {
+    "when": {
       "kind": "risk-based",
-      "changedFileGlobs": [
-        ".github/pull_request_template.md",
-        ".github/workflows/**",
-        ".wiki/config.json",
-        "AGENTS.md",
-        "README.md",
-        "docs/design.md",
-        "package.json",
-        "scripts/wiki/**",
-        "wiki/SCHEMA.md",
-        "wiki/WORKFLOW.md",
-        "wiki/operations/enforcement.md",
-        "wiki/product/invariants.md",
-        "wiki/product/scope.md"
+      "changedFileRules": [
+        { "glob": ".github/pull_request_template.md", "reason": "PR metadata template changes can bypass semantic gate inputs." },
+        { "glob": ".wiki/config.json", "reason": "Wiki enforcement policy itself is changing." },
+        { "glob": "AGENTS.md", "reason": "Agent workflow changes can bypass required Wiki operating procedure." },
+        { "glob": "README.md", "reason": "Repository overview changes can alter the published operating contract." },
+        { "glob": "docs/design.md", "reason": "Repository design documentation changes can alter operating expectations." },
+        { "glob": "package.json", "reason": "Project command changes can alter the local gate inputs." },
+        { "glob": "wiki/SCHEMA.md", "reason": "Wiki schema changes can alter the meaning of current records." },
+        { "glob": "wiki/WORKFLOW.md", "reason": "Wiki workflow changes can alter required authoring procedure." },
+        { "glob": "wiki/architecture/engine.md", "reason": "Engine contract changes require independent SSOT reconciliation." },
+        { "glob": "wiki/operations/enforcement.md", "reason": "Enforcement contract changes can alter merge safety expectations." },
+        { "glob": "wiki/product/invariants.md", "reason": "Invariant contract changes require independent SSOT reconciliation." },
+        { "glob": "wiki/product/scope.md", "reason": "Product scope changes require independent SSOT reconciliation." }
       ],
+      "changedKitOwnedFiles": true,
       "affectedInvariants": true,
       "affectedConflicts": true,
       "removedCurrentPages": true
-    },
-    "trust": {
-      "allowedReviewers": ["*"],
-      "requireDifferentActor": false,
-      "requireAuthenticatedActor": true
     }
   }
 }

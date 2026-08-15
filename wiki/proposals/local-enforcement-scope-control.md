@@ -11,13 +11,15 @@ sources:
   - path: scripts/wiki/cli.ts
   - path: scripts/wiki/cli-validation-handlers.ts
   - path: scripts/wiki/context.ts
+  - path: scripts/wiki/verification.ts
   - path: scripts/wiki/impact.ts
   - path: scripts/wiki/review-bundle.ts
+  - path: scripts/wiki/review-attestation.ts
+  - path: scripts/wiki/kit-packaging.ts
   - path: scripts/wiki/apply.ts
   - path: scripts/wiki/github-attestation.ts
   - path: scripts/wiki/local-check.ts
   - path: scripts/wiki/github-local-status.ts
-  - path: .github/workflows/wiki-ssot.yml
   - path: .github/pull_request_template.md
 affects: [architecture/engine, operations/enforcement, product/invariants, product/scope]
 related: [proposal/token-efficiency, proposal/portable-scale-navigation, architecture/engine, operations/enforcement]
@@ -47,7 +49,7 @@ work_items:
       - wiki/product/invariants.md
   - id: LS-01
     title: Cut the publisher over to version 2 local-status enforcement
-    state: not-started
+    state: done
     executor: agent
     priority: critical
     depends_on: [LS-00]
@@ -57,7 +59,20 @@ work_items:
       - The publisher no longer requires the PR-body report mirror, Draft-to-Ready choreography, or active Wiki Actions workflows after the local status becomes the protected merge boundary.
       - Legacy version 1 GitHub attestation remains isolated for one compatibility release and is not imported by the version 2 core path.
       - Doctor reports actionable needs-reconcile guidance when local-status configuration and legacy active workflows coexist.
-    evidence: []
+    evidence:
+      - .wiki/config.json
+      - scripts/wiki/verification.ts
+      - scripts/wiki/impact.ts
+      - scripts/wiki/review-attestation.ts
+      - scripts/wiki/local-check.ts
+      - scripts/wiki/github-local-status.ts
+      - scripts/wiki/apply.ts
+      - scripts/wiki/verification.test.ts
+      - scripts/wiki/local-check.test.ts
+      - scripts/wiki/github-local-status.test.ts
+      - scripts/wiki/apply.test.ts
+      - .github/pull_request_template.md
+      - AGENTS.md
   - id: LS-02
     title: Bound source context and independent-review selection with auditable causes
     state: not-started

@@ -111,6 +111,7 @@ import {
   validateCoverage,
   mappedPages,
   parseFreshContextPolicy,
+  parseWikiConfigV2,
   readConfig,
   UsageError,
 } from "./verification";
@@ -119,7 +120,11 @@ import type {
   FreshContextRequiredWhen,
   FreshContextTrustPolicy,
   FreshContextPolicy,
+  V2ChangedFileRule,
+  V2ReviewWhen,
   StateAudit,
+  WikiConfigV1,
+  WikiConfigV2,
   WikiConfig,
   WikiState,
 } from "./verification";
@@ -129,8 +134,10 @@ import {
   parsePrMetadata,
   validatePrMetadata,
   impactReport,
+  kitOwnedChangedFiles,
   isImplementationSourceChange,
   evaluateFreshContextRequirement,
+  evaluateLocalReviewRequirement,
   canonicalPrMetadata,
 } from "./impact";
 import type {
@@ -301,8 +308,10 @@ export {
   parsePrMetadata,
   validatePrMetadata,
   impactReport,
+  kitOwnedChangedFiles,
   isImplementationSourceChange,
   evaluateFreshContextRequirement,
+  evaluateLocalReviewRequirement,
 };
 export type { ImpactReport, PrMetadata, FreshContextRequirement };
 export {

@@ -55,11 +55,14 @@ export const TE04_ENGINE_PATHS = [
 /** TE-00 publisher review source breadth observed by the pinned baseline. */
 export const TE00_REVIEWER_SOURCE_BREADTH = 33;
 /**
- * Exact origin/main structural non-diff bundle bytes. Authority/invariant
- * objects are intentionally measured separately because their current
- * bodies remain required review inputs and may legitimately evolve.
+ * Exact cutover structural non-diff bundle bytes. The reference is
+ * rebaselined from 28,716 to 29,974 bytes because the local-check and
+ * github-local-status seams are now required focused-review source paths;
+ * their 1,258-byte focused-manifest increase is measured separately from
+ * authority/invariant objects. The existing TE-00 breadth assertion remains
+ * the upper bound for source expansion.
  */
-export const TE04_ORIGIN_MAIN_STRUCTURAL_NON_DIFF_BYTES = 28_716;
+export const TE04_ORIGIN_MAIN_STRUCTURAL_NON_DIFF_BYTES = 29_974;
 
 export type Te04Availability = "available" | "unavailable";
 export type Te04Diagnostic = {

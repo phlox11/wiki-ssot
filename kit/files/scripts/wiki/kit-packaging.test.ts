@@ -232,13 +232,21 @@ describe("emitted kit", () => {
   });
 
   test("keeps the base-engine bundle rule, which applies downstream too", () => {
-    // The shipped wiki-ssot.yml does the same base.sha checkout and the shipped
-    // policy lists scripts/wiki/** as review-triggering, so an adopter editing
-    // the engine hits the same digest recomputation. Stripping it from the
-    // entrypoint while wiki/WORKFLOW.md kept it left the two disagreeing.
+    // The local review bundle still uses the base.sha engine and the v2 policy
+    // selects actual kit-owned engine files, so an adopter editing the engine
+    // hits the same digest recomputation without a hosted workflow.
     const { files } = realKit();
     expect(files["kit/managed/AGENTS.md"]).toContain("base-checkout");
-    expect(files["kit/files/wiki/WORKFLOW.md"]).toContain("merge-base engine");
+    expect(files["kit/files/wiki/WORKFLOW.md"]).toContain("base engine");
+  });
+
+  test("keeps v1 workflow migration payload reference-only", () => {
+    const { files } = realKit();
+    expect(files["kit/migrations/v1/checks.yml"]).toContain("wiki-review-attestation:");
+    expect(files["kit/migrations/v1/host-checks.yml"]).toContain("jobs:");
+    expect(KIT_ENTRIES.find((entry) => entry.target === "migrations/v1/checks.yml")?.placement).toBe("reference");
+    expect(KIT_ENTRIES.find((entry) => entry.target === "migrations/v1/host-checks.yml")?.placement).toBe("reference");
+    expect(Object.keys(files).some((path) => /^kit\/(?:files|managed|seed)\/\.github\/workflows\//.test(path))).toBe(false);
   });
 
   test("ships bounded reusable-context and orchestration guidance downstream", () => {
@@ -260,9 +268,9 @@ describe("emitted kit", () => {
   });
 
   test("ships the warning that branch protection matches on check name", () => {
-    // wiki-ssot.yml is part of the payload, so every adopting repository inherits
-    // the seam, while the wiki page and docs that explained it stay behind here.
-    expect(realKit().files["kit/managed/AGENTS.md"]).toContain("keeps a required job's name");
+    // The warning remains part of the managed operating guidance even though
+    // v2 no longer ships an active GitHub workflow.
+    expect(realKit().files["kit/managed/AGENTS.md"]).toContain("Branch protection matches a status context rather than its implementation meaning");
   });
 });
 

@@ -399,7 +399,10 @@ function installedToolkitPaths(view: RepoView): { paths: Set<string>; findings: 
     for (const section of ["files", "managed"] as const) {
       const entries = raw[section];
       if (entries != null && typeof entries === "object" && !Array.isArray(entries)) {
-        for (const path of Object.keys(entries as Record<string, unknown>)) paths.add(path);
+        for (const [path, entry] of Object.entries(entries as Record<string, unknown>)) {
+          if (section === "managed" || (entry != null && typeof entry === "object" && !Array.isArray(entry)
+            && (entry as Record<string, unknown>).ownership === "kit")) paths.add(path);
+        }
       }
     }
     return { paths, findings: [] };
@@ -445,6 +448,7 @@ function runToolingChecks(
   const ownership = installedToolkitPaths(view);
   const changedToolkitFiles = changedFiles.filter((path) => ownership.paths.has(path)).sort((a, b) => a.localeCompare(b));
   const publisher = readConfig(view).publishesKit;
+  const config = readConfig(view);
   const shouldRunTooling = changedToolkitFiles.length > 0;
   const commandSpecs: { id: string; argv: string[] }[] = [];
   if (enabled && shouldRunTooling) {
@@ -459,15 +463,38 @@ function runToolingChecks(
       { id: "kit-growth", argv: ["bun", "run", "wiki:tooling:guard"] },
     );
   }
-  const commands: LocalToolingCommand[] = [];
+  if (enabled && config.version === 2) {
+    // These are intentionally the exact argv arrays declared by the project;
+    // no shell parsing or inferred test graph is introduced at this boundary.
+    for (const check of config.localChecks) commandSpecs.push({ id: check.id, argv: [...check.argv] });
+  }
   const findings = [...ownership.findings];
+  const uniqueSpecs: { id: string; argv: string[] }[] = [];
+  const seenIds = new Map<string, string>();
   for (const spec of commandSpecs) {
+    const argvKey = jsonStable(spec.argv);
+    const previousArgvKey = seenIds.get(spec.id);
+    if (previousArgvKey != null) {
+      if (previousArgvKey !== argvKey) {
+        findings.push(finding(
+          "local-check-id-conflict",
+          `local check id ${spec.id} is declared with different argv; resolve the config/tooling command collision before publishing`,
+          "error",
+        ));
+      }
+      continue;
+    }
+    seenIds.set(spec.id, argvKey);
+    uniqueSpecs.push(spec);
+  }
+  const commands: LocalToolingCommand[] = [];
+  for (const spec of uniqueSpecs) {
     const outcome = toolingCommand(spec.id, spec.argv, root, runner);
     commands.push(outcome.command);
     if (outcome.finding) findings.push(outcome.finding);
   }
   return {
-    selected: commandSpecs.length > 0,
+    selected: uniqueSpecs.length > 0,
     changed_files: changedToolkitFiles,
     commands,
     findings,
@@ -545,7 +572,7 @@ export function runLocalCheck(options: LocalCheckOptions): LocalCheckResult {
   const dirty = options.dirtyPaths ?? localCheckDirtyPaths(root);
   const dirtyFindings = dirty.map((path) => finding("local-check-dirty", "canonical local check requires a committed candidate HEAD", "error", path));
 
-  const metadataValidation = validatePrMetadata(options.metadataRaw, true);
+  const metadataValidation = validatePrMetadata(options.metadataRaw, true, readConfig(options.view));
   const metadataDigest = hashContent(jsonStable(canonicalPrMetadata(metadataValidation.metadata)));
   const metadataFindings = metadataValidation.findings;
 
@@ -610,11 +637,12 @@ export function runLocalCheck(options: LocalCheckOptions): LocalCheckResult {
     });
     review = asReviewSummary(checked, options.reportRaw);
   } catch (error) {
+    const config = readConfig(options.view);
     review = {
       ok: false,
       required: true,
       status: options.reportRaw == null ? "review-required" : "invalid-report",
-      mode: readConfig(options.view).freshContext?.mode ?? "required",
+      mode: config.version === 1 ? (config.freshContext?.mode ?? "required") : "required",
       requirement_reasons: ["review validation could not complete"],
       findings: [finding("local-check-review-error", error instanceof Error ? error.message : String(error), "error")],
       affected_invariants: [],

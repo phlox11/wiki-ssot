@@ -66,7 +66,7 @@ sources:
   - path: docs/evidence/km-07-portable-kit-final.json
   - path: docs/evidence/km-07-portable-kit-final.md
   - path: package.json
-  - path: .github/workflows/wiki-ssot.yml
+  - path: kit/migrations/v1/checks.yml
 affects: [architecture/engine, operations/enforcement, product/invariants]
 related: [proposal/token-efficiency, architecture/engine, operations/enforcement, product/invariants]
 tags: [roadmap, kit, modularity, split, refactor, maintainability, tests, cli]

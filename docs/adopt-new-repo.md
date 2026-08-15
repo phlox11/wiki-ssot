@@ -25,30 +25,42 @@ You arrive with an empty verification ledger, an empty coverage `include`, an ad
 
 ```json
 {
-  "version": 1,
+  "version": 2,
   "name": "your-project",
+  "publishesKit": false,
   "highRisk": [],
-  "freshContext": {
+  "enforcement": {
+    "mode": "local-status",
+    "statusContext": "wiki-ssot/local"
+  },
+  "localChecks": [
+    { "id": "project-typecheck", "argv": ["bun", "run", "typecheck"] },
+    { "id": "project-test", "argv": ["bun", "run", "test"] }
+  ],
+  "review": {
     "mode": "required",
-    "requiredVerdict": "PASS",
-    "evidenceRequired": true,
-    "requiredWhen": {
+    "when": {
       "kind": "risk-based",
-      "changedFileGlobs": [".github/workflows/**", ".wiki/config.json", "AGENTS.md", "scripts/wiki/**"],
+      "changedFileRules": [
+        {
+          "glob": ".wiki/config.json",
+          "reason": "Wiki enforcement policy itself is changing."
+        },
+        {
+          "glob": "AGENTS.md",
+          "reason": "Agent workflow changes can bypass required Wiki procedure."
+        }
+      ],
+      "changedKitOwnedFiles": true,
       "affectedInvariants": true,
       "affectedConflicts": true,
       "removedCurrentPages": true
-    },
-    "trust": {
-      "allowedReviewers": ["*"],
-      "requireDifferentActor": false,
-      "requireAuthenticatedActor": true
     }
   }
 }
 ```
 
-Start top-level `highRisk` empty and add stale-page globs as you introduce contracts, schema, and routes. Extend `requiredWhen.changedFileGlobs` with project security, schema, and migration paths; omit `requiredWhen` if every candidate should receive Fresh-context review. The shipped `.wiki/coverage.json` has an empty `include`, so coverage is a no-op until you deliberately add a real code pattern. The default is solo-maintainer compatible: the authoring code agent runs applicable review through a separate context before opening a PR, while its authenticated publisher may be the PR author. Set `requireDifferentActor: true` only when another reviewer account or bot is ready. Narrow `allowedReviewers` to explicit reviewer/service logins when available. Missing Fresh-context policy is an integration error, never an implicit advisory mode.
+Start top-level `highRisk` empty and add stale-page globs as you introduce contracts, schema, and routes. Replace or extend `localChecks` with the repository's actual test and typecheck argv arrays; shell command strings are intentionally unsupported. Add narrowly scoped `changedFileRules` for project security, schema, and migration paths, with a concrete reason for each rule. `changedKitOwnedFiles` uses the installed kit manifest rather than selecting every file under `scripts/wiki/**`. Version 2 requires an explicit review selector and never falls back silently to all-PR review. The shipped `.wiki/coverage.json` has an empty `include`, so coverage is a no-op until you deliberately add a real code pattern.
 
 ## 3. Write the first pages as you write the first code
 
@@ -65,7 +77,14 @@ Because the wiki grows *with* the code, each page is verified by the same PR tha
 
 ## 4. Turn on the rails and maintain
 
-Same as an existing repo — preserve the marked affirmative provider-neutral AGENTS clauses for the wiki index/current status/invariants, no-query generic work discovery, human-work non-selection/reporting/handoff without assumed authority, selected-work context, topic search/context, and non-current authority labels, together with the canonical `wiki:work` script and structured PR metadata. A plain question about remaining work now starts with `bun run wiki:work`; human-exclusive work stays visible for handoff, while selected recommended agent/either work uses its printed selected-context command. Run `wiki:review-preflight` before publication, reconcile required bundles through a separate review context, then attach the locally-passed report to a Draft before marking it Ready. Keep the trusted Ready-only `wiki-review-attestation` job installed. For every Ready candidate that job succeeds only with either `required: false` or PASS for the exact current HEAD and bundle digest; deployment policy decides whether it is required for merge.
+Same as an existing repo — preserve the marked affirmative provider-neutral AGENTS clauses for the wiki index/current status/invariants, no-query generic work discovery, human-work non-selection/reporting/handoff without assumed authority, selected-work context, topic search/context, and non-current authority labels, together with the canonical `wiki:work` script and structured semantic PR metadata. A plain question about remaining work starts with `bun run wiki:work`; human-exclusive work stays visible for handoff, while selected recommended agent/either work uses its printed selected-context command. Run `wiki:review-preflight` before publication and reconcile required bundles through a separate review context. Then run the exact local gate, open or update the PR, and publish the result:
+
+```sh
+bun run wiki:check -- --base origin/main --metadata /tmp/pr-body.md --report /tmp/review-report.json --output /tmp/wiki-result.json
+bun run wiki:publish -- --result /tmp/wiki-result.json --pr <number>
+```
+
+The new kit installs no active GitHub Actions workflow. GitHub only displays the `wiki-ssot/local` commit status and the marked diagnostic comment; require that status in branch protection if it should block merges. Each new PR HEAD needs a new exact local result.
 
 wiki-ssot assumes repository write/admin actors are trusted. A deployment may add branch protection, required workflows, CODEOWNERS, or administrator-bypass restrictions, but organization-security policy is outside the toolkit's product contract and is not configured or audited by these files.
 

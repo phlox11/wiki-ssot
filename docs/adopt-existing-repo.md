@@ -26,40 +26,58 @@ The command detects `adopt`, installs the kit, merges only Wiki-owned package en
 
 Unsafe double edits and ambiguous legacy integrations return `needs-merge` without overwriting the project. Merge ordinary `.kit-new` files and use the printed `--accept` flag; repair managed files to contain one marked block. Then rerun the same command.
 
-Wiki jobs live in the dedicated `.github/workflows/wiki-ssot.yml`; existing build/test workflows remain independent. When upgrading the exact version 1 combined `checks.yml`, apply keeps its `code-check` as the host workflow and moves only the Wiki jobs. If that legacy workflow was customized or is not a recognized payload, apply returns `needs-merge`: remove its duplicate `wiki-*` jobs, retain every host job, and rerun with the printed `--accept .github/workflows/checks.yml` only after inspecting that retained form.
+The new kit installs no active GitHub Actions workflow. Apply also never deletes a workflow merely because a newer kit stopped shipping it: version 1 and customized adopters keep their existing files until a human verifies that every host test/typecheck command has moved to version 2 `localChecks`. `wiki:doctor` then reports the remaining active Wiki workflow with the exact reconciliation order instead of overwriting it.
 
 The kit ships only the toolkit. This repository's own wiki pages, conflicts, and proposals are instance content and are never part of it, so there is nothing to delete afterwards. [`kit/README.md`](../kit/README.md) documents the full file list, the kit-owned/seed split, and how to take a later upgrade without losing your configuration.
 
 ## 2. Configure the policy and project seams
 
-`.wiki/config.json` — your wiki's name, high-risk files, and explicit Fresh-context policy. Missing or malformed `freshContext` does not silently fall back to advisory:
+`.wiki/config.json` — your wiki's name, high-risk files, exact project checks, local-status context, and explicit review policy:
 
 ```json
 {
-  "version": 1,
+  "version": 2,
   "name": "your-repo",
+  "publishesKit": false,
   "highRisk": ["src/contracts/**", "src/db/**", "migrations/**"],
-  "freshContext": {
+  "enforcement": {
+    "mode": "local-status",
+    "statusContext": "wiki-ssot/local"
+  },
+  "localChecks": [
+    { "id": "project-typecheck", "argv": ["bun", "run", "typecheck"] },
+    { "id": "project-test", "argv": ["bun", "run", "test"] }
+  ],
+  "review": {
     "mode": "required",
-    "requiredVerdict": "PASS",
-    "evidenceRequired": true,
-    "requiredWhen": {
+    "when": {
       "kind": "risk-based",
-      "changedFileGlobs": [".github/workflows/**", ".wiki/config.json", "AGENTS.md", "scripts/wiki/**"],
+      "changedFileRules": [
+        {
+          "glob": ".wiki/config.json",
+          "reason": "Wiki enforcement policy itself is changing."
+        },
+        {
+          "glob": "src/contracts/**",
+          "reason": "Shared runtime contracts require independent reconciliation."
+        },
+        {
+          "glob": "migrations/**",
+          "reason": "Persistent data shape changes require independent reconciliation."
+        }
+      ],
+      "changedKitOwnedFiles": true,
       "affectedInvariants": true,
       "affectedConflicts": true,
       "removedCurrentPages": true
-    },
-    "trust": {
-      "allowedReviewers": ["*"],
-      "requireDifferentActor": false,
-      "requireAuthenticatedActor": true
     }
   }
 }
 ```
 
-The `risk-based` selector requires review for matching trust-boundary files, affected invariants/conflicts, and current-page removals. Add project security, schema, and migration globs; omit `requiredWhen` to retain all-PR review. `["*"]` means any authenticated GitHub actor allowed by the remaining trust policy. The solo-maintainer default above permits the PR author to publish a required report created by a separate context-isolated session; it does not let the authoring session review itself. Set `requireDifferentActor: true` only after a second reviewer account or bot can publish the report; without that channel, applicable solo-authored PRs fail the attestation job and are blocked from merge only when deployment policy makes that job required. Replace `["*"]` with explicit reviewer/service logins when your organization has a narrower trust boundary. Use `advisory` only as a deliberate migration state, and record when it will become `required`.
+Copy the repository's actual workflow test/typecheck commands into `localChecks` as argv arrays; do not translate shell pipelines into one string. IDs must be unique and argv arrays non-empty. Add only review globs whose risk can be explained; every rule requires a concrete reason. `changedKitOwnedFiles` uses the installed kit manifest, so publisher-only measurements and historical fixtures are not selected merely because they live below `scripts/wiki/`. Version 2 requires the selector explicitly and has no implicit all-PR fallback.
+
+Version 1 remains supported with its old meaning, including all-PR review when `requiredWhen` is omitted. If it requires an authenticated different reviewer actor, keep that policy or provide another external enforcement path: local-status mode proves exact report bindings and procedural context isolation, not GitHub actor separation.
 
 `.wiki/coverage.json` — the code areas that must always map to a page (start narrow, widen later):
 
@@ -99,29 +117,23 @@ Commit the wiki, `.wiki/`, and generated files together.
 ## 6. Turn on the rails
 
 - The apply command installs Husky explicitly without replacing the host `prepare` script. Confirm a bad staged page blocks a commit.
-- Keep the root `AGENTS.md` markers and affirmative provider-neutral routing clauses: index/current-status/invariant reading, no-query generic work discovery, human-work non-selection/reporting/handoff without assumed authority, selected-work context, topic search/context, and non-current authority labels. Also preserve canonical `wiki:work` and review/doctor scripts, the structured PR `fresh_context` block, and the stable `wiki-review-attestation` workflow job. `wiki:doctor` rejects marker-only, placeholder, command-name-only, or commonly negated route clauses when adoption rewrites these files; it does not interpret arbitrary prose. Upgrade the engine before adding `executor: human`; older engines do not apply the human-recommendation safety rule.
-- CI: the workflows in `.github/workflows/` run code, structure/doctor, generated, impact, and Ready-only review-attestation checks. The attestation check skips Drafts, uses trusted base code/policy, and never executes PR-head code.
+- Keep the root `AGENTS.md` markers and affirmative provider-neutral routing clauses: index/current-status/invariant reading, no-query generic work discovery, human-work non-selection/reporting/handoff without assumed authority, selected-work context, topic search/context, and non-current authority labels. Also preserve canonical `wiki:work`, check, publish, review, and doctor scripts plus structured semantic PR metadata. `wiki:doctor` rejects marker-only, placeholder, command-name-only, or commonly negated route clauses when adoption rewrites these files; it does not interpret arbitrary prose.
+- GitHub Actions is not required. Run the Wiki gate and configured project checks locally; GitHub receives only the exact result status/comment. A deployment may require `wiki-ssot/local` in branch protection.
 - Trust boundary: wiki-ssot assumes repository write/admin actors are trusted. Branch protection, required workflows, CODEOWNERS, and administrator-bypass rules are optional deployment governance; the toolkit neither configures nor audits them.
 
 ## 7. Establish the reviewer channel
 
-1. Before opening a PR, create the prospective structured metadata block with `fresh_context.verdict: PENDING`.
+1. Before opening a PR, create the prospective structured semantic metadata block. Version 2 does not require a `fresh_context` mirror.
 2. Run `wiki:review-preflight --json` for the exact base and metadata. `not-required` needs no report; `review-required` emits the exact bundle.
 3. Give a required bundle plus primary-source access to a context-isolated reviewer or context-free sub-agent. Disposition every returned finding locally — fix what this candidate broke or declared, track a pre-existing mismatch or undecidable intent in an open conflict, record a named follow-up for an out-of-scope defect — and rerun preflight until `pass`. Adoption is where this matters most: a first wiki PR touches everything, so treat "already tracked" as a normal outcome instead of trying to make the whole repository correct in one change.
-4. After local PASS, open a Draft and publish its JSON report in a GitHub PR review (preferred) or comment after this marker:
-
-   ```html
-   <!-- wiki-ssot:fresh-context-attestation -->
-   ```
-
-   Follow it with a fenced `json` or `yaml` report. The report's `reviewer` must match the authenticated GitHub actor. With `requireDifferentActor: false`, that publisher may be the PR author, but the report must still come from the separate review session. The author-editable PR body cannot substitute for this envelope.
-5. Mirror the required attested verdict, HEAD, bundle digest, reviewer, and evidence into the PR body's `fresh_context` block, then mark the Draft Ready. This author-editable mirror is checked against—but never substitutes for—the authenticated envelope. Drafts skip the expected attestation failure; the Ready-PR job succeeds only with either `required: false` or a current PASS. Deployment policy decides whether that job is required for merge.
+4. Run `wiki:check --base <ref> --metadata <file> [--report <file>] --output <result.json>` on the committed candidate. It executes the canonical deterministic gate and every configured `localChecks` argv.
+5. Open or update the PR, then run `wiki:publish -- --result <result.json> --pr <number>`. It rejects a stale local or remote SHA and publishes the configured commit status plus one diagnostic comment.
 
 ## 8. Maintain
 
-Every change follows `wiki/WORKFLOW.md`. A generic remaining-work request starts with no-query `wiki:work`; human-exclusive work is reported and handed off, while a selected recommended agent/either item proceeds through its printed `wiki:context -- --work <ID>` command. Topic-specific work still starts with search/context. From there: read sources → change code + page + tests together → regenerate → `wiki:impact --enforce` → prospective PR metadata → preflight bundle and independent reconciliation when required → PR publication. `NEEDS_RECONCILE` or a new commit stays local and requires a new bundle/report before the PR is opened or updated.
+Every change follows `wiki/WORKFLOW.md`. A generic remaining-work request starts with no-query `wiki:work`; human-exclusive work is reported and handed off, while a selected recommended agent/either item proceeds through its printed `wiki:context -- --work <ID>` command. Topic-specific work still starts with search/context. From there: read sources → change code + page + tests together → regenerate → prospective PR metadata → preflight bundle and independent reconciliation when required → exact local check → PR publication → exact commit status. `NEEDS_RECONCILE` or a new commit stays local and requires a new bundle, report, result, and status.
 
-For the bounded-navigation upgrade, run the normal `apply.ts --dry-run`, then `apply.ts`. A pristine installation receives the upgraded generator, system-file handling, tests, package scripts, and Wiki workflow mechanically. The next generation writes `wiki/catalog.md` and `.wiki/relationship-graph.json` and refreshes the bounded index/current-status. Apply does not rewrite project-owned current/proposal/conflict records, `.wiki/config.json`, `.wiki/coverage.json`, `.wiki/state.json`, `scripts/wiki/inventories.ts`, or a project changelog, and it never invents `related`, `affects`, or work dependencies. A locally customized kit-owned file is preserved with a `.kit-new` merge result; reconcile it, use the printed `--accept` path, and rerun until `ready`.
+For an existing version 1 installation, run `apply.ts --dry-run`, then `apply.ts`; neither command rewrites project-owned `.wiki/config.json` nor deletes an existing workflow. In one explicit migration PR, copy each actual host check argv from the old workflow into version 2 config and include the intended workflow deletion. The candidate's doctor and local gate must pass with no active legacy Wiki workflow. Publish that exact PR HEAD status, then replace branch protection before merging. A first upgrade PR whose base engine still requires the legacy PR-body mirror may include it once; the version 2 candidate ignores it, and subsequent PRs omit it.
 
 After upgrade, verify that `wiki:generated -- --check`, `wiki:lint`, `wiki:audit`, and `wiki:doctor` pass and commit the new generated catalog/graph with the upgraded toolkit. No record-conversion command is required: the catalog and graph are projections over the existing Wiki records, while Git remains the ordinary history of record.
 
