@@ -43,7 +43,7 @@
         "scripts/wiki/kit-modularity-exit.test.ts": "5656d10b2ae05819ce1a35d2621b9ddbd74f6fb3d2026037d18cb0f103ab3cf6",
         "scripts/wiki/kit-modularity-exit.ts": "cef57b3c828c9c283d52db032bf7871b99ce0de5b8cb51e61bf5b09f26738d9f",
         "scripts/wiki/kit-packaging-publisher.test.ts": "2b224d44d9320e273e8f40404aa09c7a55fc84ad34d411f4b6714445f09cfa7e",
-        "scripts/wiki/kit-packaging.test.ts": "6b7eac06e8e553becb6cf3fe5a3ae35f34c57eea697c538da7f31d6c36add5ee",
+        "scripts/wiki/kit-packaging.test.ts": "87d3677cd2ea3d921487c2b3aaf141c93c8ec141cb6050e9f9dca55cd5f0aacf",
         "scripts/wiki/kit-packaging.ts": "f12c791537fa2e4952604ce1f7a739a3793d2cf53d609e96e59f1e0ed6f985f0",
         "scripts/wiki/kit-sync.ts": "05d5d1d5187a4c470c47f52efe4483f5d05c27fc43f234f0ebfb071c8a57f9d9",
         "scripts/wiki/kit.test.ts": "9fd1d07b928c12c2a8ce98591691b683a51a3617136d614ba9aa4cff2b6d0a1f",
@@ -100,7 +100,7 @@
       },
       "verification": {
         "kind": "unchanged",
-        "reason": "The portable packaging regression test now matches the existing documented publisher/adopter test ownership without changing runtime or kit placement semantics."
+        "reason": "Branch-protection documentation assertions do not change Wiki engine behavior."
       }
     },
     "operations/enforcement": {

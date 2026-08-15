@@ -54,4 +54,22 @@ Generated catalog, cumulative status, relationship graph, and reverse maps are p
 - pre-commit: staged wiki structure/link/source/generated validation only.
 - pre-push: direct `main` push prevention.
 - local gate: one shared repository-validation result feeds lint/doctor/audit/legacy projections and the canonical structural/generated/inventory/state checks; impact/review, configured project argv checks, toolkit tests when owned files change, and publisher kit guards complete one exact result.
-- remote policy: branch protection requires the configured local commit-status context. Deployments may add other rules, but wiki-ssot assumes repository write/admin actors are trusted and does not make organization-security policy part of its product contract.
+- remote policy: branch protection requires the configured local commit-status context using the exact recipe below. Deployments may add other rules, but wiki-ssot assumes repository write/admin actors are trusted and does not make organization-security policy part of its product contract.
+
+### GitHub branch protection for local status
+
+To make the version 2 local result a real merge boundary, configure one active branch ruleset for the repository's default branch after the first exact PR-HEAD status has been published. In GitHub, open **Settings → Rules → Rulesets** and use this baseline:
+
+| Setting | Required value | Why |
+|---|---|---|
+| Enforcement status | `Active` | A disabled ruleset does not protect the branch. |
+| Target branches | The repository's default branch, normally `main` | The merge destination must be covered. |
+| Require a pull request before merging | Enabled | `wiki:publish` binds its result to a PR head, and direct updates must not bypass that PR boundary. |
+| Require status checks to pass before merging | Enabled | This turns the published local result into a merge requirement. |
+| Required status check | The exact `.wiki/config.json` `enforcement.statusContext`; default `wiki-ssot/local` | The configured context, not an old Actions job name, is the protected result. |
+| Status source | `any source` | `wiki:publish` posts through the authenticated maintainer's `gh` session, not a GitHub App. |
+| Require branches to be up to date before merging | Enabled (strict) | Advancing the base requires a new exact result instead of merging evidence produced against an older base. |
+
+Cut over in this order: run the exact local gate, open or update the PR, publish its status, confirm the status is visible, add the requirement above, and only then remove obsolete Wiki Actions checks from the rule. Do not add a Wiki GitHub Actions workflow as a required check; version 2 runs those checks locally. Every new PR commit, rebase, or advanced base requires a new local result and publication.
+
+Approval counts, review-thread resolution, CODEOWNERS, required workflows unrelated to Wiki SSOT, bypass actors, deletion protection, and force-push/non-fast-forward protection are separate deployment choices. An empty bypass list and deletion/force-push protection make the repository boundary harder to circumvent, but Wiki SSOT does not configure or audit them. If a bypass actor is configured, that actor can bypass the local-status merge requirement. See GitHub's [ruleset rule reference](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets) and [commit-status documentation](https://docs.github.com/en/rest/commits/statuses).

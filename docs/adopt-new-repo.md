@@ -84,7 +84,7 @@ bun run wiki:check -- --base origin/main --metadata /tmp/pr-body.md --report /tm
 bun run wiki:publish -- --result /tmp/wiki-result.json --pr <number>
 ```
 
-The new kit installs no active GitHub Actions workflow. GitHub only displays the `wiki-ssot/local` commit status and the marked diagnostic comment; require that status in branch protection if it should block merges. Each new PR HEAD needs a new exact local result.
+The new kit installs no active GitHub Actions workflow. GitHub only displays the configured local commit status and the marked diagnostic comment. After publishing the first exact PR-HEAD status, configure the default branch to require a pull request, the exact `.wiki/config.json` `enforcement.statusContext` status from `any source`, and strict/up-to-date branches. Follow the portable [branch-protection recipe](../wiki/WORKFLOW.md#github-branch-protection-for-local-status). Each new PR HEAD or advanced base needs a new exact local result; do not add a Wiki Actions job as a required check.
 
 wiki-ssot assumes repository write/admin actors are trusted. A deployment may add branch protection, required workflows, CODEOWNERS, or administrator-bypass restrictions, but organization-security policy is outside the toolkit's product contract and is not configured or audited by these files.
 
