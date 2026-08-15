@@ -3,6 +3,7 @@ import type { WorkQueueItem, WorkExecutorFilter } from "./discovery";
 import type {
   CompactContextConflict,
   CompactContextPage,
+  ContextCatalogSummary,
   CompactSelectedWorkContext,
   CompactTopicContext,
   SelectedWorkContext,
@@ -14,8 +15,8 @@ import type {
 export function sourceText(sources: WikiSource[]): string {
   if (sources.length === 0) return "- none";
   return sources.map((source) => "path" in source
-    ? `- path: ${source.path}${source.symbols?.length ? ` (symbols: ${source.symbols.join(", ")})` : ""}`
-    : `- glob: ${source.glob}`).join("\n");
+    ? `- path: ${source.path}${source.symbols?.length ? ` (symbols: ${source.symbols.join(", ")})` : ""}${source.context === "catalog" ? " [catalog]" : ""}${source.reason ? ` — ${source.reason}` : ""}`
+    : `- glob: ${source.glob}${source.context === "catalog" ? " [catalog]" : ""}${source.reason ? ` — ${source.reason}` : ""}`).join("\n");
 }
 
 export function workText(item: WorkQueueItem): string {
@@ -66,11 +67,24 @@ export function exactSourceText(sources: SelectedWorkContextPage["exactSources"]
   return sources.map((source) => `- ${source.path}${source.symbols?.length ? ` (symbols: ${source.symbols.join(", ")})` : ""}`).join("\n");
 }
 
-export function sourceGlobText(sources: SelectedWorkContextPage["sourceGlobs"]): string {
+export function sourceGlobText(sources: Array<{ glob: string; matchedFiles?: string[]; context?: "always" | "catalog"; reason?: string }>): string {
   if (sources.length === 0) return "- none";
   return sources.map((source) => [
-    `- ${source.glob}`,
-    ...(source.matchedFiles.length > 0 ? source.matchedFiles.map((path) => `  - ${path}`) : ["  - no matches"]),
+    `- ${source.glob}${source.context === "catalog" ? " [catalog]" : ""}`,
+    ...(source.matchedFiles == null
+      ? ["  - catalog paths omitted in compact mode"]
+      : source.matchedFiles.length > 0 ? source.matchedFiles.map((path) => `  - ${path}`) : ["  - no matches"]),
+  ].join("\n")).join("\n");
+}
+
+export function catalogSourceText(sources: ContextCatalogSummary[] | undefined): string {
+  if (!sources || sources.length === 0) return "- none";
+  return sources.map((source) => [
+    `- ${"path" in source.declaration ? source.declaration.path : source.declaration.glob}`,
+    `  count: ${source.count}; bytes: ${source.bytes}; digest: ${source.digest}`,
+    `  declared by: ${source.declaredBy.join(", ")}`,
+    `  expand: ${source.expandCommand}`,
+    ...(source.declaration.reason ? [`  reason: ${source.declaration.reason}`] : []),
   ].join("\n")).join("\n");
 }
 
@@ -92,7 +106,10 @@ export function contextSourceText(page: SelectedWorkContextPage | SelectedWorkCo
     "Source globs and deterministic matches:",
     sourceGlobText(page.sourceGlobs),
     "",
-    "Expanded source files:",
+    "Catalog source sets:",
+    catalogSourceText(page.catalogSources),
+    "",
+    `${"bodyDigest" in page ? "Mandatory source files" : "Expanded source files"}:`,
     stringListText(page.sourceFiles),
   ];
 }

@@ -135,15 +135,17 @@ function summaryLine(result: LocalCheckResult): string {
     ["impact", !result.checks.impact.findings.some((item) => item.severity === "error")],
     ["review", result.checks.review.ok],
     ["tooling", result.checks.tooling.ok],
+    ["scope", result.checks.scope.ok],
   ] as const;
   return checks.map(([name, ok]) => `${name}=${ok ? "pass" : "fail"}`).join(", ");
 }
 
 function markerBody(result: LocalCheckResult): string {
-  const scope = result.checks.impact;
+  const impact = result.checks.impact;
+  const scope = result.checks.scope;
   const review = result.checks.review;
-  const pages = scope.affected_pages.length > 0 ? scope.affected_pages.join(", ") : "none";
-  const conflicts = scope.affected_conflicts.length > 0 ? scope.affected_conflicts.join(", ") : "none";
+  const pages = impact.affected_pages.length > 0 ? impact.affected_pages.join(", ") : "none";
+  const conflicts = impact.affected_conflicts.length > 0 ? impact.affected_conflicts.join(", ") : "none";
   const reasons = review.requirement_reasons.length > 0 ? review.requirement_reasons.join("; ") : "none";
   return [
     LOCAL_STATUS_MARKER,
@@ -152,7 +154,8 @@ function markerBody(result: LocalCheckResult): string {
     `- SHA: \`${result.head_sha}\``,
     `- Checks: ${summaryLine(result)}`,
     `- Warnings: ${result.warnings.length}`,
-    `- Scope: ${scope.changed_files.length} changed file(s); pages=${pages}; conflicts=${conflicts}`,
+    `- Impact: ${impact.changed_files.length} changed file(s); pages=${pages}; conflicts=${conflicts}`,
+    `- Scope: base=${scope.base}; mandatoryΔ=${scope.base_delta.mandatory_count_delta}; catalogΔ=${scope.base_delta.catalog_count_delta} files/${scope.base_delta.catalog_bytes_delta} bytes; potential=${scope.potential_review.selected_file_count}/${scope.potential_review.tracked_file_count} (${scope.potential_review.selected_ratio})`,
     `- Review: ${review.status}; reasons=${reasons}`,
     `- Result digest: \`${result.result_digest}\``,
     "",

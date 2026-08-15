@@ -180,7 +180,18 @@ describe("PV-16 recursive publisher boundary", () => {
     const architecture = pages.find((item) => item.data.id === "architecture/engine");
     if (!architecture) throw new Error("missing architecture/engine");
 
-    expect(architecture.data.sources).toContainEqual({ glob: "scripts/wiki/**/*.ts" });
+    const recursive = architecture.data.sources.find((source) => "glob" in source && source.glob === "scripts/wiki/**/*.ts");
+    expect(recursive).toMatchObject({ glob: "scripts/wiki/**/*.ts", context: "catalog" });
+    expect("reason" in (recursive ?? {}) && typeof recursive.reason === "string" && recursive.reason.trim().length).toBeGreaterThanOrEqual(20);
+    expect(architecture.data.sources
+      .filter((source) => source.context === "always")
+      .map((source) => ("path" in source ? source.path : source.glob)))
+      .toEqual(expect.arrayContaining([
+        "scripts/wiki/model.ts",
+        "scripts/wiki/core.ts",
+        "scripts/wiki/cli.ts",
+        "scripts/wiki/tsconfig.json",
+      ]));
     const coverage = JSON.parse(readFileSync(".wiki/coverage.json", "utf8")) as { include: string[] };
     expect(coverage.include).toContain("scripts/wiki/**/*.ts");
 

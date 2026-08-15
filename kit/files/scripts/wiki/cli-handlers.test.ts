@@ -37,6 +37,29 @@ describe("direct CLI handler dispatch", () => {
     expect(JSON.parse(output.stdout.join(""))).toMatchObject({ query: "KM-05" });
   });
 
+  test("dispatches scope after the existing commands without a positional query", async () => {
+    if (isGeneratedKitMirror) return;
+    const { runCli } = await import("./cli");
+    const root = mkdtempSync(join(tmpdir(), "wiki-cli-scope-"));
+    temporary.push(root);
+    mkdirSync(join(root, ".wiki"), { recursive: true });
+    writeFileSync(join(root, ".wiki/config.json"), JSON.stringify({
+      version: 2,
+      name: "scope-cli",
+      publishesKit: false,
+      enforcement: { mode: "local-status", statusContext: "wiki-ssot/local" },
+      localChecks: [{ id: "project-test", argv: ["bun", "run", "test"] }],
+      review: { mode: "required", when: { kind: "risk-based", changedFileRules: [{ glob: ".wiki/config.json", reason: "The local enforcement policy itself needs focused review." }], changedKitOwnedFiles: false, affectedInvariants: false, affectedConflicts: false, removedCurrentPages: false } },
+    }, null, 2));
+    expect(Bun.spawnSync(["git", "init", "-q"], { cwd: root, stdout: "pipe", stderr: "pipe" }).exitCode).toBe(0);
+    expect(Bun.spawnSync(["git", "add", "."], { cwd: root, stdout: "pipe", stderr: "pipe" }).exitCode).toBe(0);
+    expect(Bun.spawnSync(["git", "-c", "user.name=Wiki Test", "-c", "user.email=wiki@example.invalid", "commit", "-qm", "scope"], { cwd: root, stdout: "pipe", stderr: "pipe" }).exitCode).toBe(0);
+    const output = capture();
+    expect(runCli(["scope", "--base", "HEAD", "--json", "--root", root], { cwd: process.cwd(), io: output.io })).toBe(0);
+    expect(JSON.parse(output.stdout.join(""))).toMatchObject({ version: 1, head: expect.any(String), potential_review: expect.any(Object) });
+    expect(output.stderr).toEqual([]);
+  });
+
   test("returns usage errors without spawning a CLI process", async () => {
     if (isGeneratedKitMirror) return;
     const { runCli } = await import("./cli");

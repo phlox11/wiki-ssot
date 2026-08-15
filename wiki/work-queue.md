@@ -15,9 +15,9 @@ tags: [generated, work, queue]
 
 This is a deterministic view of structured `work_items` on proposal pages. It is not current product authority; open the owning proposal and then the returned current context.
 
-**Recommended next:** `LS-02` — run `bun run wiki:context -- --work LS-02`.
+**Recommended next:** `LS-03` — run `bun run wiki:context -- --work LS-03`.
 
-Outstanding work: 15. Completed work hidden: 38; run `bun run wiki:work -- --all` to inspect it.
+Outstanding work: 14. Completed work hidden: 39; run `bun run wiki:work -- --all` to inspect it.
 
 ## Active
 
@@ -29,13 +29,12 @@ Outstanding work: 15. Completed work hidden: 38; run `bun run wiki:work -- --all
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| LS-02 | high | agent | [proposal/local-enforcement-scope-control](./proposals/local-enforcement-scope-control.md) | LS-01 | Bound source context and independent-review selection with auditable causes | `bun run wiki:context -- --work LS-02` |
+| LS-03 | high | agent | [proposal/local-enforcement-scope-control](./proposals/local-enforcement-scope-control.md) | LS-02 | Remove validation, agent-rule, context, work-output, and publication choreography duplication | `bun run wiki:context -- --work LS-03` |
 
 ## Waiting
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| LS-03 | high | agent | [proposal/local-enforcement-scope-control](./proposals/local-enforcement-scope-control.md) | LS-02 | Remove validation, agent-rule, context, work-output, and publication choreography duplication — Waiting on: LS-02 | `bun run wiki:context -- --work LS-03` |
 | LS-04 | high | either | [proposal/local-enforcement-scope-control](./proposals/local-enforcement-scope-control.md) | LS-03 | Validate safe version 1 upgrades and migrate known adopters sequentially — Waiting on: LS-03 | `bun run wiki:context -- --work LS-04` |
 
 ## Blocked

@@ -19,6 +19,8 @@ import type { Finding, WikiPage } from "./model";
 import { git, type RepoView } from "./repository-view";
 import { hashContent, jsonStable } from "./serialization";
 import { UsageError } from "./verification";
+import type { ScopeReport, ScopePotentialReview } from "./scope";
+import { scopeReport } from "./scope";
 
 /** The on-disk contract written by the canonical local Wiki gate. */
 export const LOCAL_CHECK_RESULT_VERSION = 1 as const;
@@ -83,6 +85,19 @@ export type LocalToolingSummary = {
   ok: boolean;
 };
 
+export type LocalScopeSummary = {
+  ok: boolean;
+  base: string;
+  merge_base: string;
+  changed_files: string[];
+  page_count: number;
+  glob_count: number;
+  causal_path_count: number;
+  potential_review: ScopePotentialReview;
+  base_delta: ScopeReport["base_delta"];
+  findings: Finding[];
+};
+
 export type LocalCheckResult = {
   version: typeof LOCAL_CHECK_RESULT_VERSION;
   status: LocalCheckStatus;
@@ -98,6 +113,8 @@ export type LocalCheckResult = {
     impact: LocalImpactSummary;
     review: LocalReviewSummary;
     tooling: LocalToolingSummary;
+    /** Canonical scope projection is required so the declaration gate cannot be bypassed. */
+    scope: LocalScopeSummary;
   };
   findings: Finding[];
   warnings: Finding[];
@@ -198,6 +215,21 @@ function digestTooling(tooling: LocalToolingSummary): unknown {
   };
 }
 
+function digestScope(scope: LocalScopeSummary): unknown {
+  return {
+    ok: scope.ok,
+    base: scope.base,
+    merge_base: scope.merge_base,
+    changed_files: [...scope.changed_files].sort((a, b) => a.localeCompare(b)),
+    page_count: scope.page_count,
+    glob_count: scope.glob_count,
+    causal_path_count: scope.causal_path_count,
+    potential_review: scope.potential_review,
+    base_delta: scope.base_delta,
+    findings: digestFindings(scope.findings),
+  };
+}
+
 /** Return the exact canonical object that is hashed into result_digest. */
 export function localCheckDigestInput(result: Omit<LocalCheckResult, "result_digest">): unknown {
   return {
@@ -221,6 +253,7 @@ export function localCheckDigestInput(result: Omit<LocalCheckResult, "result_dig
       impact: digestImpact(result.checks.impact),
       review: digestReview(result.checks.review),
       tooling: digestTooling(result.checks.tooling),
+      scope: digestScope(result.checks.scope),
     },
     findings: digestFindings(result.findings),
     warnings: digestFindings(result.warnings),
@@ -324,6 +357,23 @@ function resultShapeFindings(value: unknown): Finding[] {
           push("local-result-tooling-command-malformed", `checks.tooling.commands[${index}] has an invalid argv/outcome binding`);
         }
       });
+    }
+    if (checkValue.scope == null) push("local-result-scope", "checks.scope is required for canonical local results");
+    else {
+      if (typeof checkValue.scope !== "object" || Array.isArray(checkValue.scope)) push("local-result-checks", "checks.scope must be a mapping");
+      else {
+        const scope = checkValue.scope as Record<string, unknown>;
+        if (typeof scope.ok !== "boolean" || typeof scope.base !== "string" || typeof scope.merge_base !== "string") push("local-result-scope", "checks.scope requires ok, base, and merge_base");
+        for (const field of ["changed_files"] as const) if (!Array.isArray(scope[field]) || !(scope[field] as unknown[]).every((item) => typeof item === "string")) push("local-result-scope", `checks.scope.${field} must be a string array`);
+        for (const field of ["page_count", "glob_count", "causal_path_count"] as const) if (typeof scope[field] !== "number" || !Number.isInteger(scope[field]) || scope[field] < 0) push("local-result-scope", `checks.scope.${field} must be a non-negative integer`);
+        if (scope.potential_review == null || typeof scope.potential_review !== "object" || Array.isArray(scope.potential_review)) push("local-result-scope", "checks.scope.potential_review must be a mapping");
+        else {
+          const potential = scope.potential_review as Record<string, unknown>;
+          if (typeof potential.tracked_file_count !== "number" || typeof potential.selected_file_count !== "number" || typeof potential.selected_ratio !== "number" || typeof potential.selected_digest !== "string") push("local-result-scope", "checks.scope.potential_review has an invalid aggregate");
+        }
+        if (scope.base_delta == null || typeof scope.base_delta !== "object" || Array.isArray(scope.base_delta)) push("local-result-scope", "checks.scope.base_delta must be a mapping");
+        findingArray(scope.findings, "checks.scope.findings");
+      }
     }
   }
   findingArray(result.findings, "findings");
@@ -524,6 +574,21 @@ function asImpactSummary(report: ImpactReport, view: RepoView, pages: WikiPage[]
   };
 }
 
+function asScopeSummary(report: ScopeReport): LocalScopeSummary {
+  return {
+    ok: !report.findings.some((item) => item.severity === "error"),
+    base: report.base,
+    merge_base: report.merge_base,
+    changed_files: [...report.changed_files].sort((a, b) => a.localeCompare(b)),
+    page_count: report.pages.length,
+    glob_count: report.glob_breadth.length,
+    causal_path_count: report.causal_paths.length,
+    potential_review: report.potential_review,
+    base_delta: report.base_delta,
+    findings: [...report.findings],
+  };
+}
+
 function reviewStatus(result: ReviewCheckResult, reportRaw: string | undefined): LocalReviewStatus {
   if (!result.required) return "not-required";
   if (reportRaw == null) return "review-required";
@@ -619,6 +684,24 @@ export function runLocalCheck(options: LocalCheckOptions): LocalCheckResult {
     options.argvRunner ?? defaultLocalArgvRunner,
   );
 
+  let scope: LocalScopeSummary;
+  try {
+    scope = asScopeSummary(scopeReport(options.view, structuralPages, { base: baseRef }));
+  } catch (error) {
+    scope = {
+      ok: false,
+      base: baseRef,
+      merge_base: mergeBaseSha,
+      changed_files: impact.changed_files,
+      page_count: structuralPages.length,
+      glob_count: 0,
+      causal_path_count: 0,
+      potential_review: { tracked_file_count: options.view.listFiles().length, selected_file_count: 0, selected_ratio: 0, selected_digest: hashContent("[]") },
+      base_delta: { added_pages: [], removed_pages: [], changed_declarations: [], mandatory_count_delta: 0, catalog_count_delta: 0, catalog_bytes_delta: 0 },
+      findings: [finding("local-check-scope-error", error instanceof Error ? error.message : String(error), "error")],
+    };
+  }
+
   let stateFindings: Finding[] = [];
   try {
     stateFindings = validateState(options.view, structuralPages).findings;
@@ -652,7 +735,7 @@ export function runLocalCheck(options: LocalCheckOptions): LocalCheckResult {
 
   const stateSummary: LocalCheckSummary = { ok: okFindings(stateFindings), findings: stateFindings };
   const structuralSummary: LocalCheckSummary = { ok: okFindings(structuralFindings), findings: structuralFindings };
-  const allFindings = [...dirtyFindings, ...structuralFindings, ...stateFindings, ...impactFindings, ...review.findings, ...tooling.findings];
+  const allFindings = [...dirtyFindings, ...structuralFindings, ...stateFindings, ...impactFindings, ...scope.findings, ...review.findings, ...tooling.findings];
   const warnings = allFindings.filter((item) => item.severity === "warning");
   const ok = !allFindings.some((item) => item.severity === "error") && review.ok;
   const core: Omit<LocalCheckResult, "result_digest"> = {
@@ -670,6 +753,7 @@ export function runLocalCheck(options: LocalCheckOptions): LocalCheckResult {
       impact: { ...impact, findings: impactFindings },
       review,
       tooling,
+      scope,
     },
     findings: allFindings,
     warnings,

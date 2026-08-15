@@ -35,69 +35,26 @@
       "product/scope"
     ],
     "scripts/wiki/apply.ts": [
-      "operations/enforcement",
-      "product/invariants"
-    ],
-    "scripts/wiki/cli-discovery-handlers.ts": [
-      "operations/enforcement",
-      "product/invariants"
-    ],
-    "scripts/wiki/cli-generation-handlers.ts": [
-      "operations/enforcement",
-      "product/invariants"
-    ],
-    "scripts/wiki/cli-render.ts": [
-      "operations/enforcement",
-      "product/invariants"
-    ],
-    "scripts/wiki/cli-review-handlers.ts": [
-      "operations/enforcement",
-      "product/invariants"
-    ],
-    "scripts/wiki/cli-runtime.ts": [
-      "operations/enforcement",
-      "product/invariants"
+      "operations/enforcement"
     ],
     "scripts/wiki/cli-validation-handlers.ts": [
-      "operations/enforcement",
-      "product/invariants"
+      "operations/enforcement"
     ],
     "scripts/wiki/cli.ts": [
-      "operations/enforcement",
-      "product/invariants"
+      "architecture/engine",
+      "operations/enforcement"
     ],
     "scripts/wiki/context.ts": [
-      "operations/enforcement",
       "product/invariants"
     ],
     "scripts/wiki/core.ts": [
-      "operations/enforcement",
+      "architecture/engine",
       "product/invariants"
-    ],
-    "scripts/wiki/discovery.ts": [
-      "operations/enforcement",
-      "product/invariants"
-    ],
-    "scripts/wiki/generated-views.ts": [
-      "operations/enforcement",
-      "product/invariants"
-    ],
-    "scripts/wiki/github-attestation.ts": [
-      "operations/enforcement"
     ],
     "scripts/wiki/github-local-status.ts": [
-      "operations/enforcement",
-      "product/invariants"
+      "operations/enforcement"
     ],
     "scripts/wiki/impact.ts": [
-      "operations/enforcement",
-      "product/invariants"
-    ],
-    "scripts/wiki/kit-growth-guard.ts": [
-      "operations/enforcement",
-      "product/invariants"
-    ],
-    "scripts/wiki/kit-packaging.ts": [
       "operations/enforcement",
       "product/invariants"
     ],
@@ -106,26 +63,10 @@
       "product/invariants"
     ],
     "scripts/wiki/model.ts": [
-      "operations/enforcement",
-      "product/invariants"
-    ],
-    "scripts/wiki/page-validation.ts": [
-      "operations/enforcement",
-      "product/invariants"
-    ],
-    "scripts/wiki/repository-view.ts": [
-      "operations/enforcement",
+      "architecture/engine",
       "product/invariants"
     ],
     "scripts/wiki/review-attestation.ts": [
-      "operations/enforcement",
-      "product/invariants"
-    ],
-    "scripts/wiki/review-bundle.ts": [
-      "operations/enforcement",
-      "product/invariants"
-    ],
-    "scripts/wiki/serialization.ts": [
       "operations/enforcement",
       "product/invariants"
     ],
@@ -133,15 +74,22 @@
       "architecture/engine"
     ],
     "scripts/wiki/verification.ts": [
-      "operations/enforcement",
-      "product/invariants"
-    ],
-    "scripts/wiki/work-validation.ts": [
-      "operations/enforcement",
-      "product/invariants"
+      "operations/enforcement"
     ]
   },
   "globs": [
+    {
+      "glob": "scripts/wiki/{core,model,serialization,repository-view,page-validation,work-validation,discovery,context,scope,generated-views,kit-packaging,kit-growth-guard,review-bundle,cli-runtime,cli-render,cli-scope-handler,cli-discovery-handlers,cli-generation-handlers,cli-review-handlers,github-attestation}.ts",
+      "pages": [
+        "operations/enforcement"
+      ]
+    },
+    {
+      "glob": "scripts/wiki/{serialization,repository-view,page-validation,work-validation,discovery,scope,generated-views,kit-packaging,kit-growth-guard,verification,review-bundle,github-local-status,cli-runtime,cli-render,cli-scope-handler,cli-discovery-handlers,cli-generation-handlers,cli-validation-handlers,cli-review-handlers,cli,apply}.ts",
+      "pages": [
+        "product/invariants"
+      ]
+    },
     {
       "glob": "scripts/wiki/**/*.ts",
       "pages": [

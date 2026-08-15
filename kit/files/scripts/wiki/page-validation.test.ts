@@ -65,4 +65,16 @@ describe("page validation foundation", () => {
     }));
     expect(loaded.pages.map((item) => item.path)).toEqual(["wiki/product/test.md"]);
   });
+
+  test("accepts legacy sources, validates catalog reasons, and requires a current always anchor", () => {
+    const view = memoryView({ "source.ts": "export const value = 1;\n", "src/a.ts": "export const a = 1;\n" });
+    const legacy = parseWikiPage("wiki/product/legacy.md", page("product/legacy"));
+    expect(validatePages(view, [legacy])).toEqual([]);
+    const shortCatalog = parseWikiPage("wiki/product/catalog.md", page("product/catalog"));
+    shortCatalog.data.sources = [{ glob: "src/*.ts", context: "catalog", reason: "too short" }];
+    expect(validatePages(view, [shortCatalog]).map((item) => item.code)).toContain("frontmatter-sources");
+    const catalogOnly = parseWikiPage("wiki/product/catalog-only.md", page("product/catalog-only"));
+    catalogOnly.data.sources = [{ glob: "src/*.ts", context: "catalog", reason: "The implementation is expanded on focused requests." }];
+    expect(validatePages(view, [catalogOnly]).map((item) => item.code)).toContain("current-catalog-without-anchor");
+  });
 });

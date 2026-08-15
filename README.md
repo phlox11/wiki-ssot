@@ -14,7 +14,7 @@ It is derived from Andrej Karpathy's [LLM wiki](https://gist.github.com/karpathy
 ## The idea in one screen
 
 - **`wiki/**` pages with `status: current` are the SSOT** for intent, architecture, contracts, invariants, and operations. Code and tests are *implementation evidence*.
-- Each page's frontmatter lists its **`sources`** (real paths / globs). The engine builds a reverse index and **hashes those sources**. When a source changes, its page goes *stale* and must be updated or explicitly verified — in the same PR.
+- Each page's frontmatter lists its **`sources`** (real paths / globs). `context: always` makes an anchor a mandatory compact read; a reasoned `context: catalog` keeps a broad set fully mapped, covered, hashed, drift-checked, and impact-visible while representing it compactly by digest/count/bytes. When any tracked source changes, its page goes *stale* and must be updated or explicitly verified — in the same PR.
 - A **configured coverage** gate ensures every file matched by `.wiki/coverage.json` maps to a current page or a reasoned exclusion, so the repository can make its declared code boundary findable without pretending to cover files outside that boundary.
 - When intent is unclear or code and wiki disagree, you open a **conflict** — a first-class, machine-tracked record with acceptance criteria — instead of guessing.
 - Proposal frontmatter carries a validated, repository-wide **work queue**. An optional `executor: agent | human | either` classifies who can perform a task independently from its lifecycle state; omission remains backward-compatible `agent`. A fresh session can run `wiki:work` with no topic, node, or task ID, see human work without auto-selecting it, then load a selected item's current invariants, context pages, conflicts, sources, and non-current proposal owner through a compact default projection. Stable digests and focused commands route to detail, while `wiki:context -- --full` retains exhaustive body inspection.
@@ -94,6 +94,7 @@ bun run wiki:work        # repository-wide outstanding work, no query or ID requ
 bun run wiki:work -- --executor human  # human/either work to report and hand off
 bun run wiki:context -- "enforcement"   # compact authority/source routing before a change
 bun run wiki:context -- "enforcement" --full  # exhaustive page bodies when needed
+bun run wiki:scope -- --base origin/main # audit source/read/review breadth and its causes
 ```
 
 ## Local result and status
@@ -116,7 +117,7 @@ Version 2 configuration also runs every project-owned `localChecks` argv array.
 Toolkit-owned changes select the Wiki tooling typecheck and complete tooling
 suite, and publisher changes additionally run kit freshness and growth guards.
 The result binds the exact committed HEAD, resolved base and merge-base,
-canonical metadata digest, check/review summaries and findings, and a
+canonical metadata digest, structural/state/scope/impact/review summaries and findings, and a
 deterministic result digest. The check rejects other dirty or untracked files;
 the explicitly supplied metadata, report, and result paths are allowed. The
 publisher revalidates the schema and digest, requires the same clean local
@@ -128,6 +129,16 @@ treated as success. The PR template carries only semantic metadata; review
 evidence stays in the exact report rather than being mirrored into editable PR
 text. No Draft-to-Ready choreography, daemon, GitHub App, hosted service, or
 active Wiki Actions workflow is introduced.
+
+Existing installations upgrade without a ground-up rewrite. The kit updates
+owned engine files and package commands, but does not rewrite project-owned
+Wiki pages/configuration or delete an existing workflow. Declarations without
+`context` remain `always`. In one repository-owned migration PR, copy the
+actual old workflow commands into `localChecks`, run `wiki:scope` to classify
+only reviewed broad declarations, delete the workflow explicitly, publish the
+exact PR HEAD status, and only then replace the branch requirement. The full
+sequence and rollback-safe ownership rules are in the [existing-repository
+playbook](docs/adopt-existing-repo.md) and [kit upgrade contract](kit/README.md).
 
 ## What's in the box
 

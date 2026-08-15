@@ -168,6 +168,18 @@ function syntheticResult(head: string, ok = true): LocalCheckResult {
         affected_invariants: [], affected_conflicts: [],
       },
       tooling: { selected: false, changed_files: [], commands: [], findings: [], ok: true },
+      scope: {
+        ok: true,
+        base: "HEAD",
+        merge_base: head,
+        changed_files: [],
+        page_count: 0,
+        glob_count: 0,
+        causal_path_count: 0,
+        potential_review: { tracked_file_count: 0, selected_file_count: 0, selected_ratio: 0, selected_digest: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" },
+        base_delta: { added_pages: [], removed_pages: [], changed_declarations: [], mandatory_count_delta: 0, catalog_count_delta: 0, catalog_bytes_delta: 0 },
+        findings: [],
+      },
     },
     findings: [], warnings: [],
   };

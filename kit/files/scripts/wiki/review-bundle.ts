@@ -105,8 +105,17 @@ function focusedSourcePath(path: string): boolean {
 
 function canonicalSourceDeclaration(source: WikiSource): WikiSource {
   return "path" in source
-    ? { path: source.path, ...(source.symbols ? { symbols: [...source.symbols].sort((a, b) => a.localeCompare(b)) } : {}) }
-    : { glob: source.glob };
+    ? {
+      path: source.path,
+      ...(source.symbols ? { symbols: [...source.symbols].sort((a, b) => a.localeCompare(b)) } : {}),
+      ...(source.context ? { context: source.context } : {}),
+      ...(source.reason ? { reason: source.reason } : {}),
+    }
+    : {
+      glob: source.glob,
+      ...(source.context ? { context: source.context } : {}),
+      ...(source.reason ? { reason: source.reason } : {}),
+    };
 }
 
 function pageAtRevision(root: string, revision: string, path: string): WikiPage | undefined {

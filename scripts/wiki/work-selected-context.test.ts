@@ -191,7 +191,7 @@ describe("work queue and selected context", () => {
     const artifact = JSON.parse(rendered);
     const artifactDigest = artifact.artifact_digest;
     expect(artifact).toMatchObject({
-      version: 1,
+      version: 2,
       selector: { kind: "work", id: "WK-01" },
       repository: {
         base_ref: "HEAD",
@@ -216,6 +216,7 @@ describe("work queue and selected context", () => {
           expect.objectContaining({ path: "src/a.ts", digest: expect.stringMatching(/^[0-9a-f]{64}$/) }),
           expect.objectContaining({ path: "src/z.ts", digest: expect.stringMatching(/^[0-9a-f]{64}$/) }),
         ]),
+        catalog_sets: [],
       },
       artifact_digest: expect.stringMatching(/^[0-9a-f]{64}$/),
     });

@@ -54,6 +54,7 @@ sources:
 # Contracts
 `;
   put(root, source, "export const version = 1;\n");
+  put(root, "src/unchanged.ts", "export const unchanged = true;\n");
   put(root, page, pageBody);
   put(root, ".wiki/config.json", jsonStable({ version: 1, name: "bundle", highRisk: ["src/**"], publishesKit: false }));
   put(root, ".wiki/state.json", jsonStable({ version: 1, pages: { "architecture/contracts": { sources: { [source]: hashContent("export const version = 1;\n") }, verification: { kind: "updated" } } } }));
@@ -185,5 +186,36 @@ describe("review-bundle boundaries", () => {
       expect.objectContaining({ page_id: "product/invariants", matched_via: "glob", declaration: { glob: "src/*.ts" } }),
     ]));
     expect(() => buildReviewManifest(view, pages, report, prMetadata)).not.toThrow();
+  });
+
+  test("retains source context/reason in focused declarations and binds declaration-only drift", () => {
+    const root = fixture();
+    const page = join(root, "wiki/architecture/contracts.md");
+    writeFileSync(page, readFileSync(page, "utf8").replace("  - path: src/contract.ts", "  - path: src/contract.ts\n  - glob: src/*.ts\n    context: catalog\n    reason: Catalog expansion is reserved for focused review requests."));
+    writeFileSync(join(root, "src/contract.ts"), "export const version = 3;\n");
+    run(root, ["git", "add", page, "src/contract.ts"]);
+    run(root, ["git", "commit", "-qm", "declare catalog context"]);
+    const view = createRepoView(root);
+    const pages = loadWikiPages(view).pages;
+    const firstReport = impactReport(view, pages, { base: "HEAD~1", metadata: metadata() });
+    const first = buildFocusedReviewManifest(view, pages, firstReport, metadata());
+    const catalog = first.source_declarations.find((item) => "glob" in item.declaration && item.declaration.glob === "src/*.ts");
+    expect(catalog?.declaration).toMatchObject({ context: "catalog", reason: "Catalog expansion is reserved for focused review requests." });
+    expect(first.source_roles.map((item) => item.path)).not.toContain("src/unchanged.ts");
+    const firstDigest = hashContent(jsonStable(first));
+    writeFileSync(page, readFileSync(page, "utf8").replace("reserved for focused review requests", "reserved for independently focused review requests"));
+    run(root, ["git", "add", page]);
+    run(root, ["git", "commit", "-qm", "change catalog reason"]);
+    const changedView = createRepoView(root);
+    const changedPages = loadWikiPages(changedView).pages;
+    const changedReport = impactReport(changedView, changedPages, { base: "HEAD~1", metadata: metadata() });
+    const changed = buildFocusedReviewManifest(changedView, changedPages, changedReport, metadata());
+    expect(hashContent(jsonStable(changed))).not.toBe(firstDigest);
+    const output = join(root, "bundle-reason-only");
+    makeReviewBundle(changedView, changedPages, changedReport, output, metadata());
+    const focused = JSON.parse(readFileSync(join(output, "focused-manifest.json"), "utf8")) as FocusedReviewManifest;
+    const affected = focused.body_roles.find((role) => role.role === "affected_page" && role.lifecycle === "head");
+    expect(affected).toBeDefined();
+    expect(readFileSync(join(output, `objects/${affected!.digest}.md`), "utf8")).toContain("independently focused review requests");
   });
 });

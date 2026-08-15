@@ -1,7 +1,7 @@
 import { dirname, extname, join } from "node:path";
 import { parse as parseYaml } from "yaml";
 import ts from "typescript";
-import type { Finding, WikiAuthority, WikiFrontmatter, WikiPage, WikiSource, WikiStatus, ConflictOrigin, ConflictResolutionState, ConflictSeverity, ConflictType } from "./model";
+import type { Finding, WikiAuthority, WikiFrontmatter, WikiPage, WikiSource, WikiStatus, WikiSourceContext, ConflictOrigin, ConflictResolutionState, ConflictSeverity, ConflictType } from "./model";
 import { normalizeRepoPath, type RepoView } from "./repository-view";
 import { validateWorkItems } from "./work-validation";
 
@@ -54,10 +54,16 @@ function stringArray(value: unknown): value is string[] {
 function validateSource(source: unknown): source is WikiSource {
   if (source == null || typeof source !== "object" || Array.isArray(source)) return false;
   const item = source as Record<string, unknown>;
-  if (typeof item.path === "string" && item.path.length > 0) {
-    return item.symbols == null || stringArray(item.symbols);
-  }
-  return typeof item.glob === "string" && item.glob.length > 0;
+  const hasPath = typeof item.path === "string" && item.path.length > 0;
+  const hasGlob = typeof item.glob === "string" && item.glob.length > 0;
+  if (hasPath === hasGlob) return false;
+  if (item.context != null && item.context !== "always" && item.context !== "catalog") return false;
+  if (hasPath && item.symbols != null && !stringArray(item.symbols)) return false;
+  const context = (item.context as WikiSourceContext | undefined) ?? "always";
+  // `reason` is only meaningful for a catalog declaration.  Keep this strict
+  // so compact context never has to guess whether prose is stale metadata.
+  if (context === "catalog" && (typeof item.reason !== "string" || item.reason.trim().length < 20)) return false;
+  return true;
 }
 
 function pushFinding(findings: Finding[], path: string, code: string, message: string, severity: Finding["severity"] = "error") {
@@ -97,8 +103,12 @@ export function validatePages(view: RepoView, pages: WikiPage[]): Finding[] {
     if (!statuses.has(data.status as WikiStatus)) pushFinding(findings, page.path, "frontmatter-status", `invalid status: ${String(data.status)}`);
     if (!authorities.has(data.authority as WikiAuthority)) pushFinding(findings, page.path, "frontmatter-authority", `invalid authority: ${String(data.authority)}`);
     if (!stringArray(data.owners) || data.owners.length === 0) pushFinding(findings, page.path, "frontmatter-owners", "owners must be a non-empty string array");
-    if (!Array.isArray(data.sources) || !data.sources.every(validateSource)) pushFinding(findings, page.path, "frontmatter-sources", "sources must contain {path, symbols?} or {glob} entries");
+    if (!Array.isArray(data.sources) || !data.sources.every(validateSource)) pushFinding(findings, page.path, "frontmatter-sources", "sources must contain {path, symbols?, context?} or {glob, context?, reason?} entries");
     if (data.status === "current" && Array.isArray(data.sources) && data.sources.length === 0) pushFinding(findings, page.path, "current-without-source", "current pages require at least one primary source");
+    if (data.status === "current" && Array.isArray(data.sources) && data.sources.length > 0
+      && data.sources.every((source) => (source as WikiSource).context === "catalog")) {
+      pushFinding(findings, page.path, "current-catalog-without-anchor", "current pages require at least one effective always source anchor");
+    }
     for (const field of ["affects", "related", "tags"] as const) {
       if (data[field] != null && !stringArray(data[field])) pushFinding(findings, page.path, `frontmatter-${field}`, `${field} must be a string array`);
     }

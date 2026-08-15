@@ -1,5 +1,5 @@
 import { expandSource, type RepoView } from "./repository-view";
-import { hashContent } from "./serialization";
+import { hashContent, jsonStable } from "./serialization";
 import type { WikiAuthority, WikiPage, WikiSource, WikiStatus } from "./model";
 import {
   conflictSummary,
@@ -14,6 +14,18 @@ import {
 export type ContextSourceGlob = {
   glob: string;
   matchedFiles: string[];
+  context?: "always" | "catalog";
+  reason?: string;
+};
+
+/** Aggregate representation used by compact context and reusable artifacts. */
+export type ContextCatalogSummary = {
+  declaration: WikiSource;
+  declaredBy: string[];
+  digest: string;
+  count: number;
+  bytes: number;
+  expandCommand: string;
 };
 
 export type SelectedWorkContextPage = {
@@ -28,6 +40,7 @@ export type SelectedWorkContextPage = {
   exactSources: Extract<WikiSource, { path: string }>[];
   sourceGlobs: ContextSourceGlob[];
   sourceFiles: string[];
+  catalogSources?: ContextCatalogSummary[];
   relevantOpenConflicts: string[];
   body: string;
 };
@@ -39,6 +52,7 @@ export type SelectedWorkContextConflict = ConflictSummary & {
   exactSources: Extract<WikiSource, { path: string }>[];
   sourceGlobs: ContextSourceGlob[];
   sourceFiles: string[];
+  catalogSources?: ContextCatalogSummary[];
   relevantOpenConflicts: string[];
   body: string;
 };
@@ -56,6 +70,7 @@ export type SelectedWorkContextSourceSummary = {
   exactSources: Extract<WikiSource, { path: string }>[];
   sourceGlobs: ContextSourceGlob[];
   sourceFiles: string[];
+  catalogSources?: ContextCatalogSummary[];
   relevantOpenConflicts: string[];
 };
 
@@ -79,12 +94,23 @@ export type SelectedWorkContext = {
  * context artifacts and by the explicit `--full` CLI mode; this projection is
  * only a presentation boundary for ordinary discovery.
  */
-export type CompactContextPage = Omit<SelectedWorkContextPage, "body"> & {
+export type CompactContextSourceGlob = Omit<ContextSourceGlob, "matchedFiles"> & {
+  /** Catalog declarations intentionally omit matched paths in compact mode. */
+  matchedFiles?: string[];
+};
+
+export type CompactContextPage = Omit<SelectedWorkContextPage, "body" | "exactSources" | "sourceGlobs" | "sourceFiles"> & {
+  exactSources: Extract<WikiSource, { path: string }>[];
+  sourceGlobs: CompactContextSourceGlob[];
+  sourceFiles: string[];
   bodyDigest: string;
   focusedCommand: string;
 };
 
-export type CompactContextConflict = Omit<SelectedWorkContextConflict, "body"> & {
+export type CompactContextConflict = Omit<SelectedWorkContextConflict, "body" | "exactSources" | "sourceGlobs" | "sourceFiles"> & {
+  exactSources: Extract<WikiSource, { path: string }>[];
+  sourceGlobs: CompactContextSourceGlob[];
+  sourceFiles: string[];
   bodyDigest: string;
   focusedCommand: string;
 };
@@ -140,17 +166,40 @@ export type TopicContext = {
   sources: SelectedWorkContextSourceSummary[];
 };
 
-function contextSourceFields(view: RepoView, sources: WikiSource[]) {
+function sourceContext(source: WikiSource): "always" | "catalog" {
+  return source.context ?? "always";
+}
+
+function catalogSummary(view: RepoView, pageId: string, source: WikiSource): ContextCatalogSummary {
+  const files = expandSource(view, source);
+  const records = files.map((path) => [path, hashContent(view.read(path))]);
+  return {
+    declaration: "path" in source
+      ? { path: source.path, ...(source.symbols ? { symbols: [...source.symbols] } : {}), context: "catalog", reason: source.reason }
+      : { glob: source.glob, context: "catalog", reason: source.reason },
+    declaredBy: [pageId],
+    digest: hashContent(jsonStable(records)),
+    count: files.length,
+    bytes: files.reduce((total, path) => total + Buffer.byteLength(view.read(path), "utf8"), 0),
+    expandCommand: `bun run wiki:context -- --page ${pageId} --full`,
+  };
+}
+
+function contextSourceFields(view: RepoView, pageId: string, sources: WikiSource[]) {
   const exactSources = sources
     .filter((source): source is Extract<WikiSource, { path: string }> => "path" in source)
     .map((source) => ({ ...source, ...(source.symbols ? { symbols: [...source.symbols] } : {}) }))
     .sort((a, b) => a.path.localeCompare(b.path));
   const sourceGlobs = sources
     .filter((source): source is Extract<WikiSource, { glob: string }> => "glob" in source)
-    .map((source) => ({ glob: source.glob, matchedFiles: expandSource(view, source) }))
+    .map((source) => ({ glob: source.glob, matchedFiles: expandSource(view, source), ...(source.context ? { context: source.context } : {}), ...(source.reason ? { reason: source.reason } : {}) }))
     .sort((a, b) => a.glob.localeCompare(b.glob));
   const sourceFiles = [...new Set(sources.flatMap((source) => expandSource(view, source)))].sort((a, b) => a.localeCompare(b));
-  return { exactSources, sourceGlobs, sourceFiles };
+  const catalogSources = sources
+    .filter((source) => sourceContext(source) === "catalog")
+    .map((source) => catalogSummary(view, pageId, source))
+    .sort((a, b) => jsonStable(a.declaration).localeCompare(jsonStable(b.declaration)));
+  return { exactSources, sourceGlobs, sourceFiles, ...(catalogSources.length > 0 ? { catalogSources } : {}) };
 }
 
 function selectedWorkContextPage(view: RepoView, page: WikiPage, conflicts: WikiPage[]): SelectedWorkContextPage {
@@ -167,7 +216,7 @@ function selectedWorkContextPage(view: RepoView, page: WikiPage, conflicts: Wiki
     authority: page.data.authority,
     owners: [...page.data.owners],
     sources: page.data.sources,
-    ...contextSourceFields(view, page.data.sources),
+    ...contextSourceFields(view, page.data.id, page.data.sources),
     relevantOpenConflicts,
     body: page.body,
   };
@@ -179,7 +228,7 @@ function selectedWorkContextConflict(view: RepoView, page: WikiPage): SelectedWo
     kind: "conflict",
     status: "conflicted",
     authority: page.data.authority,
-    ...contextSourceFields(view, page.data.sources),
+    ...contextSourceFields(view, page.data.id, page.data.sources),
     relevantOpenConflicts: [page.data.conflict_id!],
     body: page.body,
   };
@@ -220,6 +269,7 @@ function contextSourceSummary(page: SelectedWorkContextPage | SelectedWorkContex
     exactSources: page.exactSources,
     sourceGlobs: page.sourceGlobs,
     sourceFiles: page.sourceFiles,
+    ...(page.catalogSources ? { catalogSources: page.catalogSources } : {}),
     relevantOpenConflicts: page.relevantOpenConflicts,
   };
 }
@@ -327,8 +377,20 @@ function focusedContextCommand(page: SelectedWorkContextPage | SelectedWorkConte
 
 function compactContextPage(page: SelectedWorkContextPage): CompactContextPage {
   const { body, ...metadata } = page;
+  const alwaysExact = page.exactSources.filter((source) => sourceContext(source) === "always");
+  const alwaysGlobs = page.sourceGlobs.filter((source) => (source.context ?? "always") === "always");
+  const mandatoryFiles = new Set([
+    ...alwaysExact.map((source) => source.path),
+    ...alwaysGlobs.flatMap((source) => source.matchedFiles),
+  ]);
+  const compactGlobs = page.sourceGlobs.map((source) => source.context === "catalog"
+    ? { glob: source.glob, context: "catalog" as const, ...(source.reason ? { reason: source.reason } : {}) }
+    : { ...source, matchedFiles: [...source.matchedFiles] });
   return {
     ...metadata,
+    exactSources: alwaysExact,
+    sourceGlobs: compactGlobs,
+    sourceFiles: page.sourceFiles.filter((path) => mandatoryFiles.has(path)),
     bodyDigest: hashContent(body),
     focusedCommand: focusedContextCommand(page),
   };
@@ -336,11 +398,31 @@ function compactContextPage(page: SelectedWorkContextPage): CompactContextPage {
 
 function compactContextConflict(page: SelectedWorkContextConflict): CompactContextConflict {
   const { body, ...metadata } = page;
+  const alwaysExact = page.exactSources.filter((source) => sourceContext(source) === "always");
+  const alwaysGlobs = page.sourceGlobs.filter((source) => (source.context ?? "always") === "always");
+  const mandatoryFiles = new Set([
+    ...alwaysExact.map((source) => source.path),
+    ...alwaysGlobs.flatMap((source) => source.matchedFiles),
+  ]);
+  const compactGlobs = page.sourceGlobs.map((source) => source.context === "catalog"
+    ? { glob: source.glob, context: "catalog" as const, ...(source.reason ? { reason: source.reason } : {}) }
+    : { ...source, matchedFiles: [...source.matchedFiles] });
   return {
     ...metadata,
+    exactSources: alwaysExact,
+    sourceGlobs: compactGlobs,
+    sourceFiles: page.sourceFiles.filter((path) => mandatoryFiles.has(path)),
     bodyDigest: hashContent(body),
     focusedCommand: focusedContextCommand(page),
   };
+}
+
+function compactReadOrder(
+  readOrder: SelectedWorkContextReadEntry[],
+  pages: Array<CompactContextPage | CompactContextConflict>,
+): SelectedWorkContextReadEntry[] {
+  const mandatory = new Set(pages.flatMap((page) => page.sourceFiles));
+  return readOrder.filter((entry) => entry.kind !== "source" || mandatory.has(entry.path));
 }
 
 function topicCandidate(
@@ -424,6 +506,9 @@ export function projectSelectedWorkContext(
   mode: "compact" | "full" = "compact",
 ): SelectedWorkContext | CompactSelectedWorkContext {
   if (mode === "full") return context;
+  const pages = context.pages.map(compactContextPage);
+  const conflicts = context.conflicts.map(compactContextConflict);
+  const ownerPage = compactContextPage(context.ownerPage);
   return {
     version: context.version,
     mode: "compact",
@@ -431,10 +516,10 @@ export function projectSelectedWorkContext(
     requestedConflict: context.requestedConflict,
     requestedWork: context.requestedWork,
     work: context.work,
-    readOrder: context.readOrder,
-    pages: context.pages.map(compactContextPage),
-    conflicts: context.conflicts.map(compactContextConflict),
-    ownerPage: compactContextPage(context.ownerPage),
+    readOrder: compactReadOrder(context.readOrder, [...pages, ...conflicts, ownerPage]),
+    pages,
+    conflicts,
+    ownerPage,
   };
 }
 
@@ -453,7 +538,6 @@ export function projectTopicContext(
   const terms = context.query.toLowerCase().split(/\s+/).filter(Boolean);
   const complete = matches.length > 0 && matches.some((match) => match.score === terms.length);
   const matchMode: CompactTopicContext["matchMode"] = matches.length === 0 ? "none" : complete ? "complete" : "partial";
-  const conflicts = context.conflicts.map(compactContextConflict);
   const candidates = matchMode === "partial"
     ? matches.map((match, index) => topicCandidate(match, index + 1, context.conflicts))
     : [];
@@ -475,6 +559,9 @@ export function projectTopicContext(
       candidates,
     };
   }
+  const pages = context.pages.map(compactContextPage);
+  const conflicts = context.conflicts.map(compactContextConflict);
+  const nonCurrentPages = context.nonCurrentPages.map(compactContextPage);
   return {
     version: context.version,
     mode: "compact",
@@ -482,10 +569,10 @@ export function projectTopicContext(
     requestedConflict: context.requestedConflict,
     requestedWork: context.requestedWork,
     matchMode,
-    readOrder: context.readOrder,
-    pages: context.pages.map(compactContextPage),
+    readOrder: compactReadOrder(context.readOrder, [...pages, ...conflicts, ...nonCurrentPages]),
+    pages,
     conflicts,
-    nonCurrentPages: context.nonCurrentPages.map(compactContextPage),
+    nonCurrentPages,
     candidates,
   };
 }

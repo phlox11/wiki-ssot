@@ -13,7 +13,10 @@ owners: ["@owner"]
 sources:
   - path: src/checkout/index.ts
     symbols: [createCheckout]
+    context: always
   - glob: test/checkout/**/*.test.ts
+    context: catalog
+    reason: Track the complete checkout test boundary without reading every test in ordinary compact context.
 affects: [product/invariants]
 related: [architecture/api]
 tags: [checkout, payments]
@@ -28,7 +31,9 @@ Required fields:
 - `status`: `current | proposed | deprecated | conflicted | archived`.
 - `authority`: `normative | observed | derived`.
 - `owners`: GitHub handle array.
-- `sources`: array of `{path, symbols?}` or `{glob}`. A current page needs at least one source that exists. Optional `symbols` on a `.ts/.tsx/.js/.jsx` path are checked against the file's exports.
+- `sources`: array of `{path, symbols?, context?}` or `{glob, context?, reason?}`. `context` is `always | catalog`: `always` enters the compact mandatory read order, while `catalog` remains fully tracked but is represented there by its declaration, reason, path count, bytes, digest, and expansion command. Optional `symbols` on a `.ts/.tsx/.js/.jsx` path are checked against the file's exports.
+
+Source context changes reading cost only. Source maps, configured coverage, verification hashes, drift, impact, conflict mapping, and full context continue to expand the complete declaration. A declaration with no `context` is a legacy `always` declaration so an engine upgrade does not break an existing repository. Any declaration added or changed relative to the selected base must state `context` explicitly; `catalog` requires a concrete reason of at least 20 characters, and every current page that uses catalog context retains at least one effective `always` anchor. `wiki:scope -- --base <ref>` audits these structural rules and explains breadth and review-selection causes without imposing numeric budgets.
 
 Optional `affects` and `related` values are page IDs and must resolve. They are directed navigation declarations: they appear in the generated catalog and relationship graph but do not by themselves propagate current authority, staleness, impact, or review scope. `tags` are search terms.
 
@@ -102,7 +107,7 @@ Open files require `status: conflicted`; resolved files require `status: archive
 
 ## Machine config (`.wiki/`)
 
-- `.wiki/config.json` — version/name/`highRisk` plus an explicit `freshContext` policy. `freshContext` requires `mode: advisory | required`, `requiredVerdict: PASS`, `evidenceRequired`, and `trust.allowedReviewers` / `requireDifferentActor` / `requireAuthenticatedActor`. Optional `requiredWhen` is either `{kind: "all"}` or a `risk-based` selector with `changedFileGlobs` and boolean `affectedInvariants`, `affectedConflicts`, and `removedCurrentPages` signals; omitting it preserves all-PR review. An inert risk selector is invalid. Missing or malformed Fresh-context config is an integration error, not implicit advisory mode. `name` titles the generated index. A changed file matching a top-level `highRisk` glob makes its affected pages *high-risk* stale; that staleness label is separate from the Fresh-context `requiredWhen` selector. Both stale risk levels block.
+- `.wiki/config.json` — version 2 declares `enforcement.mode: local-status`, its status context, argv-array `localChecks`, and an explicit reasoned `review.when` selector over changed-file rules, actual kit-owned files, affected invariants/conflicts, and removed current pages. It has no implicit all-PR fallback. Version 1 remains readable with its `freshContext` mode, verdict/evidence/trust policy, optional all/risk-based `requiredWhen`, and historical authenticated-actor semantics. A changed file matching top-level `highRisk` still labels its affected page staleness; that label is separate from either review selector. `name` titles generated navigation and `publishesKit` enables publisher-only kit checks.
 - `.wiki/coverage.json` — `{ "version": 1, "include": ["glob", ...], "exclusions": [{ "glob": "...", "reason": "20+ chars" }] }`. Every included file must map to a current page's `sources`, or carry a reasoned exclusion.
 - `.wiki/state.json` — generated verification ledger of per-page source hashes. Update with `bun run wiki:verify`.
 - `.wiki/source-map.json`, `.wiki/conflict-map.json` — generated reverse indexes; never hand-edit.
