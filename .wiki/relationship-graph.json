@@ -311,6 +311,131 @@
       "type": "work-context-page"
     },
     {
+      "from": "LS-05",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-05",
+      "to": "LS-04",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "LS-05",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-05",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-05",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-06",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-06",
+      "to": "LS-05",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "LS-06",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-06",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-06",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-07",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-07",
+      "to": "LS-06",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "LS-07",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-07",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-07",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-08",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-08",
+      "to": "LS-07",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "LS-08",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-08",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-08",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-09",
+      "to": "architecture/engine",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-09",
+      "to": "LS-08",
+      "type": "work-depends-on"
+    },
+    {
+      "from": "LS-09",
+      "to": "operations/enforcement",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-09",
+      "to": "product/invariants",
+      "type": "work-context-page"
+    },
+    {
+      "from": "LS-09",
+      "to": "product/scope",
+      "type": "work-context-page"
+    },
+    {
       "from": "operations/enforcement",
       "to": "architecture/engine",
       "type": "related"
@@ -1695,6 +1820,41 @@
       "kind": "work",
       "path": "wiki/proposals/local-enforcement-scope-control.md",
       "state": "done",
+      "type": "work"
+    },
+    {
+      "id": "LS-05",
+      "kind": "work",
+      "path": "wiki/proposals/local-enforcement-scope-control.md",
+      "state": "not-started",
+      "type": "work"
+    },
+    {
+      "id": "LS-06",
+      "kind": "work",
+      "path": "wiki/proposals/local-enforcement-scope-control.md",
+      "state": "not-started",
+      "type": "work"
+    },
+    {
+      "id": "LS-07",
+      "kind": "work",
+      "path": "wiki/proposals/local-enforcement-scope-control.md",
+      "state": "not-started",
+      "type": "work"
+    },
+    {
+      "id": "LS-08",
+      "kind": "work",
+      "path": "wiki/proposals/local-enforcement-scope-control.md",
+      "state": "not-started",
+      "type": "work"
+    },
+    {
+      "id": "LS-09",
+      "kind": "work",
+      "path": "wiki/proposals/local-enforcement-scope-control.md",
+      "state": "not-started",
       "type": "work"
     },
     {

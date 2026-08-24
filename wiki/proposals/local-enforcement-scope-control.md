@@ -31,7 +31,7 @@ sources:
     context: always
 affects: [architecture/engine, operations/enforcement, product/invariants, product/scope]
 related: [proposal/token-efficiency, proposal/portable-scale-navigation, architecture/engine, operations/enforcement]
-tags: [local, enforcement, github, scope, context, review, adoption, simplification]
+tags: [local, enforcement, github, scope, context, review, adoption, simplification, semantic-verify, metadata-review, drift]
 work_items:
   - id: LS-00
     title: Add the exact local gate and GitHub commit-status publisher
@@ -152,6 +152,75 @@ work_items:
       - docs/adopt-new-repo.md
       - wiki/WORKFLOW.md
       - kit/README.md
+  - id: LS-05
+    title: Define the semantic-verify configuration and migration contract
+    state: not-started
+    executor: agent
+    priority: critical
+    depends_on: [LS-04]
+    context_pages: [product/invariants, architecture/engine, operations/enforcement, product/scope]
+    acceptance:
+      - Version 2 review configuration defines an explicit reasoned semanticVerify selector with enabled and reason fields; enabled true requires a reason of at least 20 characters, while enabled false preserves the existing path-, kit-, invariant-, conflict-, and current-page-based review behavior.
+      - A version 2 adopter whose project-owned configuration omits semanticVerify remains parseable only for migration diagnostics but cannot pass wiki:doctor or the canonical local gate until it explicitly chooses enabled true or false.
+      - Missing, malformed, disabled, and enabled semanticVerify states produce deterministic configuration findings without silently falling back to version 1 behavior or changing version 1 compatibility.
+      - The publisher and new-install seed explicitly enable semanticVerify, while upgrade never rewrites an existing adopter's project-owned .wiki/config.json.
+      - Focused configuration, doctor, apply, publisher, and kit tests bind the schema, migration finding, and default policy.
+    evidence: []
+  - id: LS-06
+    title: Select independent review from canonical semantic metadata
+    state: not-started
+    executor: agent
+    priority: critical
+    depends_on: [LS-05]
+    context_pages: [product/invariants, architecture/engine, operations/enforcement, product/scope]
+    acceptance:
+      - Version 2 review requirement evaluation consumes the already-canonicalized PR metadata and selects independent review when semantic_change is true and wiki_action is verify, even when no changed path or other configured risk signal applies.
+      - The selected result carries the configured reason, review-preflight returns review-required without a report, and wiki:check cannot produce a passing publishable result until a valid independent PASS report is supplied.
+      - Semantic false plus verify, semantic true plus update, and an explicitly disabled selector remain not-required unless another configured signal independently selects them.
+      - The existing exact HEAD, merge-base, metadata digest, bundle digest, report, and local-result bindings make any metadata or candidate revision change invalidate prior evidence.
+      - Focused requirement, preflight, local-check, and stale-evidence tests cover every selection and invalidation branch.
+    evidence: []
+  - id: LS-07
+    title: Reconcile observable behavior against actual current authority
+    state: not-started
+    executor: agent
+    priority: high
+    depends_on: [LS-06]
+    context_pages: [product/invariants, architecture/engine, operations/enforcement, product/scope]
+    acceptance:
+      - The focused reviewer prompt requires the reviewer to identify each user- or operator-observable behavior changed by a semantic verify candidate and locate the actual current-authority text that already states that behavior.
+      - Page relevance, refreshed source hashes, verification-ledger freshness, and the author's unchanged reason are explicitly insufficient evidence that current authority is semantically complete.
+      - A clear changed behavior missing from current authority is reported as a declared contract violation that must be fixed by updating the Wiki and metadata before PASS; genuinely undecided intent is reported as decision ambiguity and requires an open conflict rather than an invented decision.
+      - Generated prompt and report-contract tests preserve the classification, disposition, evidence, and acceptance-criteria rules for both PASS and NEEDS_RECONCILE.
+    evidence: []
+  - id: LS-08
+    title: Ship portable defaults, migration guidance, and SSOT documentation
+    state: not-started
+    executor: agent
+    priority: high
+    depends_on: [LS-07]
+    context_pages: [product/invariants, architecture/engine, operations/enforcement, product/scope]
+    acceptance:
+      - Publisher configuration and the new-repository kit seed enable semanticVerify with a concrete reason, while an existing adopter receives an actionable needs-reconcile migration result and no automatic edit to project-owned policy.
+      - Schema, command/configuration, design, workflow, new-adoption, existing-adoption, and kit-upgrade guidance explain the explicit true or false choice, the independent-review trust boundary, and why semantic verify differs from source-hash verification.
+      - Current engine, enforcement, invariant, and product-scope authority describe metadata-aware review selection without claiming that deterministic tooling can infer missing product intent.
+      - A temporary downstream workaround using reasoned application and package changed-file rules is documented as broader and noisier than the semantic selector.
+      - Generated Wiki and kit artifacts are regenerated from their owning sources and pass freshness checks.
+    evidence: []
+  - id: LS-09
+    title: Validate the WorldSweeper-equivalent regression and exact combined delivery
+    state: not-started
+    executor: agent
+    priority: high
+    depends_on: [LS-08]
+    context_pages: [product/invariants, architecture/engine, operations/enforcement, product/scope]
+    acceptance:
+      - A network-free synthetic candidate equivalent to WorldSweeper PR 49 declares semantic_change true, wiki_action verify, relevant affected pages, and otherwise low-risk implementation paths, and deterministically returns review-required.
+      - The same fixture proves that an explicitly disabled selector preserves not-required behavior and that ordinary non-semantic verification is not selected without another risk signal.
+      - Missing reports fail, valid independent PASS reports succeed, and metadata or HEAD changes make prior reports and local results stale.
+      - One exact combined revision passes generated, kit, lint, audit, impact, typecheck, full Wiki tooling tests, review-preflight, independent SSOT reconciliation, canonical wiki:check, and local-status publication.
+      - LS-05 through LS-09 are marked done only with durable code, test, Wiki, documentation, bundle, report, result, and pull-request evidence from that combined delivery.
+    evidence: []
 ---
 
 # Local enforcement and bounded scope
@@ -163,6 +232,51 @@ This change also addresses the two general failure modes exposed by broad Wiki S
 The delivery sequence is deliberately additive before destructive cleanup. Bootstrap introduces the local result and publisher while the existing remote path remains available. Cutover changes the publisher policy only after the new status exists. Scope control then changes source and review selection semantics with before-and-after evidence. Simplification removes the old choreography and duplicate validators only after their replacements are exercised. Existing adopters retain version 1 behavior and are migrated sequentially rather than being rewritten by kit sync.
 
 No phase adds a daemon, database, GitHub App, generic provider registry, automatic test-selection graph, or global numeric budget. Independent review and exact-HEAD binding remain mandatory wherever configured risk selects them.
+
+## Semantic unchanged-Wiki follow-up
+
+[GitHub issue #60](https://github.com/phlox11/wiki-ssot/issues/60) records a
+false-negative in the version 2 review boundary. The downstream
+[WorldSweeper PR #49](https://github.com/true-dragonsnest/world-sweeper/pull/49)
+correctly declared `semantic_change: true` and `wiki_action: verify`, refreshed
+the verification ledger for relevant current pages, passed the exact local
+gate, and published `wiki-ssot/local: success`. Its changed web-game paths did
+not match another configured risk signal, so Fresh-context review was
+`not-required` even though the implementation and regression test established
+a user-observable camera-preservation contract that the named current Wiki
+pages did not state.
+
+The accepted correction is metadata-aware but remains explicit policy. A
+version 2 repository chooses a reasoned `semanticVerify` selector. When enabled,
+the canonical `semantic_change: true` plus `wiki_action: verify` combination
+requires independent reconciliation regardless of changed-file globs. The
+reviewer identifies the changed user- or operator-observable behavior and
+locates the actual current-authority text that already states it. If the
+contract is absent, the candidate updates current authority; if intended
+behavior is undecided, it opens a conflict. Source-hash freshness, page
+relevance, and an author-supplied unchanged reason do not substitute for that
+semantic comparison.
+
+Existing version 2 adopters must make the choice explicitly after receiving the
+upgraded engine. Omission remains readable only so doctor and apply can return a
+targeted migration action; it is not a passing disabled default. Explicit
+`enabled: false` preserves the existing risk-based behavior, while new
+installations and this publisher enable the guardrail. Upgrade does not rewrite
+the adopter-owned `.wiki/config.json`.
+
+LS-05 through LS-09 deliver this follow-up as one atomic implementation PR
+after this planning record is merged. The sequence fixes configuration and
+migration first, then exact selection, reviewer guidance, portable distribution
+and current documentation, and finally a network-free regression equivalent to
+the incident. Partial stages do not merge independently because a shipped
+selector schema without enforcement, or enforcement without migration and
+reviewer guidance, would recreate an incomplete trust boundary.
+
+This follow-up does not forbid every semantic `verify`, force meaningless Wiki
+edits when current authority already states the behavior, introduce a generic
+metadata-expression language, restore an implicit all-PR fallback, weaken
+exact-HEAD evidence, or claim that deterministic tooling can discover missing
+product intent by itself.
 
 ## LS-03 complexity reconciliation
 
