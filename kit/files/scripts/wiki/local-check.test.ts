@@ -61,7 +61,7 @@ function metadata(options: {
   ].join("\n");
 }
 
-function repo(options: { risk?: boolean; changed?: boolean; publishesKit?: boolean; toolkitChanged?: boolean; invariant?: boolean; authenticatedPolicy?: boolean; v2?: boolean; localChecks?: { id: string; argv: string[] }[] } = {}): string {
+function repo(options: { risk?: boolean; changed?: boolean; publishesKit?: boolean; toolkitChanged?: boolean; invariant?: boolean; authenticatedPolicy?: boolean; v2?: boolean; semanticVerifyEnabled?: boolean; localChecks?: { id: string; argv: string[] }[] } = {}): string {
   const root = mkdtempSync(join(tmpdir(), "wiki-local-check-"));
   temporary.push(root);
   run(root, ["git", "init", "-q"]);
@@ -78,6 +78,7 @@ function repo(options: { risk?: boolean; changed?: boolean; publishesKit?: boole
       mode: "required",
       when: {
         kind: "risk-based",
+        semanticVerify: { enabled: options.semanticVerifyEnabled === true, reason: options.semanticVerifyEnabled === true ? "Semantic metadata selects independent review for observable verify changes." : "This fixture preserves the existing path-based review selectors." },
         changedFileRules: [{ glob: ".wiki/config.json", reason: "The local enforcement policy itself is changing." }],
         changedKitOwnedFiles: true,
         affectedInvariants: true,
@@ -355,6 +356,105 @@ describe("canonical local check result", () => {
     const optional = runLocalCheck({ root: optionalRoot, view: optionalView, pages: loadWikiPages(optionalView).pages, base: "HEAD", metadataRaw: metadata(), dirtyPaths: [] });
     expect(optional.checks.review.status).toBe("not-required");
     expect(optional.checks.review.required).toBe(false);
+  });
+
+  test("network-free WorldSweeper-equivalent selects semantic verify through the local report seam", () => {
+    const semanticMetadata = [
+      "change_type: feature",
+      "semantic_change: true",
+      "wiki_action: verify",
+      "affected_pages: [product/test]",
+      "affected_invariants: []",
+      "touched_conflicts: []",
+    ].join("\n");
+    const semanticRoot = repo({ v2: true, semanticVerifyEnabled: true, changed: true });
+    const semanticView = createRepoView(semanticRoot);
+    const semanticPages = loadWikiPages(semanticView).pages;
+    const parsed = validatePrMetadata(semanticMetadata, true, readConfig(semanticView));
+    expect(parsed.findings).toEqual([]);
+    if (!parsed.metadata) throw new Error("semantic metadata did not parse");
+    const pending = reviewCheck(semanticView, semanticPages, { base: "HEAD~1", metadata: parsed.metadata });
+    expect(pending).toMatchObject({ required: true, ok: false, findings: [{ code: "fresh-context-missing" }] });
+    expect(pending.requirementReasons).toContain("Semantic metadata selects independent review for observable verify changes.");
+
+    const passReport = {
+      version: 1 as const,
+      verdict: "PASS" as const,
+      reviewed_head_sha: pending.manifest.head_sha,
+      merge_base_sha: pending.manifest.merge_base_sha,
+      bundle_digest: pending.manifest.bundle_digest,
+      reviewer: "isolated-reviewer",
+      evidence: ["The changed observable behavior is stated by current authority."],
+      summary: "Semantic verify evidence is bound to the candidate bundle.",
+    };
+    const passed = runLocalCheck({
+      root: semanticRoot,
+      view: semanticView,
+      pages: semanticPages,
+      base: "HEAD~1",
+      metadataRaw: semanticMetadata,
+      reportRaw: jsonStable(passReport),
+      dirtyPaths: [],
+    });
+    expect(passed.checks.review).toMatchObject({ required: true, status: "pass", ok: true });
+
+    const changedMetadata = runLocalCheck({
+      root: semanticRoot,
+      view: semanticView,
+      pages: semanticPages,
+      base: "HEAD~1",
+      metadataRaw: semanticMetadata.replace("change_type: feature", "change_type: fix"),
+      reportRaw: jsonStable(passReport),
+      dirtyPaths: [],
+    });
+    expect(changedMetadata.checks.review.findings.map((finding) => finding.code)).toContain("fresh-context-bundle-stale");
+
+    const ordinary = runLocalCheck({
+      root: semanticRoot,
+      view: semanticView,
+      pages: semanticPages,
+      base: "HEAD~1",
+      metadataRaw: semanticMetadata.replace("semantic_change: true", "semantic_change: false"),
+      dirtyPaths: [],
+    });
+    expect(ordinary.checks.review).toMatchObject({ required: false, status: "not-required" });
+    const ordinaryUpdate = runLocalCheck({
+      root: semanticRoot,
+      view: semanticView,
+      pages: semanticPages,
+      base: "HEAD~1",
+      metadataRaw: semanticMetadata.replace("wiki_action: verify", "wiki_action: update"),
+      dirtyPaths: [],
+    });
+    expect(ordinaryUpdate.checks.review).toMatchObject({ required: false, status: "not-required" });
+
+    put(semanticRoot, "new-behavior.ts", "export const changed = true;\n");
+    run(semanticRoot, ["git", "add", "new-behavior.ts"]);
+    run(semanticRoot, ["git", "commit", "-qm", "new semantic candidate head"]);
+    const staleHeadView = createRepoView(semanticRoot);
+    const staleHead = runLocalCheck({
+      root: semanticRoot,
+      view: staleHeadView,
+      pages: loadWikiPages(staleHeadView).pages,
+      base: "HEAD~1",
+      metadataRaw: semanticMetadata,
+      reportRaw: jsonStable(passReport),
+      dirtyPaths: [],
+    });
+    expect(staleHead.checks.review.findings.map((finding) => finding.code)).toContain("fresh-context-head-stale");
+
+    const disabledRoot = repo({ v2: true, semanticVerifyEnabled: false, changed: true });
+    const disabledView = createRepoView(disabledRoot);
+    const disabled = runLocalCheck({
+      root: disabledRoot,
+      view: disabledView,
+      pages: loadWikiPages(disabledView).pages,
+      base: "HEAD~1",
+      metadataRaw: semanticMetadata,
+      dirtyPaths: [],
+    });
+    expect(disabled.checks.review).toMatchObject({ required: false, status: "not-required" });
+
   });
 
   test("orchestrates publisher toolkit checks through an injected argv runner", () => {

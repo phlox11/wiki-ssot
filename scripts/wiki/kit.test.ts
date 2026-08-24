@@ -113,8 +113,12 @@ describe("emitted kit", () => {
       });
     }
 
-    const downstreamConfig = JSON.parse(realKit().files["kit/seed/.wiki/config.json"]) as { version: number; review?: { when?: { changedFileRules?: { glob: string }[] } } };
+    expect((publisherConfig as Extract<typeof publisherConfig, { version: 2 }>).review.when.semanticVerify).toEqual(expect.objectContaining({ enabled: true, reason: expect.any(String) }));
+    expect((publisherConfig as Extract<typeof publisherConfig, { version: 2 }>).review.when.semanticVerify?.reason.length).toBeGreaterThanOrEqual(20);
+    const downstreamConfig = JSON.parse(realKit().files["kit/seed/.wiki/config.json"]) as { version: number; review?: { when?: { changedFileRules?: { glob: string }[]; semanticVerify?: { enabled: boolean; reason: string } } } };
     expect(downstreamConfig.version).toBe(2);
+    expect(downstreamConfig.review?.when?.semanticVerify).toEqual(expect.objectContaining({ enabled: true, reason: expect.any(String) }));
+    expect(downstreamConfig.review?.when?.semanticVerify?.reason.length).toBeGreaterThanOrEqual(20);
     const downstreamRules = downstreamConfig.review?.when?.changedFileRules ?? [];
     expect(downstreamRules.map((rule) => rule.glob)).not.toContain("wiki/product/scope.md");
     expect(downstreamRules.map((rule) => rule.glob)).toContain("README.md");

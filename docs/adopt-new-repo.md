@@ -41,6 +41,10 @@ You arrive with an empty verification ledger, an empty coverage `include`, an ad
     "mode": "required",
     "when": {
       "kind": "risk-based",
+      "semanticVerify": {
+        "enabled": true,
+        "reason": "Semantic verification requires independent comparison with current authority."
+      },
       "changedFileRules": [
         {
           "glob": ".wiki/config.json",
@@ -60,7 +64,7 @@ You arrive with an empty verification ledger, an empty coverage `include`, an ad
 }
 ```
 
-Start top-level `highRisk` empty and add stale-page globs as you introduce contracts, schema, and routes. Replace or extend `localChecks` with the repository's actual test and typecheck argv arrays; shell command strings are intentionally unsupported. Add narrowly scoped `changedFileRules` for project security, schema, and migration paths, with a concrete reason for each rule. `changedKitOwnedFiles` uses the installed kit manifest rather than selecting every file under `scripts/wiki/**`. Version 2 requires an explicit review selector and never falls back silently to all-PR review. The shipped `.wiki/coverage.json` has an empty `include`, so coverage is a no-op until you deliberately add a real code pattern.
+Start top-level `highRisk` empty and add stale-page globs as you introduce contracts, schema, and routes. Replace or extend `localChecks` with the repository's actual test and typecheck argv arrays; shell command strings are intentionally unsupported. `semanticVerify.enabled: true` makes canonical `semantic_change: true` plus `wiki_action: verify` metadata require independent reconciliation even when no path rule matches. Its reason is included in the review requirement and must contain at least 20 characters. Explicit `false` preserves the other risk signals, but omission is a migration error rather than an implicit disabled default. Add narrowly scoped `changedFileRules` for project security, schema, and migration paths, with a concrete reason for each rule. `changedKitOwnedFiles` uses the installed kit manifest rather than selecting every file under `scripts/wiki/**`. Version 2 never falls back silently to all-PR review. The shipped `.wiki/coverage.json` has an empty `include`, so coverage is a no-op until you deliberately add a real code pattern.
 
 ## 3. Write the first pages as you write the first code
 
@@ -70,7 +74,7 @@ The apply loop does not call a copied toolkit with no project knowledge complete
 2. Create `wiki/<group>/<name>.md` in the **same candidate**, with `sources` pointing at both files. Classify new declarations explicitly: use `context: always` for the few anchors a compact task must read, and a reasoned `context: catalog` for a broad set that stays fully tracked but is expanded only on demand.
 3. Add the code area to `.wiki/coverage.json` `include`; extend `tsconfig.json` and the repository's `test` script so the new code and test are actually checked, and mark high-risk paths in `.wiki/config.json` where appropriate.
 4. Run `wiki:generated`, then `wiki:verify`. Generation maintains the bounded index, complete catalog, cumulative status, queues, reverse maps, and relationship graph; do not edit those projections by hand. The candidate is not green before verification records the new current page's source hash.
-5. Rerun `apply.ts` until it reports `ready`, then run `wiki:scope -- --base <base>`, `wiki:impact -- --base <base> --enforce`, and `wiki:review-preflight` with prospective PR metadata. Scope explains source/read/review breadth without enforcing a numeric quota. `not-required` is a passing preflight result when the configured risk selector does not select the feature; otherwise reconcile the emitted bundle to PASS in a separate context.
+5. Rerun `apply.ts` until it reports `ready`, then run `wiki:scope -- --base <base>`, `wiki:impact -- --base <base> --enforce`, and `wiki:review-preflight` with prospective PR metadata. Scope explains source/read/review breadth without enforcing a numeric quota. `not-required` is a passing preflight result when the configured risk selector does not select the feature; an enabled semantic selector always selects semantic `verify` metadata. Otherwise reconcile the emitted bundle to PASS in a separate context.
 6. Commit code, test, current page, coverage, generated maps/indexes, and the verification ledger together. Record real product invariants as `kind: invariant` pages early — they are what conflicts and reviews check against.
 
 Because the wiki grows *with* the code, each page is verified by the same PR that creates the behavior — no big-bang backfill, and no drift to catch up on later.

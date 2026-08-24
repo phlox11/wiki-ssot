@@ -86,6 +86,23 @@ export function handleReviewPreflight(context: CliContext): void {
     prAuthor: one(context.parsed, "pr-author") ?? process.env.WIKI_PR_AUTHOR,
     policy,
   });
+  const configMigrationFindings = result.findings.filter((finding) => finding.code === "local-status-semantic-verify-missing" || finding.code === "local-status-semantic-verify-invalid");
+  if (configMigrationFindings.length > 0) {
+    const output = {
+      ok: false,
+      ready: false,
+      status: "needs-reconcile",
+      findings: configMigrationFindings,
+      nextAction: "Choose an explicit v2 review.when.semanticVerify enabled true/false selector, then rerun wiki:doctor, wiki:review-preflight, and wiki:check. Existing adopter policy is never rewritten automatically.",
+    };
+    if (context.json) emit(context.io, output, true);
+    else {
+      printFindings(context.io, configMigrationFindings);
+      context.io.stderr(`${output.nextAction}\n`);
+    }
+    process.exitCode = 1;
+    return;
+  }
   const impactErrors = result.impact.findings.filter((finding) => finding.severity === "error");
   if (impactErrors.length > 0) {
     const output = { ok: false, ready: false, status: "invalid-impact", findings: impactErrors, impact: result.impact, manifest: result.manifest };

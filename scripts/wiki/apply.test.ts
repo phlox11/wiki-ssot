@@ -467,6 +467,40 @@ This document must not satisfy current-page bootstrap readiness.
     expect(readFileSync(join(repo, ".github/workflows/wiki-ssot.yml"), "utf8")).toBe(legacyWorkflow);
   }, 30_000);
 
+  test("v2 adopter upgrade reports a missing semantic selector without rewriting config", () => {
+    const repo = fixture();
+    const kit = fastKit();
+    git(repo, "init", "-q");
+    const initial = runApply(repo, "--kit", kit, "--skip-install", "--json");
+    expect(initial.exitCode).toBe(1);
+    symlinkSync(join(process.cwd(), "node_modules"), join(repo, "node_modules"), "dir");
+
+    const configPath = join(repo, ".wiki/config.json");
+    const config = JSON.parse(readFileSync(configPath, "utf8")) as {
+      review?: { when?: Record<string, unknown> };
+    };
+    if (!config.review?.when) throw new Error("installed v2 fixture did not contain review.when");
+    delete config.review.when.semanticVerify;
+    writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`);
+    commitFixture(repo);
+    const before = readFileSync(configPath, "utf8");
+
+    const result = runApply(repo, "--kit", kit, "--skip-install", "--json");
+    expect(result.exitCode).toBe(1);
+    expect(jsonOutput(result)).toMatchObject({
+      mode: "upgrade",
+      status: "needs-reconcile",
+      findings: expect.arrayContaining([
+        expect.objectContaining({
+          code: "local-status-semantic-verify-missing",
+          path: ".wiki/config.json",
+          action: expect.stringContaining("enabled: true"),
+        }),
+      ]),
+    });
+    expect(readFileSync(configPath, "utf8")).toBe(before);
+  }, 30_000);
+
   test("legacy Wiki job detection follows YAML structure before and after host tracking", () => {
     const hostWorkflow = readFileSync(join(process.cwd(), "kit/migrations/v1/host-checks.yml"), "utf8");
     const managedAgents = readFileSync(join(process.cwd(), "kit/managed/AGENTS.md"), "utf8");

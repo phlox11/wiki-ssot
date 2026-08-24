@@ -166,6 +166,51 @@ describe("direct CLI handler dispatch", () => {
     expect(output.stderr.join(" ")).not.toContain("github-attestation");
   });
 
+  test("review-preflight hands a missing v2 semantic selector to migration reconciliation", async () => {
+    if (isGeneratedKitMirror) return;
+    const { runCli } = await import("./cli");
+    const root = mkdtempSync(join(tmpdir(), "wiki-cli-v2-semantic-migration-"));
+    temporary.push(root);
+    mkdirSync(join(root, ".wiki"), { recursive: true });
+    writeFileSync(join(root, ".wiki/config.json"), JSON.stringify({
+      version: 2,
+      name: "migration",
+      publishesKit: false,
+      enforcement: { mode: "local-status", statusContext: "wiki-ssot/local" },
+      localChecks: [],
+      review: {
+        mode: "required",
+        when: {
+          kind: "risk-based",
+          changedFileRules: [{ glob: ".wiki/config.json", reason: "Wiki enforcement policy changes require focused review." }],
+          changedKitOwnedFiles: false,
+          affectedInvariants: false,
+          affectedConflicts: false,
+          removedCurrentPages: false,
+        },
+      },
+    }));
+    writeFileSync(join(root, "pr-body.md"), [
+      "change_type: refactor",
+      "semantic_change: false",
+      "wiki_action: verify",
+      "affected_pages: []",
+      "affected_invariants: []",
+      "touched_conflicts: []",
+    ].join("\n"));
+    expect(Bun.spawnSync(["git", "init", "-q"], { cwd: root, stdout: "pipe", stderr: "pipe" }).exitCode).toBe(0);
+    expect(Bun.spawnSync(["git", "add", ".wiki/config.json"], { cwd: root, stdout: "pipe", stderr: "pipe" }).exitCode).toBe(0);
+    expect(Bun.spawnSync(["git", "-c", "user.name=Wiki Test", "-c", "user.email=wiki@example.invalid", "commit", "-qm", "migration"], { cwd: root, stdout: "pipe", stderr: "pipe" }).exitCode).toBe(0);
+    const output = capture();
+    expect(runCli(["review-preflight", "--base", "HEAD", "--metadata", join(root, "pr-body.md"), "--json", "--root", root], { cwd: root, io: output.io })).toBe(1);
+    expect(JSON.parse(output.stdout.join(""))).toMatchObject({
+      ok: false,
+      ready: false,
+      status: "needs-reconcile",
+      findings: [expect.objectContaining({ code: "local-status-semantic-verify-missing" })],
+    });
+  });
+
   test("enforces staged write guards directly", async () => {
     if (isGeneratedKitMirror) return;
     const { runCli } = await import("./cli");

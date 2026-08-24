@@ -593,6 +593,7 @@ function asScopeSummary(report: ScopeReport): LocalScopeSummary {
 
 function reviewStatus(result: ReviewCheckResult, reportRaw: string | undefined): LocalReviewStatus {
   if (!result.required) return "not-required";
+  if (result.findings.some((item) => item.code === "local-status-semantic-verify-missing" || item.code === "local-status-semantic-verify-invalid")) return "needs-reconcile";
   if (reportRaw == null) return "review-required";
   if (result.ok) return "pass";
   const verdict = result.report?.verdict;

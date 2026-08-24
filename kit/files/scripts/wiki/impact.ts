@@ -437,8 +437,13 @@ export function evaluateLocalReviewRequirement(
   when: V2ReviewWhen,
   manifest: { affected_invariant_ids: string[]; affected_conflict_ids: string[] },
   impact: ImpactReport,
-  kitChangedFiles: string[] = [],
+  kitChangedFilesOrMetadata: string[] | PrMetadata = [],
+  metadata?: PrMetadata,
 ): FreshContextRequirement {
+  // Keep the existing four-argument kit-owned seam source-compatible while
+  // accepting canonical metadata directly for focused callers.
+  const kitChangedFiles = Array.isArray(kitChangedFilesOrMetadata) ? kitChangedFilesOrMetadata : [];
+  const canonicalMetadata = Array.isArray(kitChangedFilesOrMetadata) ? metadata : kitChangedFilesOrMetadata;
   const reasons = new Set<string>();
   for (const rule of when.changedFileRules) {
     let glob: Bun.Glob;
@@ -458,6 +463,12 @@ export function evaluateLocalReviewRequirement(
   }
   if (when.removedCurrentPages && impact.removedCurrentPages.length > 0) {
     reasons.add(`removed or demoted current pages: ${impact.removedCurrentPages.map((page) => page.id).join(", ")}`);
+  }
+  // Semantic metadata is already parsed and validated upstream.  Keep this
+  // signal here, alongside the existing deterministic selectors, so review
+  // selection cannot accidentally reparse or infer PR-body meaning.
+  if (when.semanticVerify?.enabled === true && canonicalMetadata?.semantic_change === true && canonicalMetadata.wiki_action === "verify") {
+    reasons.add(when.semanticVerify.reason);
   }
   return { applies: reasons.size > 0, reasons: [...reasons].sort((a, b) => a.localeCompare(b)) };
 }

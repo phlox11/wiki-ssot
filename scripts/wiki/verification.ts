@@ -141,6 +141,10 @@ export type V2ChangedFileRule = {
   glob: string;
   reason: string;
 };
+export type V2SemanticVerify = {
+  enabled: boolean;
+  reason: string;
+};
 export type V2ReviewWhen = {
   kind: "risk-based";
   changedFileRules: V2ChangedFileRule[];
@@ -148,6 +152,12 @@ export type V2ReviewWhen = {
   affectedInvariants: boolean;
   affectedConflicts: boolean;
   removedCurrentPages: boolean;
+  /**
+   * Explicit semantic-change metadata guard.  The field is optional only in
+   * the migration-shaped value returned by parseWikiConfigV2; a repository
+   * cannot pass validation or the canonical gate until it is present.
+   */
+  semanticVerify?: V2SemanticVerify;
 };
 export type WikiConfigV1 = {
   version: 1;
@@ -179,6 +189,8 @@ export type WikiConfigV2 = {
     mode: "required";
     when: V2ReviewWhen;
   };
+  /** Internal read status used to keep malformed v2 config on the v2 path. */
+  configIssue?: "invalid" | "semantic-verify-missing";
 };
 export type WikiConfig = WikiConfigV1 | WikiConfigV2;
 
@@ -232,7 +244,7 @@ export function parseWikiConfigV2(value: unknown): WikiConfigV2 | undefined {
 
   const review = objectRecord(raw.review);
   const when = review == null ? undefined : objectRecord(review.when);
-  if (review == null || !hasOnlyKeys(review, ["mode", "when"]) || review.mode !== "required" || when == null || !hasOnlyKeys(when, ["kind", "changedFileRules", "changedKitOwnedFiles", "affectedInvariants", "affectedConflicts", "removedCurrentPages"]) || when.kind !== "risk-based"
+  if (review == null || !hasOnlyKeys(review, ["mode", "when"]) || review.mode !== "required" || when == null || !hasOnlyKeys(when, ["kind", "changedFileRules", "changedKitOwnedFiles", "affectedInvariants", "affectedConflicts", "removedCurrentPages", "semanticVerify"]) || when.kind !== "risk-based"
     || !Array.isArray(when.changedFileRules)
     || typeof when.changedKitOwnedFiles !== "boolean"
     || typeof when.affectedInvariants !== "boolean"
@@ -248,7 +260,15 @@ export function parseWikiConfigV2(value: unknown): WikiConfigV2 | undefined {
     globs.add(glob);
     changedFileRules.push({ glob, reason: rule.reason.trim() });
   }
-  if (changedFileRules.length === 0 && !when.changedKitOwnedFiles && !when.affectedInvariants && !when.affectedConflicts && !when.removedCurrentPages) return undefined;
+  let semanticVerify: V2SemanticVerify | undefined;
+  if ("semanticVerify" in when) {
+    const rawSemanticVerify = objectRecord(when.semanticVerify);
+    if (rawSemanticVerify == null || !hasOnlyKeys(rawSemanticVerify, ["enabled", "reason"]) || typeof rawSemanticVerify.enabled !== "boolean" || typeof rawSemanticVerify.reason !== "string") return undefined;
+    const reason = rawSemanticVerify.reason.trim();
+    if (reason.length === 0 || (rawSemanticVerify.enabled && reason.length < 20)) return undefined;
+    semanticVerify = { enabled: rawSemanticVerify.enabled, reason };
+  }
+  if (changedFileRules.length === 0 && !when.changedKitOwnedFiles && !when.affectedInvariants && !when.affectedConflicts && !when.removedCurrentPages && !semanticVerify?.enabled) return undefined;
   return {
     version: 2,
     name: raw.name.trim(),
@@ -265,8 +285,34 @@ export function parseWikiConfigV2(value: unknown): WikiConfigV2 | undefined {
         affectedInvariants: when.affectedInvariants,
         affectedConflicts: when.affectedConflicts,
         removedCurrentPages: when.removedCurrentPages,
+        ...(semanticVerify ? { semanticVerify } : {}),
       },
     },
+  };
+}
+
+function invalidV2Config(value: Record<string, unknown>): WikiConfigV2 {
+  const rawEnforcement = objectRecord(value.enforcement);
+  const statusContext = validNonEmptyString(rawEnforcement?.statusContext) ? rawEnforcement.statusContext.trim() : "wiki-ssot/local";
+  return {
+    version: 2,
+    name: validNonEmptyString(value.name) ? value.name.trim() : "Project",
+    highRisk: Array.isArray(value.highRisk) ? value.highRisk.filter((item): item is string => typeof item === "string" && item.trim().length > 0).map((item) => item.trim()) : [],
+    publishesKit: value.publishesKit === true,
+    enforcement: { mode: "local-status", statusContext },
+    localChecks: [],
+    review: {
+      mode: "required",
+      when: {
+        kind: "risk-based",
+        changedFileRules: [],
+        changedKitOwnedFiles: false,
+        affectedInvariants: false,
+        affectedConflicts: false,
+        removedCurrentPages: false,
+      },
+    },
+    configIssue: "invalid",
   };
 }
 
@@ -326,7 +372,14 @@ export function readConfig(view: RepoView): WikiConfig {
   if (!view.exists(".wiki/config.json")) return fallback;
   try {
     const raw = JSON.parse(view.read(".wiki/config.json")) as Record<string, unknown>;
-    if (raw.version === 2) return parseWikiConfigV2(raw) ?? fallback;
+    if (raw.version === 2) {
+      const parsed = parseWikiConfigV2(raw);
+      if (parsed) return parsed.review.when.semanticVerify == null ? { ...parsed, configIssue: "semantic-verify-missing" } : parsed;
+      // Keep malformed v2 policy on the local-status path. Returning the v1
+      // fallback here would let impact/review callers silently change policy
+      // while doctor reports a different configuration failure.
+      return invalidV2Config(raw);
+    }
     const freshContext = parseFreshContextPolicy(raw.freshContext);
     return {
       version: 1,
@@ -356,12 +409,29 @@ export function validateIntegrationSeams(view: RepoView): Finding[] {
     }
     if (configRaw?.version === 2) {
       parsedConfig = parseWikiConfigV2(configRaw);
-      if (!parsedConfig) findings.push({
-        code: "local-status-config-invalid",
-        message: ".wiki/config.json v2 requires local-status enforcement, argv-array localChecks, and a non-inert risk-based review selector",
-        path: ".wiki/config.json",
-        severity: "error",
-      });
+      if (!parsedConfig) {
+        findings.push({
+          code: "local-status-config-invalid",
+          message: ".wiki/config.json v2 requires local-status enforcement, argv-array localChecks, a non-inert risk-based review selector, and a valid semanticVerify {enabled, reason} selector",
+          path: ".wiki/config.json",
+          severity: "error",
+        });
+        const rawReview = objectRecord(configRaw.review);
+        const rawWhen = objectRecord(rawReview?.when);
+        if (rawWhen != null && "semanticVerify" in rawWhen) findings.push({
+          code: "local-status-semantic-verify-invalid",
+          message: ".wiki/config.json review.when.semanticVerify requires boolean enabled and a non-empty reason; enabled true requires a trimmed reason of at least 20 characters",
+          path: ".wiki/config.json",
+          severity: "error",
+        });
+      } else if (parsedConfig.review.when.semanticVerify == null) {
+        findings.push({
+          code: "local-status-semantic-verify-missing",
+          message: ".wiki/config.json v2 review.when.semanticVerify is missing; choose enabled: true with a 20+ character reason or enabled: false explicitly, then rerun wiki:doctor and wiki:check",
+          path: ".wiki/config.json",
+          severity: "error",
+        });
+      }
     } else if (configRaw && configRaw.freshContext == null) {
       findings.push({ code: "fresh-context-config-missing", message: ".wiki/config.json must declare an explicit freshContext policy; missing policy never falls back silently to advisory", path: ".wiki/config.json", severity: "error" });
     } else if (configRaw && !parseFreshContextPolicy(configRaw.freshContext)) {

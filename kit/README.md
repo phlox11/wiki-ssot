@@ -90,13 +90,13 @@ Kit-owned files use the recorded three-way baseline:
 
 After hand-merging an ordinary kit conflict, delete `.kit-new` and rerun with `--accept <path>`. Managed blocks need no acceptance flag: put exactly one valid marked block in the host file and rerun.
 
-New installations contain no active GitHub Actions workflow. An existing version 1 or customized workflow is never deleted merely because it disappeared from the incoming kit. Convert the project-owned configuration explicitly, copy every real host test/typecheck command into version 2 `localChecks`, include the intended workflow removal in that migration PR, and let `wiki:doctor` verify that no legacy active Wiki workflow remains. Historical workflow payloads stay byte-locked under `migrations/v1/**` so compatibility remains testable without shipping a live workflow.
+New installations contain no active GitHub Actions workflow. Their seeded version 2 configuration explicitly enables the reasoned `semanticVerify` selector, so canonical `semantic_change: true` plus `wiki_action: verify` metadata requires independent reconciliation even without another risk signal. An existing version 1 or customized workflow is never deleted merely because it disappeared from the incoming kit. Convert the project-owned configuration explicitly, copy every real host test/typecheck command into version 2 `localChecks`, choose `semanticVerify.enabled` true or false, include the intended workflow removal in that migration PR, and let `wiki:doctor` verify that no legacy active Wiki workflow remains. Historical workflow payloads stay byte-locked under `migrations/v1/**` so compatibility remains testable without shipping a live workflow.
 
 ## Project-owned reconciliation
 
 The seeded files are intentionally not upgraded. Review upstream changelog/contract changes, then update them only when the project needs it:
 
-- `.wiki/config.json` — project name, high-risk paths, local project-check argv, status context, and explicit review policy.
+- `.wiki/config.json` — project name, high-risk paths, local project-check argv, status context, and explicit review policy including the reasoned semantic-verify choice.
 - `.wiki/coverage.json` — maintained implementation/test globs and exclusions.
 - `.wiki/state.json` — source verification evidence, updated through `wiki:verify`.
 - `scripts/wiki/inventories.ts` — optional project-specific generated inventories.
@@ -106,7 +106,7 @@ The bounded-navigation upgrade follows the same ownership split. A pristine inst
 
 The bounded-source upgrade also preserves project ownership. A declaration without `context` keeps the historical `always` meaning, so installing the new engine does not change an existing repository's mandatory read order. Apply does not rewrite Wiki frontmatter; upgrade and dry-run reports summarize legacy omissions as one non-blocking scope warning with the follow-up command. Run `wiki:scope -- --base <ref>` in an explicit repository PR, keep a small set of contract-routing anchors as `always`, and change a genuinely broad declaration to reasoned `catalog` only after reviewing its source and review fan-out. Catalog changes compact reading only: source maps, coverage, hashes, drift, impact, conflicts, and `--full` expansion still use the complete set.
 
-Apply never rewrites project-owned current/proposal/conflict records, configuration, coverage, verification state, inventory adapters, or a project changelog, and it never infers `related`, `affects`, or dependency edges. A customized kit-owned file still follows the normal `.kit-new` merge/`--accept` loop. After upgrade, commit the refreshed generated artifacts only after `wiki:generated -- --check`, `wiki:lint`, `wiki:audit`, and `wiki:doctor` pass.
+Apply never rewrites project-owned current/proposal/conflict records, configuration, coverage, verification state, inventory adapters, or a project changelog, and it never infers `related`, `affects`, or dependency edges. If an existing version 2 configuration omits `semanticVerify`, apply preserves its bytes and returns actionable `needs-reconcile`; the repository owner must choose enabled true or false before doctor and the canonical local gate pass. A temporary pair of reasoned application/package `changedFileRules` can protect an adopter before it installs the selector, but is broader and noisier than metadata-aware selection and should be removed after migration. A customized kit-owned file still follows the normal `.kit-new` merge/`--accept` loop. After upgrade, commit the refreshed generated artifacts only after `wiki:generated -- --check`, `wiki:lint`, `wiki:audit`, and `wiki:doctor` pass.
 
 ## Local result and status
 

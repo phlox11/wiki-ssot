@@ -124,6 +124,7 @@ import type {
   FreshContextTrustPolicy,
   FreshContextPolicy,
   V2ChangedFileRule,
+  V2SemanticVerify,
   V2ReviewWhen,
   StateAudit,
   WikiConfigV1,
@@ -339,6 +340,9 @@ export type {
   StateAudit,
   WikiConfig,
   WikiState,
+  V2ChangedFileRule,
+  V2SemanticVerify,
+  V2ReviewWhen,
 };
 export {
   changedFiles,

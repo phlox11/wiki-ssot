@@ -79,6 +79,10 @@ const KIT_CONFIG_TEMPLATE = jsonStable({
     mode: "required",
     when: {
       kind: "risk-based",
+      semanticVerify: {
+        enabled: true,
+        reason: "Semantic verify metadata catches observable contract changes beyond configured file selectors.",
+      },
       changedFileRules: [
         { glob: ".wiki/config.json", reason: "Wiki enforcement policy itself is changing." },
         { glob: "AGENTS.md", reason: "Agent workflow changes can bypass required Wiki operating procedure." },
