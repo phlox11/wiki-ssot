@@ -18,6 +18,10 @@
     "mode": "required",
     "when": {
       "kind": "risk-based",
+      "semanticVerify": {
+        "enabled": true,
+        "reason": "Semantic verify metadata can declare behavior changes that file risk rules cannot observe."
+      },
       "changedFileRules": [
         { "glob": ".github/pull_request_template.md", "reason": "PR metadata template changes can bypass semantic gate inputs." },
         { "glob": ".wiki/config.json", "reason": "Wiki enforcement policy itself is changing." },

@@ -58,6 +58,7 @@ describe("verification boundaries", () => {
         mode: "required",
         when: {
           kind: "risk-based",
+          semanticVerify: { enabled: true, reason: "Semantic metadata can change review selection." },
           changedFileRules: [{ glob: ".wiki/config.json", reason: "The local enforcement policy itself is changing." }],
           changedKitOwnedFiles: true,
           affectedInvariants: true,
@@ -69,9 +70,27 @@ describe("verification boundaries", () => {
     expect(parseWikiConfigV2(config)?.localChecks[0].id).toBe("project-test");
     expect(parseWikiConfigV2({ ...config, localChecks: [{ id: "project-test", argv: [" bun ", " run ", " test "] }] })?.localChecks[0].argv).toEqual([" bun ", " run ", " test "]);
     expect(parseWikiConfigV2({ ...config, localChecks: [{ id: "a", argv: ["bun"] }, { id: " a ", argv: ["bun"] }] })).toBeUndefined();
-    expect(parseWikiConfigV2({ ...config, review: { ...config.review, when: { ...config.review.when, changedFileRules: [] , changedKitOwnedFiles: false, affectedInvariants: false, affectedConflicts: false, removedCurrentPages: false } } })).toBeUndefined();
+    expect(parseWikiConfigV2({ ...config, review: { ...config.review, when: { ...config.review.when, semanticVerify: { enabled: false, reason: "Disabled explicitly for this ambiguous-selector case." }, changedFileRules: [] , changedKitOwnedFiles: false, affectedInvariants: false, affectedConflicts: false, removedCurrentPages: false } } })).toBeUndefined();
     expect(parseWikiConfigV2({ ...config, freshContext: {} })).toBeUndefined();
     expect(parseWikiConfigV2({ ...config, enforcement: { ...config.enforcement, unexpected: true } })).toBeUndefined();
+    expect(parseWikiConfigV2({ ...config, review: { ...config.review, when: { ...config.review.when, semanticVerify: { enabled: true, reason: "short" } } } })).toBeUndefined();
+    expect(parseWikiConfigV2({ ...config, review: { ...config.review, when: { ...config.review.when, semanticVerify: { enabled: false, reason: "Disabled explicitly for this adopter." } } } })?.review.when.semanticVerify).toEqual({ enabled: false, reason: "Disabled explicitly for this adopter." });
+    const semanticOnly = parseWikiConfigV2({
+      ...config,
+      review: {
+        ...config.review,
+        when: {
+          ...config.review.when,
+          semanticVerify: { enabled: true, reason: "Semantic metadata is the explicit review selector." },
+          changedFileRules: [],
+          changedKitOwnedFiles: false,
+          affectedInvariants: false,
+          affectedConflicts: false,
+          removedCurrentPages: false,
+        },
+      },
+    });
+    expect(semanticOnly?.review.when.semanticVerify?.enabled).toBe(true);
     const parsedV2 = parseWikiConfigV2(config);
     expect(validatePrMetadata([
       "change_type: refactor",
@@ -133,6 +152,33 @@ describe("verification boundaries", () => {
     expect(config.publishesKit).toBe(true);
     expect(isHighRisk(config, "src/contracts/api.ts")).toBe(true);
     expect(isHighRisk(config, "src/ui.ts")).toBe(false);
+  });
+
+  test("keeps a missing v2 semantic selector parseable only for migration diagnostics", () => {
+    const config = {
+      version: 2,
+      name: "migration",
+      publishesKit: false,
+      enforcement: { mode: "local-status", statusContext: "wiki-ssot/local" },
+      localChecks: [{ id: "project-test", argv: ["bun", "run", "test"] }],
+      review: {
+        mode: "required",
+        when: {
+          kind: "risk-based",
+          changedFileRules: [{ glob: ".wiki/config.json", reason: "The local enforcement policy itself is changing." }],
+          changedKitOwnedFiles: false,
+          affectedInvariants: false,
+          affectedConflicts: false,
+          removedCurrentPages: false,
+        },
+      },
+    };
+    expect(parseWikiConfigV2(config)?.review.when.semanticVerify).toBeUndefined();
+    const migrationView = view({ ".wiki/config.json": jsonStable(config) });
+    expect(readConfig(migrationView)).toMatchObject({ version: 2, configIssue: "semantic-verify-missing" });
+    expect(validateIntegrationSeams(migrationView).map((item) => item.code)).toContain("local-status-semantic-verify-missing");
+    const malformed = { ...config, review: { ...config.review, when: { ...config.review.when, semanticVerify: { enabled: true, reason: "too short" } } } };
+    expect(validateIntegrationSeams(view({ ".wiki/config.json": jsonStable(malformed) })).map((item) => item.code)).toEqual(expect.arrayContaining(["local-status-config-invalid", "local-status-semantic-verify-invalid"]));
   });
 
   test("fails closed on coverage omissions and malformed integration policy", () => {

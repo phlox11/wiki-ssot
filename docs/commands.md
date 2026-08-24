@@ -14,10 +14,10 @@ All commands are `bun run wiki:<name>`; each maps to `bun scripts/wiki/cli.ts <n
 | `wiki:work` | With no query or ID, derive the complete proposal work graph and recommend the highest-priority active or ready `agent`/`either` item. The default text/JSON shows active, ready, waiting, and blocked details plus deferred/done counts; `--all` exposes deferred and done rows. `-- --executor agent` shows agent/either, `human` shows human/either for handoff, and `all` shows every executor; human-exclusive work is never auto-recommended. | — |
 | `wiki:context -- "<terms>"` | The default topic entrypoint: it performs deterministic matching and returns the current pages, open conflicts, non-current rationale, and sources an agent should read in one call. Query and `-- --work <ID>` default to a compact text/JSON projection with authority labels, paths, summaries, body digests, focused commands, mandatory `always` sources, catalog set descriptors, page-local conflict IDs, and an invariant → conflict → current-page → mandatory-source read order. Catalog descriptors carry the declaration/reason/count/bytes/digest and an expansion command, not every matched path. Add `--full` for the exhaustive body/source-complete representation. Complete matches keep the current selection semantics; partial-only matches return ordered compact candidates before source expansion, and each page candidate links to exact `-- --page <ID> --full` context. Also accepts `-- --conflict C-NNN` or `-- --base <ref>`; selectors cannot be combined. For a selected work item at a clean committed HEAD, `--work <ID> --artifact <path> --metadata <pr-body> --base <ref>` writes a bounded body-free handoff, while replacing `--artifact` with `--reuse` validates every binding before reuse. | — |
 | `wiki:conflicts` | List open conflicts. `-- C-NNN` prints one resolution contract; `-- --all` includes resolved. | — |
-| `wiki:review-preflight -- --base <ref> --metadata <file> [--output <dir>] [--report <file>]` | Before opening a PR, classify risk, prepare the exact independent-review bundle, or validate the returned report. Version 2 needs no PR-body report mirror or GitHub actor assertion. | pre-PR |
+| `wiki:review-preflight -- --base <ref> --metadata <file> [--output <dir>] [--report <file>]` | Before opening a PR, classify risk from canonical metadata and configured signals, prepare the exact independent-review bundle, or validate the returned report. An enabled v2 `semanticVerify` selector selects canonical semantic `verify` metadata even when no path signal applies. Version 2 needs no PR-body report mirror or GitHub actor assertion. | pre-PR |
 | `wiki:review-bundle -- --base <ref> --metadata <file>` | Write a deterministic content-addressed bundle with `manifest.json`, `focused-manifest.json`, reviewer instructions, and a report example. Wiki/conflict bodies are stored once by digest; overlapping roles and changed/authority/test/supporting source classifications remain explicit and validated. | review input |
 | `wiki:review-check -- --base <ref> --metadata <file> [--report <file>]` | Evaluate trusted risk policy and return `required`/reasons. When required, recompute the current manifest and validate report schema, PASS, evidence, and exact SHA/digests. Version 1 additionally retains authenticated actor/mirror validation. | local review gate |
-| `wiki:doctor` | Project the shared repository validation's integration seam: explicit config, versioned managed AGENTS markers and stable required rule IDs, canonical commands, semantic PR template, and enforcement-mode consistency. It does not interpret natural-language prose. Version 2 reports actionable reconciliation when legacy Wiki workflows remain active. | local gate |
+| `wiki:doctor` | Project the shared repository validation's integration seam: explicit config, versioned managed AGENTS markers and stable required rule IDs, canonical commands, semantic PR template, and enforcement-mode consistency. It does not interpret natural-language prose. Version 2 reports actionable reconciliation when `semanticVerify` is omitted or legacy Wiki workflows remain active. | local gate |
 | `wiki:check -- --base <ref>` | Legacy convenience projection: lint + generated + impact. Its flags and output remain compatible when `--output` is absent. | local convenience |
 | `wiki:check -- --base <ref> --metadata <file> [--report <file>] --output <result.json>` | Canonical local gate. Writes an exact result binding committed HEAD, resolved base/merge-base, metadata digest, structural/state/scope/impact/review summaries and findings, configured v2 argv checks, and a deterministic digest. Scope makes new/changed source intent fail closed while legacy omissions remain warnings. Changed toolkit-owned files select Wiki tooling typecheck + the full tooling suite; publisher mode also runs kit freshness/growth guards. Explicit metadata/report/output paths are the only permitted worktree exceptions. | required local gate |
 | `wiki:publish -- --result <result.json> [--repo owner/repo] [--pr N]` | Revalidates the result, clean local HEAD, and remote PR head; upserts one `wiki-ssot:local-status` comment, then posts the configured v2 status context. Warnings are successful status; API failures are non-zero. | protected GitHub status |
@@ -105,6 +105,15 @@ You changed a source but the page's meaning is unchanged:
 bun run wiki:verify -- --page architecture/api --unchanged "internal refactor only, exported behavior identical"
 ```
 
+That command refreshes deterministic source hashes and records the author's
+unchanged claim. It does not prove that current authority already states every
+observable behavior established by the candidate. With v2
+`review.when.semanticVerify.enabled: true`, canonical `semantic_change: true`
+plus `wiki_action: verify` metadata independently selects review. The reviewer
+must name each changed user- or operator-observable behavior and cite the
+current-authority text that states it; relevance, fresh hashes, ledger
+freshness, and the unchanged reason are insufficient by themselves.
+
 Fresh-context review:
 
 ```sh
@@ -117,7 +126,7 @@ bun run wiki:review-preflight -- --base origin/main --metadata pr-body.md \
   --report report.json --json
 ```
 
-Preflight returns `not-required`, `review-required`, `needs-reconcile`, or `pass`. A required `NEEDS_RECONCILE` report must identify the exact discrepancy, controlling authority, required code/wiki/test change, and acceptance criteria. The authoring agent dispositions each finding before opening the PR — fixing what this candidate broke or declared, tracking a pre-existing mismatch or undecidable intent in an open conflict, or recording a named follow-up — and reruns preflight on the new HEAD.
+Preflight returns `not-required`, `review-required`, `needs-reconcile`, or `pass`. A required `NEEDS_RECONCILE` report must identify the exact discrepancy, controlling authority, required code/wiki/test change, and acceptance criteria. A clear observable contract absent from current authority is `declared_contract_violation` and must be fixed in the candidate's Wiki and metadata before PASS. Genuinely undecided intent is `decision_ambiguity` and requires an open conflict rather than an invented answer. The authoring agent dispositions each finding before opening the PR and reruns preflight on the new HEAD.
 
 The report is JSON/YAML with exact bindings, reviewer, evidence, and summary or findings. `version: 1` carries free-text findings and stays accepted. `version: 2` carries structured findings: `id`, `classification`, `disposition`, `scope_refs`, `discrepancy`, `authority`, `evidence`, and `acceptance_criteria`, where `conflict_introduced`/`existing_conflict_linked` require `conflict_id`, `followup_created` requires `followup_ref`, and `dismissed_with_reason` requires a 20+ character `dismissal_reason`. A `PASS` may not carry an `unresolved` finding; `recorded` retires nothing and is confined to a `suggestion`. A fixed table decides which dispositions retire which classification — `candidate_regression` and `declared_contract_violation` accept only `fixed` or `unresolved`, and `decision_ambiguity` accepts those plus a conflict disposition but never a dismissal or follow-up — and a `conflict_id` must resolve to a conflict open at the reviewed HEAD whose conflict type matches where the classification implies one, whose `origin` is `baseline` when the classification says the problem predates the candidate, and whose affected pages overlap the finding's `page:` scope refs, which a finding declaring none cannot satisfy. `unrelated_defect` implies no type, and `decision_ambiguity` is exempt from the `origin` rule.
 
@@ -125,7 +134,10 @@ After local PASS, run canonical `wiki:check`, open or update the PR, and publish
 that result. A new commit has no status and is blocked until the gate is rerun.
 Version 2 keeps review evidence in the separate report and requires only the
 semantic metadata block in the PR body. Its explicit risk selector has no
-implicit all-PR fallback.
+implicit all-PR fallback. The reasoned `semanticVerify` sub-selector must be
+present; enabled true selects semantic `verify`, while explicit false preserves
+the remaining path, kit, invariant, conflict, and removal signals. Omission is
+a migration diagnostic and cannot pass doctor or the canonical local gate.
 
 Version 1 remains compatible: `fresh_context`, authenticated actor checks,
 `requiredWhen` omission, and `--reviewer-actor`/`--pr-author` retain their old

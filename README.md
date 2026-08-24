@@ -19,7 +19,7 @@ It is derived from Andrej Karpathy's [LLM wiki](https://gist.github.com/karpathy
 - When intent is unclear or code and wiki disagree, you open a **conflict** — a first-class, machine-tracked record with acceptance criteria — instead of guessing.
 - Proposal frontmatter carries a validated, repository-wide **work queue**. An optional `executor: agent | human | either` classifies who can perform a task independently from its lifecycle state; omission remains backward-compatible `agent`. A fresh session can run `wiki:work` with no topic, node, or task ID, see actionable work without auto-selecting human work, and keep deferred/done detail behind `--all`; it then loads a selected item's current invariants, context pages, conflicts, sources, and non-current proposal owner through a compact default projection. Stable digests and focused commands route to detail, while `wiki:context -- --full` retains exhaustive body inspection.
 - A bounded **`wiki/index.md` entrypoint** routes by first path group into a complete generated catalog. Current-status exposes current/proposal, outstanding/done work, open/resolved conflict, and archived/deprecated totals; a generated relationship graph exposes declared page/work links without changing authority or validation semantics.
-- `wiki:review-preflight` decides whether independent reconciliation is required before a PR exists, prepares an exact content-addressed bundle with focused authority/source/test roles, and validates the separate review context's report. `wiki:check` binds that report and every deterministic check to the committed HEAD; `wiki:publish` refuses stale evidence before posting the protected status.
+- `wiki:review-preflight` decides whether independent reconciliation is required before a PR exists, including canonical semantic `verify` metadata when the reasoned v2 `semanticVerify` selector is enabled. It prepares an exact content-addressed bundle with focused authority/source/test roles and validates the separate review context's report. `wiki:check` binds that report and every deterministic check to the committed HEAD; `wiki:publish` refuses stale evidence before posting the protected status.
 
 Full rationale: [docs/design.md](docs/design.md).
 
@@ -135,7 +135,8 @@ owned engine files and package commands, but does not rewrite project-owned
 Wiki pages/configuration or delete an existing workflow. Declarations without
 `context` remain `always`. In one repository-owned migration PR, copy the
 actual old workflow commands into `localChecks`, run `wiki:scope` to classify
-only reviewed broad declarations, delete the workflow explicitly, publish the
+only reviewed broad declarations, choose `semanticVerify.enabled` true or
+false, delete the workflow explicitly, publish the
 exact PR HEAD status, and only then replace the branch requirement. The full
 sequence and rollback-safe ownership rules are in the [existing-repository
 playbook](docs/adopt-existing-repo.md) and [kit upgrade contract](kit/README.md).
@@ -160,11 +161,11 @@ That is this repository's layout. Nothing outside [`kit/`](kit/README.md) travel
 
 Three project seams make it yours; everything else is generic:
 
-- **`.wiki/config.json`** — version 2 names the repository, local-status context, argv-based project checks, and explicit reasoned review-selection signals. Version 1 Fresh-context policy remains readable for compatibility.
+- **`.wiki/config.json`** — version 2 names the repository, local-status context, argv-based project checks, and explicit reasoned review-selection signals including `semanticVerify`. Version 1 Fresh-context policy remains readable for compatibility.
 - **`.wiki/coverage.json`** — the implementation/test globs that must map to current pages, plus any narrowly reasoned exclusions.
 - **`scripts/wiki/inventories.ts`** — optional. Teach the engine to emit deterministic `wiki/_generated/**` pages from your stack; read `kit/scripts/wiki/inventories.example.ts` in a wiki-ssot checkout for a worked adapter.
 
-Version 2 requires an explicit risk-based selector; it never falls back to all-PR review. Every changed-file rule carries a reason, actual kit-owned changes are selected from the kit manifest, and invariant/conflict/removal signals remain available. Local status proves exact evidence, not a distinct GitHub reviewer identity. A version 1 team that requires a different authenticated actor stays on its external enforcement path until it deliberately changes that trust policy.
+Version 2 requires an explicit risk-based selector; it never falls back to all-PR review. Enabled `semanticVerify` selects canonical `semantic_change: true` plus `wiki_action: verify` even without another signal, and carries its 20+ character reason into the review requirement. Explicit false preserves changed-file, kit-owned, invariant, conflict, and removal selection. Omission is only migration-readable and cannot pass doctor or the canonical gate. Source-hash verification and an author unchanged reason prove ledger freshness, not that current authority already states every observable behavior; that comparison belongs to the independent reviewer. Local status proves exact evidence, not a distinct GitHub reviewer identity. A version 1 team that requires a different authenticated actor stays on its external enforcement path until it deliberately changes that trust policy.
 
 ## Required integration seam
 

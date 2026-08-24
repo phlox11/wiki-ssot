@@ -423,11 +423,33 @@ export function reviewCheck(view: RepoView, pages: WikiPage[], options: {
   const manifest = buildReviewManifest(view, pages, impact, options.metadata);
   const config = readConfig(view);
   if (config.version === 2) {
+    if (config.configIssue != null) {
+      const missing = config.configIssue === "semantic-verify-missing";
+      return {
+        ok: false,
+        mode: "required",
+        manifest,
+        impact,
+        required: true,
+        requirementReasons: [missing
+          ? "v2 semanticVerify selector is missing; choose enabled true or false before independent review can be evaluated"
+          : "v2 local-status configuration is malformed; repair semanticVerify and the surrounding selector before independent review can be evaluated"],
+        findings: [{
+          code: missing ? "local-status-semantic-verify-missing" : "local-status-semantic-verify-invalid",
+          message: missing
+            ? ".wiki/config.json v2 review.when.semanticVerify is missing; choose enabled: true with a 20+ character reason or enabled: false explicitly"
+            : ".wiki/config.json v2 review.when.semanticVerify is invalid; repair enabled and reason before independent review can be evaluated",
+          path: ".wiki/config.json",
+          severity: "error",
+        }],
+      };
+    }
     const requirement = evaluateLocalReviewRequirement(
       config.review.when,
       manifest,
       impact,
       kitOwnedChangedFiles(view, impact.changedFiles),
+      options.metadata,
     );
     if (!requirement.applies) {
       return {

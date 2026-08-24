@@ -356,6 +356,7 @@ function reviewBundleFiles(view: RepoView, pages: WikiPage[], report: ImpactRepo
     focusedManifest: "focused-manifest.json",
   });
   files["focused-manifest.json"] = jsonStable(focused.manifest);
+  const semanticVerifyGuidance = metadata?.semantic_change === true && metadata.wiki_action === "verify" ? "\n## Semantic-verify candidate\n\nEnumerate every changed user- or operator-observable behavior and cite current-authority text for each. Page relevance, refreshed source hashes, verification-ledger freshness, and the author's unchanged reason are insufficient. Missing clear contract => declared_contract_violation; fix Wiki and metadata before PASS. Undecided intent => decision_ambiguity; open a conflict, never invent." : "";
   files["PROMPT.md"] = `# Fresh-context wiki reconciliation
 
 Read \`manifest.json\`, \`focused-manifest.json\`, \`impact.json\`, \`pr-metadata.json\`, \`diff.patch\`, \`objects/**\`, and \`sources.json\`. The focused manifest is the single deterministic index of reviewer inputs: body roles point at content-addressed \`objects/<sha256>.md\` files, while source roles carry changed, affected-authority, relevant-test, and supporting provenance. An affected page that is also an invariant intentionally has two role records sharing one object digest. Removed-page and conflict role aliases, when present for compatibility, are filesystem links to those objects rather than second body copies; reviewers should read the object path recorded by the role. Inspect the referenced repository primary sources directly. Verify current behavior, intent, invariants, conflict actions, acceptance criteria, and sources independently. Do not trust the author summary and do not resolve an open decision conflict without an explicit owner decision.
@@ -374,6 +375,7 @@ Return the report as:
 - \`NEEDS_RECONCILE\` when anything is stale, unsupported, ambiguous, or violates an invariant or conflict resolution contract and is not yet tracked anywhere.
 
 Scope is not permission to be exhaustive about the repository: a finding must bind to this candidate's diff, declared metadata, affected pages, invariants, or conflicts.
+${semanticVerifyGuidance}
 `;
   files["REPORT.md"] = `# Fresh-context report contract
 
@@ -404,6 +406,9 @@ A disposition naming a conflict must name one that is open at the reviewed HEAD,
 A \`version: 1\` report with free-text \`findings\` is still accepted so an in-flight review is not invalidated, but it cannot express a disposition. Prefer version 2.
 
 Publish the report through the repository's trusted attestation channel. A report in the author's editable PR body is only a status mirror and is not proof of independent review.
+${semanticVerifyGuidance}
+
+For a semantic-verify candidate, the report's summary/evidence must enumerate each changed user- or operator-observable behavior and cite the current-authority text that states each one. Treat source-hash freshness, page relevance, verification-ledger freshness, and an author's unchanged reason as insufficient without that behavior-to-authority comparison. A missing clear contract is a declared_contract_violation requiring a Wiki and metadata fix before PASS; undecided intent is decision_ambiguity and must be tracked by an open conflict rather than invented.
 `;
   files["REPORT.example.json"] = jsonStable({
     version: 2,

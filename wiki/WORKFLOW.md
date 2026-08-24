@@ -12,6 +12,7 @@
 
 - Behavior/intent change: update sources, affected current pages, and tests together.
 - No semantic change: verify affected pages with a reason of at least 20 characters.
+- Semantic change with unchanged Wiki: declare `semantic_change: true` and `wiki_action: verify`. When v2 `review.when.semanticVerify` is enabled, that metadata requires independent review even if no path signal matches; source-hash freshness and the author's unchanged reason do not prove that current authority already states the changed behavior.
 - Future idea: create a `status: proposed` page under `wiki/proposals/**`; do not edit current behavior as if already shipped.
 - Proposed backlog: store structured `work_items` in proposal frontmatter. Classify the optional executor independently from state, update state and durable evidence in the same PR as the work, and keep the generated `wiki/work-queue.md` read-only. `either` selects who can execute; it does not expand permissions.
 - Unclear disagreement: create a structured page under `wiki/conflicts/open/**` and stop treating the disputed fact as current.
@@ -39,7 +40,7 @@ publisher-only: the downstream package fragment intentionally omits
 
 Commit the complete candidate first so the review binds an exact HEAD. Fill the prospective semantic PR metadata block before preflight; keep metadata, report, bundle, and result artifacts outside the repository or pass them explicitly. Any other uncommitted or untracked candidate file makes preflight fail instead of silently reviewing an incomplete HEAD. No PR needs to exist yet. `status: not-required` means the explicit risk policy selected no independent semantic review.
 
-`status: review-required` includes a deterministic bundle. `focused-manifest.json` references content-addressed page/conflict objects and distinguishes changed sources, directly affected authority sources, relevant tests, and supporting sources with non-exclusive roles and declaration provenance; a required input cannot disappear behind a broad glob. The authoring agent gives the bundle to a context-isolated reviewer or context-free review sub-agent—not to its own authoring context. The reviewer follows the focused manifest, reads the named primary sources, and performs narrow SSOT reconciliation: code, tests, current wiki, metadata, invariants, and conflicts must make the same semantic claims. It returns the report described by `REPORT.md`: version 2 structured findings are preferred, and version 1 free-text findings remain accepted so a report prepared before an engine upgrade is not invalidated.
+`status: review-required` includes a deterministic bundle. `focused-manifest.json` references content-addressed page/conflict objects and distinguishes changed sources, directly affected authority sources, relevant tests, and supporting sources with non-exclusive roles and declaration provenance; a required input cannot disappear behind a broad glob. The authoring agent gives the bundle to a context-isolated reviewer or context-free review sub-agent—not to its own authoring context. The reviewer follows the focused manifest, reads the named primary sources, and performs narrow SSOT reconciliation: code, tests, current wiki, metadata, invariants, and conflicts must make the same semantic claims. For a semantic `verify` candidate, it enumerates each changed user- or operator-observable behavior and cites current-authority text that already states the contract. Page relevance, source-hash refresh, verification-ledger freshness, and the author's unchanged reason are insufficient. A clear missing contract is a `declared_contract_violation` fixed in Wiki and metadata before PASS; undecided intent is `decision_ambiguity` recorded in an open conflict rather than invented. The reviewer returns the report described by `REPORT.md`: version 2 structured findings are preferred, and version 1 free-text findings remain accepted so a report prepared before an engine upgrade is not invalidated.
 
 ```sh
 bun run wiki:review-preflight -- --base origin/main --metadata /path/to/pr-body.md \
@@ -53,6 +54,13 @@ A change to `scripts/wiki/**` that alters bundle content also generates its own 
 After preflight PASS, run canonical `wiki:check --output` with the same metadata and report. Open or update the PR, then run `wiki:publish` for that result. Publication verifies the clean local HEAD and remote PR head before it writes the configured commit status. Any new commit or semantic metadata change invalidates the report and result; the new SHA has no protected status until both steps are repeated. Version 2 needs no Draft-to-Ready transition, attestation comment, authenticated reviewer actor, or PR-body report mirror. The authoring context still may not create its own required PASS.
 
 Version 1 retains its authenticated actor and mirror semantics for compatibility. A first migration PR may carry one last mirror for a merge-base v1 workflow; version 2 ignores it. A v1 policy with `requireDifferentActor: true` is not automatically converted because local status proves exact evidence, not distinct GitHub identities. If the code-agent environment cannot create an isolated reviewer and no external reviewer is available, stop before opening the PR and ask for that capability.
+
+Version 2 repositories must also choose `review.when.semanticVerify.enabled`
+explicitly. New installations enable it with a concrete reason. Upgrade preserves
+project-owned `.wiki/config.json`; omission therefore returns actionable
+reconciliation until the adopter chooses true or false. As a temporary bridge,
+reasoned application/package changed-file rules can select a wider set of
+candidates, but they are broader and noisier than the metadata-aware selector.
 
 Generated catalog, cumulative status, relationship graph, and reverse maps are projections of the same repository records. Never hand-edit them or treat them as a replacement for current pages and primary sources. Toolkit upgrades rebuild those projections through the ordinary `apply.ts` loop without rewriting project-owned current pages, proposals, conflicts, configuration, coverage, verification state, or changelog.
 

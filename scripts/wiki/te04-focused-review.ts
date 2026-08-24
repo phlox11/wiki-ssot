@@ -190,6 +190,18 @@ export function measureTe04FocusedReview(root = PROJECT_ROOT): Te04FocusedReview
 
     const cli = join(candidateRoot, CLI_PATH);
     const page = join(candidateRoot, "wiki/architecture/engine.md");
+    const configPath = join(candidateRoot, ".wiki/config.json");
+    const config = JSON.parse(readFileSync(configPath, "utf8")) as {
+      version?: unknown;
+      review?: { when?: Record<string, unknown> };
+    };
+    if (config.version === 2 && config.review?.when && !("semanticVerify" in config.review.when)) {
+      config.review.when.semanticVerify = {
+        enabled: false,
+        reason: "TE-04 preserves the existing risk-based review selector.",
+      };
+      writeFileSync(configPath, `${jsonStable(config)}\n`, "utf8");
+    }
     // The harness is also runnable from a dirty authoring checkout. Copy the
     // engine dependency closure into the disposable candidate so its exact
     // implementation revision includes the current focused-review code; the
@@ -219,7 +231,7 @@ export function measureTe04FocusedReview(root = PROJECT_ROOT): Te04FocusedReview
     // new verification or snapshot commit.
     if (!historicalDependencyFallback && copiedEngineDiffersFromRepository) {
       required(candidateRoot, [cli, "verify", "--page", "architecture/engine"]);
-      requiredExternal(candidateRoot, ["git", "add", ...enginePathsInRoot, ".wiki/state.json"]);
+      requiredExternal(candidateRoot, ["git", "add", ...enginePathsInRoot, ".wiki/state.json", ".wiki/config.json"]);
       const staged = Bun.spawnSync(["git", "diff", "--cached", "--quiet"], { cwd: candidateRoot, stdout: "pipe", stderr: "pipe" });
       if (staged.exitCode !== 0 && staged.exitCode !== 1) throw new Error(staged.stderr.toString().trim() || "unable to inspect TE-04 engine snapshot");
       if (staged.exitCode === 1) {

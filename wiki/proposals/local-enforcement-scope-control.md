@@ -154,7 +154,7 @@ work_items:
       - kit/README.md
   - id: LS-05
     title: Define the semantic-verify configuration and migration contract
-    state: not-started
+    state: done
     executor: agent
     priority: critical
     depends_on: [LS-04]
@@ -165,10 +165,17 @@ work_items:
       - Missing, malformed, disabled, and enabled semanticVerify states produce deterministic configuration findings without silently falling back to version 1 behavior or changing version 1 compatibility.
       - The publisher and new-install seed explicitly enable semanticVerify, while upgrade never rewrites an existing adopter's project-owned .wiki/config.json.
       - Focused configuration, doctor, apply, publisher, and kit tests bind the schema, migration finding, and default policy.
-    evidence: []
+    evidence:
+      - .wiki/config.json
+      - kit/seed/.wiki/config.json
+      - scripts/wiki/verification.ts
+      - scripts/wiki/verification.test.ts
+      - scripts/wiki/apply.test.ts
+      - scripts/wiki/kit.test.ts
+      - https://github.com/phlox11/wiki-ssot/pull/62
   - id: LS-06
     title: Select independent review from canonical semantic metadata
-    state: not-started
+    state: done
     executor: agent
     priority: critical
     depends_on: [LS-05]
@@ -179,10 +186,16 @@ work_items:
       - Semantic false plus verify, semantic true plus update, and an explicitly disabled selector remain not-required unless another configured signal independently selects them.
       - The existing exact HEAD, merge-base, metadata digest, bundle digest, report, and local-result bindings make any metadata or candidate revision change invalidate prior evidence.
       - Focused requirement, preflight, local-check, and stale-evidence tests cover every selection and invalidation branch.
-    evidence: []
+    evidence:
+      - scripts/wiki/impact.ts
+      - scripts/wiki/review-attestation.ts
+      - scripts/wiki/local-check.ts
+      - scripts/wiki/local-check.test.ts
+      - scripts/wiki/cli-review-handlers.ts
+      - https://github.com/phlox11/wiki-ssot/pull/62
   - id: LS-07
     title: Reconcile observable behavior against actual current authority
-    state: not-started
+    state: done
     executor: agent
     priority: high
     depends_on: [LS-06]
@@ -192,10 +205,16 @@ work_items:
       - Page relevance, refreshed source hashes, verification-ledger freshness, and the author's unchanged reason are explicitly insufficient evidence that current authority is semantically complete.
       - A clear changed behavior missing from current authority is reported as a declared contract violation that must be fixed by updating the Wiki and metadata before PASS; genuinely undecided intent is reported as decision ambiguity and requires an open conflict rather than an invented decision.
       - Generated prompt and report-contract tests preserve the classification, disposition, evidence, and acceptance-criteria rules for both PASS and NEEDS_RECONCILE.
-    evidence: []
+    evidence:
+      - scripts/wiki/review-bundle.ts
+      - scripts/wiki/fresh-context-report.test.ts
+      - scripts/wiki/fresh-context-manifest.test.ts
+      - wiki/product/invariants.md
+      - wiki/architecture/engine.md
+      - https://github.com/phlox11/wiki-ssot/pull/62
   - id: LS-08
     title: Ship portable defaults, migration guidance, and SSOT documentation
-    state: not-started
+    state: done
     executor: agent
     priority: high
     depends_on: [LS-07]
@@ -206,10 +225,19 @@ work_items:
       - Current engine, enforcement, invariant, and product-scope authority describe metadata-aware review selection without claiming that deterministic tooling can infer missing product intent.
       - A temporary downstream workaround using reasoned application and package changed-file rules is documented as broader and noisier than the semantic selector.
       - Generated Wiki and kit artifacts are regenerated from their owning sources and pass freshness checks.
-    evidence: []
+    evidence:
+      - wiki/SCHEMA.md
+      - wiki/WORKFLOW.md
+      - docs/commands.md
+      - docs/design.md
+      - docs/adopt-new-repo.md
+      - docs/adopt-existing-repo.md
+      - kit/README.md
+      - kit/files/.wiki/kit-manifest.json
+      - https://github.com/phlox11/wiki-ssot/pull/62
   - id: LS-09
     title: Validate the WorldSweeper-equivalent regression and exact combined delivery
-    state: not-started
+    state: done
     executor: agent
     priority: high
     depends_on: [LS-08]
@@ -220,7 +248,13 @@ work_items:
       - Missing reports fail, valid independent PASS reports succeed, and metadata or HEAD changes make prior reports and local results stale.
       - One exact combined revision passes generated, kit, lint, audit, impact, typecheck, full Wiki tooling tests, review-preflight, independent SSOT reconciliation, canonical wiki:check, and local-status publication.
       - LS-05 through LS-09 are marked done only with durable code, test, Wiki, documentation, bundle, report, result, and pull-request evidence from that combined delivery.
-    evidence: []
+    evidence:
+      - scripts/wiki/local-check.test.ts
+      - scripts/wiki/fresh-context-report.test.ts
+      - .wiki/state.json
+      - kit/files/.wiki/kit-manifest.json
+      - https://github.com/phlox11/wiki-ssot/pull/62
+      - https://github.com/phlox11/wiki-ssot/pull/62#issuecomment-5395168427
 ---
 
 # Local enforcement and bounded scope

@@ -240,6 +240,16 @@ describe("fresh-context structured findings", () => {
     expect(contract).toContain("adjudicates which disposition may retire which classification");
     expect(contract).toContain("`origin: baseline`");
 
+    const semanticMetadata = metadata({ wiki_action: "verify" });
+    const semanticDirectory = makeReviewBundle(view, pages, impactReport(view, pages, { base: "HEAD~1", metadata: semanticMetadata }), undefined, semanticMetadata);
+    temporary.push(semanticDirectory);
+    const semanticPrompt = readFileSync(join(semanticDirectory, "PROMPT.md"), "utf8");
+    const semanticContract = readFileSync(join(semanticDirectory, "REPORT.md"), "utf8");
+    for (const text of ["user- or operator-observable behavior", "current-authority text", "declared_contract_violation", "decision_ambiguity", "verification-ledger freshness", "author's unchanged reason"]) {
+      expect(semanticPrompt).toContain(text);
+      expect(semanticContract).toContain(text);
+    }
+
     const example = JSON.parse(readFileSync(join(directory, "REPORT.findings.example.json"), "utf8")) as FreshContextReportV2;
     expect(example.version).toBe(2);
     expect(validateFreshContextFindings(example.findings, "error")).toEqual([]);

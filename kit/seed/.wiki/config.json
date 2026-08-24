@@ -48,7 +48,11 @@
       ],
       "changedKitOwnedFiles": true,
       "kind": "risk-based",
-      "removedCurrentPages": true
+      "removedCurrentPages": true,
+      "semanticVerify": {
+        "enabled": true,
+        "reason": "Semantic verify metadata catches observable contract changes beyond configured file selectors."
+      }
     }
   },
   "version": 2
