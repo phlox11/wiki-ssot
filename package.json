@@ -30,6 +30,7 @@
     "wiki:audit": "bun scripts/wiki/cli.ts audit",
     "wiki:publish": "bun scripts/wiki/cli.ts publish",
     "wiki:scope": "bun scripts/wiki/cli.ts scope",
+    "wiki:reconcile": "bun scripts/wiki/cli.ts reconcile",
     "wiki:hooks:install": "husky",
     "wiki:tooling:typecheck": "tsc --noEmit -p scripts/wiki/tsconfig.json",
     "wiki:tooling:test": "bun scripts/wiki/test-runner.ts",

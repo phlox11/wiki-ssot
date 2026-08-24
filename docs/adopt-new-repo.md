@@ -81,6 +81,19 @@ Because the wiki grows *with* the code, each page is verified by the same PR tha
 
 ## 4. Turn on the rails and maintain
 
+If the project later accumulates drift and nobody knows which page is affected,
+start one repository-wide coding-agent pass with:
+
+```sh
+bun run wiki:reconcile
+```
+
+It deterministically lists every current page and its bounded source/conflict
+context. The agent completes all returned pages, reflects clear observed code
+behavior into current Wiki, records ambiguity as conflicts, and verifies pages
+only after semantic reconciliation. The command itself never rewrites Wiki or
+state.
+
 Same as an existing repo — preserve the versioned managed AGENTS block and its stable required rule IDs, together with the canonical `wiki:work` script and structured semantic PR metadata. The typed rules route session authority, no-query work, human handoff, selected work, direct topic context, and the non-current boundary without asking doctor to interpret arbitrary prose. A plain question about remaining work starts with `bun run wiki:work`; human-exclusive work stays visible for handoff, while selected recommended agent/either work uses its printed selected-context command. Run `wiki:review-preflight` before publication and reconcile required bundles through a separate review context. Then run the exact local gate, open or update the PR, and publish the result:
 
 ```sh

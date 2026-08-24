@@ -62,6 +62,8 @@ export const MANAGED_AGENT_RULES: readonly ManagedAgentRule[] = [
     statements: [
       "Read affected current pages and their context: always sources directly; expand context: catalog sources when the task or evidence requires them.",
       "Do not rely on a compact wiki summary as a substitute for the listed implementation evidence.",
+      "For a broad repository-wide Wiki/code synchronization request, run bun run wiki:reconcile and complete every returned current page.",
+      "Never mass-verify before semantic reconciliation; update clear code-observed contracts and open conflicts for ambiguity instead of inventing a decision.",
     ],
   },
   {

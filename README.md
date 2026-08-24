@@ -79,6 +79,33 @@ Two paths, each a step-by-step playbook with copy-paste commands:
 
 Full command reference: [docs/commands.md](docs/commands.md).
 
+## Reconcile an unknown-drift repository
+
+When you do not know which Wiki pages drifted, do not guess page IDs and do not
+run a blanket `wiki:verify`. In a coding-agent session, give it this one task:
+
+> Run `bun run wiki:reconcile` and complete the entire returned plan. Treat the
+> repository's current code and tests as the observed baseline for clear
+> behavior, update every current Wiki page to describe that behavior, open a
+> conflict wherever intent remains ambiguous, and finish the normal exact-HEAD
+> review and local gate.
+
+`wiki:reconcile` scans the complete current-page universe even when every source
+hash is fresh. Its deterministic text or `--json` plan reports ledger state,
+changed source paths, bounded source digests, conflicts, repository findings,
+and exact full-context/verification commands for every page. The command is
+read-only: it never edits project Wiki content or `.wiki/state.json`, never
+calls a model or network, and never claims that a fresh hash proves semantic
+agreement. The managed `AGENTS.md` rule tells the invoking coding agent to keep
+working through all returned pages rather than stopping after plan generation.
+
+After the agent reconciles Wiki, code, tests, and conflicts, it records each
+page with the returned `wiki:verify -- --page <id>` command, regenerates the
+deterministic views, runs audit/impact/tests, and completes independent
+preflight plus the canonical local result. This makes the user entrypoint
+zero-knowledge without turning the deterministic engine into a product-decision
+generator.
+
 ## Try it here
 
 This repository **dogfoods itself** — its own `wiki/` describes the toolkit, its gates run locally, and the exact result is published as the required GitHub commit status. Clone it and run:
@@ -94,6 +121,7 @@ bun run wiki:work        # repository-wide outstanding work, no query or ID requ
 bun run wiki:work -- --executor human  # human/either work to report and hand off
 bun run wiki:context -- "enforcement"   # compact authority/source routing before a change
 bun run wiki:context -- "enforcement" --full  # exhaustive page bodies when needed
+bun run wiki:reconcile   # all current pages when you do not know what drifted
 bun run wiki:scope -- --base origin/main # audit source/read/review breadth and its causes
 ```
 

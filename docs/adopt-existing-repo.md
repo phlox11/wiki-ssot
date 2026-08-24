@@ -110,6 +110,20 @@ For always-current generated pages (route tables, schema lists), implement `scri
 
 ## 5. Verify and go green
 
+If the existing repository has accumulated unknown drift, do not first guess
+which pages are stale. Ask the coding agent to run and complete the whole plan:
+
+```sh
+bun run wiki:reconcile
+```
+
+The plan includes every current page, including pages whose source hashes are
+already current. Follow every printed full-context command, update clear
+code-observed behavior in the Wiki, open conflicts for ambiguous intent, and
+run each page's verification command only after that comparison. The command is
+read-only and a blanket `bun run wiki:verify` is not a substitute for this
+semantic pass.
+
 ```sh
 bun run wiki:generated                 # write bounded index, catalog/status, graph, queues, maps, inventories
 bun run wiki:verify                    # record source hashes for all current pages

@@ -17,6 +17,7 @@ import {
 } from "./cli-runtime";
 import { validationHandlers } from "./cli-validation-handlers";
 import { handleScope } from "./cli-scope-handler";
+import { handleReconcile } from "./cli-reconciliation-handler";
 import { UsageError } from "./verification";
 
 export type { CliContext, CliContextOptions, CliIo };
@@ -71,6 +72,7 @@ export const CLI_HANDLERS: Readonly<Record<string, CliHandler>> = Object.freeze(
   audit: validationHandlers.audit,
   publish: validationHandlers.publish,
   scope: handleScope,
+  reconcile: handleReconcile,
 });
 
 /** Dispatch an already-created context, retaining the historical short-circuit order. */
@@ -96,6 +98,13 @@ export function dispatchCommand(context: CliContext): void {
   // failure result needs to be written/published so the required status is
   // not silently omitted. Legacy commands retain the loaded-page short-circuit.
   if (context.command === "publish" || (context.command === "check" && has(context.parsed, "output"))) {
+    handler?.(context);
+    return;
+  }
+
+  // Reconcile must receive malformed page-universe findings so it can emit a
+  // deterministic blocked plan instead of the generic eager-load error.
+  if (context.command === "reconcile") {
     handler?.(context);
     return;
   }

@@ -94,6 +94,21 @@ New installations contain no active GitHub Actions workflow. Their seeded versio
 
 ## Project-owned reconciliation
 
+For an installed repository with unknown accumulated drift, run the portable
+entrypoint without page IDs:
+
+```sh
+bun run wiki:reconcile
+```
+
+It creates a deterministic read-only plan over every current page, not merely
+the stale-hash subset, and includes exact context/verification commands plus
+coverage, generated, inventory, state, and conflict findings. The invoking
+coding agent must complete the entire plan: update clear code-observed
+contracts, open conflicts for ambiguity, and only then verify each page. The
+command never edits project-owned Wiki or `.wiki/state.json`, invokes a model,
+or claims that source-hash freshness proves semantic agreement.
+
 The seeded files are intentionally not upgraded. Review upstream changelog/contract changes, then update them only when the project needs it:
 
 - `.wiki/config.json` — project name, high-risk paths, local project-check argv, status context, and explicit review policy including the reasoned semantic-verify choice.

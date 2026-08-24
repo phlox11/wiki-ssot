@@ -87,13 +87,13 @@
   },
   "globs": [
     {
-      "glob": "scripts/wiki/{core,model,serialization,repository-view,page-validation,work-validation,discovery,context,scope,generated-views,kit-packaging,kit-growth-guard,review-bundle,cli-runtime,cli-render,cli-scope-handler,cli-discovery-handlers,cli-generation-handlers,cli-review-handlers,github-attestation}.ts",
+      "glob": "scripts/wiki/{core,model,serialization,repository-view,page-validation,work-validation,discovery,context,scope,reconciliation,generated-views,kit-packaging,kit-growth-guard,review-bundle,cli-runtime,cli-render,cli-scope-handler,cli-reconciliation-handler,cli-discovery-handlers,cli-generation-handlers,cli-review-handlers,github-attestation}.ts",
       "pages": [
         "operations/enforcement"
       ]
     },
     {
-      "glob": "scripts/wiki/{serialization,repository-view,page-validation,work-validation,discovery,scope,generated-views,kit-packaging,kit-growth-guard,verification,review-bundle,github-local-status,cli-runtime,cli-render,cli-scope-handler,cli-discovery-handlers,cli-generation-handlers,cli-validation-handlers,cli-review-handlers,cli,apply}.ts",
+      "glob": "scripts/wiki/{serialization,repository-view,page-validation,work-validation,discovery,scope,reconciliation,generated-views,kit-packaging,kit-growth-guard,verification,review-bundle,github-local-status,cli-runtime,cli-render,cli-scope-handler,cli-reconciliation-handler,cli-discovery-handlers,cli-generation-handlers,cli-validation-handlers,cli-review-handlers,cli,apply}.ts",
       "pages": [
         "product/invariants"
       ]
