@@ -13,6 +13,7 @@ All commands are `bun run wiki:<name>`; each maps to `bun scripts/wiki/cli.ts <n
 | `wiki:search -- "<terms>"` | Optional manual catalog exploration over page IDs, summaries, tags, and bodies. It uses the same deterministic matcher as topic context and remains compatible, but is not a required pre-step. | — |
 | `wiki:work` | With no query or ID, derive the complete proposal work graph and recommend the highest-priority active or ready `agent`/`either` item. The default text/JSON shows active, ready, waiting, and blocked details plus deferred/done counts; `--all` exposes deferred and done rows. `-- --executor agent` shows agent/either, `human` shows human/either for handoff, and `all` shows every executor; human-exclusive work is never auto-recommended. | — |
 | `wiki:context -- "<terms>"` | The default topic entrypoint: it performs deterministic matching and returns the current pages, open conflicts, non-current rationale, and sources an agent should read in one call. Query and `-- --work <ID>` default to a compact text/JSON projection with authority labels, paths, summaries, body digests, focused commands, mandatory `always` sources, catalog set descriptors, page-local conflict IDs, and an invariant → conflict → current-page → mandatory-source read order. Catalog descriptors carry the declaration/reason/count/bytes/digest and an expansion command, not every matched path. Add `--full` for the exhaustive body/source-complete representation. Complete matches keep the current selection semantics; partial-only matches return ordered compact candidates before source expansion, and each page candidate links to exact `-- --page <ID> --full` context. Also accepts `-- --conflict C-NNN` or `-- --base <ref>`; selectors cannot be combined. For a selected work item at a clean committed HEAD, `--work <ID> --artifact <path> --metadata <pr-body> --base <ref>` writes a bounded body-free handoff, while replacing `--artifact` with `--reuse` validates every binding before reuse. | — |
+| `wiki:reconcile` | Build a deterministic, read-only whole-repository reconciliation plan without requiring a page ID or known drift. It always includes every current page, even when its ledger hashes are fresh, and records each page's authority/path, ledger state, changed source paths, bounded source digest/count, open conflicts, and exact full-context and per-page verification commands. Repository structural, integration, coverage, generated, inventory, and state findings are included. `--json` exposes the stable machine projection and plan digest. `ready` means the complete plan was constructed, not that semantic reconciliation is already complete; malformed authority that prevents a complete page universe returns `blocked`. | agent reconciliation entrypoint |
 | `wiki:conflicts` | List open conflicts. `-- C-NNN` prints one resolution contract; `-- --all` includes resolved. | — |
 | `wiki:review-preflight -- --base <ref> --metadata <file> [--output <dir>] [--report <file>]` | Before opening a PR, classify risk from canonical metadata and configured signals, prepare the exact independent-review bundle, or validate the returned report. An enabled v2 `semanticVerify` selector selects canonical semantic `verify` metadata even when no path signal applies. Version 2 needs no PR-body report mirror or GitHub actor assertion. | pre-PR |
 | `wiki:review-bundle -- --base <ref> --metadata <file>` | Write a deterministic content-addressed bundle with `manifest.json`, `focused-manifest.json`, reviewer instructions, and a report example. Wiki/conflict bodies are stored once by digest; overlapping roles and changed/authority/test/supporting source classifications remain explicit and validated. | review input |
@@ -113,6 +114,23 @@ plus `wiki_action: verify` metadata independently selects review. The reviewer
 must name each changed user- or operator-observable behavior and cite the
 current-authority text that states it; relevance, fresh hashes, ledger
 freshness, and the unchanged reason are insufficient by themselves.
+
+### Whole-repository reconciliation without drift IDs
+
+Run `bun run wiki:reconcile` when the repository may have accumulated drift but
+you do not know which pages are affected. The command deliberately plans every
+current page instead of treating the stale subset as the semantic boundary. A
+coding agent follows each returned `wiki:context -- --page <id> --full`
+command, compares the current page with its implementation and tests, updates
+clear code-observed contracts, and creates an open conflict for ambiguous
+intent. Only then may it run the page's `wiki:verify` command. A bare
+`bun run wiki:verify` before that comparison is not reconciliation; it only
+replaces the hash ledger.
+
+The command performs no writes and has no model or provider adapter. Its text
+projection is for direct agent use; `--json` is stable orchestration input. The
+normal `wiki:generated`, audit, impact, independent review, canonical check,
+and publication sequence remains the completion boundary.
 
 Fresh-context review:
 

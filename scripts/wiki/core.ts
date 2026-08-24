@@ -174,6 +174,19 @@ import {
   reviewCheck,
 } from "./review-attestation";
 import {
+  buildReconciliationPlan,
+  reconcileRepository,
+  reconciliationText,
+  SEMANTIC_RECONCILIATION_SCOPE,
+} from "./reconciliation";
+import type {
+  ReconciliationFindingGroups,
+  ReconciliationLedgerState,
+  ReconciliationPage,
+  ReconciliationPlan,
+  ReconciliationStatus,
+} from "./reconciliation";
+import {
   aggregateFindings,
   buildRepositoryValidation,
   compareGenerated as compareGeneratedAggregate,
@@ -219,6 +232,10 @@ export {
   jsonStable,
   scopeReport,
   scopeText,
+  buildReconciliationPlan,
+  reconcileRepository,
+  reconciliationText,
+  SEMANTIC_RECONCILIATION_SCOPE,
 };
 export {
   aggregateFindings,
@@ -252,6 +269,11 @@ export type {
   WorkItem,
   WorkPriority,
   WorkState,
+  ReconciliationFindingGroups,
+  ReconciliationLedgerState,
+  ReconciliationPage,
+  ReconciliationPlan,
+  ReconciliationStatus,
 };
 export {
   buildWorkQueue,

@@ -38,6 +38,26 @@ Rules that follow:
 - Future behavior stays `proposed` until an implementation PR promotes it.
 - Updating a current page does not erase the repository's accumulated artifact: done work and resolved conflicts stay queryable, while ordinary revisions remain in Git. The generated current-status page makes those lifecycle totals visible without pretending that a selective changelog is append-only history.
 
+### Unknown-drift full reconciliation
+
+The zero-knowledge maintenance entrypoint is `wiki:reconcile`. It does not ask
+the caller to identify a stale page or changed source. Instead it constructs a
+deterministic plan over every current page, its bounded source digest and ledger
+state, open conflicts, and repository validation findings. Fresh hashes do not
+remove a page from the plan because they establish byte freshness only, not
+semantic agreement.
+
+The command remains on the deterministic side of the boundary: it is read-only,
+does not invoke a model or network, and never rewrites current Wiki text or the
+verification ledger. The managed agent rule supplies the execution semantics.
+For this explicit full-reconciliation request, clear behavior observed in code
+and tests is reflected into current Wiki; contradictory or decision-bearing
+evidence becomes an open conflict rather than invented intent. The coding agent
+must complete every page in the plan, update Wiki/code/tests together where
+needed, verify pages only after reconciliation, and pass the existing exact-HEAD
+review and local gate. Thus the user needs no prior drift inventory, while the
+engine still makes no claim that prose can be inferred mechanically from code.
+
 ## source → wiki → schema
 
 - **source:** version-controlled code, tests, contracts, migrations, and approved source documents.
@@ -48,7 +68,7 @@ Rules that follow:
 
 Enforcement is only real if it fires on events that always happen:
 
-1. **Session start** — every agent auto-reads the versioned typed rules rendered into the managed `AGENTS.md` block: a generic remaining-work request routes to the no-query repository queue, topic work routes directly through query-based context, and selected work routes through a compact projection of its current invariants, context pages, conflicts, sources, and explicitly non-current proposal owner. Stable digests and focused commands open the exhaustive `--full` representation only when needed. (Compliance rail.)
+1. **Session start** — every agent auto-reads the versioned typed rules rendered into the managed `AGENTS.md` block: a generic remaining-work request routes to the no-query repository queue, an unknown-drift full-sync request routes to the complete `wiki:reconcile` plan, topic work routes directly through query-based context, and selected work routes through a compact projection of its current invariants, context pages, conflicts, sources, and explicitly non-current proposal owner. Stable digests and focused commands open the exhaustive `--full` representation only when needed. (Compliance rail.)
 2. **Local commit** — a pre-commit hook runs the cheap structural lint on staged files; a pre-push hook blocks direct pushes to `main`. Bypassable feedback.
 3. **Pre-PR / pull request** — `wiki:review-preflight` prepares and validates independently reviewed reconciliation selected by explicit risk signals. Version 2 can additionally use canonical semantic metadata: when the reasoned `semanticVerify` selector is enabled, `semantic_change: true` plus `wiki_action: verify` requires reconciliation even without a matching path. The canonical local gate then runs deterministic repository checks. `wiki:publish` binds that exact result to the PR HEAD as a commit status; deployments may require that status for merge. GitHub displays the result but does not run the Wiki engine.
 
