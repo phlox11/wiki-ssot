@@ -11,8 +11,8 @@ The current contract is a mutable snapshot. Done work and resolved conflicts rem
 | Current pages | 4 |
 | Proposal pages | 6 |
 | Total work | 58 |
-| Outstanding work | 17 |
-| Done work | 41 |
+| Outstanding work | 12 |
+| Done work | 46 |
 | Total conflicts | 0 |
 | Open conflicts | 0 |
 | Resolved conflicts | 0 |
@@ -25,7 +25,7 @@ The current contract is a mutable snapshot. Done work and resolved conflicts rem
 
 ## Work and conflicts
 
-Recommended next: `LS-05`. Run `bun run wiki:context -- --work LS-05`.
+No agent-recommendable work is available; inspect the complete queue and open conflicts for details.
 
 See the [complete Wiki catalog](./catalog.md), [repository work queue](./work-queue.md), or run `bun run wiki:work`.
 

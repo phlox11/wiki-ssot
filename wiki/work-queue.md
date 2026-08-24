@@ -15,9 +15,9 @@ tags: [generated, work, queue]
 
 This is a deterministic view of structured `work_items` on proposal pages. It is not current product authority; open the owning proposal and then the returned current context.
 
-**Recommended next:** `LS-05` — run `bun run wiki:context -- --work LS-05`.
+**Recommended next:** none. Do not invent work; inspect blockers and open conflicts below.
 
-Outstanding work: 17. Completed work hidden: 41; run `bun run wiki:work -- --all` to inspect it.
+Outstanding work: 12. Completed work hidden: 46; run `bun run wiki:work -- --all` to inspect it.
 
 ## Active
 
@@ -29,16 +29,13 @@ Outstanding work: 17. Completed work hidden: 41; run `bun run wiki:work -- --all
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| LS-05 | critical | agent | [proposal/local-enforcement-scope-control](./proposals/local-enforcement-scope-control.md) | LS-04 | Define the semantic-verify configuration and migration contract | `bun run wiki:context -- --work LS-05` |
+| — | — | — | — | — | None | — |
 
 ## Waiting
 
 | ID | Priority | Executor | Owner page | Dependencies | Summary | Context |
 |---|---|---|---|---|---|---|
-| LS-06 | critical | agent | [proposal/local-enforcement-scope-control](./proposals/local-enforcement-scope-control.md) | LS-05 | Select independent review from canonical semantic metadata — Waiting on: LS-05 | `bun run wiki:context -- --work LS-06` |
-| LS-07 | high | agent | [proposal/local-enforcement-scope-control](./proposals/local-enforcement-scope-control.md) | LS-06 | Reconcile observable behavior against actual current authority — Waiting on: LS-06 | `bun run wiki:context -- --work LS-07` |
-| LS-08 | high | agent | [proposal/local-enforcement-scope-control](./proposals/local-enforcement-scope-control.md) | LS-07 | Ship portable defaults, migration guidance, and SSOT documentation — Waiting on: LS-07 | `bun run wiki:context -- --work LS-08` |
-| LS-09 | high | agent | [proposal/local-enforcement-scope-control](./proposals/local-enforcement-scope-control.md) | LS-08 | Validate the WorldSweeper-equivalent regression and exact combined delivery — Waiting on: LS-08 | `bun run wiki:context -- --work LS-09` |
+| — | — | — | — | — | None | — |
 
 ## Blocked
 
